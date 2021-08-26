@@ -1,5 +1,14 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
+from scipy.interpolate import splprep, splev
+
+"""
+We have the following functions:
+    1) delay embedding (scalar and multi-d time series)
+    2) standardize data
+    3) find nearest neighbours to a point
+    4) geodesic distance between two points (with and without smoothing spline)
+"""
 
 def delay_embed(x, k, tau=1, typ='asy'):
     """
@@ -14,7 +23,8 @@ def delay_embed(x, k, tau=1, typ='asy'):
     tau : int, optional
         Delay parameter. The default is 1.
     typ : TYPE, optional
-        DESCRIPTION. The default is 'asy'.
+        Embedding based on points on one side (asymmetric) of both side of
+        points (symmetric). The default is 'asy'.
 
     Returns
     -------
@@ -22,7 +32,6 @@ def delay_embed(x, k, tau=1, typ='asy'):
         Time asymmetric or symmetric embedking. The default is 'asy'..
 
     """
-    
     
     if len(x.shape)==1:
         x = x[:,None]
@@ -59,7 +68,8 @@ def delay_embed_scalar(x, k, tau=-1, typ='asy'):
     tau : int, optional
         Delay parameter. The default is 1.
     typ : 'asy', 'sym', optional
-        Time asymmetric or symmetric embedking. The default is 'asy'.
+        Embedding based on points on one side (asymmetric) of both side of
+        points (symmetric). The default is 'asy'.
 
     Returns
     -------
@@ -100,7 +110,7 @@ def delay_embed_scalar(x, k, tau=-1, typ='asy'):
     return Y
 
 
-def normalize_data(X, axis=0):
+def standardize_data(X, axis=0):
     """
     Normalize data
 
@@ -124,7 +134,7 @@ def normalize_data(X, axis=0):
     return X
 
 
-def find_nn(x_query,x,nn):
+def find_nn(x_query, x, nn, n_jobs=-1):
     """
     Find nearest neighbours of a point on the manifold
 
@@ -136,7 +146,9 @@ def find_nn(x_query,x,nn):
         Coordinates of n points on a manifold in d-dimensional space.
     nn : int
         Number of nearest neighbours.
-
+    n_jobs : int
+        Number of processors to use. The default is -1 (all processors).
+        
     Returns
     -------
     ind_nn : list[list]
@@ -159,4 +171,102 @@ def find_nn(x_query,x,nn):
     ind_nn = neigh.kneighbors(x_query, nn, return_distance=False)
     
     return ind_nn
+
+
+def geodesic_dist(ind1, ind2, x, interp=False):
+    """
+    Find the geodesic distance between points x1, x2
+
+    Parameters
+    ----------
+    ind1 : int
+        Index of first endpoint of geodesic.
+    ind2 : int
+        Index of second endpoint of geodesic.
+    x : nxd array (dimensions are columns!)
+        Coordinates of n points on a manifold in d-dimensional space.
+    interp : bool, optional
+        Interpolate between points. The default is 0.
+
+    Returns
+    -------
+    dist : float
+        Geodesic distance.
+
+    """
+    
+    assert ind1<ind2, 'First point must be before second point!'
+    
+    if interp:
+        #compute spline through points
+        tck, u = fit_spline(x.T, degree=3, smoothing=0.0, per_bc=0)
+        u_int = [u[ind1], u[ind2]]
+        x = eval_spline(tck, u_int, n=1000)
+    else:
+        x = x[ind1:ind2,:]
+    
+    dij = np.diff(x, axis=0)
+    dij *= dij
+    dij = dij.sum(1)
+    dij = np.sqrt(dij)
+        
+    dist = dij.sum()
+        
+    return dist
+
+
+def fit_spline(x, degree=3, smoothing=0.0, per_bc=0):
+    """
+    Fit spline to points
+
+    Parameters
+    ----------
+    x : nxd array (dimensions are columns!)
+        Coordinates of n points on a manifold in d-dimensional space.
+    degree : int, optional
+        Order of spline. The default is 3.
+    smoothing : float, optional
+        Smoothing. The default is 0.0.
+    per_bc : bool, optional
+        Periodic boundary conditions (for closed curve). The default is 0.
+
+    Returns
+    -------
+    tck : TYPE
+        DESCRIPTION.
+    u : TYPE
+        DESCRIPTION.
+
+    """
+    
+    tck, u = splprep(x, u=None, s=smoothing, per=per_bc, k=degree) 
+    
+    return tck, u
+
+
+def eval_spline(tck, u_int, n=100):
+    """
+    Evaluate points on spline
+
+    Parameters
+    ----------
+    tck : tuple (t,c,k)
+        Vector of knots returned by splprep().
+    u_int : list
+        Parameter interval to evaluate the spline.
+    n : int, optional
+        Number of points to evaluate. The default is 100.
+
+    Returns
+    -------
+    x_spline : TYPE
+        DESCRIPTION.
+
+    """
+    
+    u = np.linspace(u_int[0], u_int[1], n)
+    x_spline = splev(u, tck, der=0)
+    x_spline = np.vstack(x_spline).T
+    
+    return x_spline
     

@@ -23,7 +23,7 @@ dim = 3
 Yx = delay_embed(X[:, 0],dim,tau)
 
 #normalize attractor
-Yx_norm = normalize_data(Yx)
+Yx_norm = standardize_data(Yx)
 
 #plot
 fig = plt.figure()
@@ -32,3 +32,6 @@ ax2.plot(Yx_norm[:, 0], Yx_norm[:, 1], Yx_norm[:, 2])
 
 #find nearest neighbor
 nb=find_nn([Yx[0]],Yx,nn=2)
+
+#find geodesic distance between two points 
+dist = geodesic_dist(0, 10, Yx, interp=False)
