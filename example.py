@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from DE_library import simulate_ODE
+from solvers import simulate_ODE
 from main import *
 
 #Lorenz system
