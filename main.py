@@ -1,5 +1,5 @@
 import numpy as np
-
+from sklearn.neighbors import NearestNeighbors
 
 def delay_embed(x, k, tau=1, typ='asy'):
     """
@@ -98,3 +98,65 @@ def delay_embed_scalar(x, k, tau=-1, typ='asy'):
             Y[:,ki] = x[ind]
             
     return Y
+
+
+def normalize_data(X, axis=0):
+    """
+    Normalize data
+
+    Parameters
+    ----------
+    X : nxd array (dimensions are columns!)
+        Coordinates of n points on a manifold in d-dimensional space..
+    axis : 0,1, optional
+        Dimension to normalize. The default is 0 (along dimensions).
+
+    Returns
+    -------
+    X : nxd array (dimensions are columns!)
+        Normalized data.
+
+    """
+    
+    X -= np.mean(X, axis=axis, keepdims=True)
+    X /= np.std(X, axis=axis, keepdims=True)
+        
+    return X
+
+
+def find_nn(x_query,x,nn):
+    """
+    Find nearest neighbours of a point on the manifold
+
+    Parameters
+    ----------
+    x_query : 2d array, list[list] or list[array]
+        Coordinates of points whose nearest neighbours are needed.
+    x : nxd array (dimensions are columns!)
+        Coordinates of n points on a manifold in d-dimensional space.
+    nn : int
+        Number of nearest neighbours.
+
+    Returns
+    -------
+    ind_nn : list[list]
+        Index of nearest neighbours.
+
+    """
+    
+    assert len(np.array(x_query).shape)==2, 'Query points are not in correct format.'
+    
+    neigh = NearestNeighbors(n_neighbors=nn,
+                             algorithm='auto',
+                             metric='minkowski',
+                             p=2,
+                             n_jobs=-1)
+    
+    #Fit neighbours estimator object
+    neigh.fit(x)
+    
+    #Ask for nearest neighbours
+    ind_nn = neigh.kneighbors(x_query, nn, return_distance=False)
+    
+    return ind_nn
+    
