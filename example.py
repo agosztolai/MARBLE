@@ -17,9 +17,9 @@ ax1 = fig.gca(projection="3d")
 ax1.plot(X[:, 0], X[:, 1], X[:, 2])
 
 #delay embed time series
-tau = 1
+tau = -1
 dim = 3
-Yx = delay_embed(X[:, 0],dim,tau,typ='sym')
+Yx = delay_embed(X[:, 0],dim,tau)
 fig = plt.figure()
 ax2 = fig.gca(projection="3d")
 ax2.plot(Yx[:, 0], Yx[:, 1], Yx[:, 2])

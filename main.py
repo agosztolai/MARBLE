@@ -32,7 +32,7 @@ def delay_embed(x, k, tau=1, typ='asy'):
     #delay embed all dimensions
     Y = []
     for d in range(dim):
-        Ytmp = delay_embed_scalar(x[:,d], k, tau=1, typ='asy')
+        Ytmp = delay_embed_scalar(x[:,d], k, tau, typ='asy')
         Y.append(Ytmp)
     
     #interleave dimensions
@@ -45,7 +45,7 @@ def delay_embed(x, k, tau=1, typ='asy'):
     return Yd
 
 
-def delay_embed_scalar(x, k, tau=1, typ='asy'):
+def delay_embed_scalar(x, k, tau=-1, typ='asy'):
     """
     Delay-embedding for scalar time-series x(t).
     Builds prekictive coorkinates Y=[x(t), x(t-tau), ..., x(t-(k-1)*tau)]
@@ -68,6 +68,13 @@ def delay_embed_scalar(x, k, tau=1, typ='asy'):
 
     """
     
+    #check if delay is in past (predictive embedding)
+    if tau<0:
+        tau = abs(tau)
+        flip = True
+    else:
+        flip = False
+        
     T = x.shape[0] #length of time series
     N = T - (k-1)*tau # length of embedded signal
     Y = np.zeros([N,k])
@@ -76,6 +83,9 @@ def delay_embed_scalar(x, k, tau=1, typ='asy'):
         for ki in range(k):
             ind = np.arange(ki*tau, N+ki*tau)
             Y[:,ki] = x[ind]
+            
+        if flip:
+            Y = np.flip(Y, axis=1)
             
     elif typ == 'sym' and k % 2 == 0:
         for ki in range(-k//2,k//2):
