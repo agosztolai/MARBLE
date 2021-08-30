@@ -134,7 +134,7 @@ def standardize_data(X, axis=0):
     return X
 
 
-def find_nn(x_query, x, nn, n_jobs=-1):
+def find_nn(x_query, X, nn, n_jobs=-1):
     """
     Find nearest neighbours of a point on the manifold
 
@@ -165,7 +165,7 @@ def find_nn(x_query, x, nn, n_jobs=-1):
                              n_jobs=-1)
     
     #Fit neighbours estimator object
-    neigh.fit(x)
+    neigh.fit(X)
     
     #Ask for nearest neighbours
     ind_nn = neigh.kneighbors(x_query, nn, return_distance=False)
@@ -215,13 +215,13 @@ def geodesic_dist(ind1, ind2, x, interp=False):
     return dist
 
 
-def fit_spline(x, degree=3, smoothing=0.0, per_bc=0):
+def fit_spline(X, degree=3, smoothing=0.0, per_bc=0):
     """
     Fit spline to points
 
     Parameters
     ----------
-    x : nxd array (dimensions are columns!)
+    X : nxd array (dimensions are columns!)
         Coordinates of n points on a manifold in d-dimensional space.
     degree : int, optional
         Order of spline. The default is 3.
@@ -239,7 +239,7 @@ def fit_spline(x, degree=3, smoothing=0.0, per_bc=0):
 
     """
     
-    tck, u = splprep(x, u=None, s=smoothing, per=per_bc, k=degree) 
+    tck, u = splprep(X, u=None, s=smoothing, per=per_bc, k=degree) 
     
     return tck, u
 
@@ -269,4 +269,37 @@ def eval_spline(tck, u_int, n=100):
     x_spline = np.vstack(x_spline).T
     
     return x_spline
+
+
+def random_projection(X, dim_out=1, seed=1):
+    """
+    Randomly project dynamical system to a low dimensional plane
+
+    Parameters
+    ----------
+    X : nxd array (dimensions are columns!)
+        Coordinates of n points on a manifold in d-dimensional space.
+    dim_out : int, optional
+        Dimension of the projection plane. The default is 1 (scalar time 
+                                                             series).
+
+    Returns
+    -------
+    x_proj : nxdim_out array
+        Projected dynamics.
+
+    """
+    
+    from scipy.stats import special_ortho_group
+    from numpy.random import RandomState
+    
+    dim = X.shape[1]
+    rs = RandomState(seed)
+    
+    R = special_ortho_group.rvs(dim, random_state=rs)
+    
+    x_proj = np.matmul(R, X.T).T
+    x_proj = x_proj[:,:dim_out]
+    
+    return x_proj
     
