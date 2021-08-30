@@ -134,23 +134,25 @@ def standardize_data(X, axis=0):
     return X
 
 
-def find_nn(x_query, X, nn, n_jobs=-1):
+def find_nn(x_query, X, nn=1, n_jobs=-1):
     """
     Find nearest neighbours of a point on the manifold
 
     Parameters
     ----------
-    x_query : 2d array, list[list] or list[array]
-        Coordinates of points whose nearest neighbours are needed.
+    x_query : int or 2d array, list[list] or list[array]
+        Index or coordinates of points whose nearest neighbours are needed.
     x : nxd array (dimensions are columns!)
         Coordinates of n points on a manifold in d-dimensional space.
-    nn : int
-        Number of nearest neighbours.
-    n_jobs : int
+    nn : int, optional
+        Number of nearest neighbours. The default is 1.
+    n_jobs : int, optional
         Number of processors to use. The default is -1 (all processors).
         
     Returns
     -------
+    dist_nn : list[list]
+        Distance of nearest neighbours.
     ind_nn : list[list]
         Index of nearest neighbours.
 
@@ -168,9 +170,9 @@ def find_nn(x_query, X, nn, n_jobs=-1):
     neigh.fit(X)
     
     #Ask for nearest neighbours
-    ind_nn = neigh.kneighbors(x_query, nn, return_distance=False)
+    dist_nn, ind_nn = neigh.kneighbors(x_query, nn+1, return_distance=True)
     
-    return ind_nn
+    return dist_nn, ind_nn
 
 
 def geodesic_dist(ind1, ind2, x, interp=False):
@@ -302,4 +304,30 @@ def random_projection(X, dim_out=1, seed=1):
     x_proj = x_proj[:,:dim_out]
     
     return x_proj
+
+
+# def embed_MDS(Y, dim=2):
+#     """
+#     Embed the feature distances into a lower dimensional space.
+
+#     Parameters
+#     ----------
+#     Y : nxn matrix of feature distances
+#         DESCRIPTION.
+#     dim : int, optional
+#         Dimension of embedding space. The default is 2.
+
+#     Returns
+#     -------
+#     X_trnsf : TYPE
+#         DESCRIPTION.
+
+#     """
     
+#     from sklearn.manifold import MDS
+    
+#     embedding = MDS(n_components=dim)
+    
+#     X_trnsf = embedding.fit_transform(Y)
+    
+#     return X_trnsf
