@@ -3,6 +3,119 @@
 
 import numpy as np
 
+"""
+Library of standard dynamical systems
+
+"""
+
+def fun_saddle_node(P = {'mu': 1}):
+    """Prototypical system exhibiting a saddle node bifurcation at mu=0"""
+    
+    def f(t, X):
+        x, y = X
+        f1 = P['mu'] - x**2
+        f2 = -y
+        
+        return [f1, f2]
+    
+    def jac(t, X):
+        x, y = X
+        dfdx = [-2*x, 0.0]
+        dfdy = [0.0, -1.0]
+        
+        return [dfdx, dfdy]
+    
+
+def fun_trans_pitch(P = {'mu': 1}):
+    """Prototypical system exhibiting a *transcritical* pitchfork bifurcation at mu=0"""
+    
+    def f(t, X):
+        x, y = X
+        f1 = P['mu']*x - x**2
+        f2 = -y
+        
+        return [f1, f2]
+    
+    def jac(t, X):
+        x, y = X
+        dfdx = [P['mu']-2*x, 0.0]
+        dfdy = [0.0, -1.0]
+        
+        return [dfdx, dfdy]
+    
+    
+def fun_sup_pitch(P = {'mu': 1}):
+    """Prototypical system exhibiting a *supercritical* pitchfork bifurcation at mu=0"""
+    
+    def f(t, X):
+        x, y = X
+        f1 = P['mu']*x - x**3
+        f2 = -y
+        
+        return [f1, f2]
+    
+    def jac(t, X):
+        x, y = X
+        dfdx = [P['mu']-3*x**2, 0.0]
+        dfdy = [0.0, -1.0]
+        
+        return [dfdx, dfdy]
+    
+    
+def fun_sub_pitch(P = {'mu': 1}):
+    """Prototypical system exhibiting a *subcritical* pitchfork bifurcation at mu=0"""
+    
+    def f(t, X):
+        x, y = X
+        f1 = P['mu']*x + x**3
+        f2 = -y
+        
+        return [f1, f2]
+    
+    def jac(t, X):
+        x, y = X
+        dfdx = [P['mu']+3*x**2, 0.0]
+        dfdy = [0.0, -1.0]
+        
+        return [dfdx, dfdy]
+    
+    
+def fun_sup_hopf(P = {'mu': 1, 'omega': 1, 'b': 1}):
+    """Prototypical system exhibiting a *supercritical* Hopf bifurcation at mu=0"""
+    
+    def f(t, X):
+        x, y = X
+        f1 = P['mu']*x - x**3
+        f2 = P['omega'] + P['b']*x**2
+        
+        return [f1, f2]
+    
+    def jac(t, X):
+        x, y = X
+        dfdx = [P['mu']-3*x**2, 0.0]
+        dfdy = [2*P['b']*x, 0.0]
+        
+        return [dfdx, dfdy]
+    
+    
+def fun_sub_hopf(P = {'mu': 1, 'omega': 1, 'b': 1}):
+    """Prototypical system exhibiting a *subcritical* Hopf bifurcation at mu=0"""
+    
+    def f(t, X):
+        x, y = X
+        f1 = P['mu']*x + x**3 - x**5
+        f2 = P['omega'] + P['b']*x**2
+        
+        return [f1, f2]
+    
+    def jac(t, X):
+        x, y = X
+        dfdx = [P['mu']+3*x**2-5*x**4, 0.0]
+        dfdy = [2*P['b']*x, 0.0]
+        
+        return [dfdx, dfdy]
+        
+
 def fun_double_pendulum(P = {'b': 0.05, 'g': 9.81, 'l': 1.0, 'm': 1.0}):
     """Double pendulum"""
     
