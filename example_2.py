@@ -80,10 +80,3 @@ for i in range(m):
 print(X[obs_i][t][0] - x_pred/m)
 
 ax3.scatter(X[obs_i][t, 0],X[obs_i][t, 1],X[obs_i][t, 2],c='r')
-
-
-#find geodesic distance between two points 
-# dist = geodesic_dist(0, 10, Yx, interp=False)
-# print(dist)
-
-

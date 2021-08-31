@@ -25,6 +25,8 @@ def fun_saddle_node(P = {'mu': 1}):
         
         return [dfdx, dfdy]
     
+    return f, jac
+    
 
 def fun_trans_pitch(P = {'mu': 1}):
     """Prototypical system exhibiting a *transcritical* pitchfork bifurcation at mu=0"""
@@ -42,6 +44,8 @@ def fun_trans_pitch(P = {'mu': 1}):
         dfdy = [0.0, -1.0]
         
         return [dfdx, dfdy]
+    
+    return f, jac
     
     
 def fun_sup_pitch(P = {'mu': 1}):
@@ -61,6 +65,8 @@ def fun_sup_pitch(P = {'mu': 1}):
         
         return [dfdx, dfdy]
     
+    return f, jac
+
     
 def fun_sub_pitch(P = {'mu': 1}):
     """Prototypical system exhibiting a *subcritical* pitchfork bifurcation at mu=0"""
@@ -78,6 +84,8 @@ def fun_sub_pitch(P = {'mu': 1}):
         dfdy = [0.0, -1.0]
         
         return [dfdx, dfdy]
+    
+    return f, jac
     
     
 def fun_sup_hopf(P = {'mu': 1, 'omega': 1, 'b': 1}):
@@ -97,6 +105,8 @@ def fun_sup_hopf(P = {'mu': 1, 'omega': 1, 'b': 1}):
         
         return [dfdx, dfdy]
     
+    return f, jac
+    
     
 def fun_sub_hopf(P = {'mu': 1, 'omega': 1, 'b': 1}):
     """Prototypical system exhibiting a *subcritical* Hopf bifurcation at mu=0"""
@@ -114,6 +124,8 @@ def fun_sub_hopf(P = {'mu': 1, 'omega': 1, 'b': 1}):
         dfdy = [2*P['b']*x, 0.0]
         
         return [dfdx, dfdy]
+    
+    return f, jac
         
 
 def fun_double_pendulum(P = {'b': 0.05, 'g': 9.81, 'l': 1.0, 'm': 1.0}):

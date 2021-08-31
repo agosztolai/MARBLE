@@ -3,7 +3,7 @@
 
 from scipy.integrate import ode, odeint
 import sys
-from DE_library.ODE_library import *
+from ODE_library import *
 
 def simulate_ODE(whichmodel, t, X0, P=None):
     """
@@ -29,7 +29,7 @@ def simulate_ODE(whichmodel, t, X0, P=None):
 
     """
     
-    f, jac = load_ODE(whichmodel, P=None)
+    f, jac = load_ODE(whichmodel, P=P)
     X = solve_ODE(f, jac, t, X0)
     
     return X
