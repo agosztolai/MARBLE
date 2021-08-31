@@ -88,40 +88,41 @@ def fun_sub_pitch(P = {'mu': 1}):
     return f, jac
     
     
-def fun_sup_hopf(P = {'mu': 1, 'omega': 1, 'b': 1}):
-    """Prototypical system exhibiting a *supercritical* Hopf bifurcation at mu=0"""
+def fun_hopf(P = {'beta': 1, 'sigma': -1}):
+    """Prototypical system exhibiting a Hopf bifurcation at mu=0. 
+    Supercritical for sigma=-1 and subcritical for sigma=+1"""
     
     def f(t, X):
         x, y = X
-        f1 = P['mu']*x - x**3
-        f2 = P['omega'] + P['b']*x**2
+        f1 = P['beta']*x - y + P['sigma']*x*(x**2+y**2)
+        f2 = x + P['beta']*y + P['sigma']*y*(x**2+y**2)
         
         return [f1, f2]
     
     def jac(t, X):
         x, y = X
-        dfdx = [P['mu']-3*x**2, 0.0]
-        dfdy = [2*P['b']*x, 0.0]
+        dfdx = [P['beta']+P['sigma']*(3*x**2+y**2), -1+2*P['sigma']*x*y]
+        dfdy = [1+2*P['sigma']*y*x, P['beta']+P['sigma']*(3*y**2+x**2)]
         
         return [dfdx, dfdy]
     
     return f, jac
-    
-    
-def fun_sub_hopf(P = {'mu': 1, 'omega': 1, 'b': 1}):
-    """Prototypical system exhibiting a *subcritical* Hopf bifurcation at mu=0"""
+
+
+def fun_lotka_volterra(P = {'k': 0.3, 'c': 0.39}):
+    """Lotka-Volterra model"""
     
     def f(t, X):
         x, y = X
-        f1 = P['mu']*x + x**3 - x**5
-        f2 = P['omega'] + P['b']*x**2
+        f1 = x*(1-x) - x*y/(x+P['c'])
+        f2 = -P['k']*y + x*y
         
         return [f1, f2]
     
     def jac(t, X):
         x, y = X
-        dfdx = [P['mu']+3*x**2-5*x**4, 0.0]
-        dfdy = [2*P['b']*x, 0.0]
+        dfdx = [1-2*x-y*(2*x+P['c'])/(x+P['c'])**2, -x/(x+P['c'])]
+        dfdy = [y, -P['k'] + x]
         
         return [dfdx, dfdy]
     
@@ -193,7 +194,7 @@ def fun_rossler(P = {'a': 0.15, 'b': 0.2, 'c': 10.0}):
 
 
 def fun_vanderpol(P = {'mu': 1.}):
-    """Van der Pol oscillator"""
+    """Van der Pol oscillator, undergoes a degenerate Hofp bifurcation at mu=0"""
     
     def f(t, X):
         x, y = X

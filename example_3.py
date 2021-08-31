@@ -15,18 +15,22 @@ T = 10
 mu, sigma = 0, 1 # mean and standard deviation
 
 #Lorenz system
-x0 = [-8.0, 7.0] 
-par = {'mu': 1, 'omega': 1, 'b': 1}
-fun = 'sup_hopf'
+x0 = [0.1,0.1] 
+par = {'beta': 1, 'sigma': -1}
+fun = 'hopf'
+# par = {'mu': 1}
+# fun = 'vanderpol'
+# par = {'k': 0.3, 'c': 0.39}
+# fun = 'lotka_volterra'
 
 #simulate Lorenz system
 t = np.linspace(0, T, L)
 X = simulate_ODE(fun, t, x0, par)
-X += np.random.normal(mu, sigma, size = (L,2))
+# X += np.random.normal(mu, sigma, size = (L,2))
 
 fig = plt.figure()
 ax0 = plt.axes()
-ax0.plot(t, X)
+ax0.plot(X[:,0], X[:,1])
 
 # #Obtain scalar time series by random projections (rotating the global 
 # #coordinate system to random angles and then taking the first coordinate)
