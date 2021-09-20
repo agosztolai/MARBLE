@@ -1,7 +1,9 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 from scipy.interpolate import splprep, splev
+from scipy.spatial import ConvexHull
 import matplotlib.pyplot as plt
+
 
 """
 We have the following functions:
@@ -174,22 +176,109 @@ def find_nn(x_query, X, nn=1, n_jobs=-1):
     neigh.fit(X)
     
     #Ask for nearest neighbours
-    dist_nn, ind_nn = neigh.kneighbors(x_query, nn+1, return_distance=True)
-    dist_nn = np.squeeze(dist_nn)[1:]
-    ind_nn = np.squeeze(ind_nn)[1:]
+    dist_nn, ind_nn = neigh.kneighbors(x_query, nn+3, return_distance=True)
+    ind_nn = ind_nn[dist_nn>0].reshape(-1,dist_nn.shape[0])
+    dist_nn = dist_nn[dist_nn>0].reshape(-1,dist_nn.shape[0])
     
-    return dist_nn, ind_nn
+    return dist_nn[:,:nn], ind_nn[:,:nn]
 
 
-def geodesic_dist(ind1, ind2, x, interp=False):
+def valid_flows(t_sample, ts, tt=None, T=1):
+    """
+    Check which time intervals correspond to valid trajectories.
+
+    Parameters
+    ----------
+    t_sample : list[int]
+        Time indives corresponding to the sampled short trajectories.
+    ts : list[int]
+        Start of trajectory.
+    tt : list[int], optional
+        End of trajectory. The default is None.
+    T : int or list[int], optional
+        Time horizons. The default is 1.
+
+    Returns
+    -------
+    tt : list[int]
+        Start of trajectory.
+    ts : list[int]
+        End of trajectory.
+
+    """
+    
+    r,c = ts.shape
+    ts = ts.flatten()
+    
+    if type(T) is int:
+        T *= np.ones_like(ts)
+        
+    if tt is None:
+        tt = [ts[i]+T[i] for i in range(len(ts))]
+    else:
+        assert len(tt)==len(ts), 'Number of source points must equal to the \
+            number of target points.'
+            
+    t_breaks = np.zeros_like(t_sample)
+    t_breaks[t_sample==0] = 1
+    
+    ok = np.ones_like(tt)
+    for i,t in enumerate(zip(ts,tt)):
+        ok[i] = np.sum(t_breaks[t[0]:t[1]])==0
+        
+    tt = [tt[i] if ok[i]==1 else 0 for i in range(len(ok))]
+    ts = [ts[i] if ok[i]==1 else 0 for i in range(len(ok))]
+    
+    ts = np.array(ts).reshape(r,c)
+    tt = np.array(tt).reshape(r,c)
+        
+    return ts, tt
+    
+
+def all_geodesic_dist(X, ts, tt, interp=False):
+    """
+    Compute all geodesic distances 
+
+    Parameters
+    ----------
+    X : np array
+        Datapoints.
+    tt : list[int]
+        Start of trajectory.
+    ts : list[int]
+        End of trajectory.
+    interp : bool, optional
+        Cubic interpolation between points. The default is false.
+
+    Returns
+    -------
+    dst : np.array
+        Geodesic distance from a set of timepoints with horizon T.
+
+    """
+    
+    r,c = ts.shape
+    ts = ts.flatten()
+    tt = tt.flatten()
+            
+    dst = []
+    for s,t in zip(ts,tt):
+        dst.append(geodesic_dist(s, t, X, interp=interp))
+        
+    dst = np.array(dst).reshape(r,c)
+    
+    return dst
+
+
+def geodesic_dist(s, t, x, interp=False):
     """
     Find the geodesic distance between points x1, x2
 
     Parameters
     ----------
-    ind1 : int
+    s : int
         Index of first endpoint of geodesic.
-    ind2 : int
+    t : int
         Index of second endpoint of geodesic.
     x : nxd array (dimensions are columns!)
         Coordinates of n points on a manifold in d-dimensional space.
@@ -203,15 +292,15 @@ def geodesic_dist(ind1, ind2, x, interp=False):
 
     """
     
-    assert ind1<ind2, 'First point must be before second point!'
+    assert s<t, 'First point must be before second point!'
     
     if interp:
         #compute spline through points
         tck, u = fit_spline(x.T, degree=3, smoothing=0.0, per_bc=0)
-        u_int = [u[ind1], u[ind2]]
+        u_int = [u[s], u[t]]
         x = eval_spline(tck, u_int, n=1000)
     else:
-        x = x[ind1:ind2,:]
+        x = x[s:t+1,:]
     
     dij = np.diff(x, axis=0)
     dij *= dij
@@ -221,7 +310,7 @@ def geodesic_dist(ind1, ind2, x, interp=False):
     dist = dij.sum()
         
     return dist
-
+    
 
 def fit_spline(X, degree=3, smoothing=0.0, per_bc=0):
     """
@@ -367,15 +456,92 @@ def plot_trajectories(X, ax=None, style='o', color='multi', lw=1, ms=5):
         if dim==2:
             ax.plot(X_l[:, 0], X_l[:, 1], style, c=c, linewidth=lw, markersize=ms)
             if style=='-':
-                ax.scatter(X_l[0, 0], X_l[0, 1], c=c, s=ms)
+                ax.scatter(X_l[0, 0], X_l[0, 1], c=c, s=ms, facecolors='none')
                 ax.scatter(X_l[-1, 0], X_l[-1, 1], c=c, s=ms)
         if dim==3:
             ax.plot(X_l[:, 0], X_l[:, 1], X_l[:, 2], style, c=c, linewidth=lw, markersize=ms)
             if style=='-':
-                ax.scatter(X_l[0, 0], X_l[0, 1], X_l[0, 2], c=c, s=ms)
+                ax.scatter(X_l[0, 0], X_l[0, 1], X_l[0, 2], c=c, s=ms, facecolors='none')
                 ax.scatter(X_l[-1, 0], X_l[-1, 1], X_l[-1, 2], c=c, s=ms)
         
     return ax
+
+
+def curvature(t_nn, dst):
+    """
+    Compute manifold curvature at a given set of points.
+
+    Parameters
+    ----------
+    dst : np.array
+        Geodesic distances for all points in the manifold (with a given time 
+                                                           horizon, T).
+        First row corresponds to geodesic distance on the manifold from a 
+        set of points x(t) to points x(t+T).
+        Rows from 2 to n correspond to geodesic distances between x(nn_t) and
+        x(nn_t(t)+T), where nn_i(t) is the index of the nearest neighbour of 
+        x_i(t) on attractor i.
+
+    Returns
+    -------
+    kappa : list[float]
+        List of curvature at timepoints t.
+
+    """
+
+    kappa = 1-np.mean(dst[1:,:],axis=0)/dst[0,:]
+        
+    return kappa
+
+
+def volume_simplex(X,t):
+    """
+    Volume of convex hull of points
+
+    Parameters
+    ----------
+    X : np.array
+        Points on manifold.
+    t : list[int]
+        Time index of simplex vertices.
+
+    Returns
+    -------
+    V : float
+        Volume of simplex.
+
+    """
+    
+    n = X.shape[0]
+    X_vertex = X[t.flatten(),:]
+    ch = ConvexHull(X_vertex)
+    
+    return ch.volume
+
+
+def unstack(X, t_sample):
+    """
+    Unstack attractor into ensemble of individual trajectories.
+
+    Parameters
+    ----------
+    X : np.array
+        Attractor.
+    t_sample : list[list]
+        Time indices of the individual trajectories.
+
+    Returns
+    -------
+    X_unstack : list[np.array]
+        Ensemble of trajectories.
+
+    """
+    
+    X_unstack = []
+    for t in t_sample:
+        X_unstack.append(X[t,:])
+        
+    return X_unstack
 
 
 

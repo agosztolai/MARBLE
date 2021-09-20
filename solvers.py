@@ -137,6 +137,8 @@ def sample_trajectories(X, n, T, t0=0.1, stack=True, seed=None):
 
     Returns
     -------
+    t_sample : list(list)
+        Time indices in the original attrator
     X_sample : list[array]
         n sampled trajectories.
 
@@ -151,8 +153,12 @@ def sample_trajectories(X, n, T, t0=0.1, stack=True, seed=None):
     ts = np.random.choice(ind, size=n, replace=True)
     
     X_sample = generate_flow(X, ts, T=T, stack=stack)
+    
+    t_sample = []
+    for i in range(n):
+        t_sample+=list(np.arange(0,T))
         
-    return X_sample
+    return t_sample, X_sample
 
 
 def generate_flow(X, ts, tt=None, T=10, stack=False):
@@ -179,11 +185,15 @@ def generate_flow(X, ts, tt=None, T=10, stack=False):
 
     """
     
-    tt = [t+T for t in ts]
+    if tt is None:
+        tt = [t+T for t in ts]
+    else:
+        assert len(tt)==len(ts), 'Number of source points must equal to the \
+            number of target points.'
     
     X_sample = []
     for s,t in zip(ts,tt):
-        X_sample.append(X[s:t,:])
+        X_sample.append(X[s:t+1,:])
         
     if stack:
         X_sample = np.vstack(X_sample)
