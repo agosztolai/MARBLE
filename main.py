@@ -1,13 +1,16 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 from scipy.interpolate import splprep, splev
+import matplotlib.pyplot as plt
 
 """
 We have the following functions:
-    1) delay embedding (scalar and multi-d time series)
-    2) standardize data
-    3) find nearest neighbours to a point
-    4) geodesic distance between two points (with and without smoothing spline)
+    1) delay_embed, delay_embed_scalar: delay embedding (scalar and multi-d time series)
+    2) standardize_data: standardize data
+    3) find_nn: find nearest neighbours to a point
+    4) geodesic_dist: geodesic distance between two points (with and without smoothing spline)
+    5) random_projection: obtain scalar time series by random projections
+    6) plot_phase_space: plot phase space in 2D or 3D
 """
 
 def delay_embed(x, k, tau=1, typ='asy'):
@@ -140,8 +143,8 @@ def find_nn(x_query, X, nn=1, n_jobs=-1):
 
     Parameters
     ----------
-    x_query : int or 2d array, list[list] or list[array]
-        Index or coordinates of points whose nearest neighbours are needed.
+    x_query : 2d np array, list[2d np array]
+        Coordinates of points whose nearest neighbours are needed.
     x : nxd array (dimensions are columns!)
         Coordinates of n points on a manifold in d-dimensional space.
     nn : int, optional
@@ -157,8 +160,9 @@ def find_nn(x_query, X, nn=1, n_jobs=-1):
         Index of nearest neighbours.
 
     """
-    
-    assert len(np.array(x_query).shape)==2, 'Query points are not in correct format.'
+        
+    if type(x_query) is list:
+        x_query = np.vstack(x_query)
     
     neigh = NearestNeighbors(n_neighbors=nn,
                              algorithm='auto',
@@ -171,6 +175,8 @@ def find_nn(x_query, X, nn=1, n_jobs=-1):
     
     #Ask for nearest neighbours
     dist_nn, ind_nn = neigh.kneighbors(x_query, nn+1, return_distance=True)
+    dist_nn = np.squeeze(dist_nn)[1:]
+    ind_nn = np.squeeze(ind_nn)[1:]
     
     return dist_nn, ind_nn
 
@@ -304,6 +310,73 @@ def random_projection(X, dim_out=1, seed=1):
     x_proj = x_proj[:,:dim_out]
     
     return x_proj
+
+
+def plot_trajectories(X, ax=None, style='o', color='multi', lw=1, ms=5):
+    """
+    Plot trajectory in phase space in dim dimensions. If multiple trajectories
+    are given, they are plotted with different colors.
+
+    Parameters
+    ----------
+    X : np array or list[np array]
+        Trajectories.
+    style : string
+        Plotting style. The default is 'o'.
+    color: bool
+        Color lines. The default is True.
+    lw : int
+        Line width.
+    ms : int
+        Marker size.
+
+    Returns
+    -------
+    ax : matplotlib axes object.
+
+    """
+    
+    if type(X) is list:
+        dim = X[0].shape[1]
+    else:
+        dim = X.shape[1]
+        X = [X]
+        
+    assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
+    
+    if ax is None:
+        fig = plt.figure()
+        if dim==2:
+            ax = plt.axes()
+        if dim==3:
+            ax = plt.axes(projection="3d")
+    
+    if len(X)>1 and color=='multi':
+        colors = plt.cm.jet(np.linspace(0, 1, len(X)))
+    elif color is None:
+        colors = 'C0'
+    else:
+        colors = color
+            
+    for i,X_l in enumerate(X):
+        if len(X)>1 and color=='multi':
+            c=colors[i]
+        else:
+            c=colors
+        
+        if dim==2:
+            ax.plot(X_l[:, 0], X_l[:, 1], style, c=c, linewidth=lw, markersize=ms)
+            if style=='-':
+                ax.scatter(X_l[0, 0], X_l[0, 1], c=c, s=ms)
+                ax.scatter(X_l[-1, 0], X_l[-1, 1], c=c, s=ms)
+        if dim==3:
+            ax.plot(X_l[:, 0], X_l[:, 1], X_l[:, 2], style, c=c, linewidth=lw, markersize=ms)
+            if style=='-':
+                ax.scatter(X_l[0, 0], X_l[0, 1], X_l[0, 2], c=c, s=ms)
+                ax.scatter(X_l[-1, 0], X_l[-1, 1], X_l[-1, 2], c=c, s=ms)
+        
+    return ax
+
 
 
 # def embed_MDS(Y, dim=2):

@@ -89,7 +89,7 @@ def fun_sub_pitch(P = {'mu': 1}):
     
     
 def fun_hopf(P = {'beta': 1, 'sigma': -1}):
-    """Prototypical system exhibiting a Hopf bifurcation at mu=0. 
+    """Prototypical system exhibiting a Hopf bifurcation at beta=0. 
     Supercritical for sigma=-1 and subcritical for sigma=+1"""
     
     def f(t, X):

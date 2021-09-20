@@ -8,9 +8,10 @@ from math import comb
 from random import sample
 from main import *
 
-n_obs = 50
-tau = -1
-dim = 3
+# =============================================================================
+# Simulate Lorenz system with noise
+# =============================================================================
+
 L= 1000
 T=10
 mu, sigma = 0, 1 # mean and standard deviation
@@ -29,14 +30,23 @@ fig = plt.figure()
 ax0 = plt.axes()
 ax0.plot(t, X)
 
-#Obtain scalar time series by random projections (rotating the global 
-#coordinate system to random angles and then taking the first coordinate)
+# =============================================================================
+# Obtain scalar time series by random projections (rotating the global 
+# coordinate system to random angles and then taking the first coordinate)
+# =============================================================================
+n_obs = 50
+
 x = []
 for i in range(n_obs):
     x_tmp = random_projection(X, seed=i)
     x.append(x_tmp)
 
-#delay embed each time series and standardize
+# =============================================================================
+# Delay embed each time series and standardize
+# =============================================================================
+tau = -1
+dim = 3
+
 X, X_nodelay, X_delay = [], [], []
 for i in range(n_obs):
     X_tmp = delay_embed(x[i],dim,tau)
@@ -47,9 +57,13 @@ for i in range(n_obs):
     #separate coordinate without delay and with delay
     X_nodelay += [X_tmp[:,0]]
     X_delay += list(X_tmp[:,1:].T)
-    
-#compute the number of embedding combinations where one coordinate without 
-#delay is paired with two coordinates with delay
+   
+# =============================================================================
+# Predict a point in embedding space based on attractors reconstructed from 
+# projected time series
+# =============================================================================
+
+#Number of valid embedding combinations
 m = comb(n_obs*dim,dim) - comb(n_obs*(dim-1),dim)
 m = int(np.sqrt(m)) #use only sqrt(m) of these embeddings
 
@@ -73,7 +87,6 @@ x_pred = 0
 for i in range(m):
     _, nn_t = find_nn(X_m[i][t][None], X_m[i])
 
-    nn_t = np.squeeze(nn_t)[1:]
     x_pred += X[obs_i][nn_t,0] #perhaps weight neighbours?
     ax3.scatter(X[obs_i][nn_t, 0], X[obs_i][nn_t, 1], X[obs_i][nn_t, 2],c='g')
   
