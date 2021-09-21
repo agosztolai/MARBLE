@@ -23,14 +23,18 @@ fun = 'lorenz'
 
 #simulate system
 x0 = [-8.0, 7.0, 27.0]
-t = np.linspace(0, 100, 1000)
+t = np.linspace(0, 50, 1000)
 mu, sigma = 0, 1 # mean and standard deviation
 X = simulate_ODE(fun, t, x0, par, noise=True, mu=mu, sigma=sigma)
 
 n=50
-t_sample, X = sample_trajectories(X, n, T=10, t0=0.1, stack=True, seed=0)
+t_sample, X = sample_trajectories(X, n, T=10, t0=0.1, seed=0)
 # X0_range = [[-20,20],[-20,20],[-20,20]]
 # X = generate_trajectories(fun, n, t, X0_range, P=par, seed=0, noise=False, stack=True, mu=mu, sigma=sigma)
+
+ax = plot_trajectories(X, color='multi', style='-', lw=1, ms=4)
+
+X = stack(X)
 
 # =============================================================================
 # Obtain scalar time series by random projections (rotating the global 
@@ -71,11 +75,12 @@ for i in range(m):
     X_m.append(np.vstack(X_tmp).T)
     
 
-t = [0,1]
+t = random.sample(list(np.arange(X.shape[0])), 100)
 T=3
 
 t_nn = [t]
 for i in range(m):
+    #take one nearest neighbor in each attractor
     _, nn = find_nn(X_m[i][t], X_m[i])
     t_nn.append(list(np.squeeze(nn)))
 t_nn = np.array(t_nn)
@@ -86,9 +91,6 @@ ts_nn, tt_nn = valid_flows(t_sample, t_nn, T=T)
 dst = all_geodesic_dist(X, ts_nn, tt_nn, interp=False)
 
 kappa = curvature(ts_nn, dst)
-volume_simplex(X,ts_nn)
-
-#try with divergence of simple volumes too relative to the geodesic distance
     
 # #plot attractor (because this one looks good)
 # X_tmp = X_m[13]

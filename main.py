@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 We have the following functions:
     1) delay_embed, delay_embed_scalar: delay embedding (scalar and multi-d time series)
     2) standardize_data: standardize data
-    3) find_nn: find nearest neighbours to a point
+    3) find_nn: find nearest neighbors to a point
     4) geodesic_dist: geodesic distance between two points (with and without smoothing spline)
     5) random_projection: obtain scalar time series by random projections
     6) plot_phase_space: plot phase space in 2D or 3D
@@ -139,27 +139,29 @@ def standardize_data(X, axis=0):
     return X
 
 
-def find_nn(x_query, X, nn=1, n_jobs=-1):
+def find_nn(x_query, X, nn=1, nmax=10, n_jobs=-1):
     """
-    Find nearest neighbours of a point on the manifold
+    Find nearest neighbors of a point on the manifold
 
     Parameters
     ----------
     x_query : 2d np array, list[2d np array]
-        Coordinates of points whose nearest neighbours are needed.
+        Coordinates of points whose nearest neighbors are needed.
     x : nxd array (dimensions are columns!)
         Coordinates of n points on a manifold in d-dimensional space.
     nn : int, optional
-        Number of nearest neighbours. The default is 1.
+        Number of nearest neighbors. The default is 1.
+    nmax : int, optional
+        Maximum number of nearest neighbors. The default is 10.
     n_jobs : int, optional
         Number of processors to use. The default is -1 (all processors).
         
     Returns
     -------
     dist_nn : list[list]
-        Distance of nearest neighbours.
+        Distance of nearest neighbors.
     ind_nn : list[list]
-        Index of nearest neighbours.
+        Index of nearest neighbors.
 
     """
         
@@ -172,15 +174,20 @@ def find_nn(x_query, X, nn=1, n_jobs=-1):
                              p=2,
                              n_jobs=-1)
     
-    #Fit neighbours estimator object
+    #Fit neighbors estimator object
     neigh.fit(X)
     
-    #Ask for nearest neighbours
-    dist_nn, ind_nn = neigh.kneighbors(x_query, nn+3, return_distance=True)
-    ind_nn = ind_nn[dist_nn>0].reshape(-1,dist_nn.shape[0])
-    dist_nn = dist_nn[dist_nn>0].reshape(-1,dist_nn.shape[0])
+    #Ask for nearest neighbors
+    dist_nn, ind_nn = neigh.kneighbors(x_query, nmax, return_distance=True)
     
-    return dist_nn[:,:nn], ind_nn[:,:nn]
+    #take only nonzero distance neighbors
+    first_n = (dist_nn!=0).argmax(axis=1)
+    last_n = first_n+nn
+    
+    ind_nn = [ind_nn[i,first_n[i]:last_n[i]] for i, r in enumerate(first_n)]
+    dist_nn = [dist_nn[i,r:r+nn+1] for i, r in enumerate(first_n)]
+    
+    return dist_nn, ind_nn
 
 
 def valid_flows(t_sample, ts, tt=None, T=1):
@@ -456,13 +463,13 @@ def plot_trajectories(X, ax=None, style='o', color='multi', lw=1, ms=5):
         if dim==2:
             ax.plot(X_l[:, 0], X_l[:, 1], style, c=c, linewidth=lw, markersize=ms)
             if style=='-':
-                ax.scatter(X_l[0, 0], X_l[0, 1], c=c, s=ms, facecolors='none')
-                ax.scatter(X_l[-1, 0], X_l[-1, 1], c=c, s=ms)
+                ax.scatter(X_l[0, 0], X_l[0, 1], color=c, s=ms, facecolors='none')
+                ax.scatter(X_l[-1, 0], X_l[-1, 1], color=c, s=ms)
         if dim==3:
             ax.plot(X_l[:, 0], X_l[:, 1], X_l[:, 2], style, c=c, linewidth=lw, markersize=ms)
             if style=='-':
-                ax.scatter(X_l[0, 0], X_l[0, 1], X_l[0, 2], c=c, s=ms, facecolors='none')
-                ax.scatter(X_l[-1, 0], X_l[-1, 1], X_l[-1, 2], c=c, s=ms)
+                ax.scatter(X_l[0, 0], X_l[0, 1], X_l[0, 2], color=c, s=ms, facecolors='none')
+                ax.scatter(X_l[-1, 0], X_l[-1, 1], X_l[-1, 2], color=c, s=ms)
         
     return ax
 
@@ -479,7 +486,7 @@ def curvature(t_nn, dst):
         First row corresponds to geodesic distance on the manifold from a 
         set of points x(t) to points x(t+T).
         Rows from 2 to n correspond to geodesic distances between x(nn_t) and
-        x(nn_t(t)+T), where nn_i(t) is the index of the nearest neighbour of 
+        x(nn_t(t)+T), where nn_i(t) is the index of the nearest neighbor of 
         x_i(t) on attractor i.
 
     Returns
@@ -490,6 +497,10 @@ def curvature(t_nn, dst):
     """
 
     kappa = 1-np.mean(dst[1:,:],axis=0)/dst[0,:]
+    
+    #try with divergence of simple volumes too relative to the geodesic distance
+    #volume_simplex(X,ts_nn)
+ 
         
     return kappa
 
@@ -517,6 +528,27 @@ def volume_simplex(X,t):
     ch = ConvexHull(X_vertex)
     
     return ch.volume
+
+
+def stack(X):
+    """
+    Stak ensemble of trajectories into attractor
+
+    Parameters
+    ----------
+    X : list[np.array)]
+        Individual trajectories in separate lists.
+
+    Returns
+    -------
+    X_stacked : np.array
+        Trajectories stacked.
+
+    """
+    
+    X_stacked = np.vstack(X)
+    
+    return X_stacked
 
 
 def unstack(X, t_sample):

@@ -67,7 +67,7 @@ def addnoise(X, noise_type='Gaussian', **noise_pars):
     return X
 
 
-def generate_trajectories(whichmodel, n, t, X0_range, P=None, seed=None, stack=True, noise=False, **noise_pars):
+def generate_trajectories(whichmodel, n, t, X0_range, P=None, seed=None, noise=False, **noise_pars):
     """
     Generate an ensemble of trajectories from different initial conditions, 
     chosen randomly from a box.
@@ -86,8 +86,6 @@ def generate_trajectories(whichmodel, n, t, X0_range, P=None, seed=None, stack=T
         Parameters. The default is None.
     seed : int, optional
         Seed of random initial solutions. The default is None.
-    stack : bool, optional
-        Stack solutions. The default is True.
     noise : bool, optional
         Add noise to trajectories. Default is False.
     **noise_pars : additional keyword argument to specify noise parameters 
@@ -110,13 +108,10 @@ def generate_trajectories(whichmodel, n, t, X0_range, P=None, seed=None, stack=T
             
         X.append(simulate_ODE(whichmodel, t, X0, P=P, noise=noise, **noise_pars))
         
-    if stack:
-        X = np.vstack(X)
-        
     return X
 
 
-def sample_trajectories(X, n, T, t0=0.1, stack=True, seed=None):
+def sample_trajectories(X, n, T, t0=0.1, seed=None):
     """
     Randomly sample trajectories from the attractor.
 
@@ -130,8 +125,6 @@ def sample_trajectories(X, n, T, t0=0.1, stack=True, seed=None):
         Length of trajectories (timesteps).
     t0 : float
         Initial transient fraction of the time series. The default is 0.1 (10%).
-    stack : bool, optional
-        Stack solutions. The default is True.
     seed : int, optional
         Seed of random initial solutions. The default is None.
 
@@ -152,7 +145,7 @@ def sample_trajectories(X, n, T, t0=0.1, stack=True, seed=None):
     ind = ind[int(t0*len(ind)):]
     ts = np.random.choice(ind, size=n, replace=True)
     
-    X_sample = generate_flow(X, ts, T=T, stack=stack)
+    X_sample = generate_flow(X, ts, T=T)
     
     t_sample = []
     for i in range(n):
@@ -161,7 +154,7 @@ def sample_trajectories(X, n, T, t0=0.1, stack=True, seed=None):
     return t_sample, X_sample
 
 
-def generate_flow(X, ts, tt=None, T=10, stack=False):
+def generate_flow(X, ts, tt=None, T=10):
     """
     Obtain trajectories of between timepoints.
 
@@ -175,8 +168,6 @@ def generate_flow(X, ts, tt=None, T=10, stack=False):
         Target timepoint. The default is None.
     T : int
         Length of trajectory. Used when tt=None. The default is 10.
-    stack : bool, optional
-        Stack solutions. The default is True.
 
     Returns
     -------
@@ -194,9 +185,6 @@ def generate_flow(X, ts, tt=None, T=10, stack=False):
     X_sample = []
     for s,t in zip(ts,tt):
         X_sample.append(X[s:t+1,:])
-        
-    if stack:
-        X_sample = np.vstack(X_sample)
         
     return X_sample
 
