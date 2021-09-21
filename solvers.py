@@ -142,7 +142,7 @@ def sample_trajectories(X, n, T, t0=0.1, seed=None):
     
     #Discard transient
     ind = np.arange(X.shape[0])
-    ind = ind[int(t0*len(ind)):]
+    ind = ind[int(t0*len(ind)):len(ind)-T]
     ts = np.random.choice(ind, size=n, replace=True)
     
     X_sample = generate_flow(X, ts, T=T)
@@ -176,15 +176,21 @@ def generate_flow(X, ts, tt=None, T=10):
 
     """
     
+    if not isinstance(ts, (list, tuple, np.ndarray)):
+        ts = [ts]
+    
     if tt is None:
-        tt = [t+T for t in ts]
+        tt = [t+T if t is not None else None for t in ts]
     else:
         assert len(tt)==len(ts), 'Number of source points must equal to the \
             number of target points.'
     
     X_sample = []
     for s,t in zip(ts,tt):
-        X_sample.append(X[s:t+1,:])
+        if s is None or t is None:
+            X_sample.append(None)
+        else:
+            X_sample.append(X[s:t,:])
         
     return X_sample
 

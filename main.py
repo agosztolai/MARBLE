@@ -3,6 +3,7 @@ from sklearn.neighbors import NearestNeighbors
 from scipy.interpolate import splprep, splev
 from scipy.spatial import ConvexHull
 import matplotlib.pyplot as plt
+import matplotlib.colors as col
 
 
 """
@@ -165,7 +166,7 @@ def find_nn(x_query, X, nn=1, nmax=10, n_jobs=-1):
 
     """
         
-    if type(x_query) is list:
+    if isinstance(x_query, list):
         x_query = np.vstack(x_query)
     
     neigh = NearestNeighbors(n_neighbors=nn,
@@ -178,14 +179,14 @@ def find_nn(x_query, X, nn=1, nmax=10, n_jobs=-1):
     neigh.fit(X)
     
     #Ask for nearest neighbors
-    dist_nn, ind_nn = neigh.kneighbors(x_query, nmax, return_distance=True)
+    dist_nn, ind_nn = neigh.kneighbors(x_query, nn+nmax, return_distance=True)
     
     #take only nonzero distance neighbors
     first_n = (dist_nn!=0).argmax(axis=1)
     last_n = first_n+nn
     
-    ind_nn = [ind_nn[i,first_n[i]:last_n[i]] for i, r in enumerate(first_n)]
-    dist_nn = [dist_nn[i,r:r+nn+1] for i, r in enumerate(first_n)]
+    ind_nn = [ind_nn[i,first_n[i]:last_n[i]] for i in range(len(first_n))]
+    dist_nn = [dist_nn[i,first_n[i]:last_n[i]] for i in range(len(first_n))]
     
     return dist_nn, ind_nn
 
@@ -217,7 +218,7 @@ def valid_flows(t_sample, ts, tt=None, T=1):
     r,c = ts.shape
     ts = ts.flatten()
     
-    if type(T) is int:
+    if isinstance(T, int):
         T *= np.ones_like(ts)
         
     if tt is None:
@@ -227,14 +228,14 @@ def valid_flows(t_sample, ts, tt=None, T=1):
             number of target points.'
             
     t_breaks = np.zeros_like(t_sample)
-    t_breaks[t_sample==0] = 1
+    t_breaks[np.array(t_sample)==0] = 1
     
     ok = np.ones_like(tt)
     for i,t in enumerate(zip(ts,tt)):
         ok[i] = np.sum(t_breaks[t[0]:t[1]])==0
         
-    tt = [tt[i] if ok[i]==1 else 0 for i in range(len(ok))]
-    ts = [ts[i] if ok[i]==1 else 0 for i in range(len(ok))]
+    tt = [tt[i] if ok[i]==1 else None for i in range(len(ok))]
+    ts = [ts[i] if ok[i]==1 else None for i in range(len(ok))]
     
     ts = np.array(ts).reshape(r,c)
     tt = np.array(tt).reshape(r,c)
@@ -270,7 +271,10 @@ def all_geodesic_dist(X, ts, tt, interp=False):
             
     dst = []
     for s,t in zip(ts,tt):
-        dst.append(geodesic_dist(s, t, X, interp=interp))
+        if s is None or t is None:
+            dst.append(None)
+        else:
+            dst.append(geodesic_dist(s, t, X, interp=interp))
         
     dst = np.array(dst).reshape(r,c)
     
@@ -307,7 +311,7 @@ def geodesic_dist(s, t, x, interp=False):
         u_int = [u[s], u[t]]
         x = eval_spline(tck, u_int, n=1000)
     else:
-        x = x[s:t+1,:]
+        x = x[s:t,:]
     
     dij = np.diff(x, axis=0)
     dij *= dij
@@ -408,7 +412,7 @@ def random_projection(X, dim_out=1, seed=1):
     return x_proj
 
 
-def plot_trajectories(X, ax=None, style='o', color='multi', lw=1, ms=5):
+def plot_trajectories(X, ax=None, style='o', color=None, dim=3, lw=1, ms=5):
     """
     Plot trajectory in phase space in dim dimensions. If multiple trajectories
     are given, they are plotted with different colors.
@@ -421,6 +425,8 @@ def plot_trajectories(X, ax=None, style='o', color='multi', lw=1, ms=5):
         Plotting style. The default is 'o'.
     color: bool
         Color lines. The default is True.
+    dim : int, optionel
+        Dimension of the plot. The default is 3.
     lw : int
         Line width.
     ms : int
@@ -432,10 +438,7 @@ def plot_trajectories(X, ax=None, style='o', color='multi', lw=1, ms=5):
 
     """
     
-    if type(X) is list:
-        dim = X[0].shape[1]
-    else:
-        dim = X.shape[1]
+    if not isinstance(X, list):
         X = [X]
         
     assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
@@ -447,19 +450,32 @@ def plot_trajectories(X, ax=None, style='o', color='multi', lw=1, ms=5):
         if dim==3:
             ax = plt.axes(projection="3d")
     
-    if len(X)>1 and color=='multi':
-        colors = plt.cm.jet(np.linspace(0, 1, len(X)))
-    elif color is None:
-        colors = 'C0'
+    if color is None:
+        if len(X)>1:
+            colors = plt.cm.jet(np.linspace(0, 1, len(X)))
+        else:
+            c = 'C0'
     else:
-        colors = color
+        if isinstance(color, (list, tuple, np.ndarray)):
+            cmap = plt.cm.coolwarm
+            norm = plt.cm.colors.Normalize(min(color), max(color))
+            cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
+            plt.colorbar(cbar)
+        else:
+            c = color
             
     for i,X_l in enumerate(X):
-        if len(X)>1 and color=='multi':
-            c=colors[i]
-        else:
-            c=colors
+        if X_l is None:
+            continue
         
+        if len(X)>1 and color is None:
+            c=colors[i]
+        if isinstance(color, (list, tuple, np.ndarray)):
+            if color[i] is not None:
+                c=cmap(norm(color[i]))
+            else:
+                continue
+                
         if dim==2:
             ax.plot(X_l[:, 0], X_l[:, 1], style, c=c, linewidth=lw, markersize=ms)
             if style=='-':
@@ -474,7 +490,7 @@ def plot_trajectories(X, ax=None, style='o', color='multi', lw=1, ms=5):
     return ax
 
 
-def curvature(t_nn, dst):
+def curvature_geodesic(dst):
     """
     Compute manifold curvature at a given set of points.
 
@@ -495,12 +511,26 @@ def curvature(t_nn, dst):
         List of curvature at timepoints t.
 
     """
-
-    kappa = 1-np.mean(dst[1:,:],axis=0)/dst[0,:]
     
-    #try with divergence of simple volumes too relative to the geodesic distance
-    #volume_simplex(X,ts_nn)
+    dst[dst==None] = np.nan
+
+    kappa = 1-np.nanmean(dst[1:,:],axis=0)/dst[0,:]
+    
+    kappa[kappa==np.nan]=None
  
+    return kappa
+
+
+def curvature_ball(X, ts, tt):
+
+    diff_vol = np.zeros_like(ts)
+    avg_vol = np.zeros_like(ts)
+    for i in range(len(ts)):
+        print(i)
+        diff_vol[i] = volume_simplex(X, ts[:,i]) - volume_simplex(X, tt[:,i])
+        avg_vol[i] = 0.5*(volume_simplex(X, ts[:,i]) + volume_simplex(X, ts[:,i]))
+    
+    kappa = diff_vol/avg_vol
         
     return kappa
 

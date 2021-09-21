@@ -25,81 +25,86 @@ fun = 'lorenz'
 x0 = [-8.0, 7.0, 27.0]
 t = np.linspace(0, 50, 1000)
 mu, sigma = 0, 1 # mean and standard deviation
-X = simulate_ODE(fun, t, x0, par, noise=True, mu=mu, sigma=sigma)
+X = simulate_ODE(fun, t, x0, par, noise=False, mu=mu, sigma=sigma)
 
-n=50
-t_sample, X = sample_trajectories(X, n, T=10, t0=0.1, seed=0)
+#simulate having short trajectories by sampling from the manifold
+# n=50
+# t_sample, X = sample_trajectories(X, n, T=20, t0=0.1, seed=0)
 # X0_range = [[-20,20],[-20,20],[-20,20]]
 # X = generate_trajectories(fun, n, t, X0_range, P=par, seed=0, noise=False, stack=True, mu=mu, sigma=sigma)
 
-ax = plot_trajectories(X, color='multi', style='-', lw=1, ms=4)
-
-X = stack(X)
+# X = stack(X)
 
 # =============================================================================
 # Obtain scalar time series by random projections (rotating the global 
 # coordinate system to random angles and then taking the first coordinate)
 # =============================================================================
-n_obs = 50
+# n_obs = 50
 
-x = []
-for i in range(n_obs):
-    x_tmp = random_projection(X, seed=i)
-    x.append(x_tmp)
+# x = []
+# for i in range(n_obs):
+#     x_tmp = random_projection(X, seed=i)
+#     x.append(x_tmp)
 
 # =============================================================================
 # delay embed each time series and standardize
 # =============================================================================
-tau = -1
-dim = 3
+# tau = -1
+# dim = 3
 
-X_nodelay, X_delay = [], []
-for i in range(n_obs):
-    X_tmp = delay_embed(x[i],dim,tau)
-    X_tmp = standardize_data(X_tmp)
+# X_nodelay, X_delay = [], []
+# for i in range(n_obs):
+#     X_tmp = delay_embed(x[i],dim,tau)
+#     X_tmp = standardize_data(X_tmp)
     
-    #separate coordinate without delay and with delay
-    X_nodelay += [X_tmp[:,0]]
-    X_delay += list(X_tmp[:,1:].T)
+#     #separate coordinate without delay and with delay
+#     X_nodelay += [X_tmp[:,0]]
+#     X_delay += list(X_tmp[:,1:].T)
     
+
+t = random.sample(list(np.arange(X.shape[0])), 100)
+T=5
+
+_, nn = find_nn(X[t], X, nn=10)
+t_nn = np.hstack([np.array(t)[:,None],np.array(nn)]).T
+
 #compute the number of embedding combinations where one coordinate without 
 #delay is paired with two coordinates with delay
 # m = comb(n_obs*dim,dim) - comb(n_obs*(dim-1),dim)
 # m = int(np.sqrt(m)) #use only sqrt(m) of these embeddings
-m=20
+# m=20
 
 #pair one coordinate without delay with 2 delayed coordinates
-X_m = []
-for i in range(m):
-    X_tmp = random.sample(X_nodelay, 1) + random.sample(X_delay, dim-1)
-    X_m.append(np.vstack(X_tmp).T)
-    
+# X_m = []
+# for i in range(m):
+#     X_tmp = random.sample(X_nodelay, 1) + random.sample(X_delay, dim-1)
+#     X_m.append(np.vstack(X_tmp).T)
 
-t = random.sample(list(np.arange(X.shape[0])), 100)
-T=3
-
-t_nn = [t]
-for i in range(m):
+#take one nearest neighbor in each attractor
+# t_nn = [t]
+# for i in range(m):
     #take one nearest neighbor in each attractor
-    _, nn = find_nn(X_m[i][t], X_m[i])
-    t_nn.append(list(np.squeeze(nn)))
-t_nn = np.array(t_nn)
-    
+    # _, nn = find_nn(X_m[i][t], X_m[i])
+    # t_nn.append(list(np.squeeze(nn)))
+# t_nn = np.array(t_nn)
+
+t_sample = np.arange(X.shape[0])
 ts_nn, tt_nn = valid_flows(t_sample, t_nn, T=T)
 
 #need to compute geodesic distances on the same attractor for consistency?
 dst = all_geodesic_dist(X, ts_nn, tt_nn, interp=False)
+kappa = curvature_geodesic(dst)
 
-kappa = curvature(ts_nn, dst)
-    
-# #plot attractor (because this one looks good)
-# X_tmp = X_m[13]
-# ax = plot_trajectories(X_tmp, color=None, style='o', lw=1, ms=2)
+# kappa = curvature_ball(X, ts_nn, tt_nn)
 
-# #plot trajectory of neighbours
-# X_neigh = generate_flow(X_tmp, t_nn, T=T, stack=False)
-# ax = plot_trajectories(X_neigh, ax=ax, color='C1', style='-', lw=1, ms=50)
+# =============================================================================
+# some plots
+# =============================================================================
+ax = plot_trajectories(X, color=None, style='o', lw=1, ms=1)
+flows_n = generate_flow(X, ts_nn[1:,2], T=T)
+plot_trajectories(flows_n, ax=ax, color='C1', style='-', lw=1, ms=4)
+flow = generate_flow(X, ts_nn[0,2], T=T)
+plot_trajectories(flow, ax=ax, color='C3', style='-', lw=1, ms=4)
 
-# #plot trajectory between two points
-# X_pt = generate_flow(X_tmp, [t], T=T, stack=False)
-# ax = plot_trajectories(X_pt, ax=ax, color='C3', style='-', lw=1, ms=50)
+flows = generate_flow(X, ts_nn[0,:], T=T)
+plot_trajectories(flows, color=kappa, style='-', lw=1, ms=4)
