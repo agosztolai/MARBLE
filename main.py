@@ -229,6 +229,7 @@ def valid_flows(t_sample, ts, tt=None, T=1):
             
     t_breaks = np.zeros_like(t_sample)
     t_breaks[np.array(t_sample)==0] = 1
+    t_breaks[-max(T):] = 1
     
     ok = np.ones_like(tt)
     for i,t in enumerate(zip(ts,tt)):
@@ -523,12 +524,14 @@ def curvature_geodesic(dst):
 
 def curvature_ball(X, ts, tt):
 
-    diff_vol = np.zeros_like(ts)
-    avg_vol = np.zeros_like(ts)
-    for i in range(len(ts)):
-        print(i)
-        diff_vol[i] = volume_simplex(X, ts[:,i]) - volume_simplex(X, tt[:,i])
-        avg_vol[i] = 0.5*(volume_simplex(X, ts[:,i]) + volume_simplex(X, ts[:,i]))
+    n = ts.shape[1]
+    diff_vol = np.zeros(n)
+    avg_vol = np.zeros(n)
+    for i in range(ts.shape[1]):
+        s = [i for i in ts[:,i] if i is not None]
+        t = [i for i in tt[:,i] if i is not None]
+        diff_vol[i] = volume_simplex(X, s) - volume_simplex(X, t)
+        avg_vol[i] = 0.5*(volume_simplex(X, s) + volume_simplex(X, t))
     
     kappa = diff_vol/avg_vol
         
@@ -553,8 +556,7 @@ def volume_simplex(X,t):
 
     """
     
-    n = X.shape[0]
-    X_vertex = X[t.flatten(),:]
+    X_vertex = X[t,:]
     ch = ConvexHull(X_vertex)
     
     return ch.volume

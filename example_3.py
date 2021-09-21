@@ -92,10 +92,10 @@ t_sample = np.arange(X.shape[0])
 ts_nn, tt_nn = valid_flows(t_sample, t_nn, T=T)
 
 #need to compute geodesic distances on the same attractor for consistency?
-dst = all_geodesic_dist(X, ts_nn, tt_nn, interp=False)
-kappa = curvature_geodesic(dst)
+# dst = all_geodesic_dist(X, ts_nn, tt_nn, interp=False)
+# kappa = curvature_geodesic(dst)
 
-# kappa = curvature_ball(X, ts_nn, tt_nn)
+kappa = curvature_ball(X, ts_nn, tt_nn)
 
 # =============================================================================
 # some plots
