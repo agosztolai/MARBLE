@@ -61,9 +61,10 @@ X = simulate_ODE(fun, t, x0, par, noise=False, mu=mu, sigma=sigma)
 #     X_nodelay += [X_tmp[:,0]]
 #     X_delay += list(X_tmp[:,1:].T)
     
+n=100
+T=2
+t = random.sample(list(np.arange(X.shape[0])), n)
 
-t = random.sample(list(np.arange(X.shape[0])), 100)
-T=5
 
 _, nn = find_nn(X[t], X, nn=10)
 t_nn = np.hstack([np.array(t)[:,None],np.array(nn)]).T
@@ -101,10 +102,10 @@ kappa = curvature_ball(X, ts_nn, tt_nn)
 # some plots
 # =============================================================================
 ax = plot_trajectories(X, color=None, style='o', lw=1, ms=1)
-flows_n = generate_flow(X, ts_nn[1:,2], T=T)
+flows_n = generate_flow(X, ts_nn[1:,55], T=T)
 plot_trajectories(flows_n, ax=ax, color='C1', style='-', lw=1, ms=4)
-flow = generate_flow(X, ts_nn[0,2], T=T)
+flow = generate_flow(X, ts_nn[0,55], T=T)
 plot_trajectories(flow, ax=ax, color='C3', style='-', lw=1, ms=4)
 
 flows = generate_flow(X, ts_nn[0,:], T=T)
-plot_trajectories(flows, color=kappa, style='-', lw=1, ms=4)
+plot_trajectories(flows, color=kappa, style='-', lw=0.5, ms=6)

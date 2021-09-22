@@ -190,7 +190,7 @@ def generate_flow(X, ts, tt=None, T=10):
         if s is None or t is None:
             X_sample.append(None)
         else:
-            X_sample.append(X[s:t,:])
+            X_sample.append(X[s:t+1,:])
         
     return X_sample
 

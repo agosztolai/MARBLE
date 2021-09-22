@@ -4,6 +4,9 @@ from scipy.interpolate import splprep, splev
 from scipy.spatial import ConvexHull
 import matplotlib.pyplot as plt
 import matplotlib.colors as col
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.patches import FancyArrowPatch
+from mpl_toolkits.mplot3d import proj3d
 
 
 """
@@ -479,16 +482,38 @@ def plot_trajectories(X, ax=None, style='o', color=None, dim=3, lw=1, ms=5):
                 
         if dim==2:
             ax.plot(X_l[:, 0], X_l[:, 1], style, c=c, linewidth=lw, markersize=ms)
-            if style=='-':
+            if style=='-':               
+                for j in range(X_l.shape[0]):
+                    if (j+1)%2==0 and j>0:
+                        a = ax.arrow(X_l[j,0], X_l[j,1], X_l[j,0]-X_l[j-1,0], X_l[j,1]-X_l[j-2,1])
+                        ax.add_artist(a)
                 ax.scatter(X_l[0, 0], X_l[0, 1], color=c, s=ms, facecolors='none')
                 ax.scatter(X_l[-1, 0], X_l[-1, 1], color=c, s=ms)
         if dim==3:
             ax.plot(X_l[:, 0], X_l[:, 1], X_l[:, 2], style, c=c, linewidth=lw, markersize=ms)
             if style=='-':
-                ax.scatter(X_l[0, 0], X_l[0, 1], X_l[0, 2], color=c, s=ms, facecolors='none')
-                ax.scatter(X_l[-1, 0], X_l[-1, 1], X_l[-1, 2], color=c, s=ms)
+                for j in range(X_l.shape[0]):
+                    if (j+1)%2==0 and j>0:
+                        a = Arrow3D([X_l[j-1,0], X_l[j,0]], [X_l[j-1,1], X_l[j,1]], 
+                                    [X_l[j-1,2], X_l[j,2]], mutation_scale=ms, 
+                                    lw=lw, arrowstyle="-|>", color=c)
+                        ax.add_artist(a)
+                # ax.scatter(X_l[0, 0], X_l[0, 1], X_l[0, 2], color=c, s=ms, facecolors='none')
+                # ax.scatter(X_l[-1, 0], X_l[-1, 1], X_l[-1, 2], color=c, s=ms)
         
     return ax
+
+
+class Arrow3D(FancyArrowPatch):
+    def __init__(self, xs, ys, zs, *args, **kwargs):
+        FancyArrowPatch.__init__(self, (0,0), (0,0), *args, **kwargs)
+        self._verts3d = xs, ys, zs
+
+    def draw(self, renderer):
+        xs3d, ys3d, zs3d = self._verts3d
+        xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
+        self.set_positions((xs[0],ys[0]),(xs[1],ys[1]))
+        FancyArrowPatch.draw(self, renderer)
 
 
 def curvature_geodesic(dst):
@@ -525,15 +550,15 @@ def curvature_geodesic(dst):
 def curvature_ball(X, ts, tt):
 
     n = ts.shape[1]
-    diff_vol = np.zeros(n)
-    avg_vol = np.zeros(n)
+    kappa = np.zeros(n)
+    # avg_vol = np.zeros(n)
     for i in range(ts.shape[1]):
         s = [i for i in ts[:,i] if i is not None]
         t = [i for i in tt[:,i] if i is not None]
-        diff_vol[i] = volume_simplex(X, s) - volume_simplex(X, t)
-        avg_vol[i] = 0.5*(volume_simplex(X, s) + volume_simplex(X, t))
+        kappa[i] = 1- volume_simplex(X, t)/volume_simplex(X, s) 
+        # avg_vol[i] = 0.5*(volume_simplex(X, s) + volume_simplex(X, t))
     
-    kappa = diff_vol/avg_vol
+    # kappa = diff_vol/avg_vol
         
     return kappa
 
