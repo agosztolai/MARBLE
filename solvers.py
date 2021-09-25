@@ -224,6 +224,24 @@ def load_ODE(whichmodel, P=None):
 
 
 def solve_ODE(f, jac, t, X0):
+    """
+    ODE solver. May wanna change it to solve IVP
+
+    Parameters
+    ----------
+    f : TYPE
+        DESCRIPTION.
+    jac : TYPE
+        DESCRIPTION.
+    t : TYPE
+        DESCRIPTION.
+    X0 : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+
+    """
     
     X = odeint(f, X0, t, Dfun=jac, tfirst=True)
     

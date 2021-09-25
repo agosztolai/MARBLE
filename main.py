@@ -38,7 +38,7 @@ def delay_embed(x, k, tau=1, typ='asy'):
     Returns
     -------
     Yd : (T-(k-1)*tau)*kd numpy array
-        Time asymmetric or symmetric embedking. The default is 'asy'..
+        Time asymmetric or symmetric embedding. The default is 'asy'..
 
     """
     
@@ -462,7 +462,7 @@ def plot_trajectories(X, ax=None, style='o', color=None, dim=3, lw=1, ms=5):
     else:
         if isinstance(color, (list, tuple, np.ndarray)):
             cmap = plt.cm.coolwarm
-            norm = plt.cm.colors.Normalize(min(color), max(color))
+            norm = plt.cm.colors.Normalize(-max(abs(color)), max(abs(color)))
             cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
             plt.colorbar(cbar)
         else:

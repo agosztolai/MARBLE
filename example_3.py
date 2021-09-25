@@ -23,9 +23,12 @@ fun = 'lorenz'
 
 #simulate system
 x0 = [-8.0, 7.0, 27.0]
-t = np.linspace(0, 50, 1000)
+t = np.linspace(0, 20, 1000)
 mu, sigma = 0, 1 # mean and standard deviation
 X = simulate_ODE(fun, t, x0, par, noise=False, mu=mu, sigma=sigma)
+
+# X = X[20:]
+# plot_trajectories(X, color=None, style='-', lw=1, ms=1)
 
 #simulate having short trajectories by sampling from the manifold
 # n=50
@@ -61,12 +64,12 @@ X = simulate_ODE(fun, t, x0, par, noise=False, mu=mu, sigma=sigma)
 #     X_nodelay += [X_tmp[:,0]]
 #     X_delay += list(X_tmp[:,1:].T)
     
-n=100
-T=2
+n=200
+T=10
 t = random.sample(list(np.arange(X.shape[0])), n)
 
 
-_, nn = find_nn(X[t], X, nn=10)
+_, nn = find_nn(X[t], X, nn=10, nmax=10)
 t_nn = np.hstack([np.array(t)[:,None],np.array(nn)]).T
 
 #compute the number of embedding combinations where one coordinate without 
@@ -93,10 +96,10 @@ t_sample = np.arange(X.shape[0])
 ts_nn, tt_nn = valid_flows(t_sample, t_nn, T=T)
 
 #need to compute geodesic distances on the same attractor for consistency?
-# dst = all_geodesic_dist(X, ts_nn, tt_nn, interp=False)
-# kappa = curvature_geodesic(dst)
-
-kappa = curvature_ball(X, ts_nn, tt_nn)
+dst = all_geodesic_dist(X, ts_nn, tt_nn, interp=False)
+kappa = curvature_geodesic(dst)
+kappa = np.clip(kappa, -0.1, 0.1)
+# kappa = curvature_ball(X, ts_nn, tt_nn)
 
 # =============================================================================
 # some plots
