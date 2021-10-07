@@ -2,11 +2,6 @@ import numpy as np
 from sklearn.neighbors import NearestNeighbors
 from scipy.interpolate import splprep, splev
 from scipy.spatial import ConvexHull
-import matplotlib.pyplot as plt
-import matplotlib.colors as col
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.patches import FancyArrowPatch
-from mpl_toolkits.mplot3d import proj3d
 
 
 """
@@ -16,7 +11,6 @@ We have the following functions:
     3) find_nn: find nearest neighbors to a point
     4) geodesic_dist: geodesic distance between two points (with and without smoothing spline)
     5) random_projection: obtain scalar time series by random projections
-    6) plot_phase_space: plot phase space in 2D or 3D
 """
 
 def delay_embed(x, k, tau=1, typ='asy'):
@@ -201,7 +195,7 @@ def valid_flows(t_sample, ts, tt=None, T=1):
     Parameters
     ----------
     t_sample : list[int]
-        Time indives corresponding to the sampled short trajectories.
+        Time indices corresponding to the sampled short trajectories.
     ts : list[int]
         Start of trajectory.
     tt : list[int], optional
@@ -221,7 +215,7 @@ def valid_flows(t_sample, ts, tt=None, T=1):
     r,c = ts.shape
     ts = ts.flatten()
     
-    if isinstance(T, int):
+    if isinstance(T, int) or np.issubdtype(T, np.integer):
         T *= np.ones_like(ts)
         
     if tt is None:
@@ -245,6 +239,47 @@ def valid_flows(t_sample, ts, tt=None, T=1):
     tt = np.array(tt).reshape(r,c)
         
     return ts, tt
+
+
+def generate_flow(X, ts, tt=None, T=10):
+    """
+    Obtain trajectories of between timepoints.
+
+    Parameters
+    ----------
+    X : np array
+        Trajectories.
+    ts : int or np array or list[int]
+        Source timepoint.
+    tt : int or list[int]
+        Target timepoint. The default is None.
+    T : int
+        Length of trajectory. Used when tt=None. The default is 10.
+
+    Returns
+    -------
+    X_sample : list[np array].
+        Set of flows of length T.
+
+    """
+    
+    if not isinstance(ts, (list, tuple, np.ndarray)):
+        ts = [ts]
+    
+    if tt is None:
+        tt = [t+T if t is not None else None for t in ts]
+    else:
+        assert len(tt)==len(ts), 'Number of source points must equal to the \
+            number of target points.'
+    
+    X_sample = []
+    for s,t in zip(ts,tt):
+        if s is None or t is None:
+            X_sample.append(None)
+        else:
+            X_sample.append(X[s:t+1,:])
+        
+    return X_sample
     
 
 def all_geodesic_dist(X, ts, tt, interp=False):
@@ -416,106 +451,6 @@ def random_projection(X, dim_out=1, seed=1):
     return x_proj
 
 
-def plot_trajectories(X, ax=None, style='o', color=None, dim=3, lw=1, ms=5):
-    """
-    Plot trajectory in phase space in dim dimensions. If multiple trajectories
-    are given, they are plotted with different colors.
-
-    Parameters
-    ----------
-    X : np array or list[np array]
-        Trajectories.
-    style : string
-        Plotting style. The default is 'o'.
-    color: bool
-        Color lines. The default is True.
-    dim : int, optionel
-        Dimension of the plot. The default is 3.
-    lw : int
-        Line width.
-    ms : int
-        Marker size.
-
-    Returns
-    -------
-    ax : matplotlib axes object.
-
-    """
-    
-    if not isinstance(X, list):
-        X = [X]
-        
-    assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
-    
-    if ax is None:
-        fig = plt.figure()
-        if dim==2:
-            ax = plt.axes()
-        if dim==3:
-            ax = plt.axes(projection="3d")
-    
-    if color is None:
-        if len(X)>1:
-            colors = plt.cm.jet(np.linspace(0, 1, len(X)))
-        else:
-            c = 'C0'
-    else:
-        if isinstance(color, (list, tuple, np.ndarray)):
-            cmap = plt.cm.coolwarm
-            norm = plt.cm.colors.Normalize(-max(abs(color)), max(abs(color)))
-            cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
-            plt.colorbar(cbar)
-        else:
-            c = color
-            
-    for i,X_l in enumerate(X):
-        if X_l is None:
-            continue
-        
-        if len(X)>1 and color is None:
-            c=colors[i]
-        if isinstance(color, (list, tuple, np.ndarray)):
-            if color[i] is not None:
-                c=cmap(norm(color[i]))
-            else:
-                continue
-                
-        if dim==2:
-            ax.plot(X_l[:, 0], X_l[:, 1], style, c=c, linewidth=lw, markersize=ms)
-            if style=='-':               
-                for j in range(X_l.shape[0]):
-                    if (j+1)%2==0 and j>0:
-                        a = ax.arrow(X_l[j,0], X_l[j,1], X_l[j,0]-X_l[j-1,0], X_l[j,1]-X_l[j-2,1])
-                        ax.add_artist(a)
-                ax.scatter(X_l[0, 0], X_l[0, 1], color=c, s=ms, facecolors='none')
-                ax.scatter(X_l[-1, 0], X_l[-1, 1], color=c, s=ms)
-        if dim==3:
-            ax.plot(X_l[:, 0], X_l[:, 1], X_l[:, 2], style, c=c, linewidth=lw, markersize=ms)
-            if style=='-':
-                for j in range(X_l.shape[0]):
-                    if (j+1)%2==0 and j>0:
-                        a = Arrow3D([X_l[j-1,0], X_l[j,0]], [X_l[j-1,1], X_l[j,1]], 
-                                    [X_l[j-1,2], X_l[j,2]], mutation_scale=ms, 
-                                    lw=lw, arrowstyle="-|>", color=c)
-                        ax.add_artist(a)
-                # ax.scatter(X_l[0, 0], X_l[0, 1], X_l[0, 2], color=c, s=ms, facecolors='none')
-                # ax.scatter(X_l[-1, 0], X_l[-1, 1], X_l[-1, 2], color=c, s=ms)
-        
-    return ax
-
-
-class Arrow3D(FancyArrowPatch):
-    def __init__(self, xs, ys, zs, *args, **kwargs):
-        FancyArrowPatch.__init__(self, (0,0), (0,0), *args, **kwargs)
-        self._verts3d = xs, ys, zs
-
-    def draw(self, renderer):
-        xs3d, ys3d, zs3d = self._verts3d
-        xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
-        self.set_positions((xs[0],ys[0]),(xs[1],ys[1]))
-        FancyArrowPatch.draw(self, renderer)
-
-
 def curvature_geodesic(dst):
     """
     Compute manifold curvature at a given set of points.
@@ -539,11 +474,11 @@ def curvature_geodesic(dst):
     """
     
     dst[dst==None] = np.nan
+    dst[np.all(np.isnan(dst.astype(float)), axis=1)] = np.inf
 
-    kappa = 1-np.nanmean(dst[1:,:],axis=0)/dst[0,:]
-    
-    kappa[kappa==np.nan]=None
- 
+    kappa = 1-np.nanmean(dst[:,1:],axis=1)/dst[:,0]
+    kappa = kappa.astype(float)
+     
     return kappa
 
 

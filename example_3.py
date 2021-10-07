@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
 import numpy as np
-from solvers import generate_trajectories, sample_trajectories, simulate_ODE, generate_flow
+from solvers import generate_trajectories, sample_trajectories, simulate_ODE
 from math import comb
 import random
 from main import *
+import plotting as plot
 random.seed(a=0)
             
 # =============================================================================
@@ -28,7 +29,7 @@ mu, sigma = 0, 1 # mean and standard deviation
 X = simulate_ODE(fun, t, x0, par, noise=False, mu=mu, sigma=sigma)
 
 # X = X[20:]
-# plot_trajectories(X, color=None, style='-', lw=1, ms=1)
+# plot.trajectories(X, color=None, style='-', lw=1, ms=1)
 
 #simulate having short trajectories by sampling from the manifold
 # n=50
@@ -42,7 +43,7 @@ X = simulate_ODE(fun, t, x0, par, noise=False, mu=mu, sigma=sigma)
 # Obtain scalar time series by random projections (rotating the global 
 # coordinate system to random angles and then taking the first coordinate)
 # =============================================================================
-# n_obs = 50
+# n_obs = 1
 
 # x = []
 # for i in range(n_obs):
@@ -52,8 +53,10 @@ X = simulate_ODE(fun, t, x0, par, noise=False, mu=mu, sigma=sigma)
 # =============================================================================
 # delay embed each time series and standardize
 # =============================================================================
-# tau = -1
-# dim = 3
+tau = -1
+dim = 3
+
+# X = delay_embed(X[:,0],dim,tau)
 
 # X_nodelay, X_delay = [], []
 # for i in range(n_obs):
@@ -64,13 +67,14 @@ X = simulate_ODE(fun, t, x0, par, noise=False, mu=mu, sigma=sigma)
 #     X_nodelay += [X_tmp[:,0]]
 #     X_delay += list(X_tmp[:,1:].T)
     
+    
 n=200
 T=10
 t = random.sample(list(np.arange(X.shape[0])), n)
 
 
 _, nn = find_nn(X[t], X, nn=10, nmax=10)
-t_nn = np.hstack([np.array(t)[:,None],np.array(nn)]).T
+t_nn = np.hstack([np.array(t)[:,None],np.array(nn)])
 
 #compute the number of embedding combinations where one coordinate without 
 #delay is paired with two coordinates with delay
@@ -93,10 +97,10 @@ t_nn = np.hstack([np.array(t)[:,None],np.array(nn)]).T
 # t_nn = np.array(t_nn)
 
 t_sample = np.arange(X.shape[0])
-ts_nn, tt_nn = valid_flows(t_sample, t_nn, T=T)
+ts, tt = valid_flows(t_sample, t_nn, T=T)
 
 #need to compute geodesic distances on the same attractor for consistency?
-dst = all_geodesic_dist(X, ts_nn, tt_nn, interp=False)
+dst = all_geodesic_dist(X, ts, tt, interp=False)
 kappa = curvature_geodesic(dst)
 kappa = np.clip(kappa, -0.1, 0.1)
 # kappa = curvature_ball(X, ts_nn, tt_nn)
@@ -104,11 +108,19 @@ kappa = np.clip(kappa, -0.1, 0.1)
 # =============================================================================
 # some plots
 # =============================================================================
-ax = plot_trajectories(X, color=None, style='o', lw=1, ms=1)
-flows_n = generate_flow(X, ts_nn[1:,55], T=T)
-plot_trajectories(flows_n, ax=ax, color='C1', style='-', lw=1, ms=4)
-flow = generate_flow(X, ts_nn[0,55], T=T)
-plot_trajectories(flow, ax=ax, color='C3', style='-', lw=1, ms=4)
+ax = plot.trajectories(X, color=None, style='o', lw=1, ms=1)
+flows_n = generate_flow(X, ts[55,1:], T=T)
+plot.trajectories(flows_n, ax=ax, color='C1', style='-', lw=1, ms=4)
+flow = generate_flow(X, ts[55,0], T=T)
+plot.trajectories(flow, ax=ax, color='C3', style='-', lw=1, ms=4)
 
-flows = generate_flow(X, ts_nn[0,:], T=T)
-plot_trajectories(flows, color=kappa, style='-', lw=0.5, ms=6)
+flows = generate_flow(X, ts[:,0], T=T)
+ax = plot.trajectories(flows, color=kappa, style='-', lw=0.5, ms=6)
+
+ax.set_yticklabels([])
+ax.set_xticklabels([])
+ax.set_zticklabels([])
+plt.savefig('manifold.svg')
+
+
+

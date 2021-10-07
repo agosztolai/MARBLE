@@ -2,6 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from solvers import simulate_ODE
 from main import *
+import plotting as plot
+
+"""
+1. Random projection to scalar time series 
+2. Delay embedding
+"""
 
 #Lorenz system
 x0 = [-8.0, 7.0, 27.0] 
@@ -12,9 +18,7 @@ fun = 'lorenz'
 t = np.linspace(0, 20, 1000)
 X = simulate_ODE(fun, t, x0, par)
 
-fig = plt.figure()
-ax1 = plt.axes(projection="3d")
-ax1.plot(X[:, 0], X[:, 1], X[:, 2])
+plot.trajectories(X, color=None, style='o', lw=1, ms=1)
 
 #project to random scalar timeseries
 x = random_projection(X)
@@ -30,13 +34,5 @@ Yx = delay_embed(x,dim,tau)
 #normalize attractor
 Yx_norm = standardize_data(Yx)
 
-fig = plt.figure()
-ax3 = plt.axes(projection="3d")
-ax3.plot(Yx_norm[:, 0], Yx_norm[:, 1], Yx_norm[:, 2])
-
-#find nearest neighbor
-nb=find_nn([Yx[0]],Yx,nn=2)
-
-#find geodesic distance between two points 
-dist = geodesic_dist(0, 10, Yx, interp=False)
-print(dist)
+#plot embedding
+plot.trajectories(Yx_norm, color=None, style='o', lw=1, ms=1)

@@ -154,47 +154,6 @@ def sample_trajectories(X, n, T, t0=0.1, seed=None):
     return t_sample, X_sample
 
 
-def generate_flow(X, ts, tt=None, T=10):
-    """
-    Obtain trajectories of between timepoints.
-
-    Parameters
-    ----------
-    X : np array
-        Trajectories.
-    ts : int or np array or list[int]
-        Source timepoint.
-    tt : int or list[int]
-        Target timepoint. The default is None.
-    T : int
-        Length of trajectory. Used when tt=None. The default is 10.
-
-    Returns
-    -------
-    X_sample : list[np array].
-        Set of flows of length T.
-
-    """
-    
-    if not isinstance(ts, (list, tuple, np.ndarray)):
-        ts = [ts]
-    
-    if tt is None:
-        tt = [t+T if t is not None else None for t in ts]
-    else:
-        assert len(tt)==len(ts), 'Number of source points must equal to the \
-            number of target points.'
-    
-    X_sample = []
-    for s,t in zip(ts,tt):
-        if s is None or t is None:
-            X_sample.append(None)
-        else:
-            X_sample.append(X[s:t+1,:])
-        
-    return X_sample
-
-
 def load_ODE(whichmodel, P=None):
     """
     Load ODE system

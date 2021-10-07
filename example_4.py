@@ -37,11 +37,12 @@ t_sample = np.arange(X.shape[0])
  
 n=200
 # T=10
-times = np.arange(1,100)
+times = np.arange(1,20)
 t = random.sample(list(np.arange(X.shape[0])), n)
+t = np.array(t)
 
 _, nn = find_nn(X[t], X, nn=10, nmax=10)
-t_nn = np.hstack([np.array(t)[:,None],np.array(nn)])
+t_nn = np.hstack([t[:,None],np.array(nn)])
 
 kappas = []
 for T in times:
@@ -75,3 +76,23 @@ ax.set_yticklabels([])
 ax.set_xticklabels([])
 ax.set_zticklabels([])
 # plt.savefig('manifold.svg')
+
+
+#form nn graph
+import networkx as nx
+X_nodes = X[t,:]
+t = np.arange(n)
+t = np.delete(t,t[np.isnan(kappa)])
+X_nodes = X_nodes[t]
+_, nn = find_nn(X_nodes, X_nodes, nn=5, nmax=10)
+
+kappa_diff = kappa[:,None] - kappa[:,None].T
+G = nx.Graph()
+G.add_nodes_from([i for i in range(n)])
+for i,nn_ in enumerate(nn):
+    x = [i] * 5
+    G.add_weighted_edges_from(zip(x,nn_,kappa_diff[i,nn_]))
+    
+node_colors = kappa
+
+plot.plot_graph(G,node_colors=node_colors)
