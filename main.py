@@ -477,6 +477,7 @@ def curvature_geodesic(dst):
     dst[np.all(np.isnan(dst.astype(float)), axis=1)] = np.inf
 
     kappa = 1-np.nanmean(dst[:,1:],axis=1)/dst[:,0]
+    kappa[dst[:,0]==np.inf] = np.nan
     kappa = kappa.astype(float)
      
     return kappa

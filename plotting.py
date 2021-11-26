@@ -155,53 +155,75 @@ def plot_graph(
     node_colors=None,
     node_size=20,
     show_colorbar=True,
-    ax=None
+    layout=None,
+    ax=None,
+    node_attr="pos"
 ):
     """Plot the curvature on the graph."""
+        
+    pos = list(nx.get_node_attributes(graph, node_attr).values())
     
+    if layout is not None and pos!=[]:
+        if layout=='spectral':
+            pos = nx.spectral_layout(graph)
+        else:   
+            pos = nx.spring_layout(graph)
+            
     if ax is None:
         fig = plt.figure()
-        ax = plt.gca()
         
-    pos = list(nx.get_node_attributes(graph, "pos").values())
-    if pos == []:
-        pos = nx.spring_layout(graph)
+        if len(pos[0])==2:
+            ax = plt.axes()
+        elif len(pos[0])==3:
+            ax = plt.axes(projection="3d")
 
     if node_colors is not None:
         cmap = plt.cm.coolwarm
-        vmin = min(node_colors)
-        vmax = max(node_colors)
+        vmin = -max(abs(node_colors))
+        vmax = max(abs(node_colors))
     else:
         cmap, vmin, vmax = None, None, None
+    
+    if len(pos[0])==2:
+    
+        nx.draw_networkx_nodes(
+            graph,
+            pos=pos,
+            node_size=node_size,
+            node_color=node_colors,
+            cmap=cmap,
+            vmin=vmin,
+            vmax=vmax,
+            alpha=0.8,
+            ax=ax
+        )
 
-    nx.draw_networkx_nodes(
-        graph,
-        pos=pos,
-        node_size=node_size,
-        node_color=node_colors,
-        cmap=cmap,
-        vmin=vmin,
-        vmax=vmax,
-        alpha=0.8,
-        ax=ax
-    )
-
-    nx.draw_networkx_edges(
-        graph,
-        pos=pos,
-        width=edge_width,
-        # edge_color=edge_color,
-        # edge_cmap=cmap,
-        # edge_vmin=vmin,
-        # edge_vmax=vmax,
-        alpha=0.5,
-        ax=ax
-    )
+        nx.draw_networkx_edges(
+            graph,
+            pos=pos,
+            width=edge_width,
+            # edge_color=edge_color,
+            # edge_cmap=cmap,
+            # edge_vmin=vmin,
+            # edge_vmax=vmax,
+            alpha=0.5,
+            ax=ax
+        )
+    
+    elif len(pos[0])==3:
+        node_xyz = np.array([pos[v] for v in sorted(graph)])
+        edge_xyz = np.array([(pos[u], pos[v]) for u, v in graph.edges()])
+    
+        ax.scatter(*node_xyz.T, s=node_size, ec="w")
+        
+        for vizedge in edge_xyz:
+            ax.plot(*vizedge.T, color="tab:gray")
+            
 
     if show_colorbar:
-        norm = plt.cm.colors.Normalize(vmin, vmax)
-        edges = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
-        plt.colorbar(edges)
+        norm = plt.cm.colors.Normalize(-max(abs(node_colors)), max(abs(node_colors)))
+        cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
+        plt.colorbar(cbar)
 
     plt.axis("off")
 
