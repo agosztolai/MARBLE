@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.neighbors import NearestNeighbors
 from scipy.interpolate import splprep, splev
 from scipy.spatial import ConvexHull
+from scipy.spatial.distance import cdist, pdist, squareform
 
 
 """
@@ -483,19 +484,40 @@ def curvature_geodesic(dst):
     return kappa
 
 
+def curvature_centroid(X, tt, metric='euclidean'):
+
+    n = tt.shape[0]
+    kappa = np.zeros(n)
+    for i in range(n):
+        if tt[i,0] is None:
+            kappa[i]=None
+        else:
+            tn = [t for t in tt[i,1:] if t is not None]
+            t = tt[i,0]
+            # centroid = X[tn,:].mean(0, keepdims=True)
+            distn = squareform(pdist(X[tn,:])).mean()
+            dist = cdist(X[tn,:],X[[t],:],metric=metric).mean()
+            kappa[i] = 1 - distn/dist
+            
+    return kappa
+
+
 def curvature_ball(X, ts, tt):
+    
+    ts = ts.T
+    tt = tt.T
 
     n = ts.shape[1]
     kappa = np.zeros(n)
-    # avg_vol = np.zeros(n)
-    for i in range(ts.shape[1]):
-        s = [i for i in ts[:,i] if i is not None]
-        t = [i for i in tt[:,i] if i is not None]
-        kappa[i] = 1- volume_simplex(X, t)/volume_simplex(X, s) 
-        # avg_vol[i] = 0.5*(volume_simplex(X, s) + volume_simplex(X, t))
-    
-    # kappa = diff_vol/avg_vol
-        
+    for i in range(n):
+
+        s = [t for t in ts[:,i] if t is not None]
+        t = [t for t in tt[:,i] if t is not None]
+        if len(s)<3 or len(t)<3:
+            kappa[i] = None
+        else:
+            kappa[i] = 1 - volume_simplex(X, t)/volume_simplex(X, s) 
+            
     return kappa
 
 

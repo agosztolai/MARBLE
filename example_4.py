@@ -51,8 +51,9 @@ for T in times:
     #need to compute geodesic distances on the same attractor for consistency?
     dst = all_geodesic_dist(X, ts, tt, interp=False)
     kappa = curvature_geodesic(dst)
+    # kappa = curvature_ball(X, ts, tt)
     kappas.append(kappa)
-    # kappa = curvature_ball(X, ts_nn, tt_nn)
+    
 
 kappas = np.array(kappas)
 plot.plot_curvatures(times,kappas,ylog=True)

@@ -12,6 +12,68 @@ import os
 import networkx as nx
 
 
+def time_series(T,X, ax=None, style='o', color=None, lw=1, ms=5):
+    """
+    Plot time series coloured by curvature.
+
+    Parameters
+    ----------
+    X : np array or list[np array]
+        Trajectories.
+    style : string
+        Plotting style. The default is 'o'.
+    color: bool
+        Color lines. The default is True.
+    dim : int, optionel
+        Dimension of the plot. The default is 3.
+    lw : int
+        Line width.
+    ms : int
+        Marker size.
+
+    Returns
+    -------
+    ax : matplotlib axes object.
+
+    """
+            
+    if ax is None:
+        fig = plt.figure()
+        ax = plt.axes()
+    
+    if color is None:
+        if len(X)>1:
+            colors = plt.cm.jet(np.linspace(0, 1, len(X)))
+        else:
+            c = 'C0'
+    else:
+        if isinstance(color, (list, tuple, np.ndarray)):
+            cmap = plt.cm.coolwarm
+            norm = plt.cm.colors.Normalize(-max(abs(color)), max(abs(color)))
+            cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
+            plt.colorbar(cbar)
+        else:
+            c = color
+            
+    for i in range(len(X)-2):
+        if X[i] is None:
+            continue
+        
+        if len(X)>1 and color is None:
+            c=colors[i]
+        if isinstance(color, (list, tuple, np.ndarray)):
+            if ~np.isnan(color[i]):
+                c=cmap(norm(color[i]))
+            else:
+                continue
+                
+        ax.plot(T[i:i+2], X[i:i+2], style, c=c, linewidth=lw, markersize=ms)
+            
+# for i in range(n):
+#     ax.plot(x[i:i+1],y[i:i+1],color=(0.0,0.5,T[i]))
+        
+    return ax
+
 def trajectories(X, ax=None, style='o', color=None, dim=3, lw=1, ms=5):
     """
     Plot trajectory in phase space in dim dimensions. If multiple trajectories
