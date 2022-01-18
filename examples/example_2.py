@@ -71,16 +71,20 @@ kappa = np.clip(kappas[0], -0.1, 0.1)
 #discretisation
 ax = plotting.plot_discretisation(centers, sizes)
 
+#transition matrix
+plt.imshow(P.todense())
+
 #curvature across time horizons
 # plot.plot_curvatures(times,kappas,ylog=True)
 
-#plotting sample trajectories
+#plotting some trajectories and their neighbours
 ax = plotting.trajectories(X, color=None, style='o', lw=1, ms=1)
 flows_n = time_series.generate_flow(X, ts[55,1:], T=T)
 plotting.trajectories(flows_n, ax=ax, color='C1', style='-', lw=1, ms=4)
 flow = time_series.generate_flow(X, ts[55,0], T=T)
 plotting.trajectories(flow, ax=ax, color='C3', style='-', lw=1, ms=4)
 
+#plotting all curvatures
 flows = time_series.generate_flow(X, ts[:,0], T=T)
 ax = plotting.trajectories(flows, color=kappa, style='-', lw=0.5, ms=6)
 
