@@ -38,6 +38,7 @@ def get_count_matrix(t_sample,labels,lag):
     
     return count_matrix
 
+#### CODE BELOW IS FROM Costa, et al. 2021 arxiv 
 
 # def segment_maskedArray(tseries,min_size=50):
 #     '''
