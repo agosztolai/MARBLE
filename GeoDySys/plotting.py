@@ -6,6 +6,7 @@ import matplotlib.colors as col
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
 from pathlib import Path
 import os
@@ -38,8 +39,7 @@ def time_series(T,X, ax=None, style='o', color=None, lw=1, ms=5):
     """
             
     if ax is None:
-        fig = plt.figure()
-        ax = plt.axes()
+        ax = create_axis(2)
     
     if color is None:
         if len(X)>1:
@@ -106,11 +106,7 @@ def trajectories(X, ax=None, style='o', color=None, dim=3, lw=1, ms=5):
     assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
     
     if ax is None:
-        fig = plt.figure()
-        if dim==2:
-            ax = plt.axes()
-        if dim==3:
-            ax = plt.axes(projection="3d")
+        ax = create_axis(dim)
     
     if color is None:
         if len(X)>1:
@@ -232,12 +228,7 @@ def plot_graph(
             pos = nx.spring_layout(graph)
             
     if ax is None:
-        fig = plt.figure()
-        
-        if len(pos[0])==2:
-            ax = plt.axes()
-        elif len(pos[0])==3:
-            ax = plt.axes(projection="3d")
+        create_axis(len(pos[0]))
 
     if node_colors is not None:
         cmap = plt.cm.coolwarm
@@ -288,6 +279,76 @@ def plot_graph(
         plt.colorbar(cbar)
 
     plt.axis("off")
+    
+    
+def cuboid_data2(o, size=(1,1,1)):
+    
+    X = [[[0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0]],
+         [[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0]],
+         [[1, 0, 1], [1, 0, 0], [1, 1, 0], [1, 1, 1]],
+         [[0, 0, 1], [0, 0, 0], [0, 1, 0], [0, 1, 1]],
+         [[0, 1, 0], [0, 1, 1], [1, 1, 1], [1, 1, 0]],
+         [[0, 1, 1], [0, 0, 1], [1, 0, 1], [1, 1, 1]]]
+    
+    X = np.array(X).astype(float)
+    for i in range(3):
+        X[:,:,i] *= size[i]
+    X += np.array(o)
+    
+    return X
+
+
+def plotCubeAt2(centers,sizes=None,colors=None, **kwargs):
+    
+    if not isinstance(colors,(list,np.ndarray)): 
+        colors=["C0"]*len(centers)
+    if not isinstance(sizes,(list,np.ndarray)): 
+        sizes=[(1,1,1)]*len(centers)
+        
+    for i in range(centers.shape[0]):
+        centers[i]-=sizes[i]/2
+    
+    g = []
+    for p,s,c in zip(centers,sizes,colors):
+        g.append( cuboid_data2(p, size=s) )
+        
+    return Poly3DCollection(np.concatenate(g),  
+                            facecolors=np.repeat(colors,6), **kwargs)
+
+
+def plot_discretisation(centers, sizes, ax=None, dim=3):
+    """
+
+    """
+        
+    assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
+    
+    if ax is None:
+        ax = create_axis(dim)
+    
+    pc = plotCubeAt2(centers,sizes,colors=(0,0,0.2,0.2), edgecolor="b")
+    ax.add_collection3d(pc)
+    
+    cmin = centers.min(0)
+    cmax = centers.max(0)
+    pad = 0.1*(cmax - cmin)
+    
+    ax.set_xlim([cmin[0]-pad[0],cmax[0]+pad[0]])
+    ax.set_ylim([cmin[1]-pad[1],cmax[1]+pad[1]])
+    ax.set_zlim([cmin[2]-pad[2],cmax[2]+pad[2]])
+    plt.show()
+        
+    return ax
+
+
+def create_axis(dim):
+    fig = plt.figure()
+    if dim==2:
+        ax = fig.gca()
+    if dim==3:
+        ax = fig.gca(projection="3d")
+        
+    return ax
 
 
 def _savefig(fig, folder, filename, ext):

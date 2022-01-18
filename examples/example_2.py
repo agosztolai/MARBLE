@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 # from math import comb
 import random
-from GeoDySys import time_series, curvature, plotting, solvers
+from GeoDySys import time_series, curvature, plotting, solvers, discretisation, op_calculations
 random.seed(a=0)
             
 """1. Simulate system"""
@@ -31,10 +31,16 @@ tau = -1
 dim = 3
 X = time_series.delay_embed(X[:,0],dim,tau)
 t_sample = t_sample[:-dim]
+
+
+centers, sizes, labels = discretisation.kmeans_part(X, 40)
+# centers, sizes, labels = discretisation.maxent_part(X, dim, .1)
+ax = plotting.plot_discretisation(centers, sizes)
+
+P = op_calculations.get_transition_matrix(labels,5)
  
 
 """3. Compute curvature of trajectories starting at every point"""
-
 times = [3] #time horizon
 # n=200
 # t = random.sample(list(np.arange(X.shape[0])), n)
@@ -67,11 +73,12 @@ kappa = np.clip(kappas[0], -0.1, 0.1)
 # plot.trajectories(flow, ax=ax, color='C3', style='-', lw=1, ms=4)
 
 flows = time_series.generate_flow(X, ts[:,0], T=T)
-ax = plotting.trajectories(flows, color=kappa, style='-', lw=0.5, ms=6)
+# ax = plotting.trajectories(flows, color=kappa, style='-', lw=0.5, ms=6)
 
 ax.set_yticklabels([])
 ax.set_xticklabels([])
 ax.set_zticklabels([])
 plt.savefig('../results/manifold.svg')
 
-plotting.time_series(t,X[:,0], color=kappa, style='-', lw=2)
+# ax = plotting.time_series(t,X[:,0], color=kappa, style='-', lw=2)
+ax.set_xlim([0,20])

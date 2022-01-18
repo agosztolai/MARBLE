@@ -4,6 +4,7 @@ GeoDySys/ODE_library.py
 GeoDySys/__init__.py
 GeoDySys/curvature.py
 GeoDySys/discretisation.py
+GeoDySys/operator_calculations.py
 GeoDySys/plotting.py
 GeoDySys/solvers.py
 GeoDySys/time_series.py

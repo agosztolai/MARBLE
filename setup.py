@@ -11,6 +11,7 @@ setup(
         "matplotlib",
         "matplotlib>=3.3.3",
         "tqdm>=4.56.0",
+        "msmtools"
     ],
     packages=find_packages(),
 )
