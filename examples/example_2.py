@@ -33,14 +33,14 @@ X = time_series.delay_embed(X[:,0],dim,tau)
 t_sample = t_sample[:-dim]
 
 
+"""3. Discretisation and Markov transition operator"""
 centers, sizes, labels = discretisation.kmeans_part(X, 40)
 # centers, sizes, labels = discretisation.maxent_part(X, dim, .1)
-ax = plotting.plot_discretisation(centers, sizes)
 
-P = op_calculations.get_transition_matrix(labels,5)
+P = op_calculations.get_transition_matrix(t_sample,labels,5)
  
 
-"""3. Compute curvature of trajectories starting at every point"""
+"""4. Curvature of trajectories starting at the centerpoint of clusters"""
 times = [3] #time horizon
 # n=200
 # t = random.sample(list(np.arange(X.shape[0])), n)
@@ -51,7 +51,9 @@ t_nn = np.hstack([np.array(t_sample)[:,None],np.array(nn)])
 kappas = []
 for T in times:
     #checks if the trajectory ends before time horizon T
-    ts, tt = time_series.valid_flows(t_sample, t_nn, T=T)
+    ts, tt = time_series.valid_flows(t_sample, t_nn.flatten(), T=T)
+    ts = ts.reshape(t_nn.shape)
+    tt = tt.reshape(t_nn.shape)
     
     #computes geodesic distances on attractor X
     dst = curvature.all_geodesic_dist(X, ts, tt, interp=False)
@@ -61,24 +63,29 @@ for T in times:
     kappas.append(kappa)
 
 kappas = np.array(kappas)
-# plot.plot_curvatures(times,kappas,ylog=True)
 
 kappa = np.clip(kappas[0], -0.1, 0.1)
 
+
 """Plotting"""
-# ax = plot.trajectories(X, color=None, style='o', lw=1, ms=1)
-# flows_n = time_series.generate_flow(X, ts[55,1:], T=T)
-# plot.trajectories(flows_n, ax=ax, color='C1', style='-', lw=1, ms=4)
-# flow = time_series.generate_flow(X, ts[55,0], T=T)
-# plot.trajectories(flow, ax=ax, color='C3', style='-', lw=1, ms=4)
+#discretisation
+ax = plotting.plot_discretisation(centers, sizes)
+
+#curvature across time horizons
+# plot.plot_curvatures(times,kappas,ylog=True)
+
+#plotting sample trajectories
+ax = plotting.trajectories(X, color=None, style='o', lw=1, ms=1)
+flows_n = time_series.generate_flow(X, ts[55,1:], T=T)
+plotting.trajectories(flows_n, ax=ax, color='C1', style='-', lw=1, ms=4)
+flow = time_series.generate_flow(X, ts[55,0], T=T)
+plotting.trajectories(flow, ax=ax, color='C3', style='-', lw=1, ms=4)
 
 flows = time_series.generate_flow(X, ts[:,0], T=T)
-# ax = plotting.trajectories(flows, color=kappa, style='-', lw=0.5, ms=6)
+ax = plotting.trajectories(flows, color=kappa, style='-', lw=0.5, ms=6)
 
-ax.set_yticklabels([])
-ax.set_xticklabels([])
-ax.set_zticklabels([])
-plt.savefig('../results/manifold.svg')
+# plt.savefig('../results/manifold.svg')
 
-# ax = plotting.time_series(t,X[:,0], color=kappa, style='-', lw=2)
+#plot trajectory with curvature values
+ax = plotting.time_series(t,X[:,0], color=kappa, style='-', lw=2)
 ax.set_xlim([0,20])

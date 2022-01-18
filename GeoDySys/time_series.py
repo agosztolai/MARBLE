@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
+import numpy.ma as ma
 
 
 def delay_embed(x, k, tau=1, typ='asy'):
@@ -153,9 +154,9 @@ def find_nn(x_query, X, nn=1, nmax=10, n_jobs=-1):
     return dist_nn, ind_nn
 
 
-def valid_flows(t_sample, ts, tt=None, T=1):
+def valid_flows(t_sample, ts, tt=None, T=None):
     """
-    Check which time intervals correspond to valid trajectories.
+    Mask out invalid trajectories.
 
     Parameters
     ----------
@@ -177,31 +178,29 @@ def valid_flows(t_sample, ts, tt=None, T=1):
 
     """
     
-    r,c = ts.shape
-    ts = ts.flatten()
-    
     if isinstance(T, int) or np.issubdtype(T, np.integer):
         T *= np.ones_like(ts)
         
-    if tt is None:
+    if T is not None and tt is None:
         tt = [ts[i]+T[i] for i in range(len(ts))]
-    else:
+    elif tt is not None and T is None:
         assert len(tt)==len(ts), 'Number of source points must equal to the \
             number of target points.'
+    else:
+        assert tt!=T, 'Ambiguous. Either time horizon or trajectory end time must be specified!'
             
     t_breaks = np.zeros_like(t_sample)
     t_breaks[np.array(t_sample)==0] = 1
-    t_breaks[-max(T):] = 1
+    t_breaks[0] = 0
     
-    ok = np.ones_like(tt)
-    for i,t in enumerate(zip(ts,tt)):
-        ok[i] = np.sum(t_breaks[t[0]:t[1]])==0
+    invalid = np.zeros_like(tt)
+    for i,(s,t) in enumerate(zip(ts,tt)):
+        if t>len(t_sample):
+            invalid[i] = 1
+        invalid[i] = np.sum(t_breaks[s:t])==1
         
-    tt = [tt[i] if ok[i]==1 else None for i in range(len(ok))]
-    ts = [ts[i] if ok[i]==1 else None for i in range(len(ok))]
-    
-    ts = np.array(ts).reshape(r,c)
-    tt = np.array(tt).reshape(r,c)
+    ts = ma.array(ts, mask=invalid)
+    tt = ma.array(tt, mask=invalid)
         
     return ts, tt
 

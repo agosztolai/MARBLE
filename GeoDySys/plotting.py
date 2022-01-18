@@ -39,42 +39,22 @@ def time_series(T,X, ax=None, style='o', color=None, lw=1, ms=5):
     """
             
     if ax is None:
-        ax = create_axis(2)
+        _, ax = create_axis(2)
     
-    if color is None:
-        if len(X)>1:
-            colors = plt.cm.jet(np.linspace(0, 1, len(X)))
-        else:
-            c = 'C0'
-    else:
-        if isinstance(color, (list, tuple, np.ndarray)):
-            cmap = plt.cm.coolwarm
-            norm = plt.cm.colors.Normalize(-max(abs(color)), max(abs(color)))
-            cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
-            plt.colorbar(cbar)
-        else:
-            c = color
+    colors = set_colors(color)
             
     for i in range(len(X)-2):
         if X[i] is None:
             continue
         
-        if len(X)>1 and color is None:
-            c=colors[i]
-        if isinstance(color, (list, tuple, np.ndarray)):
-            if ~np.isnan(color[i]):
-                c=cmap(norm(color[i]))
-            else:
-                continue
+        c = colors[i] if len(colors)>1 else colors
                 
         ax.plot(T[i:i+2], X[i:i+2], style, c=c, linewidth=lw, markersize=ms)
-            
-# for i in range(n):
-#     ax.plot(x[i:i+1],y[i:i+1],color=(0.0,0.5,T[i]))
         
     return ax
 
-def trajectories(X, ax=None, style='o', color=None, dim=3, lw=1, ms=5):
+
+def trajectories(X, ax=None, style='o', color=None, dim=3, lw=1, ms=5, axis=False):
     """
     Plot trajectory in phase space in dim dimensions. If multiple trajectories
     are given, they are plotted with different colors.
@@ -106,33 +86,15 @@ def trajectories(X, ax=None, style='o', color=None, dim=3, lw=1, ms=5):
     assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
     
     if ax is None:
-        ax = create_axis(dim)
-    
-    if color is None:
-        if len(X)>1:
-            colors = plt.cm.jet(np.linspace(0, 1, len(X)))
-        else:
-            c = 'C0'
-    else:
-        if isinstance(color, (list, tuple, np.ndarray)):
-            cmap = plt.cm.coolwarm
-            norm = plt.cm.colors.Normalize(-max(abs(color)), max(abs(color)))
-            cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
-            plt.colorbar(cbar)
-        else:
-            c = color
+        _, ax = create_axis(dim)
+            
+    colors = set_colors(color)
             
     for i,X_l in enumerate(X):
         if X_l is None:
             continue
         
-        if len(X)>1 and color is None:
-            c=colors[i]
-        if isinstance(color, (list, tuple, np.ndarray)):
-            if ~np.isnan(color[i]):
-                c=cmap(norm(color[i]))
-            else:
-                continue
+        c = colors[i] if len(colors)>1 else colors[0]
                 
         if dim==2:
             ax.plot(X_l[:, 0], X_l[:, 1], style, c=c, linewidth=lw, markersize=ms)
@@ -143,7 +105,7 @@ def trajectories(X, ax=None, style='o', color=None, dim=3, lw=1, ms=5):
                         ax.add_artist(a)
                 ax.scatter(X_l[0, 0], X_l[0, 1], color=c, s=ms, facecolors='none')
                 ax.scatter(X_l[-1, 0], X_l[-1, 1], color=c, s=ms)
-        if dim==3:
+        elif dim==3:
             ax.plot(X_l[:, 0], X_l[:, 1], X_l[:, 2], style, c=c, linewidth=lw, markersize=ms)
             if style=='-':
                 for j in range(X_l.shape[0]):
@@ -154,6 +116,9 @@ def trajectories(X, ax=None, style='o', color=None, dim=3, lw=1, ms=5):
                         ax.add_artist(a)
                 # ax.scatter(X_l[0, 0], X_l[0, 1], X_l[0, 2], color=c, s=ms, facecolors='none')
                 # ax.scatter(X_l[-1, 0], X_l[-1, 1], X_l[-1, 2], color=c, s=ms)
+                
+    if not axis:
+        axis_off(ax)
         
     return ax
 
@@ -165,7 +130,7 @@ class Arrow3D(FancyArrowPatch):
 
     def draw(self, renderer):
         xs3d, ys3d, zs3d = self._verts3d
-        xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
+        xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, self.axes.M)
         self.set_positions((xs[0],ys[0]),(xs[1],ys[1]))
         FancyArrowPatch.draw(self, renderer)
 
@@ -177,15 +142,11 @@ def plot_curvatures(
     folder="figures",
     filename="curvature",
     ext=".svg",
-    ax=None,
-    figsize=(5, 4),
+    ax=None
 ):
     """Plot edge curvature."""
     if ax is None:
-        fig = plt.figure(figsize=figsize)
-        ax = plt.gca()
-    else:
-        fig = None
+        fig, ax = create_axis(2)
 
     for kappa in kappas.T:
         ax.plot(times, kappa, c='k', lw=0.5, alpha=0.1)
@@ -201,84 +162,9 @@ def plot_curvatures(
     else:
         ax.set_ylabel(r"Curvature, $\kappa_t(T)$")
     
-
     _savefig(fig, folder, filename, ext=ext)
     
     return fig, ax
-
-
-def plot_graph(
-    graph,
-    edge_width=1,
-    node_colors=None,
-    node_size=20,
-    show_colorbar=True,
-    layout=None,
-    ax=None,
-    node_attr="pos"
-):
-    """Plot the curvature on the graph."""
-        
-    pos = list(nx.get_node_attributes(graph, node_attr).values())
-    
-    if layout is not None and pos!=[]:
-        if layout=='spectral':
-            pos = nx.spectral_layout(graph)
-        else:   
-            pos = nx.spring_layout(graph)
-            
-    if ax is None:
-        create_axis(len(pos[0]))
-
-    if node_colors is not None:
-        cmap = plt.cm.coolwarm
-        vmin = -max(abs(node_colors))
-        vmax = max(abs(node_colors))
-    else:
-        cmap, vmin, vmax = None, None, None
-    
-    if len(pos[0])==2:
-    
-        nx.draw_networkx_nodes(
-            graph,
-            pos=pos,
-            node_size=node_size,
-            node_color=node_colors,
-            cmap=cmap,
-            vmin=vmin,
-            vmax=vmax,
-            alpha=0.8,
-            ax=ax
-        )
-
-        nx.draw_networkx_edges(
-            graph,
-            pos=pos,
-            width=edge_width,
-            # edge_color=edge_color,
-            # edge_cmap=cmap,
-            # edge_vmin=vmin,
-            # edge_vmax=vmax,
-            alpha=0.5,
-            ax=ax
-        )
-    
-    elif len(pos[0])==3:
-        node_xyz = np.array([pos[v] for v in sorted(graph)])
-        edge_xyz = np.array([(pos[u], pos[v]) for u, v in graph.edges()])
-    
-        ax.scatter(*node_xyz.T, s=node_size, ec="w")
-        
-        for vizedge in edge_xyz:
-            ax.plot(*vizedge.T, color="tab:gray")
-            
-
-    if show_colorbar:
-        norm = plt.cm.colors.Normalize(-max(abs(node_colors)), max(abs(node_colors)))
-        cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
-        plt.colorbar(cbar)
-
-    plt.axis("off")
     
     
 def cuboid_data2(o, size=(1,1,1)):
@@ -324,31 +210,64 @@ def plot_discretisation(centers, sizes, ax=None, dim=3):
     assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
     
     if ax is None:
-        ax = create_axis(dim)
+        _, ax = create_axis(dim)
     
     pc = plotCubeAt2(centers,sizes,colors=(0,0,0.2,0.2), edgecolor="b")
     ax.add_collection3d(pc)
     
-    cmin = centers.min(0)
-    cmax = centers.max(0)
-    pad = 0.1*(cmax - cmin)
-    
-    ax.set_xlim([cmin[0]-pad[0],cmax[0]+pad[0]])
-    ax.set_ylim([cmin[1]-pad[1],cmax[1]+pad[1]])
-    ax.set_zlim([cmin[2]-pad[2],cmax[2]+pad[2]])
-    plt.show()
+    ax = set_limits(ax, centers)
+    axis_off(ax)
         
     return ax
 
 
 def create_axis(dim):
+    
     fig = plt.figure()
     if dim==2:
-        ax = fig.gca()
+        ax = plt.axes()
     if dim==3:
-        ax = fig.gca(projection="3d")
+        ax = plt.axes(projection="3d")
         
+    return fig, ax
+
+
+def set_limits(ax,data,padding=0.1):
+    
+    cmin = data.min(0)
+    cmax = data.max(0)
+    pad = padding*(cmax - cmin)
+    
+    ax.set_xlim([cmin[0]-pad[0],cmax[0]+pad[0]])
+    ax.set_ylim([cmin[1]-pad[1],cmax[1]+pad[1]])
+    ax.set_zlim([cmin[2]-pad[2],cmax[2]+pad[2]])
+    
     return ax
+
+
+def set_colors(color):
+    
+    if color is None:
+        colors = ['C0']
+    else:
+        if isinstance(color, (list, tuple, np.ndarray)):
+            cmap = plt.cm.coolwarm
+            norm = plt.cm.colors.Normalize(-max(abs(color)), max(abs(color)))
+            cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
+            plt.colorbar(cbar)
+            colors = []
+            for i, c in enumerate(color):
+                colors.append(cmap(norm(c)))
+        else:
+            colors = [color]
+            
+    return colors
+
+
+def axis_off(ax):
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    ax.set_zticklabels([])
 
 
 def _savefig(fig, folder, filename, ext):

@@ -5,6 +5,7 @@ import numpy as np
 from scipy.interpolate import splprep, splev
 from scipy.spatial import ConvexHull
 from scipy.spatial.distance import cdist, pdist, squareform
+import numpy.ma as ma
 
 def curvature_geodesic(dst):
     """
@@ -27,15 +28,8 @@ def curvature_geodesic(dst):
         List of curvature at timepoints t.
 
     """
-    
-    dst[dst==None] = np.nan
-    dst[np.all(np.isnan(dst.astype(float)), axis=1)] = np.inf
-
-    kappa = 1-np.nanmean(dst[:,1:],axis=1)/dst[:,0]
-    kappa[dst[:,0]==np.inf] = np.nan
-    kappa = kappa.astype(float)
      
-    return kappa
+    return 1-np.nanmean(dst[:,1:],axis=1)/dst[:,0]
 
 
 def all_geodesic_dist(X, ts, tt, interp=False):
@@ -64,16 +58,14 @@ def all_geodesic_dist(X, ts, tt, interp=False):
     ts = ts.flatten()
     tt = tt.flatten()
             
-    dst = []
-    for s,t in zip(ts,tt):
-        if s is None or t is None:
-            dst.append(None)
+    dst = ma.array(np.zeros(r*c), mask=np.zeros(r*c))
+    for i,(s,t) in enumerate(zip(ts,tt)):
+        if not ma.is_masked(s) and not ma.is_masked(t):
+            dst[i] = geodesic_dist(s, t, X, interp=interp)
         else:
-            dst.append(geodesic_dist(s, t, X, interp=interp))
-        
-    dst = np.array(dst).reshape(r,c)
+            dst.mask[i] = 1
     
-    return dst
+    return dst.reshape(r,c)
 
 
 def geodesic_dist(s, t, x, interp=False):
@@ -97,7 +89,7 @@ def geodesic_dist(s, t, x, interp=False):
         Geodesic distance.
 
     """
-    
+        
     assert s<t, 'First point must be before second point!'
     
     if interp:
