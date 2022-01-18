@@ -4,7 +4,7 @@
 from scipy.integrate import ode, odeint
 import sys
 import numpy as np
-from ODE_library import *
+from GeoDySys.ODE_library import *
 
 def simulate_ODE(whichmodel, t, X0, P=None, noise=False, **noise_pars):
     """
