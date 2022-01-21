@@ -12,14 +12,17 @@ random.seed(a=0)
 # par = {'mu': 0.1}
 # fun = 'vanderpol'
 
-par = {'sigma': 10.0, 'beta': 8/3.0, 'rho': 28.0, 'tau': 1.0}
-fun = 'lorenz'
+# par = {'sigma': 10.0, 'beta': 8/3.0, 'rho': 28.0, 'tau': 1.0}
+# fun = 'lorenz'
+
+par = {'a': 0.15, 'b': 0.2, 'c': 10.0}
+fun = 'rossler'
 
 # par['sigma']*((par['sigma']+par['beta']+3)/(par['sigma']-par['beta']-1))
 
 n=1000
 x0 = [-8.0, 7.0, 27.0]
-t = np.linspace(0, 20, n)
+t = np.linspace(0, 100, n)
 t_ind = np.arange(n)
 mu, sigma = 0, 1 # mean and standard deviation
 X = solvers.simulate_ODE(fun, t, x0, par, noise=False, mu=mu, sigma=sigma)
@@ -27,10 +30,10 @@ t_sample = t_ind
 
 
 """2. Random project and then delay embed"""
-x = time_series.random_projection(X, seed=0)
-dim = 3
-X = time_series.delay_embed(X[:,0],dim,tau=-1)
-t_sample = t_sample[:-dim]
+# x = time_series.random_projection(X, seed=0)
+# dim = 3
+# X = time_series.delay_embed(X[:,0],dim,tau=-1)
+# t_sample = t_sample[:-dim]
 
 
 """3. Compute curvature of trajectories starting at t_sample"""
@@ -65,5 +68,6 @@ ax = plotting.trajectories(flows, color=kappas, style='-', lw=0.5, ms=6)
 # plt.savefig('../results/manifold.svg')
 
 #plot trajectory with curvature values
-ax = plotting.time_series(t,X[:,0], color=kappas, style='-', lw=2)
+#use coordinate 0 for lorenz 2 for rossler
+ax = plotting.time_series(t,X[:,2], color=kappas, style='-', lw=2)
 ax.set_xlim([0,20])
