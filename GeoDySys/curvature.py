@@ -9,15 +9,15 @@ import numpy.ma as ma
 from GeoDySys import time_series
 from scipy.sparse import coo_matrix, csr_matrix
 
-def get_curvature_matrix(X, t_sample, labels, T, Tmax=None):
+def get_curvature_matrix(X, t_ind, labels, T, Tmax=None):
     """Compute curvature between all pairs of partitions.
     
     Parameters
     ----------
     X : np array
         Datapoints.
-    t_sample : np array
-        Time indices corresponding to the sampled short trajectories.
+    t_ind : np array
+        Time indices corresponding to the sampled trajectories.
     labels : np array
         Partition label of points.
     T : int
@@ -43,7 +43,7 @@ def get_curvature_matrix(X, t_sample, labels, T, Tmax=None):
         #starting and endpoints of paths after time _T
         ts = np.arange(0,len(labels)-_T)
         tt = np.arange(_T,len(labels))
-        ts, tt = time_series.valid_flows(t_sample, ts, tt=tt)
+        ts, tt = time_series.valid_flows(t_ind, ts, tt=tt)
         ts = ts[~ts.mask]
         tt = tt[~tt.mask]
     
@@ -77,20 +77,18 @@ def get_curvature_matrix(X, t_sample, labels, T, Tmax=None):
     return K.todense()
 
 
-def curvature_geodesic(dst):
+def curvature_trajectory(X,t_ind,t_sample=None,T=5,nn=5,return_neighbours=False):
     """
     Compute manifold curvature at a given set of points.
 
     Parameters
     ----------
-    dst : np.array
-        Geodesic distances for all points in the manifold (with a given time 
-                                                           horizon, T).
-        First row corresponds to geodesic distance on the manifold from a 
-        set of points x(t) to points x(t+T).
-        Rows from 2 to n correspond to geodesic distances between x(nn_t) and
-        x(nn_t(t)+T), where nn_i(t) is the index of the nearest neighbor of 
-        x_i(t) on attractor i.
+    X : np array
+        Datapoints
+    t_ind : np array
+        Time indices corresponding to the sampled trajectories.
+    t_sample : np array, optional
+        Time indices of points whose curvaature is needed. The default is all.
 
     Returns
     -------
@@ -98,8 +96,26 @@ def curvature_geodesic(dst):
         List of curvature at timepoints t.
 
     """
-     
-    return 1-np.nanmean(dst[:,1:],axis=1)/dst[:,0]
+    
+    if t_sample is None:
+        t_sample = np.arange(len(X))
+        
+    #find nearest neighbours
+    _, nn = time_series.find_nn(X[t_sample], X, nn=nn, nmax=10)
+    t_nn = np.hstack([np.array(t_sample)[:,None],np.array(nn)])
+
+    #checks if the trajectory ends before time horizon T
+    ts, tt = time_series.valid_flows(t_ind, t_nn.flatten(), T=T)
+    ts = ts.reshape(t_nn.shape)
+    tt = tt.reshape(t_nn.shape)
+    
+    #computes geodesic distances on attractor X
+    dst = all_geodesic_dist(X, ts, tt, interp=False)
+    
+    if return_neighbours:
+        return 1-np.nanmean(dst[:,1:],axis=1)/dst[:,0], ts, tt
+    else:
+        return 1-np.nanmean(dst[:,1:],axis=1)/dst[:,0]
 
 
 def all_geodesic_dist(X, ts, tt, interp=False):
@@ -110,9 +126,9 @@ def all_geodesic_dist(X, ts, tt, interp=False):
     ----------
     X : np array
         Datapoints.
-    tt : list[int]
+    tt : np array (can be 2D)
         Start of trajectory.
-    ts : list[int]
+    ts : np array (can be 2D)
         End of trajectory.
     interp : bool, optional
         Cubic interpolation between points. The default is false.
@@ -120,7 +136,12 @@ def all_geodesic_dist(X, ts, tt, interp=False):
     Returns
     -------
     dst : np.array
-        Geodesic distance from a set of timepoints with horizon T.
+        Geodesic distances between specified time indices.
+        First row corresponds to geodesic distance on the manifold from a 
+        set of points x(t) to points x(t+T).
+        Rows from 2 to n correspond to geodesic distances between x(nn_t) and
+        x(nn_t(t)+T), where nn_i(t) is the index of the nearest neighbor of 
+        x_i(t) on attractor i.
 
     """
     

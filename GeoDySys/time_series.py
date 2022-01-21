@@ -154,13 +154,13 @@ def find_nn(x_query, X, nn=1, nmax=10, n_jobs=-1):
     return dist_nn, ind_nn
 
 
-def valid_flows(t_sample, ts, tt=None, T=None):
+def valid_flows(t_ind, ts, tt=None, T=None):
     """
     Mask out invalid trajectories.
 
     Parameters
     ----------
-    t_sample : list[int]
+    t_ind : list[int]
         Time indices corresponding to the sampled short trajectories.
     ts : list[int]
         Start of trajectory.
@@ -190,13 +190,13 @@ def valid_flows(t_sample, ts, tt=None, T=None):
         assert tt!=T, 'Ambiguous. Either time horizon or trajectory end time\
             must be specified!'
             
-    t_breaks = np.zeros_like(t_sample)
-    t_breaks[np.array(t_sample)==0] = 1
+    t_breaks = np.zeros_like(t_ind)
+    t_breaks[np.array(t_ind)==0] = 1
     t_breaks[0] = 0
     
     invalid = np.zeros_like(tt)
     for i,(s,t) in enumerate(zip(ts,tt)):
-        if t>len(t_sample)-1 or s<0 or t<=s or np.sum(t_breaks[s:t])>0:
+        if t>len(t_ind)-2 or s<0 or t<=s or np.sum(t_breaks[s:t])>0:
             invalid[i] = 1
         
     ts = ma.array(ts, mask=invalid)
@@ -238,10 +238,10 @@ def generate_flow(X, ts, tt=None, T=10):
     
     X_sample = []
     for s,t in zip(ts,tt):
-        if s is None or t is None:
-            X_sample.append(None)
-        else:
+        if not ma.is_masked(s) and not ma.is_masked(t):
             X_sample.append(X[s:t+1,:])
+        else:
+            X_sample.append(None)
         
     return X_sample
 
