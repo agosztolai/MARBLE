@@ -11,8 +11,8 @@ import msmtools.estimation as msm_estimation
 from GeoDySys.time_series import valid_flows
 
 
-def get_transition_matrix(t_sample,labels,lag,return_connected=False):
-    count_matrix = get_count_matrix(t_sample,labels,lag)
+def get_transition_matrix(t_sample,labels,T,return_connected=False):
+    count_matrix = get_count_matrix(t_sample,labels,T)
     connected_count_matrix = msm_estimation.connected_cmatrix(count_matrix)
     P = msm_estimation.tmatrix(connected_count_matrix)
     if return_connected:
@@ -22,11 +22,11 @@ def get_transition_matrix(t_sample,labels,lag,return_connected=False):
         return P
 
 
-def get_count_matrix(t_sample,labels,lag):
-    # observable_seqs = ma.compress_rows(ma.vstack([labels[:-lag],labels[lag:]]).T)
+def get_count_matrix(t_sample,labels,T=1):
+    # observable_seqs = ma.compress_rows(ma.vstack([labels[:-T],labels[T:]]).T)
     
-    ts = np.arange(0,len(labels)-lag)
-    tt = np.arange(lag,len(labels))
+    ts = np.arange(0,len(labels)-T)
+    tt = np.arange(T,len(labels))
     ts, tt = valid_flows(t_sample, ts, tt=tt)
 
     row = labels[ts[~ts.mask]]#observable_seqs[:,0]

@@ -187,7 +187,8 @@ def valid_flows(t_sample, ts, tt=None, T=None):
         assert len(tt)==len(ts), 'Number of source points must equal to the \
             number of target points.'
     else:
-        assert tt!=T, 'Ambiguous. Either time horizon or trajectory end time must be specified!'
+        assert tt!=T, 'Ambiguous. Either time horizon or trajectory end time\
+            must be specified!'
             
     t_breaks = np.zeros_like(t_sample)
     t_breaks[np.array(t_sample)==0] = 1
@@ -195,9 +196,8 @@ def valid_flows(t_sample, ts, tt=None, T=None):
     
     invalid = np.zeros_like(tt)
     for i,(s,t) in enumerate(zip(ts,tt)):
-        if t>len(t_sample):
+        if t>len(t_sample)-1 or s<0 or t<=s or np.sum(t_breaks[s:t])>0:
             invalid[i] = 1
-        invalid[i] = np.sum(t_breaks[s:t])==1
         
     ts = ma.array(ts, mask=invalid)
     tt = ma.array(tt, mask=invalid)

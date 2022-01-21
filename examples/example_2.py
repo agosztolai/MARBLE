@@ -27,9 +27,8 @@ t_sample = np.arange(X.shape[0])
 
 """2. Random project and then delay embed"""
 x = time_series.random_projection(X, seed=0)
-tau = -1
 dim = 3
-X = time_series.delay_embed(X[:,0],dim,tau)
+X = time_series.delay_embed(X[:,0],dim,tau=-1)
 t_sample = t_sample[:-dim]
 
 
@@ -37,7 +36,7 @@ t_sample = t_sample[:-dim]
 centers, sizes, labels = discretisation.kmeans_part(X, 40)
 # centers, sizes, labels = discretisation.maxent_part(X, dim, .1)
 
-P = op_calculations.get_transition_matrix(t_sample,labels,5)
+P = op_calculations.get_transition_matrix(t_sample,labels,T=5)
  
 
 """4. Curvature of trajectories starting at the centerpoint of clusters"""
@@ -45,22 +44,25 @@ times = [3] #time horizon
 # n=200
 # t = random.sample(list(np.arange(X.shape[0])), n)
 
-_, nn = time_series.find_nn(X[t_sample], X, nn=10, nmax=10)
-t_nn = np.hstack([np.array(t_sample)[:,None],np.array(nn)])
+K = curvature.get_curvature_matrix(X,t_sample,labels,T=5,Tmax=20)
 
-kappas = []
-for T in times:
-    #checks if the trajectory ends before time horizon T
-    ts, tt = time_series.valid_flows(t_sample, t_nn.flatten(), T=T)
-    ts = ts.reshape(t_nn.shape)
-    tt = tt.reshape(t_nn.shape)
+# _, nn = time_series.find_nn(X[t_sample], X, nn=10, nmax=10)
+# t_nn = np.hstack([np.array(t_sample)[:,None],np.array(nn)])
+
+# kappas = []
+# for T in times:
     
-    #computes geodesic distances on attractor X
-    dst = curvature.all_geodesic_dist(X, ts, tt, interp=False)
+#     #checks if the trajectory ends before time horizon T
+#     ts, tt = time_series.valid_flows(t_sample, t_nn.flatten(), T=T)
+#     ts = ts.reshape(t_nn.shape)
+#     tt = tt.reshape(t_nn.shape)
     
-    #computes curvatures of the geodesics
-    kappa = curvature.curvature_geodesic(dst)
-    kappas.append(kappa)
+#     #computes geodesic distances on attractor X
+#     dst = curvature.all_geodesic_dist(X, ts, tt, interp=False)
+    
+#     #computes curvatures of the geodesics
+#     kappa = curvature.curvature_geodesic(dst)
+#     kappas.append(kappa)
 
 kappas = np.array(kappas)
 
@@ -72,6 +74,7 @@ kappa = np.clip(kappas[0], -0.1, 0.1)
 ax = plotting.plot_discretisation(centers, sizes)
 
 #transition matrix
+plt.figure()
 plt.imshow(P.todense())
 
 #curvature across time horizons
