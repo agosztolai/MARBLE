@@ -51,7 +51,7 @@ ax = plotting.plot_discretisation(centers, sizes)
 
 #transition matrix
 plt.figure()
-# plt.imshow(P.todense())
+plt.imshow(P.todense())
 #
 #curvature across time horizons
 # plot.plot_curvatures(times,kappas,ylog=True)

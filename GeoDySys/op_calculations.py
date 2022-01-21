@@ -8,7 +8,7 @@ import msmtools.estimation as msm_estimation
 # import msmtools.analysis as msm_analysis
 # import stats
 # import matplotlib.pyplot as plt
-from GeoDySys.time_series import valid_flows
+from GeoDySys.time_series import valid_flows, generate_flow
 
 
 def get_transition_matrix(t_sample,labels,T,return_connected=False):
@@ -22,12 +22,19 @@ def get_transition_matrix(t_sample,labels,T,return_connected=False):
         return P
 
 
-def get_count_matrix(t_sample,labels,T=1):
+def get_count_matrix(t_ind,labels,T=1):
     # observable_seqs = ma.compress_rows(ma.vstack([labels[:-T],labels[T:]]).T)
     
     ts = np.arange(0,len(labels)-T)
     tt = np.arange(T,len(labels))
-    ts, tt = valid_flows(t_sample, ts, tt=tt)
+    ts, tt = valid_flows(t_ind, ts, tt)
+    
+    #eliminate trajectories that intersect target set multiple times
+    flows, ts, tt = generate_flow(np.arange(len(t_ind)), ts, tt)
+    flows = np.array(flows)
+    notfirst = ((flows-flows[:,[-1]])==0).sum(1)>1
+    ts.mask = ts.mask*notfirst
+    tt.mask = tt.mask*notfirst
 
     row = labels[ts[~ts.mask]]#observable_seqs[:,0]
     col = labels[tt[~tt.mask]]#observable_seqs[:,1]

@@ -38,23 +38,28 @@ t_sample = t_sample[:-dim]
 # t_sample = random.sample(list(np.arange(n)), n_sample)
 
 T=5
-kappas, ts, tt = curvature.curvature_trajectory(X,t_ind,t_sample,T, return_neighbours=True)
+kappas = curvature.curvature_trajectory(X,t_ind,t_sample,T)
 kappas = np.clip(kappas, -0.1, 0.1)
 
-"""Plotting"""
-
+"""4. Plotting"""
 #curvature across time horizons
 # plot.plot_curvatures(times,kappas,ylog=True)
 
 #plotting some trajectories and their neighbours
+#find nearest neighbours
+_, nn = time_series.find_nn(X[t_sample], X, nn=5, nmax=10)
+t_nn = np.hstack([np.array(t_sample)[:,None],np.array(nn)])
+ts, tt = time_series.valid_flows(t_ind, t_nn.flatten(), T)
+ts = ts.reshape(t_nn.shape)
+tt = tt.reshape(t_nn.shape)
 ax = plotting.trajectories(X, color=None, style='o', lw=1, ms=1)
-flows_n = time_series.generate_flow(X, ts[55,1:], T=T)
+flows_n, _, _ = time_series.generate_flow(X, ts[55,1:], T)
 plotting.trajectories(flows_n, ax=ax, color='C1', style='-', lw=1, ms=4)
-flow = time_series.generate_flow(X, ts[55,0], T=T)
+flow, _, _ = time_series.generate_flow(X, ts[55,[0]], T)
 plotting.trajectories(flow, ax=ax, color='C3', style='-', lw=1, ms=4)
 
 #plotting all curvatures
-flows = time_series.generate_flow(X, ts[:,0], T=T)
+flows, _, _ = time_series.generate_flow(X, ts[:,0], T)
 ax = plotting.trajectories(flows, color=kappas, style='-', lw=0.5, ms=6)
 
 # plt.savefig('../results/manifold.svg')

@@ -43,9 +43,17 @@ def get_curvature_matrix(X, t_ind, labels, T, Tmax=None):
         #starting and endpoints of paths after time _T
         ts = np.arange(0,len(labels)-_T)
         tt = np.arange(_T,len(labels))
-        ts, tt = time_series.valid_flows(t_ind, ts, tt=tt)
-        ts = ts[~ts.mask]
-        tt = tt[~tt.mask]
+        ts, tt = time_series.valid_flows(t_ind, ts, tt)
+        
+        #eliminate trajectories that intersect target set multiple times
+        flows, ts, tt = time_series.generate_flow(np.arange(len(t_ind)), ts, tt)
+        if flows!=[]:
+            flows = np.array(flows)
+            notfirst = ((flows-flows[:,[-1]])==0).sum(1)>1
+            ts.mask = ts.mask*notfirst
+            tt.mask = tt.mask*notfirst
+            ts = ts[~ts.mask]
+            tt = tt[~tt.mask]
     
         #count trajectories between partitions
         n = ts.count()
@@ -77,7 +85,7 @@ def get_curvature_matrix(X, t_ind, labels, T, Tmax=None):
     return K.todense()
 
 
-def curvature_trajectory(X,t_ind,t_sample=None,T=5,nn=5,return_neighbours=False):
+def curvature_trajectory(X,t_ind,t_sample=None,T=5,nn=5):
     """
     Compute manifold curvature at a given set of points.
 
@@ -112,10 +120,7 @@ def curvature_trajectory(X,t_ind,t_sample=None,T=5,nn=5,return_neighbours=False)
     #computes geodesic distances on attractor X
     dst = all_geodesic_dist(X, ts, tt, interp=False)
     
-    if return_neighbours:
-        return 1-np.nanmean(dst[:,1:],axis=1)/dst[:,0], ts, tt
-    else:
-        return 1-np.nanmean(dst[:,1:],axis=1)/dst[:,0]
+    return 1-np.nanmean(dst[:,1:],axis=1)/dst[:,0]
 
 
 def all_geodesic_dist(X, ts, tt, interp=False):

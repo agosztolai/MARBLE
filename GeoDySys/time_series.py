@@ -154,7 +154,7 @@ def find_nn(x_query, X, nn=1, nmax=10, n_jobs=-1):
     return dist_nn, ind_nn
 
 
-def valid_flows(t_ind, ts, tt=None, T=None):
+def valid_flows(t_ind, ts, T):
     """
     Mask out invalid trajectories.
 
@@ -164,10 +164,8 @@ def valid_flows(t_ind, ts, tt=None, T=None):
         Time indices corresponding to the sampled short trajectories.
     ts : list[int]
         Start of trajectory.
-    tt : list[int], optional
-        End of trajectory. The default is None.
-    T : int or list[int], optional
-        Time horizons. The default is 1.
+    T : int or list[int]
+        End of trajectory or time horizon.
 
     Returns
     -------
@@ -178,17 +176,12 @@ def valid_flows(t_ind, ts, tt=None, T=None):
 
     """
     
-    if isinstance(T, int) or np.issubdtype(T, np.integer):
-        T *= np.ones_like(ts)
-        
-    if T is not None and tt is None:
-        tt = [ts[i]+T[i] for i in range(len(ts))]
-    elif tt is not None and T is None:
+    if isinstance(T, int):
+        tt = [ts[i]+T for i in range(len(ts))]
+    else:
+        tt = T
         assert len(tt)==len(ts), 'Number of source points must equal to the \
             number of target points.'
-    else:
-        assert tt!=T, 'Ambiguous. Either time horizon or trajectory end time\
-            must be specified!'
             
     t_breaks = np.zeros_like(t_ind)
     t_breaks[np.array(t_ind)==0] = 1
@@ -205,7 +198,7 @@ def valid_flows(t_ind, ts, tt=None, T=None):
     return ts, tt
 
 
-def generate_flow(X, ts, tt=None, T=10):
+def generate_flow(X, ts, T):
     """
     Obtain trajectories of between timepoints.
 
@@ -215,10 +208,8 @@ def generate_flow(X, ts, tt=None, T=10):
         Trajectories.
     ts : int or np array or list[int]
         Source timepoint.
-    tt : int or list[int]
-        Target timepoint. The default is None.
-    T : int
-        Length of trajectory. Used when tt=None. The default is 10.
+    T : int or list[int]
+        End of trajectory or time horizon.
 
     Returns
     -------
@@ -227,23 +218,22 @@ def generate_flow(X, ts, tt=None, T=10):
 
     """
     
-    if not isinstance(ts, (list, tuple, np.ndarray)):
-        ts = [ts]
+    ts = ma.array(ts, dtype=int)
     
-    if tt is None:
-        tt = [t+T if t is not None else None for t in ts]
+    if isinstance(T, int):
+        tt = ma.array([ts[i]+T for i in range(len(ts))])
+        tt = ma.array(tt, mask=ts.mask, dtype=int)
     else:
+        tt = ma.array(T)
         assert len(tt)==len(ts), 'Number of source points must equal to the \
             number of target points.'
     
     X_sample = []
     for s,t in zip(ts,tt):
         if not ma.is_masked(s) and not ma.is_masked(t):
-            X_sample.append(X[s:t+1,:])
-        else:
-            X_sample.append(None)
-        
-    return X_sample
+            X_sample.append(X[s:t+1])
+
+    return X_sample, ts[~ts.mask], tt[~tt.mask]
 
 
 def random_projection(X, dim_out=1, seed=1):
