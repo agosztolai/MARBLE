@@ -123,6 +123,30 @@ def trajectories(X, ax=None, style='o', color=None, dim=3, lw=1, ms=5, axis=Fals
     return ax
 
 
+def transition_diagram(centers, P, ax=None, radius=None, dim=3, lw=1, ms=1, alpha=0.3):
+    
+    assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
+    
+    if ax is None:
+        _, ax = create_axis(dim)
+        
+    colors = set_colors(P)
+    colors = np.array(colors)
+    
+    for i in range(P.shape[0]):
+        for j in range(P.shape[0]):
+            if radius is not None:
+                dist = np.max(np.abs(centers[i]-centers[j]))
+                if radius < dist or np.sum(dist)==0:
+                    continue
+            a = Arrow3D([centers[i][0], centers[j][0]], [centers[i][1], centers[j][1]], 
+                        [centers[i][2], centers[j][2]], mutation_scale=ms, 
+                        lw=lw, arrowstyle="-|>", color=colors[i,j], alpha=alpha)
+            ax.add_artist(a)
+    
+    return ax
+
+
 class Arrow3D(FancyArrowPatch):
     def __init__(self, xs, ys, zs, *args, **kwargs):
         FancyArrowPatch.__init__(self, (0,0), (0,0), *args, **kwargs)
@@ -187,7 +211,7 @@ def cuboid_data2(o, size=(1,1,1)):
 def plotCubeAt2(centers,sizes=None,colors=None, **kwargs):
     
     if not isinstance(colors,(list,np.ndarray)): 
-        colors=["C0"]*len(centers)
+        colors=["C7"]*len(centers)
     if not isinstance(sizes,(list,np.ndarray)): 
         sizes=[(1,1,1)]*len(centers)
         
@@ -202,17 +226,19 @@ def plotCubeAt2(centers,sizes=None,colors=None, **kwargs):
                             facecolors=np.repeat(colors,6), **kwargs)
 
 
-def plot_discretisation(centers, sizes, ax=None, dim=3):
+def discretisation(centers, sizes, ax=None, dim=3, alpha=0.2):
     """
-
+    Plot the tesselation of the state space as a set of boxes.
     """
         
     assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
     
     if ax is None:
         _, ax = create_axis(dim)
+        
+    # centers-=sizes/2
     
-    pc = plotCubeAt2(centers,sizes,colors=(0,0,0.2,0.2), edgecolor="b")
+    pc = plotCubeAt2(centers,sizes,colors=None, edgecolor="k", linewidths=0.2, alpha=alpha)
     ax.add_collection3d(pc)
     
     ax = set_limits(ax, centers)
@@ -252,12 +278,12 @@ def set_colors(color):
     else:
         if isinstance(color, (list, tuple, np.ndarray)):
             cmap = plt.cm.coolwarm
-            norm = plt.cm.colors.Normalize(-max(abs(color)), max(abs(color)))
+            norm = plt.cm.colors.Normalize(-np.max(np.abs(color)), np.max(np.abs(color)))
             cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
             plt.colorbar(cbar)
             colors = []
             for i, c in enumerate(color):
-                colors.append(cmap(norm(c)))
+                colors.append(cmap(norm(np.array(c).flatten())))
         else:
             colors = [color]
             

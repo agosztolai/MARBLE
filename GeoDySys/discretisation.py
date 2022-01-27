@@ -25,7 +25,7 @@ def kmeans_part(X,k,batchsize=None):
         s = X[labels==i]
         sizes.append(s.max(0) - s.min(0))
 
-    return kmeans.cluster_centers_, sizes, labels
+    return kmeans.cluster_centers_, np.array(sizes), labels
 
 
 def maxent_part(X, D, info_thresh):

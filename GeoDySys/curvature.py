@@ -80,7 +80,7 @@ def get_curvature_matrix(X, t_ind, labels, T, Tmax=None):
     D = D.multiply(mask)
         
     K = mask.copy()
-    K.data = 1-DT.data/D.data
+    K.data = 1-D.data/DT.data
     
     return K.todense()
 
