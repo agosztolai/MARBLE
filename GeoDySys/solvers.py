@@ -6,7 +6,7 @@ import sys
 import numpy as np
 from GeoDySys.ODE_library import *
 
-def simulate_ODE(whichmodel, t, X0, par=None, noise=False, **noise_pars):
+def simulate_ODE(whichmodel, t, X0, par=None, **noise_pars):
     """
     Load ODE functions and run appropriate solver
 
@@ -34,7 +34,7 @@ def simulate_ODE(whichmodel, t, X0, par=None, noise=False, **noise_pars):
     f, jac = load_ODE(whichmodel, par=par)
     X = solve_ODE(f, jac, t, X0)
     
-    if noise:
+    if noise_pars!={}:
         X = addnoise(X, **noise_pars)
     
     return X
@@ -67,7 +67,7 @@ def addnoise(X, noise_type='Gaussian', **noise_pars):
     return X
 
 
-def generate_trajectories(whichmodel, n, t, X0_range, par=None, stack=True, transient=None, seed=None, noise=False, **noise_pars):
+def generate_trajectories(whichmodel, n, t, X0_range, par=None, stack=True, transient=None, seed=None, **noise_pars):
     """
     Generate an ensemble of trajectories from different initial conditions, 
     chosen randomly from a box.
@@ -112,12 +112,13 @@ def generate_trajectories(whichmodel, n, t, X0_range, par=None, stack=True, tran
         for r in X0_range:
             X0.append(np.random.uniform(low=r[0], high=r[1]))
             
-        X_ens.append(simulate_ODE(whichmodel, t, X0, par=par, noise=noise, **noise_pars))
+        X_ens.append(simulate_ODE(whichmodel, t, X0, par=par, **noise_pars))
         t_ens.append(np.arange(len(t)))
         
         if transient is not None:
-            X_ens[-1] = X_ens[-1][int(len(X_ens[-1])*transient):]
-            t_ens[-1] = t_ens[-1][int(len(t_ens[-1])*transient):]
+            l_tr = int(len(X_ens[-1])*transient)
+            X_ens[-1] = X_ens[-1][l_tr:]
+            t_ens[-1] = t_ens[-1][:-l_tr]
         
     if stack:
         X_ens = np.vstack(X_ens)

@@ -122,9 +122,9 @@ def find_nn(x_query, X, nn=1, nmax=10, n_jobs=-1):
         
     Returns
     -------
-    dist_nn : list[list]
+    dist : list[list]
         Distance of nearest neighbors.
-    ind_nn : list[list]
+    ind : list[list]
         Index of nearest neighbors.
 
     """
@@ -142,16 +142,17 @@ def find_nn(x_query, X, nn=1, nmax=10, n_jobs=-1):
     neigh.fit(X)
     
     #Ask for nearest neighbors
-    dist_nn, ind_nn = neigh.kneighbors(x_query, nn+nmax, return_distance=True)
+    dist, ind = neigh.kneighbors(x_query, nn+nmax, return_distance=True)
     
     #take only nonzero distance neighbors
-    first_n = (dist_nn!=0).argmax(axis=1)
-    last_n = first_n+nn
+    first = (dist!=0).argmax(axis=1)
+    last = first+nn
     
-    ind_nn = [ind_nn[i,first_n[i]:last_n[i]] for i in range(len(first_n))]
-    dist_nn = [dist_nn[i,first_n[i]:last_n[i]] for i in range(len(first_n))]
+    n = len(x_query)
+    ind = [ind[i,first[i]:last[i]] for i in range(n)]
+    dist = [dist[i,first[i]:last[i]] for i in range(n)]
     
-    return dist_nn, ind_nn
+    return dist, ind
 
 
 def valid_flows(t_ind, ts, T):

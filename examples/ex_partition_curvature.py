@@ -22,7 +22,7 @@ x0 = [-8.0, 7.0, 27.0]
 t = np.linspace(0, 100, n)
 t_ind = np.arange(n)
 mu, sigma = 0, 1 # mean and standard deviation
-X = solvers.simulate_ODE(fun, t, x0, par, noise=False, mu=mu, sigma=sigma)
+X = solvers.simulate_ODE(fun, t, x0, par)#, mu=mu, sigma=sigma)
 t_sample = t_ind
 
 
