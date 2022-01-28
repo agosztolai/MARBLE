@@ -39,6 +39,8 @@ def get_curvature_matrix(X, t_ind, labels, T, Tmax=None):
         
     C = csr_matrix((max(labels)+1, max(labels)+1))
     D = csr_matrix((max(labels)+1, max(labels)+1))
+    CT = csr_matrix((max(labels)+1, max(labels)+1))
+    DT = csr_matrix((max(labels)+1, max(labels)+1))
     for _T in range(Tmax):
         #starting and endpoints of paths after time _T
         ts = np.arange(0,len(labels)-_T)
@@ -67,17 +69,24 @@ def get_curvature_matrix(X, t_ind, labels, T, Tmax=None):
                            shape=(max(labels)+1, max(labels)+1))
         D_tmp = D_tmp.tocsr()
         
-        if _T==T:
-            C_tmp.data = 1/C_tmp.data
-            DT = D_tmp.multiply(C_tmp)
+        if _T<T:
+            DT += D_tmp
+            CT += C_tmp
+            # C_tmp.data = 1/C_tmp.data
+            # DT = D_tmp.multiply(C_tmp)
             
         D += D_tmp
         C += C_tmp
-      
+    
+    
     #D is bigger than DT so mask it off
     mask = DT.astype(bool)
-    D.data = D.data/C.data
     D = D.multiply(mask)
+    C = C.multiply(mask)
+    
+    #compute averages
+    D.data = D.data/C.data
+    DT.data = DT.data/CT.data
         
     K = mask.copy()
     K.data = 1-D.data/DT.data

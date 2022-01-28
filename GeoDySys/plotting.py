@@ -54,7 +54,7 @@ def time_series(T,X, ax=None, style='o', color=None, lw=1, ms=5):
     return ax
 
 
-def trajectories(X, ax=None, style='o', color=None, dim=3, lw=1, ms=5, axis=False):
+def trajectories(X, ax=None, style='o', color=None, lw=1, ms=5, axis=False, alpha=1):
     """
     Plot trajectory in phase space in dim dimensions. If multiple trajectories
     are given, they are plotted with different colors.
@@ -80,10 +80,11 @@ def trajectories(X, ax=None, style='o', color=None, dim=3, lw=1, ms=5, axis=Fals
 
     """
     
+    dim = X.shape[1]
+    assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
+    
     if not isinstance(X, list):
         X = [X]
-        
-    assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
     
     if ax is None:
         _, ax = create_axis(dim)
@@ -97,7 +98,7 @@ def trajectories(X, ax=None, style='o', color=None, dim=3, lw=1, ms=5, axis=Fals
         c = colors[i] if len(colors)>1 else colors[0]
                 
         if dim==2:
-            ax.plot(X_l[:, 0], X_l[:, 1], style, c=c, linewidth=lw, markersize=ms)
+            ax.plot(X_l[:, 0], X_l[:, 1], style, c=c, linewidth=lw, markersize=ms,alpha=alpha)
             if style=='-':               
                 for j in range(X_l.shape[0]):
                     if (j+1)%2==0 and j>0:
@@ -106,7 +107,7 @@ def trajectories(X, ax=None, style='o', color=None, dim=3, lw=1, ms=5, axis=Fals
                 ax.scatter(X_l[0, 0], X_l[0, 1], color=c, s=ms, facecolors='none')
                 ax.scatter(X_l[-1, 0], X_l[-1, 1], color=c, s=ms)
         elif dim==3:
-            ax.plot(X_l[:, 0], X_l[:, 1], X_l[:, 2], style, c=c, linewidth=lw, markersize=ms)
+            ax.plot(X_l[:, 0], X_l[:, 1], X_l[:, 2], style, c=c, linewidth=lw, markersize=ms,alpha=alpha)
             if style=='-':
                 for j in range(X_l.shape[0]):
                     if (j+1)%2==0 and j>0:
@@ -118,13 +119,14 @@ def trajectories(X, ax=None, style='o', color=None, dim=3, lw=1, ms=5, axis=Fals
                 # ax.scatter(X_l[-1, 0], X_l[-1, 1], X_l[-1, 2], color=c, s=ms)
                 
     if not axis:
-        axis_off(ax)
+        ax = set_axes(ax, data=None, off=True)
         
     return ax
 
 
-def transition_diagram(centers, P, ax=None, radius=None, dim=3, lw=1, ms=1, alpha=0.3):
+def transition_diagram(centers, P, ax=None, radius=None, lw=1, ms=1, alpha=0.3, exclude_zeros=False):
     
+    dim = centers.shape[1]
     assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
     
     if ax is None:
@@ -135,6 +137,8 @@ def transition_diagram(centers, P, ax=None, radius=None, dim=3, lw=1, ms=1, alph
     
     for i in range(P.shape[0]):
         for j in range(P.shape[0]):
+            if exclude_zeros and P[i,j]==0:
+                continue
             if radius is not None:
                 dist = np.max(np.abs(centers[i]-centers[j]))
                 if radius < dist or np.sum(dist)==0:
@@ -241,8 +245,7 @@ def discretisation(centers, sizes, ax=None, dim=3, alpha=0.2):
     pc = plotCubeAt2(centers,sizes,colors=None, edgecolor="k", linewidths=0.2, alpha=alpha)
     ax.add_collection3d(pc)
     
-    ax = set_limits(ax, centers)
-    axis_off(ax)
+    ax = set_axes(ax, data=centers, off=True)
         
     return ax
 
@@ -258,15 +261,23 @@ def create_axis(dim):
     return fig, ax
 
 
-def set_limits(ax,data,padding=0.1):
+def set_axes(ax,data=None, padding=0.1, off=True):
     
-    cmin = data.min(0)
-    cmax = data.max(0)
-    pad = padding*(cmax - cmin)
-    
-    ax.set_xlim([cmin[0]-pad[0],cmax[0]+pad[0]])
-    ax.set_ylim([cmin[1]-pad[1],cmax[1]+pad[1]])
-    ax.set_zlim([cmin[2]-pad[2],cmax[2]+pad[2]])
+    if data is not None:
+        cmin = data.min(0)
+        cmax = data.max(0)
+        pad = padding*(cmax - cmin)
+        
+        ax.set_xlim([cmin[0]-pad[0],cmax[0]+pad[0]])
+        ax.set_ylim([cmin[1]-pad[1],cmax[1]+pad[1]])
+        if ax.name=="3d":
+            ax.set_zlim([cmin[2]-pad[2],cmax[2]+pad[2]])
+        
+    if off:
+        ax.set_yticklabels([])
+        ax.set_xticklabels([])
+        if ax.name=="3d":
+            ax.set_zticklabels([])        
     
     return ax
 
@@ -278,7 +289,10 @@ def set_colors(color):
     else:
         if isinstance(color, (list, tuple, np.ndarray)):
             cmap = plt.cm.coolwarm
-            norm = plt.cm.colors.Normalize(-np.max(np.abs(color)), np.max(np.abs(color)))
+            if (color>=0).all():
+                norm = plt.cm.colors.Normalize(0, np.max(np.abs(color)))
+            else:    
+                norm = plt.cm.colors.Normalize(-np.max(np.abs(color)), np.max(np.abs(color)))
             cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
             plt.colorbar(cbar)
             colors = []
@@ -288,12 +302,6 @@ def set_colors(color):
             colors = [color]
             
     return colors
-
-
-def axis_off(ax):
-    ax.set_yticklabels([])
-    ax.set_xticklabels([])
-    ax.set_zticklabels([])
 
 
 def _savefig(fig, folder, filename, ext):

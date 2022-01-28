@@ -17,9 +17,9 @@ def get_transition_matrix(t_sample,labels,T,return_connected=False):
     P = msm_estimation.tmatrix(connected_count_matrix)
     if return_connected:
         lcs = msm_estimation.largest_connected_set(count_matrix)
-        return lcs,P
+        return lcs,P.todense()
     else:
-        return P
+        return P.todense()
 
 
 def get_count_matrix(t_ind,labels,T=1):

@@ -17,9 +17,9 @@ fun = 'lorenz'
 
 # par['sigma']*((par['sigma']+par['beta']+3)/(par['sigma']-par['beta']-1))
 
-n=2000
+n=1000
 x0 = [-8.0, 7.0, 27.0]
-t = np.linspace(0, 500, n)
+t = np.linspace(0, 100, n)
 t_ind = np.arange(n)
 mu, sigma = 0, 1 # mean and standard deviation
 X = solvers.simulate_ODE(fun, t, x0, par, noise=False, mu=mu, sigma=sigma)
@@ -38,19 +38,19 @@ centers, sizes, labels = discretisation.kmeans_part(X, 100)
 # centers, sizes, labels = discretisation.maxent_part(X, dim, .1)
 
 """4. Markov transition operator"""
-P = op_calculations.get_transition_matrix(t_ind,labels,T=5)
+# P = op_calculations.get_transition_matrix(t_ind,labels,T=5)
  
 """5. Curvature matrix"""
-K = curvature.get_curvature_matrix(X,t_ind,labels,T=5,Tmax=20)
+K = curvature.get_curvature_matrix(X,t_ind,labels,T=10,Tmax=50)
 
-# K = np.clip(K, -0.1, 0.1)
+K = np.clip(K, None, 0.1)
 
 """Plotting"""
-# ax = plotting.trajectories(X, color=None, style='o', lw=1, ms=1)
+ax = plotting.trajectories(X, color=None, style='o', lw=1, ms=1,alpha=0)
 
 #discretisation
-ax = plotting.discretisation(centers, sizes, ax=None, alpha=0.2)
-ax = plotting.transition_diagram(centers, P.todense(), ax=ax, radius=10, dim=3, lw=2, ms=1, alpha=1)
+# ax = plotting.discretisation(centers, sizes, ax=None, alpha=0.0)
+ax = plotting.transition_diagram(centers, K, ax=ax, radius=5, lw=2, ms=1, alpha=1, exclude_zeros=True)
 
 #transition matrix
 # plt.figure()
