@@ -20,12 +20,12 @@ fun = 'rossler'
 
 # par['sigma']*((par['sigma']+par['beta']+3)/(par['sigma']-par['beta']-1))
 
-n=1000
+tn=1000
 x0 = [-8.0, 7.0, 27.0]
-t = np.linspace(0, 100, n)
-t_ind = np.arange(n)
-mu, sigma = 0, 1 # mean and standard deviation
-X = solvers.simulate_ODE(fun, t, x0, par)#, mu=mu, sigma=sigma)
+t = np.linspace(0, 100, tn)
+t_ind = np.arange(tn)
+mu, sigma = 0, 0. # mean and standard deviation of additive noise
+X = solvers.simulate_ODE(fun, t, x0, par, mu=mu, sigma=sigma)
 t_sample = t_ind
 
 
@@ -38,7 +38,7 @@ t_sample = t_ind
 
 """3. Compute curvature of trajectories starting at t_sample"""
 # n_sample=200
-# t_sample = random.sample(list(np.arange(n)), n_sample)
+# t_sample = random.sample(list(np.arange(tn)), n_sample)
 
 T=5
 kappas = curvature.curvature_trajectory(X,t_ind,t_sample,T)

@@ -95,7 +95,7 @@ def get_curvature_matrix(X, t_ind, labels, T, Tmax=None):
     return K.todense()
 
 
-def curvature_trajectory(X,t_ind,t_sample=None,T=5,nn=5):
+def curvature_trajectory(X,t_ind,t_sample=None,T=5,nn=5,radius=None):
     """
     Compute manifold curvature at a given set of points.
 
@@ -129,7 +129,7 @@ def curvature_trajectory(X,t_ind,t_sample=None,T=5,nn=5):
             t_sample = np.hstack(t_sample)
         
     #find nearest neighbours
-    _, nn = time_series.find_nn(X[t_sample], X, nn=nn, nmax=10)
+    _, nn = time_series.find_nn(X[t_sample], X, nn=nn, nmax=10, radius=None)
     t_nn = np.hstack([np.array(t_sample)[:,None],np.array(nn)])
 
     #checks if the trajectory ends before time horizon T

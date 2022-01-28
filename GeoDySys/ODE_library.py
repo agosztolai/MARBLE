@@ -196,6 +196,8 @@ def fun_rossler(P = {'a': 0.15, 'b': 0.2, 'c': 10.0}):
 def fun_vanderpol(P = {'mu': 1.}):
     """Van der Pol oscillator, undergoes a degenerate Hofp bifurcation at mu=0"""
     
+    assert P['mu']>0, 'Mu must be >0!'
+        
     def f(t, X):
         x, y = X
         f1 = y

@@ -103,7 +103,7 @@ def delay_embed_scalar(x, k, tau=-1, typ='asy'):
     return Y
 
 
-def find_nn(x_query, X, nn=1, nmax=10, n_jobs=-1):
+def find_nn(x_query, X, nn=1, radius=None, nmax=10, n_jobs=-1):
     """
     Find nearest neighbors of a point on the manifold
 
@@ -142,7 +142,10 @@ def find_nn(x_query, X, nn=1, nmax=10, n_jobs=-1):
     neigh.fit(X)
     
     #Ask for nearest neighbors
-    dist, ind = neigh.kneighbors(x_query, nn+nmax, return_distance=True)
+    if radius is not None:
+        dist, ind = neigh.radius_neighbors(x_query[[0]], return_distance=True, radius=radius)
+    else:
+        dist, ind = neigh.kneighbors(x_query, nn+nmax, return_distance=True)
     
     #take only nonzero distance neighbors
     first = (dist!=0).argmax(axis=1)

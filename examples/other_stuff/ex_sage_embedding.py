@@ -9,17 +9,17 @@ from torch_geometric.nn import knn_graph
             
 
 """1. Simulate system"""
-# x0 = [0.1,0.1] 
-par = {'mu': 1.}
-fun = 'vanderpol'
+par = {'beta': 0.5, 'sigma': -1}
+fun = 'hopf'
 
-n=100
+ntraj=20
+tn=1000
 # x0 = [-8.0, 7.0]
 X0_range = [[-5,5],[-5,5]]
-t = np.linspace(0, 20, n)
-t_ind = np.arange(n)
-mu, sigma = 0, .01 # mean and standard deviation
-t_ind, X = solvers.generate_trajectories(fun, n, t, X0_range, par=par, seed=0, transient=0.1, stack=True)#, mu=mu, sigma=sigma)
+t = np.linspace(0, 20, tn)
+t_ind = np.arange(tn)
+mu, sigma = 0, .00 # mean and standard deviation of additive noise
+t_ind, X = solvers.generate_trajectories(fun, ntraj, t, X0_range, par=par, seed=0, transient=0.1, stack=True, mu=mu, sigma=sigma)
 # X = solvers.simulate_ODE(fun, t, x0, par, noise=False, mu=mu, sigma=sigma)
 t_sample = t_ind
 
@@ -35,8 +35,8 @@ t_sample = t_ind
 # n_sample=200
 # t_sample = random.sample(list(np.arange(n)), n_sample)
 
-T=5
-kappas = curvature.curvature_trajectory(X,t_ind,t_sample,T)
+T=3
+kappas = curvature.curvature_trajectory(X,t_ind,t_sample,T,radius=0.1,nn=40)
 # kappas = np.clip(kappas, -0.1, 0.1)
 
 
@@ -50,11 +50,10 @@ ts, tt = time_series.valid_flows(t_ind, t_nn.flatten(), T)
 ts = ts.reshape(t_nn.shape)
 tt = tt.reshape(t_nn.shape)
 ax = plotting.trajectories(X, node_feature=None, style='o', lw=1, ms=1)
-flows_n, _, _ = time_series.generate_flow(X, ts[20,1:], T)
+flows_n, _, _ = time_series.generate_flow(X, ts[45,1:], T)
 plotting.trajectories(np.vstack(flows_n), ax=ax, node_feature='C1', style='o', lw=1, ms=4)
-flow, _, _ = time_series.generate_flow(X, ts[20,[0]], T)
+flow, _, _ = time_series.generate_flow(X, ts[45,[0]], T)
 plotting.trajectories(np.vstack(flow), ax=ax, node_feature='C3', style='o', lw=1, ms=4)
-
 
 
 """4. Train GNN"""
