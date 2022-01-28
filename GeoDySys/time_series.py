@@ -189,7 +189,7 @@ def valid_flows(t_ind, ts, T):
     
     invalid = np.zeros_like(tt)
     for i,(s,t) in enumerate(zip(ts,tt)):
-        if t>len(t_ind)-2 or s<0 or t<=s or np.sum(t_breaks[s:t])>0:
+        if t>len(t_ind)-2 or s<0 or t<=s or np.sum(t_breaks[s:t+1])>0:
             invalid[i] = 1
         
     ts = ma.array(ts, mask=invalid)

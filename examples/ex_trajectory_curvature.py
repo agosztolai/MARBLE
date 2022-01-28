@@ -55,19 +55,19 @@ t_nn = np.hstack([np.array(t_sample)[:,None],np.array(nn)])
 ts, tt = time_series.valid_flows(t_ind, t_nn.flatten(), T)
 ts = ts.reshape(t_nn.shape)
 tt = tt.reshape(t_nn.shape)
-ax = plotting.trajectories(X, color=None, style='o', lw=1, ms=1)
+ax = plotting.trajectories(X, node_feature=None, style='o', lw=1, ms=1)
 flows_n, _, _ = time_series.generate_flow(X, ts[55,1:], T)
-plotting.trajectories(flows_n, ax=ax, color='C1', style='-', lw=1, ms=4)
+plotting.trajectories(np.vstack(flows_n), ax=ax, node_feature='C1', style='o', lw=1, ms=4)
 flow, _, _ = time_series.generate_flow(X, ts[55,[0]], T)
-plotting.trajectories(flow, ax=ax, color='C3', style='-', lw=1, ms=4)
+plotting.trajectories(np.vstack(flow), ax=ax, node_feature='C3', style='o', lw=1, ms=4)
 
 #plotting all curvatures
-flows, _, _ = time_series.generate_flow(X, ts[:,0], T)
-ax = plotting.trajectories(flows, color=kappas, style='-', lw=0.5, ms=6)
+# flows, _, _ = time_series.generate_flow(X, ts[:,0], T)
+ax = plotting.trajectories(X, node_feature=kappas, style='o', lw=0.5, ms=6)
 
 # plt.savefig('../results/manifold.svg')
 
 #plot trajectory with curvature values
 #use coordinate 0 for lorenz 2 for rossler
-ax = plotting.time_series(t,X[:,2], color=kappas, style='-', lw=2)
+ax = plotting.time_series(t,X[:,2], node_feature=kappas, style='-', lw=2)
 ax.set_xlim([0,20])

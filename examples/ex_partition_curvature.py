@@ -46,7 +46,7 @@ K = curvature.get_curvature_matrix(X,t_ind,labels,T=10,Tmax=50)
 K = np.clip(K, None, 0.1)
 
 """Plotting"""
-ax = plotting.trajectories(X, color=None, style='o', lw=1, ms=1,alpha=0)
+ax = plotting.trajectories(X, node_feature=None, style='o', lw=1, ms=1,alpha=0)
 
 #discretisation
 # ax = plotting.discretisation(centers, sizes, ax=None, alpha=0.0)

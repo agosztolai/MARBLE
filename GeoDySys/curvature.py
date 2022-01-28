@@ -9,6 +9,7 @@ import numpy.ma as ma
 from GeoDySys import time_series
 from scipy.sparse import coo_matrix, csr_matrix
 
+
 def get_curvature_matrix(X, t_ind, labels, T, Tmax=None):
     """Compute curvature between all pairs of partitions.
     
@@ -100,9 +101,9 @@ def curvature_trajectory(X,t_ind,t_sample=None,T=5,nn=5):
 
     Parameters
     ----------
-    X : np array
+    X : np array or list[np array]
         Datapoints
-    t_ind : np array
+    t_ind : np array of list[np array]
         Time indices corresponding to the sampled trajectories.
     t_sample : np array, optional
         Time indices of points whose curvaature is needed. The default is all.
@@ -114,8 +115,18 @@ def curvature_trajectory(X,t_ind,t_sample=None,T=5,nn=5):
 
     """
     
+    if isinstance(X, list):
+        X = np.vstack(X)
+    if isinstance(t_ind, list):
+        t_ind = np.hstack(t_ind)
+        
+    assert len(t_ind) == len(X), 'The size of t_ind and X must match!'
+        
     if t_sample is None:
         t_sample = np.arange(len(X))
+    else:
+        if isinstance(t_sample, list):
+            t_sample = np.hstack(t_sample)
         
     #find nearest neighbours
     _, nn = time_series.find_nn(X[t_sample], X, nn=nn, nmax=10)

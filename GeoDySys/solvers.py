@@ -6,7 +6,7 @@ import sys
 import numpy as np
 from GeoDySys.ODE_library import *
 
-def simulate_ODE(whichmodel, t, X0, P=None, noise=False, **noise_pars):
+def simulate_ODE(whichmodel, t, X0, par=None, noise=False, **noise_pars):
     """
     Load ODE functions and run appropriate solver
 
@@ -18,7 +18,7 @@ def simulate_ODE(whichmodel, t, X0, P=None, noise=False, **noise_pars):
         Time steps to evaluate system at.
     x0 : array or list
         Initial condition. Size must match the dimension of the ODE system.
-    P : dict, optional
+    par : dict, optional
         Parameters. The default is None.
     noise : bool, optional
         Add noise to solutions. Default is False.
@@ -31,7 +31,7 @@ def simulate_ODE(whichmodel, t, X0, P=None, noise=False, **noise_pars):
 
     """
     
-    f, jac = load_ODE(whichmodel, P=P)
+    f, jac = load_ODE(whichmodel, par=par)
     X = solve_ODE(f, jac, t, X0)
     
     if noise:
@@ -67,7 +67,7 @@ def addnoise(X, noise_type='Gaussian', **noise_pars):
     return X
 
 
-def generate_trajectories(whichmodel, n, t, X0_range, P=None, seed=None, noise=False, **noise_pars):
+def generate_trajectories(whichmodel, n, t, X0_range, par=None, stack=True, transient=None, seed=None, noise=False, **noise_pars):
     """
     Generate an ensemble of trajectories from different initial conditions, 
     chosen randomly from a box.
@@ -82,8 +82,12 @@ def generate_trajectories(whichmodel, n, t, X0_range, P=None, seed=None, noise=F
         Time steps to evaluate system at..
     X0_range : list[list] e.g. [[0,1],[0,1],[0,1]]
         Lower/upper limits in each dimension of the box of initial solutions.
-    P : dict, optional
+    par : dict, optional
         Parameters. The default is None.
+    stack : bool, optional
+        Stack trajectories into a long array. The default is True.
+    transient : float between 0 and 1
+        Ignore first transient fraction of time series.
     seed : int, optional
         Seed of random initial solutions. The default is None.
     noise : bool, optional
@@ -92,23 +96,34 @@ def generate_trajectories(whichmodel, n, t, X0_range, P=None, seed=None, noise=F
 
     Returns
     -------
-    X : numpy array
+    X_ens : numpy array
         Trajectories.
+    t_ens : numpy array
+        Time indices
 
     """
     
     if seed is not None:
         np.random.seed(seed)
         
-    X = []
+    t_ens, X_ens = [], []
     for i in range(n):
         X0 = []
         for r in X0_range:
             X0.append(np.random.uniform(low=r[0], high=r[1]))
             
-        X.append(simulate_ODE(whichmodel, t, X0, P=P, noise=noise, **noise_pars))
+        X_ens.append(simulate_ODE(whichmodel, t, X0, par=par, noise=noise, **noise_pars))
+        t_ens.append(np.arange(len(t)))
         
-    return X
+        if transient is not None:
+            X_ens[-1] = X_ens[-1][int(len(X_ens[-1])*transient):]
+            t_ens[-1] = t_ens[-1][int(len(t_ens[-1])*transient):]
+        
+    if stack:
+        X_ens = np.vstack(X_ens)
+        t_ens = np.hstack(t_ens)
+        
+    return t_ens, X_ens
 
 
 def sample_trajectories(X, n, T, t0=0.1, seed=None):
@@ -154,7 +169,7 @@ def sample_trajectories(X, n, T, t0=0.1, seed=None):
     return t_sample, X_sample
 
 
-def load_ODE(whichmodel, P=None):
+def load_ODE(whichmodel, par=None):
     """
     Load ODE system
 
@@ -162,7 +177,7 @@ def load_ODE(whichmodel, P=None):
     ----------
     whichmodel : sting
         ODE system from ODE_library.py.
-    P : dict, optional
+    par : dict, optional
         Parameters. The default is None.
 
     Returns
@@ -174,10 +189,10 @@ def load_ODE(whichmodel, P=None):
 
     """
 
-    if P == None:
+    if par is None:
         f, jac = getattr(sys.modules[__name__], "fun_%s" % whichmodel)()
     else:
-        f, jac = getattr(sys.modules[__name__], "fun_%s" % whichmodel)(P)
+        f, jac = getattr(sys.modules[__name__], "fun_%s" % whichmodel)(par)
                      
     return f, jac
 

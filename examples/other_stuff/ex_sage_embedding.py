@@ -2,23 +2,25 @@
 # -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
 import numpy as np
-from GeoDySys import solvers, curvature, plotting
+from GeoDySys import solvers, curvature, plotting, time_series
 import networkx as nx
 import torch
 from torch_geometric.nn import knn_graph
             
 
 """1. Simulate system"""
-x0 = [0.1,0.1] 
-par = {'mu': 0.1}
+# x0 = [0.1,0.1] 
+par = {'mu': 1.}
 fun = 'vanderpol'
 
-n=1000
-x0 = [-8.0, 7.0]
-t = np.linspace(0, 50, n)
+n=100
+# x0 = [-8.0, 7.0]
+X0_range = [[-5,5],[-5,5]]
+t = np.linspace(0, 20, n)
 t_ind = np.arange(n)
 mu, sigma = 0, 1 # mean and standard deviation
-X = solvers.simulate_ODE(fun, t, x0, par, noise=False, mu=mu, sigma=sigma)
+t_ind, X = solvers.generate_trajectories(fun, n, t, X0_range, par=par, seed=0, transient=0.1, noise=False, stack=True, mu=mu, sigma=sigma)
+# X = solvers.simulate_ODE(fun, t, x0, par, noise=False, mu=mu, sigma=sigma)
 t_sample = t_ind
 
 
@@ -40,7 +42,18 @@ kappas = np.clip(kappas, -0.1, 0.1)
 
 """4. Plotting"""
 
-ax = plotting.trajectories(X, color=kappas, style='o', lw=1, ms=1)
+ax = plotting.trajectories(X, node_feature=kappas, style='o', lw=1, ms=1)
+
+_, nn = time_series.find_nn(X[t_sample], X, nn=8, nmax=20)
+t_nn = np.hstack([np.array(t_sample)[:,None],np.array(nn)])
+ts, tt = time_series.valid_flows(t_ind, t_nn.flatten(), T)
+ts = ts.reshape(t_nn.shape)
+tt = tt.reshape(t_nn.shape)
+ax = plotting.trajectories(X, node_feature=None, style='o', lw=1, ms=1)
+flows_n, _, _ = time_series.generate_flow(X, ts[54,1:], T)
+plotting.trajectories(np.vstack(flows_n), ax=ax, node_feature='C1', style='o', lw=1, ms=4)
+flow, _, _ = time_series.generate_flow(X, ts[54,[0]], T)
+plotting.trajectories(np.vstack(flow), ax=ax, node_feature='C3', style='o', lw=1, ms=4)
 
 
 

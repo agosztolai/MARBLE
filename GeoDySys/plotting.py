@@ -13,7 +13,7 @@ import os
 import networkx as nx
 
 
-def time_series(T,X, ax=None, style='o', color=None, lw=1, ms=5):
+def time_series(T,X, ax=None, style='o', node_feature=None, lw=1, ms=5):
     """
     Plot time series coloured by curvature.
 
@@ -25,8 +25,6 @@ def time_series(T,X, ax=None, style='o', color=None, lw=1, ms=5):
         Plotting style. The default is 'o'.
     color: bool
         Color lines. The default is True.
-    dim : int, optionel
-        Dimension of the plot. The default is 3.
     lw : int
         Line width.
     ms : int
@@ -41,7 +39,7 @@ def time_series(T,X, ax=None, style='o', color=None, lw=1, ms=5):
     if ax is None:
         _, ax = create_axis(2)
     
-    colors = set_colors(color)
+    colors = set_colors(node_feature)
             
     for i in range(len(X)-2):
         if X[i] is None:
@@ -54,21 +52,19 @@ def time_series(T,X, ax=None, style='o', color=None, lw=1, ms=5):
     return ax
 
 
-def trajectories(X, ax=None, style='o', color=None, lw=1, ms=5, axis=False, alpha=1):
+def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, axis=False, alpha=None):
     """
-    Plot trajectory in phase space in dim dimensions. If multiple trajectories
+    Plot trajectory in phase space. If multiple trajectories
     are given, they are plotted with different colors.
 
     Parameters
     ----------
-    X : np array or list[np array]
+    X : np array
         Trajectories.
     style : string
         Plotting style. The default is 'o'.
-    color: bool
-        Color lines. The default is True.
-    dim : int, optionel
-        Dimension of the plot. The default is 3.
+    node_feature: bool
+        Color lines. The default is None.
     lw : int
         Line width.
     ms : int
@@ -79,44 +75,39 @@ def trajectories(X, ax=None, style='o', color=None, lw=1, ms=5, axis=False, alph
     ax : matplotlib axes object.
 
     """
-    
+            
     dim = X.shape[1]
     assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
-    
-    if not isinstance(X, list):
-        X = [X]
     
     if ax is None:
         _, ax = create_axis(dim)
             
-    colors = set_colors(color)
-            
-    for i,X_l in enumerate(X):
-        if X_l is None:
-            continue
-        
-        c = colors[i] if len(colors)>1 else colors[0]
+    color = set_colors(node_feature)
+    if alpha is not None:
+        al=np.ones(len(X))*alpha
+    elif len(color)>1:
+        al=np.abs(node_feature)/np.max(np.abs(node_feature))
+    else:
+        al=1
                 
-        if dim==2:
-            ax.plot(X_l[:, 0], X_l[:, 1], style, c=c, linewidth=lw, markersize=ms,alpha=alpha)
-            if style=='-':               
-                for j in range(X_l.shape[0]):
-                    if (j+1)%2==0 and j>0:
-                        a = ax.arrow(X_l[j,0], X_l[j,1], X_l[j,0]-X_l[j-1,0], X_l[j,1]-X_l[j-2,1])
-                        ax.add_artist(a)
-                ax.scatter(X_l[0, 0], X_l[0, 1], color=c, s=ms, facecolors='none')
-                ax.scatter(X_l[-1, 0], X_l[-1, 1], color=c, s=ms)
-        elif dim==3:
-            ax.plot(X_l[:, 0], X_l[:, 1], X_l[:, 2], style, c=c, linewidth=lw, markersize=ms,alpha=alpha)
-            if style=='-':
-                for j in range(X_l.shape[0]):
-                    if (j+1)%2==0 and j>0:
-                        a = Arrow3D([X_l[j-1,0], X_l[j,0]], [X_l[j-1,1], X_l[j,1]], 
-                                    [X_l[j-1,2], X_l[j,2]], mutation_scale=ms, 
-                                    lw=lw, arrowstyle="-|>", color=c)
-                        ax.add_artist(a)
-                # ax.scatter(X_l[0, 0], X_l[0, 1], X_l[0, 2], color=c, s=ms, facecolors='none')
-                # ax.scatter(X_l[-1, 0], X_l[-1, 1], X_l[-1, 2], color=c, s=ms)
+    if dim==2:
+        ax.scatter(X[:, 0], X[:, 1], c=color, s=ms, alpha=al)
+        # ax.plot(X_l[:, 0], X_l[:, 1], style, c=c, linewidth=lw, markersize=ms, alpha=al)
+        if style=='-':               
+            for j in range(X.shape[0]):
+                if (j+1)%2==0 and j>0:
+                    a = ax.arrow(X[j,0], X[j,1], X[j,0]-X[j-1,0], X[j,1]-X[j-2,1])
+                    ax.add_artist(a)
+    elif dim==3:
+        ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=color, s=ms, alpha=al)
+        # ax.plot(X_l[:, 0], X_l[:, 1], X_l[:, 2], style, c=c, linewidth=lw, markersize=ms,alpha=al)
+        if style=='-':
+            for j in range(X.shape[0]):
+                if (j+1)%2==0 and j>0:
+                    a = Arrow3D([X[j-1,0], X[j,0]], [X[j-1,1], X[j,1]], 
+                                [X[j-1,2], X[j,2]], mutation_scale=ms, 
+                                 lw=lw, arrowstyle="-|>", color=c, alpha=al[j])
+                    ax.add_artist(a)
                 
     if not axis:
         ax = set_axes(ax, data=None, off=True)
@@ -214,9 +205,9 @@ def cuboid_data2(o, size=(1,1,1)):
 
 def plotCubeAt2(centers,sizes=None,colors=None, **kwargs):
     
-    if not isinstance(colors,(list,np.ndarray)): 
+    if not isinstance(colors,(list,np.ndarray)):
         colors=["C7"]*len(centers)
-    if not isinstance(sizes,(list,np.ndarray)): 
+    if not isinstance(sizes,(list,np.ndarray)):
         sizes=[(1,1,1)]*len(centers)
         
     for i in range(centers.shape[0]):
@@ -230,17 +221,16 @@ def plotCubeAt2(centers,sizes=None,colors=None, **kwargs):
                             facecolors=np.repeat(colors,6), **kwargs)
 
 
-def discretisation(centers, sizes, ax=None, dim=3, alpha=0.2):
+def discretisation(centers, sizes, ax=None, alpha=0.2):
     """
     Plot the tesselation of the state space as a set of boxes.
     """
         
+    dim = centers.shape[1]
     assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
     
     if ax is None:
         _, ax = create_axis(dim)
-        
-    # centers-=sizes/2
     
     pc = plotCubeAt2(centers,sizes,colors=None, edgecolor="k", linewidths=0.2, alpha=alpha)
     ax.add_collection3d(pc)
@@ -300,7 +290,7 @@ def set_colors(color):
                 colors.append(cmap(norm(np.array(c).flatten())))
         else:
             colors = [color]
-            
+        
     return colors
 
 
