@@ -50,7 +50,7 @@ kappas = np.clip(kappas, -0.1, 0.1)
 
 #plotting some trajectories and their neighbours
 #find nearest neighbours
-_, nn = time_series.find_nn(X[t_sample], X, nn=5, nmax=10)
+_, nn = time_series.find_nn(t_sample, X, nn=5)
 t_nn = np.hstack([np.array(t_sample)[:,None],np.array(nn)])
 ts, tt = time_series.valid_flows(t_ind, t_nn.flatten(), T)
 ts = ts.reshape(t_nn.shape)

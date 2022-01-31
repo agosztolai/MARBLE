@@ -129,8 +129,9 @@ def curvature_trajectory(X,t_ind,t_sample=None,T=5,nn=5,radius=None):
             t_sample = np.hstack(t_sample)
         
     #find nearest neighbours
-    _, nn = time_series.find_nn(X[t_sample], X, nn=nn, nmax=10, radius=None)
+    dist_n, nn = time_series.find_nn(t_sample, X, nn=nn, radius=radius)
     t_nn = np.hstack([np.array(t_sample)[:,None],np.array(nn)])
+    w = np.array(dist_n)/np.sum(np.array(dist_n),axis=1,keepdims=True)
 
     #checks if the trajectory ends before time horizon T
     ts, tt = time_series.valid_flows(t_ind, t_nn.flatten(), T=T)
@@ -140,7 +141,7 @@ def curvature_trajectory(X,t_ind,t_sample=None,T=5,nn=5,radius=None):
     #computes geodesic distances on attractor X
     dst = all_geodesic_dist(X, ts, tt, interp=False)
     
-    return 1-np.nanmean(dst[:,1:],axis=1)/dst[:,0]
+    return 1-np.mean(dst[:,1:]/dist_n,axis=1)/dst[:,0]
 
 
 def all_geodesic_dist(X, ts, tt, interp=False):

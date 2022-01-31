@@ -103,20 +103,21 @@ def delay_embed_scalar(x, k, tau=-1, typ='asy'):
     return Y
 
 
-def find_nn(x_query, X, nn=1, radius=None, nmax=10, n_jobs=-1):
+def find_nn(ind_query, X, nn=None, radius=None, theiler=10, n_jobs=-1):
     """
     Find nearest neighbors of a point on the manifold
 
     Parameters
     ----------
-    x_query : 2d np array, list[2d np array]
-        Coordinates of points whose nearest neighbors are needed.
+    ind_query : 2d np array, list[2d np array]
+        Index of points whose neighbors are needed.
     x : nxd array (dimensions are columns!)
         Coordinates of n points on a manifold in d-dimensional space.
     nn : int, optional
         Number of nearest neighbors. The default is 1.
-    nmax : int, optional
-        Maximum number of nearest neighbors. The default is 10.
+    theiler : int, optional
+        Theiler exclusion. Do not include the points immediately before or 
+        after in time the query point as neighbours.
     n_jobs : int, optional
         Number of processors to use. The default is -1 (all processors).
         
@@ -129,8 +130,12 @@ def find_nn(x_query, X, nn=1, radius=None, nmax=10, n_jobs=-1):
 
     """
         
-    if isinstance(x_query, list):
-        x_query = np.vstack(x_query)
+    if isinstance(ind_query, list):
+        ind_query = np.vstack(ind_query)
+        
+    if nn is None:
+        assert radius is not None, 'At least the number of neighbours or \
+                                    the radius need to be specified!'
     
     neigh = NearestNeighbors(n_neighbors=nn,
                              algorithm='auto',
@@ -143,17 +148,23 @@ def find_nn(x_query, X, nn=1, radius=None, nmax=10, n_jobs=-1):
     
     #Ask for nearest neighbors
     if radius is not None:
-        dist, ind = neigh.radius_neighbors(x_query[[0]], return_distance=True, radius=radius)
+        dist, ind = neigh.radius_neighbors(X[ind_query], return_distance=True, radius=radius)
     else:
-        dist, ind = neigh.kneighbors(x_query, nn+nmax, return_distance=True)
+        dist, ind = neigh.kneighbors(X[ind_query], nn+theiler*2, return_distance=True)
+    
+    #Theiler exclusion (points immediately before or after are not useful neighbours)
+    nni = []
+    ind=list(ind)
+    for i in range(len(ind)):
+        ind[i] = ind[i][np.abs(ind[i]-ind_query[i])>theiler]
+        nni.append(len(ind[i]))
     
     #take only nonzero distance neighbors
-    first = (dist!=0).argmax(axis=1)
-    last = first+nn
-    
-    n = len(x_query)
-    ind = [ind[i,first[i]:last[i]] for i in range(n)]
-    dist = [dist[i,first[i]:last[i]] for i in range(n)]
+    first = [(d!=0).argmax() for d in dist]
+    last = [f+min(nni+[nn]) for f in first]
+        
+    ind = [ind[i][f:l] for i, (f,l) in enumerate(zip(first,last))]
+    dist = [dist[i][f:l] for i, (f,l) in enumerate(zip(first,last))]
     
     return dist, ind
 
