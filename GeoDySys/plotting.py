@@ -295,6 +295,82 @@ def set_colors(color):
     return colors
 
 
+def graph(
+    graph,
+    edge_width=1,
+    node_colors=None,
+    node_size=20,
+    show_colorbar=True,
+    layout=None,
+    ax=None,
+    node_attr="x"
+):
+    """Plot the curvature on the graph."""
+        
+    pos = list(nx.get_node_attributes(graph, node_attr).values())
+    
+    if pos==[]:
+        if layout=='spectral':
+            pos = nx.spectral_layout(graph)
+        else:   
+            pos = nx.spring_layout(graph)
+            
+    dim = len(pos[0])
+    assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
+    
+    if ax is None:
+        _, ax = create_axis(dim)
+
+    if node_colors is not None:
+        cmap = plt.cm.coolwarm
+        vmin = -max(abs(node_colors))
+        vmax = max(abs(node_colors))
+    else:
+        cmap, vmin, vmax = None, None, None
+    
+    if len(pos[0])==2:
+    
+        nx.draw_networkx_nodes(
+            graph,
+            pos=pos,
+            node_size=node_size,
+            node_color=node_colors,
+            cmap=cmap,
+            vmin=vmin,
+            vmax=vmax,
+            alpha=0.8,
+            ax=ax
+        )
+
+        nx.draw_networkx_edges(
+            graph,
+            pos=pos,
+            width=edge_width,
+            # edge_color=edge_color,
+            # edge_cmap=cmap,
+            # edge_vmin=vmin,
+            # edge_vmax=vmax,
+            alpha=0.5,
+            ax=ax
+        )
+    
+    elif len(pos[0])==3:
+        node_xyz = np.array([pos[v] for v in sorted(graph)])
+        edge_xyz = np.array([(pos[u], pos[v]) for u, v in graph.edges()])
+    
+        # ax.scatter(*node_xyz.T, s=node_size, ec="w")
+        
+        for vizedge in edge_xyz:
+            ax.plot(*vizedge.T, color="tab:gray")            
+
+    if show_colorbar:
+        norm = plt.cm.colors.Normalize(-max(abs(node_colors)), max(abs(node_colors)))
+        cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
+        plt.colorbar(cbar)
+
+    # plt.axis("off")
+
+
 def _savefig(fig, folder, filename, ext):
     """Save figures in subfolders and with different extensions."""
     if fig is not None:
