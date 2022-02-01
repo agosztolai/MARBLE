@@ -134,7 +134,7 @@ def curvature_trajectory(X,t_ind,t_sample=None,T=5,nn=5,radius=None):
     w = np.array(dist_n)/np.sum(np.array(dist_n),axis=1,keepdims=True)
 
     #checks if the trajectory ends before time horizon T
-    ts, tt = time_series.valid_flows(t_ind, t_nn.flatten(), T=T)
+    ts, tt = time_series.valid_flows(t_ind, t_nn.flatten(), T)
     ts = ts.reshape(t_nn.shape)
     tt = tt.reshape(t_nn.shape)
     

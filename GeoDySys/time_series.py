@@ -195,7 +195,7 @@ def valid_flows(t_ind, ts, T):
         tt = [ts[i]+T for i in range(len(ts))]
     else:
         tt = T
-        assert len(tt)==len(ts), 'Number of source points must equal to the \
+    assert len(tt)==len(ts), 'Number of source points must equal to the \
             number of target points.'
             
     t_breaks = np.zeros_like(t_ind)

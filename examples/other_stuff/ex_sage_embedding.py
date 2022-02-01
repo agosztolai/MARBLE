@@ -20,7 +20,6 @@ t = np.linspace(0, 20, tn)
 t_ind = np.arange(tn)
 mu, sigma = 0, .0 # mean and standard deviation of additive noise
 t_ind, X = solvers.generate_trajectories(fun, ntraj, t, X0_range, par=par, seed=0, transient=0.1, stack=True, mu=mu, sigma=sigma)
-# X = solvers.simulate_ODE(fun, t, x0, par, noise=False, mu=mu, sigma=sigma)
 t_sample = t_ind
 
 
@@ -35,7 +34,7 @@ t_sample = t_ind
 # n_sample=200
 # t_sample = random.sample(list(np.arange(n)), n_sample)
 
-T=50
+T=5
 kappas = curvature.curvature_trajectory(X,t_ind,t_sample,T,radius=0.2,nn=10)
 kappas = np.clip(kappas, -0.1, 0.1)
 
