@@ -14,17 +14,17 @@ def main():
     # par = {'mu': 0.1}
     # fun = 'vanderpol'
     
-    # par = {'sigma': 10.0, 'beta': 8/3.0, 'rho': 28.0, 'tau': 1.0}
-    # fun = 'lorenz'
+    par = {'sigma': 10.0, 'beta': 8/3.0, 'rho': 28.0, 'tau': 1.0}
+    fun = 'lorenz'
     
-    par = {'a': 0.15, 'b': 0.2, 'c': 10.0}
-    fun = 'rossler'
+    # par = {'a': 0.15, 'b': 0.2, 'c': 10.0}
+    # fun = 'rossler'
     
     # par['sigma']*((par['sigma']+par['beta']+3)/(par['sigma']-par['beta']-1))
     
     tn=1000
     x0 = [-8.0, 7.0, 27.0]
-    t = np.linspace(0, 100, tn)
+    t = np.linspace(0, 20, tn)
     t_ind = np.arange(tn)
     mu, sigma = 0, 0. # mean and standard deviation of additive noise
     X = solvers.simulate_ODE(fun, t, x0, par, mu=mu, sigma=sigma)
@@ -59,19 +59,17 @@ def main():
     tt = tt.reshape(t_nn.shape)
     ax = plotting.trajectories(X, node_feature=None, style='o', lw=1, ms=1)
     flows_n, _, _ = time_series.generate_flow(X, ts[55,1:], T)
-    plotting.trajectories(np.vstack(flows_n), ax=ax, node_feature='C1', style='o', lw=1, ms=4)
+    plotting.trajectories(np.vstack(flows_n), ax=ax, node_feature='C1', style='-', lw=1, ms=4)
     flow, _, _ = time_series.generate_flow(X, ts[55,[0]], T)
-    plotting.trajectories(np.vstack(flow), ax=ax, node_feature='C3', style='o', lw=1, ms=4)
+    plotting.trajectories(np.vstack(flow), ax=ax, node_feature='C3', style='-', lw=1, ms=4)
     
     #plotting all curvatures
-    # flows, _, _ = time_series.generate_flow(X, ts[:,0], T)
     ax = plotting.trajectories(X, node_feature=kappas, style='o', lw=0.5, ms=6)
-    
     # plt.savefig('../results/manifold.svg')
     
     #plot trajectory with curvature values
     #use coordinate 0 for lorenz 2 for rossler
-    ax = plotting.time_series(t,X[:,2], node_feature=kappas, style='-', lw=2)
+    ax = plotting.time_series(t,X[:,0], node_feature=kappas, style='-', lw=2)
     # ax.set_xlim([0,20])
 
 if __name__ == '__main__':

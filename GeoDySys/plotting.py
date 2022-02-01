@@ -45,7 +45,7 @@ def time_series(T,X, ax=None, style='o', node_feature=None, lw=1, ms=5):
         if X[i] is None:
             continue
         
-        c = colors[i] if len(colors)>1 else colors
+        c = colors[i] if len(colors)>1 and not isinstance(colors,str) else colors
                 
         ax.plot(T[i:i+2], X[i:i+2], style, c=c, linewidth=lw, markersize=ms)
         
@@ -85,7 +85,7 @@ def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, axis=Fals
     color = set_colors(node_feature)
     if alpha is not None:
         al=np.ones(len(X))*alpha
-    elif len(color)>1:
+    elif len(color)>1 and not isinstance(color,str):
         al=np.abs(node_feature)/np.max(np.abs(node_feature))
     else:
         al=1
@@ -95,18 +95,19 @@ def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, axis=Fals
         # ax.plot(X_l[:, 0], X_l[:, 1], style, c=c, linewidth=lw, markersize=ms, alpha=al)
         if style=='-':               
             for j in range(X.shape[0]):
-                if (j+1)%2==0 and j>0:
-                    a = ax.arrow(X[j,0], X[j,1], X[j,0]-X[j-1,0], X[j,1]-X[j-2,1])
+                if j>0:
+                    a = ax.arrow(X[j,0], X[j,1], X[j,0]-X[j-1,0], X[j,1]-X[j-2,1],
+                                 lw=lw, arrowstyle="-|>", color=color, alpha=al)
                     ax.add_artist(a)
     elif dim==3:
         ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=color, s=ms, alpha=al)
         # ax.plot(X_l[:, 0], X_l[:, 1], X_l[:, 2], style, c=c, linewidth=lw, markersize=ms,alpha=al)
         if style=='-':
             for j in range(X.shape[0]):
-                if (j+1)%2==0 and j>0:
+                if j>0:
                     a = Arrow3D([X[j-1,0], X[j,0]], [X[j-1,1], X[j,1]], 
                                 [X[j-1,2], X[j,2]], mutation_scale=ms, 
-                                 lw=lw, arrowstyle="-|>", color=c, alpha=al[j])
+                                 lw=lw, arrowstyle="-|>", color=color, alpha=al)
                     ax.add_artist(a)
                 
     if not axis:
@@ -289,8 +290,8 @@ def set_colors(color):
             for i, c in enumerate(color):
                 colors.append(cmap(norm(np.array(c).flatten())))
         else:
-            colors = [color]
-        
+            colors = color
+            
     return colors
 
 

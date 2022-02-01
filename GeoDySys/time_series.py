@@ -105,7 +105,7 @@ def delay_embed_scalar(x, k, tau=-1, typ='asy'):
     return Y
 
 
-def find_nn(ind_query, X, nn=None, r=None, theiler=10, n_jobs=-1):
+def find_nn(ind_query, X, nn=1, r=None, theiler=10, n_jobs=2):
     """
     Find nearest neighbors of a point on the manifold
 
@@ -121,7 +121,7 @@ def find_nn(ind_query, X, nn=None, r=None, theiler=10, n_jobs=-1):
         Theiler exclusion. Do not include the points immediately before or 
         after in time the query point as neighbours.
     n_jobs : int, optional
-        Number of processors to use. The default is -1 (all processors).
+        Number of processors to use. The default is 2.
         
     Returns
     -------
@@ -134,10 +134,6 @@ def find_nn(ind_query, X, nn=None, r=None, theiler=10, n_jobs=-1):
         
     if isinstance(ind_query, list):
         ind_query = np.vstack(ind_query)
-        
-    if nn is None:
-        assert r is not None, 'At least the number of neighbours or \
-                                    the radius need to be specified!'
     
     #Fit neighbors estimator object
     kdt = KDTree(X, leaf_size=30, metric='euclidean')

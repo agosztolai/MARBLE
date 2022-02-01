@@ -15,7 +15,7 @@ def main():
     fun = 'hopf'
     
     ntraj=20
-    tn=1000
+    tn=500
     # x0 = [-8.0, 7.0]
     X0_range = [[-5,5],[-5,5]]
     t = np.linspace(0, 20, tn)
@@ -41,21 +41,8 @@ def main():
     kappas = np.clip(kappas, -0.1, 0.1)
     
     
-    """4. Plotting"""
-    
+    """4. Plotting"""    
     ax = plotting.trajectories(X, node_feature=kappas, style='o', lw=1, ms=1,alpha=1)
-    
-    dist, nn = time_series.find_nn(t_sample, X,r=0.2, nn=10)
-    t_nn = np.hstack([np.array(t_sample)[:,None],np.array(nn)])
-    ts, tt = time_series.valid_flows(t_ind, t_nn.flatten(), T)
-    ts = ts.reshape(t_nn.shape)
-    tt = tt.reshape(t_nn.shape)
-    ax = plotting.trajectories(X, node_feature=None, style='o', lw=1, ms=1)
-    flows_n, _, _ = time_series.generate_flow(X, ts[45,1:], T)
-    plotting.trajectories(np.vstack(flows_n), ax=ax, node_feature='C1', style='o', lw=1, ms=4)
-    flow, _, _ = time_series.generate_flow(X, ts[45,[0]], T)
-    plotting.trajectories(np.vstack(flow), ax=ax, node_feature='C3', style='o', lw=1, ms=4)
-    
     
     """4. Train GNN"""
     
