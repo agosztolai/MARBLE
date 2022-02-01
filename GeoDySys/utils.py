@@ -1,6 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
+from multiprocessing import Pool
+import multiprocessing
+from tqdm import tqdm
+from functools import partial
+
+
+def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
+    if processes==-1:
+        processes = multiprocessing.cpu_count()
+    pool = Pool(processes=processes)
+    fun = partial(fun, inputs)
+    result = list(tqdm(pool.imap(fun, iterable), 
+                            total=len(iterable), 
+                            desc=desc)
+                  )
+    pool.close()
+    pool.join()
+        
+    return result
+
 
 def stack(X):
     """

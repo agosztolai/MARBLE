@@ -1,6 +1,8 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
+from sklearn.neighbors import KDTree
 import numpy.ma as ma
+from GeoDySys.utils import parallel_proc
 
 
 def delay_embed(x, k, tau=1, typ='asy'):
@@ -103,7 +105,7 @@ def delay_embed_scalar(x, k, tau=-1, typ='asy'):
     return Y
 
 
-def find_nn(ind_query, X, nn=None, radius=None, theiler=10, n_jobs=-1):
+def find_nn(ind_query, X, nn=None, r=None, theiler=10, n_jobs=-1):
     """
     Find nearest neighbors of a point on the manifold
 
@@ -134,38 +136,44 @@ def find_nn(ind_query, X, nn=None, radius=None, theiler=10, n_jobs=-1):
         ind_query = np.vstack(ind_query)
         
     if nn is None:
-        assert radius is not None, 'At least the number of neighbours or \
+        assert r is not None, 'At least the number of neighbours or \
                                     the radius need to be specified!'
     
-    neigh = NearestNeighbors(n_neighbors=nn,
-                             algorithm='auto',
-                             metric='minkowski',
-                             p=2,
-                             n_jobs=-1)
-    
     #Fit neighbors estimator object
-    neigh.fit(X)
+    kdt = KDTree(X, leaf_size=30, metric='euclidean')
     
-    #Ask for nearest neighbors
-    if radius is not None:
-        dist, ind = neigh.radius_neighbors(X[ind_query], return_distance=True, radius=radius)
+    res = parallel_proc(nb_query, 
+                       range(len(ind_query)), 
+                       [kdt, X, ind_query, r, nn, theiler], 
+                       desc="Computing neighbours...")
+    
+    dist, ind = zip(*res)
+    
+    return dist, ind
+
+
+def nb_query(inputs, i):
+    
+    kdt = inputs[0]
+    X = inputs[1]
+    ind_query = inputs[2]
+    r = inputs[3]
+    nn = inputs[4]
+    theiler = inputs[5]
+    x_query = X[ind_query][[i]]
+    ind_query = ind_query[i]
+    if r is not None:
+        ind, dist  = kdt.query_radius(x_query, r=r, return_distance=True, sort_results=True)
+        ind = ind[0]
+        dist = dist[0]
     else:
-        dist, ind = neigh.kneighbors(X[ind_query], nn+theiler*2, return_distance=True)
-    
-    #Theiler exclusion (points immediately before or after are not useful neighbours)
-    nni = []
-    ind=list(ind)
-    for i in range(len(ind)):
-        ind[i] = ind[i][np.abs(ind[i]-ind_query[i])>theiler]
-        nni.append(len(ind[i]))
-    
-    #take only nonzero distance neighbors
-    first = [(d!=0).argmax() for d in dist]
-    last = [f+min(nni+[nn]) for f in first]
+        # apparently, the outputs are reversed here compared to query_radius()
+        dist, ind  = kdt.query(x_query, k=nn+2*theiler+1)
         
-    ind = [ind[i][f:l] for i, (f,l) in enumerate(zip(first,last))]
-    dist = [dist[i][f:l] for i, (f,l) in enumerate(zip(first,last))]
-    
+    #Theiler exclusion (points immediately before or after are not useful neighbours)
+    dist = dist[np.abs(ind-ind_query)>theiler][:nn]
+    ind =   ind[np.abs(ind-ind_query)>theiler][:nn]
+            
     return dist, ind
 
 
