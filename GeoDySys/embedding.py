@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import numpy
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -39,7 +39,7 @@ def fit_knn_graph(X, t_sample, k=10):
     
     edge_index = to_undirected(edge_index)
     
-    data = Data(x=X_nodes, edge_index=edge_index)
+    data = Data(x=node_feature, edge_index=edge_index)
     
     return data
 
@@ -48,9 +48,9 @@ def traintestsplit(data, test_size=0.1, val_size=0.5, seed=0):
     train_id, test_id = train_test_split(np.arange(data.x.shape[0]), test_size=test_size, random_state=seed)
     test_id, val_id = train_test_split(test_id, test_size=val_size, random_state=seed)
     
-    train_mask = np.zeros(len(kappa), dtype=bool)
-    test_mask = np.zeros(len(kappa), dtype=bool)
-    val_mask = np.zeros(len(kappa), dtype=bool)
+    train_mask = torch.zeros(len(data.x), dtype=bool)
+    test_mask = torch.zeros(len(data.x), dtype=bool)
+    val_mask = torch.zeros(len(data.x), dtype=bool)
     train_mask[train_id] = True
     test_mask[test_id] = True
     val_mask[val_id] = True

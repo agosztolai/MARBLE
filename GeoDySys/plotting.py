@@ -273,7 +273,7 @@ def set_axes(ax,data=None, padding=0.1, off=True):
     return ax
 
 
-def set_colors(color):
+def set_colors(color, cbar=True):
     
     if color is None:
         colors = ['C0']
@@ -284,8 +284,9 @@ def set_colors(color):
                 norm = plt.cm.colors.Normalize(0, np.max(np.abs(color)))
             else:    
                 norm = plt.cm.colors.Normalize(-np.max(np.abs(color)), np.max(np.abs(color)))
-            cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
-            plt.colorbar(cbar)
+            if cbar:
+                cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
+                plt.colorbar(cbar)
             colors = []
             for i, c in enumerate(color):
                 colors.append(cmap(norm(np.array(c).flatten())))

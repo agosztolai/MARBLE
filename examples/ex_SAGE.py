@@ -31,6 +31,10 @@ def main():
     dataset = Planetoid(path, dataset, transform=T.NormalizeFeatures())
     data = dataset[0]
     
+    from torch_geometric.data import InMemoryDataset
+
+    InMemoryDataset.collate([data,data])
+    
     par = {'hidden_channels': 64,
            'batch_size': 200,
            'num_layers': 3,
