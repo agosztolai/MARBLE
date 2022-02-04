@@ -17,6 +17,9 @@ def main():
 
     n=200
     k=10
+    n_samples=20
+    frac_drop=0.1
+    include_position_in_feature = False
     
     ind = np.arange(n)
       
@@ -28,52 +31,75 @@ def main():
     y = [f0(x0), f1(x1), f2(x2), f3(x3)]
     
     data_list = []
+    data_list_test = []
     G = []
-    for i, y_ in enumerate(y):
-        #fit knn before adding function as node attribute
-        data_ = embedding.fit_knn_graph(x[i], ind, k=k)
-        G_ = to_networkx(data_, node_attrs=['x'], edge_attrs=None, to_undirected=True,
-                    remove_self_loops=True)
-        
-        data_ = embedding.traintestsplit(data_, test_size=0.1, val_size=0.5, seed=0)
-        data_.x = torch.hstack((data_.x,y_)) #add new node feature
-        data_.num_nodes = len(x[i])
-        data_.num_node_features = data_.x.shape[1]
-        data_.y = torch.ones(data_.num_nodes, dtype=int)*i
-        
-        G.append(G_)
-        data_list.append(data_)
+    for sample in range(n_samples):
+        for i, y_ in enumerate(y):
+            #fit knn before adding function as node attribute
+            data_ = embedding.fit_knn_graph(x[i], ind, k=k)
+            
+            #save graph for testing and plotting
+            if sample==0:
+                G_ = to_networkx(data_, node_attrs=['x'], edge_attrs=None, to_undirected=True,
+                        remove_self_loops=True)
+            
+            #add new node feature
+            if include_position_in_feature:
+                data_.x = torch.hstack((data_.x,y_)) #include positional features
+            else:
+                data_.x = y_ #only function value as feature
+
+            data_.num_nodes = len(x[i])
+            data_.num_node_features = data_.x.shape[1]
+            data_.y = torch.ones(data_.num_nodes, dtype=int)*i
+            data_ = embedding.traintestsplit(data_, test_size=0.1, val_size=0.5, seed=0)
+            
+            if sample==0:
+                data_list_test.append(data_)
+                
+            #drop edges at random
+            e = data_.num_edges
+            rem = np.random.choice(e,int(e*frac_drop))
+            mask=torch.ones((2,e),dtype=bool)
+            mask[:,rem] = 0
+            data_.edge_index = torch.masked_select(data_.edge_index,mask).reshape(2,-1)
+            
+            G.append(G_)
+            data_list.append(data_)
         
     #collate datasets
-    data, slices, _ = collate(data_list[0].__class__,
+    data_train, slices, _ = collate(data_list[0].__class__,
+                           data_list=data_list,
+                           increment=True,
+                           add_batch=False)
+    data_test, slices, _ = collate(data_list_test[0].__class__,
                            data_list=data_list,
                            increment=True,
                            add_batch=False)
     
     #set up and train sage model
-    par = {'num_node_features': data.x.shape[1],
+    par = {'num_node_features': data_train.x.shape[1],
            'hidden_channels': 64,
-           'batch_size': 20,
+           'batch_size': 200,
            'num_layers': 2,
-           'epochs': 50,
+           'epochs': 100,
            'lr': 0.01}
     
     writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
     
-    # build model
     model = SAGE(par['num_node_features'], 
                  hidden_channels=par['hidden_channels'], 
                  num_layers=par['num_layers'])
     
-    model = train(model, data, par, writer)
+    model = train(model, data_train, par, writer)
     
     #embed data
-    emb = model_eval(model, data)
+    emb = model_eval(model, data_test)
     
     
     #plotting
     
-    model_vis(emb, data)
+    model_vis(emb, data_test) #TSNE embedding
     
     fig, axs = plt.subplots(2,2)
        
@@ -99,6 +125,7 @@ def main():
     
     fig.tight_layout()
     
+
 def model_vis(emb, data):
     from sklearn.manifold import TSNE
     import matplotlib.pyplot as plt
