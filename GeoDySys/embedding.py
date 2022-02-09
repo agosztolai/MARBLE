@@ -9,14 +9,14 @@ from torch import Tensor
 import torch.nn.functional as F
 
 from torch_geometric.nn import knn_graph
-from torch_geometric.utils import to_undirected
+from torch_geometric.utils import to_undirected, dropout_adj
 from torch_geometric.data import Data
 from sklearn.model_selection import train_test_split
 
 from torch_geometric.nn.dense.linear import Linear
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.loader import NeighborSampler as RawNeighborSampler
-
+# from torch_geometric.loader import NeighborLoader
 from torch_cluster import random_walk
 
 from torch_sparse import SparseTensor, matmul
@@ -24,18 +24,18 @@ from torch_sparse import SparseTensor, matmul
 from typing import Union, Tuple
 from torch_geometric.typing import OptPairTensor, Adj, Size
 
+from cknn import cknneighbors_graph
+import networkx as nx
+
 
 def fit_knn_graph(X, t_sample, k=10):
     
-    X_nodes = X[t_sample]
     node_feature = [list(X[i]) for i in t_sample]
-    # pos = torch.tensor(pos, dtype=torch.float)
-    # node_feature = [list(np.hstack([X_nodes[i],kappa[i]])) for i in t]
     node_feature = torch.tensor(node_feature, dtype=torch.float)
-    # kappa = list(kappa)
-    # kappa = torch.tensor(kappa, dtype=torch.float)
     
-    edge_index = knn_graph(node_feature, k=6)
+    ckng = cknneighbors_graph(node_feature, n_neighbors=k, delta=1.0)    
+    edge_index = torch.tensor(list(nx.Graph(ckng).edges), dtype=torch.int64).T
+    # edge_index = knn_graph(node_feature, k=k)
     
     edge_index = to_undirected(edge_index)
     
@@ -45,6 +45,7 @@ def fit_knn_graph(X, t_sample, k=10):
 
 
 def traintestsplit(data, test_size=0.1, val_size=0.5, seed=0):
+    
     train_id, test_id = train_test_split(np.arange(data.x.shape[0]), test_size=test_size, random_state=seed)
     test_id, val_id = train_test_split(test_id, test_size=val_size, random_state=seed)
     
@@ -67,11 +68,16 @@ def train(model, data, par, writer):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
     
-    loader = NeighborSampler(data.edge_index, 
-                             sizes=[10, 10], 
+    assert len(par['n_neighbours'])==par['num_layers'], 'The number of \
+    neighbours to be sampled need to be specified for all layers!'
+    
+    loader = NeighborSampler(data.edge_index,
+                             sizes=par['n_neighbours'],
                              batch_size=par['batch_size'],
                              shuffle=True, 
-                             num_nodes=data.num_nodes)
+                             num_nodes=data.num_nodes,
+                             dropout=0.3,
+                             )
     
     optimizer = torch.optim.Adam(model.parameters(), lr=par['lr'])
 
@@ -105,10 +111,20 @@ def train(model, data, par, writer):
     return model
 
 
-class NeighborSampler(RawNeighborSampler):
+class NeighborSampler_dropout(RawNeighborSampler):
+    def __init__(self,*args,dropout=0.1,**kwargs):
+        super().__init__(*args,**kwargs)
+        self.dropout=dropout
+
+
+class NeighborSampler(NeighborSampler_dropout):
     def sample(self, batch):
         batch = torch.tensor(batch)
         row, col, _ = self.adj_t.coo()
+        edge_index = torch.stack((row,col))
+        edge_index, _ = dropout_adj(edge_index, p=self.dropout)
+        row = edge_index[0]
+        col = edge_index[1]
 
         # For each node in `batch`, we sample a direct neighbor (as positive
         # example) and a random node (as negative example):
