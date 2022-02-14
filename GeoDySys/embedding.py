@@ -9,7 +9,7 @@ from torch import Tensor
 import torch.nn.functional as F
 
 from torch_geometric.nn import knn_graph
-from torch_geometric.utils import to_undirected, dropout_adj
+from torch_geometric.utils import to_undirected, dropout_adj, degree
 from torch_geometric.data import Data
 from sklearn.model_selection import train_test_split
 
@@ -76,7 +76,7 @@ def train(model, data, par, writer):
                              batch_size=par['batch_size'],
                              shuffle=True, 
                              num_nodes=data.num_nodes,
-                             dropout=0.3,
+                             dropout=par['edge_dropout'],
                              )
     
     optimizer = torch.optim.Adam(model.parameters(), lr=par['lr'])
@@ -90,7 +90,10 @@ def train(model, data, par, writer):
             optimizer.zero_grad() #zero gradients, otherwise accumulates gradients
             
             # `adjs` holds a list of `(edge_index, e_id, size)` tuples.
-            adjs = [adj.to(device) for adj in adjs]
+            if par['num_layers']==1:
+                adjs = [adjs.to(device)]
+            else:
+                adjs = [adj.to(device) for adj in adjs]
 
             # compute the model for only the nodes in batch n_id
             out = model(x[n_id], adjs)
@@ -111,20 +114,17 @@ def train(model, data, par, writer):
     return model
 
 
-class NeighborSampler_dropout(RawNeighborSampler):
+class NeighborSampler(RawNeighborSampler):
     def __init__(self,*args,dropout=0.1,**kwargs):
         super().__init__(*args,**kwargs)
         self.dropout=dropout
-
-
-class NeighborSampler(NeighborSampler_dropout):
+        
     def sample(self, batch):
         batch = torch.tensor(batch)
         row, col, _ = self.adj_t.coo()
         edge_index = torch.stack((row,col))
         edge_index, _ = dropout_adj(edge_index, p=self.dropout)
-        row = edge_index[0]
-        col = edge_index[1]
+        row, col = edge_index
 
         # For each node in `batch`, we sample a direct neighbor (as positive
         # example) and a random node (as negative example):
@@ -177,7 +177,7 @@ class SAGE(nn.Module):
                 
         return x
 
-    # for testing, we don't do minibatch training
+    # for testing, we don't do minibatch
     def full_forward(self, x, edge_index):
         for i, conv in enumerate(self.convs):
             x = conv(x, edge_index)
@@ -235,6 +235,7 @@ class SAGEConv(MessagePassing):
 
         self.reset_parameters()
 
+
     def reset_parameters(self):
         self.lin_l.reset_parameters()
         if self.root_weight:
@@ -243,7 +244,7 @@ class SAGEConv(MessagePassing):
 
     def forward(self, x: Union[Tensor, OptPairTensor], edge_index: Adj,
                 size: Size = None) -> Tensor:
-        """"""
+
         if isinstance(x, Tensor):
             x: OptPairTensor = (x, x)
 
@@ -261,13 +262,32 @@ class SAGEConv(MessagePassing):
         return out
 
 
-    def message(self, x_j: Tensor) -> Tensor:
-        return x_j
+    # def message(self, x_j: Tensor) -> Tensor:
+    #     return x_j
+    
+    def message(self, x_j, edge_index, size):
+        
+        row, col = edge_index
+        node_sum = neighbour_avg(x_j, row, col, N=size[0], dtype=x_j.dtype)
+        node_sum[node_sum==0]=1
+        deg = degree(row, size[0], dtype=x_j.dtype)
+        deg[deg==0]=1
+        node_mean = node_sum/deg
+        return x_j#/node_mean[col,None]
+        # deg = degree(row, size[0], dtype=x_j.dtype)
+        # deginv = deg.pow(-.5)
+        # norm = deginv[row]*deginv[col]
+        # return norm.view(-1,1)*x_j
 
-    def message_and_aggregate(self, adj_t: SparseTensor,
-                              x: OptPairTensor) -> Tensor:
-        adj_t = adj_t.set_value(None, layout=None)
-        return matmul(adj_t, x[0], reduce=self.aggr)
+    # def message_and_aggregate(self, adj_t: SparseTensor,
+    #                           x: OptPairTensor) -> Tensor:
+    #     adj_t = adj_t.set_value(None, layout=None)
+    #     return matmul(adj_t, x[0], reduce=self.aggr)
+    
+def neighbour_avg(x, row, col, N, dtype=None):
+
+    out = torch.zeros((N, ), dtype=dtype, device=row.device)
+    return out.scatter_add_(0, row, x[col].flatten())
     
     
 def model_eval(model, data):

@@ -13,12 +13,22 @@ from torch_geometric.data.collate import collate
 from tensorboardX import SummaryWriter
 from datetime import datetime
 
+from sklearn.cluster import KMeans
+
 def main():
 
     n = 200
     k = 10
-    frac_drop = 0.1
     include_position_in_feature = False
+    n_clusters=10
+    #training parameters
+    par = {'hidden_channels': 3,
+           'batch_size': 800,
+           'num_layers': 1,
+           'n_neighbours': [10], #parameter of neighbourhood sampling
+           'epochs': 100,
+           'lr': 0.01,
+           'edge_dropout':0.0}
     
     ind = np.arange(n)
       
@@ -49,13 +59,6 @@ def main():
         data_.num_node_features = data_.x.shape[1]
         data_.y = torch.ones(data_.num_nodes, dtype=int)*i
         data_ = embedding.traintestsplit(data_, test_size=0.1, val_size=0.5, seed=0)
-                            
-        #drop edges at random
-        # e = data_.num_edges
-        # rem = np.random.choice(e,int(e*frac_drop))
-        # mask=torch.ones((2,e),dtype=bool)
-        # mask[:,rem] = 0
-        # data_.edge_index = torch.masked_select(data_.edge_index,mask).reshape(2,-1)
         
         G.append(G_)
         data_list.append(data_)
@@ -66,31 +69,36 @@ def main():
                                     increment=True,
                                     add_batch=False)
     
-    #set up and train sage model
-    par = {'num_node_features': data_train.x.shape[1],
-            'hidden_channels': 6,
-            'batch_size': 200,
-            'num_layers': 2,
-            'n_neighbours': [10,10], #parameter of neighbourhood sampling
-            'epochs': 100,
-            'lr': 0.01}
-    
     writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
     
-    model = SAGE(par['num_node_features'], 
+    model = SAGE(in_channels=data_train.x.shape[1], 
                  hidden_channels=par['hidden_channels'], 
                  num_layers=par['num_layers'])
     
     model = train(model, data_train, par, writer)
     
-    #embed data
+    #embed data and cluster
     emb = model_eval(model, data_train)
+    kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(emb)
+    labels = kmeans.labels_
+    
+    counts = []
+    for i in range(len(slices['x'])-1):
+        counts.append(labels[slices['x'][i]:slices['x'][i+1]])
     
     
     #plotting
-    
     model_vis(emb, data_train) #TSNE embedding
     
+    #histograms
+    fig, axs = plt.subplots(2,2)   
+    axs[0,0].hist(counts[0])
+    axs[1,0].hist(counts[1])
+    axs[1,1].hist(counts[2])
+    axs[0,1].hist(counts[3])
+    fig.tight_layout()
+    
+    #sampled functions
     fig, axs = plt.subplots(2,2)
        
     c= set_colors(y[0], cbar=False)
@@ -119,10 +127,14 @@ def main():
 def model_vis(emb, data):
     from sklearn.manifold import TSNE
     import matplotlib.pyplot as plt
+    
     colors = ["red", "orange", "green", "blue", "purple", "brown", "black"]
     colors = [colors[y] for y in data.y]
-    xs, ys = zip(*TSNE().fit_transform(emb.detach().numpy()))
-    plt.scatter(xs, ys, color=colors)
+    if emb.shape[1]>2:
+        xs, ys = zip(*TSNE().fit_transform(emb.detach().numpy()))
+    else:
+        xs, ys = emb[:,0], emb[:,1]
+    plt.scatter(xs, ys, color=colors, alpha=0.3)
     
 def f0(x):
     f = x[:,[0]]*0
