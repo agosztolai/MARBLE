@@ -5,27 +5,28 @@ import numpy as np
 
 import torch
 import torch.nn as nn
-from torch import Tensor
 import torch.nn.functional as F
+from torch import Tensor
+
+from torch_sparse import matmul, SparseTensor
 
 from torch_geometric.nn import knn_graph
-from torch_geometric.utils import to_undirected, dropout_adj, degree
+from torch_geometric.nn.conv import MessagePassing
+from torch_geometric.nn.dense.linear import Linear
+from torch_geometric.utils import to_undirected, dropout_adj
 from torch_geometric.data import Data
 from sklearn.model_selection import train_test_split
 
-from torch_geometric.nn.dense.linear import Linear
-from torch_geometric.nn.conv import MessagePassing
+# from torch_geometric.nn.dense.linear import Linear
+# from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.loader import NeighborSampler as RawNeighborSampler
 # from torch_geometric.loader import NeighborLoader
 from torch_cluster import random_walk
 
-from torch_sparse import SparseTensor, matmul
-
-from typing import Union, Tuple
-from torch_geometric.typing import OptPairTensor, Adj, Size
-
 from cknn import cknneighbors_graph
 import networkx as nx
+
+from torch_geometric.typing import OptPairTensor
 
 
 def fit_knn_graph(X, t_sample, k=10):
@@ -46,12 +47,13 @@ def fit_knn_graph(X, t_sample, k=10):
 
 def traintestsplit(data, test_size=0.1, val_size=0.5, seed=0):
     
-    train_id, test_id = train_test_split(np.arange(data.x.shape[0]), test_size=test_size, random_state=seed)
+    n = len(data.x)
+    train_id, test_id = train_test_split(np.arange(n), test_size=test_size, random_state=seed)
     test_id, val_id = train_test_split(test_id, test_size=val_size, random_state=seed)
     
-    train_mask = torch.zeros(len(data.x), dtype=bool)
-    test_mask = torch.zeros(len(data.x), dtype=bool)
-    val_mask = torch.zeros(len(data.x), dtype=bool)
+    train_mask = torch.zeros(n, dtype=bool)
+    test_mask = torch.zeros(n, dtype=bool)
+    val_mask = torch.zeros(n, dtype=bool)
     train_mask[train_id] = True
     test_mask[test_id] = True
     val_mask[val_id] = True
@@ -81,7 +83,7 @@ def train(model, data, par, writer):
     
     optimizer = torch.optim.Adam(model.parameters(), lr=par['lr'])
 
-    x, edge_index = data.x.to(device), data.edge_index.to(device)
+    x = data.x.to(device)
     for epoch in range(1, par['epochs']):
         total_loss = 0
         model.train()
@@ -96,7 +98,13 @@ def train(model, data, par, writer):
                 adjs = [adj.to(device) for adj in adjs]
 
             # compute the model for only the nodes in batch n_id
-            out = model(x[n_id], adjs)
+            if hasattr(data, 'kernels'):
+                K=SparseTensor(row=n_id, col=n_id, value=data.kernels[n_id,n_id],
+                    sparse_sizes=(len(n_id), len(n_id)))
+            else:
+                K=None
+            
+            out = model(x[n_id], adjs, K)
             
             loss = loss_comp(out)
         
@@ -156,24 +164,34 @@ class SAGE(nn.Module):
         self.num_layers = num_layers
         self.task = task
         
-        #initialize SAGEConv layers
+        #initialize conv layers
         self.convs = nn.ModuleList() #could use nn.Sequential because we execute in order
         for i in range(num_layers):
             in_channels = in_channels if i == 0 else hidden_channels
-            self.convs.append(SAGEConv(in_channels, hidden_channels)) #'mean','add'
+            self.convs.append(AnisoConv(in_channels, hidden_channels, gauge=0)) #'mean','add'
+
 
     #forward computation, input is the signal and the graph
-    def forward(self, x, adjs):
+    def forward(self, x, adjs, K=None):
+        
         for i, (edge_index, _, size) in enumerate(adjs):
             x_target = x[:size[1]]  # Target nodes are always placed first.
-            x = self.convs[i]((x, x_target), edge_index)
-            if i != self.num_layers - 1:
-                x = x.relu()
-                x = F.dropout(x, p=0.5, training=self.training)               
             
-        if self.task == 'graph':
-            #do here a hiararchical pool (check package)
-            x = pyg_nn.global_mean_pool(x, batch)
+            if K is not None:
+                x = self.convs[i]((x, x_target), K.t(), edge_weight=None)
+            else:
+                # adj = SparseTensor(row=edge_index[0], col=edge_index[1], value=None,
+                #         sparse_sizes=(len(x), len(x)))
+                x = self.convs[i]((x, x_target), edge_index, edge_weight=None)
+                
+            if i+1 != self.num_layers:
+                
+                # if self.graph_norm:
+                #     h = h * snorm_n
+                # if self.batch_norm:
+                #     h = self.batchnorm_h(h)
+                x = x.relu()
+                # x = F.dropout(x, p=0.5, training=self.training)
                 
         return x
 
@@ -188,13 +206,8 @@ class SAGE(nn.Module):
         return x
     
     
-class SAGEConv(MessagePassing):
-    r"""The GraphSAGE operator from the `"Inductive Representation Learning on
-    Large Graphs" <https://arxiv.org/abs/1706.02216>`_ paper
-
-    .. math::
-        \mathbf{x}^{\prime}_i = \mathbf{W}_1 \mathbf{x}_i + \mathbf{W}_2 \cdot
-        \mathrm{mean}_{j \in \mathcal{N(i)}} \mathbf{x}_j
+class AnisoConv(MessagePassing):    
+    r"""
 
     Args:
         in_channels (int or tuple): Size of each input sample, or :obj:`-1` to
@@ -202,93 +215,67 @@ class SAGEConv(MessagePassing):
             A tuple corresponds to the sizes of source and target
             dimensionalities.
         out_channels (int): Size of each output sample.
-        normalize (bool, optional): If set to :obj:`True`, output features
-            will be :math:`\ell_2`-normalized, *i.e.*,
-            :math:`\frac{\mathbf{x}^{\prime}_i}
-            {\| \mathbf{x}^{\prime}_i \|_2}`.
-            (default: :obj:`False`)
-        root_weight (bool, optional): If set to :obj:`False`, the layer will
-            not add transformed root node features to the output.
-            (default: :obj:`True`)
+        aggr (string, optional): The aggregation scheme to use
+            (:obj:`"add"`, :obj:`"mean"`, :obj:`"max"`).
+            (default: :obj:`"add"`)
         bias (bool, optional): If set to :obj:`False`, the layer will not learn
             an additive bias. (default: :obj:`True`)
         **kwargs (optional): Additional arguments of
             :class:`torch_geometric.nn.conv.MessagePassing`.
     """
-    def __init__(self, in_channels: Union[int, Tuple[int, int]],
-                 out_channels: int, normalize: bool = False,
-                 root_weight: bool = True, bias: bool = True, **kwargs):
-        kwargs.setdefault('aggr', 'mean')
-        super().__init__(**kwargs)
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        aggr: str = 'add',
+        bias: bool = True,
+        gauge = None,
+        **kwargs,
+    ):
+        super().__init__(aggr=aggr, **kwargs)
 
         self.in_channels = in_channels
         self.out_channels = out_channels
-        self.normalize = normalize
-        self.root_weight = root_weight
 
         if isinstance(in_channels, int):
             in_channels = (in_channels, in_channels)
 
-        self.lin_l = Linear(in_channels[0], out_channels, bias=bias)
-        if self.root_weight:
-            self.lin_r = Linear(in_channels[1], out_channels, bias=False)
+        self.lin_rel = Linear(in_channels[0], out_channels, bias=bias)
+        self.lin_root = Linear(in_channels[1], out_channels, bias=False)
 
         self.reset_parameters()
 
-
     def reset_parameters(self):
-        self.lin_l.reset_parameters()
-        if self.root_weight:
-            self.lin_r.reset_parameters()
+        self.lin_rel.reset_parameters()
+        self.lin_root.reset_parameters()
 
-
-    def forward(self, x: Union[Tensor, OptPairTensor], edge_index: Adj,
-                size: Size = None) -> Tensor:
-
+    def forward(self, x, edge_index, edge_weight=None, size=None):
         if isinstance(x, Tensor):
             x: OptPairTensor = (x, x)
 
-        # propagate_type: (x: OptPairTensor)
-        out = self.propagate(edge_index, x=x, size=size)
-        out = self.lin_l(out)
+        # propagate_type: (x: OptPairTensor, edge_weight: OptTensor)
+        out = self.propagate(edge_index, 
+                             x=x, 
+                             edge_weight=edge_weight,
+                             size=size)
+        out = self.lin_rel(out)
 
         x_r = x[1]
-        if self.root_weight and x_r is not None:
-            out += self.lin_r(x_r)
-
-        if self.normalize:
-            out = F.normalize(out, p=2., dim=-1)
+        if x_r is not None:
+            out += self.lin_root(x_r)
 
         return out
-
-
-    # def message(self, x_j: Tensor) -> Tensor:
-    #     return x_j
     
-    def message(self, x_j, edge_index, size):
+    def message(self, x_j, edge_weight):
+        return x_j if edge_weight is None else edge_weight.view(-1, 1) * x_j
+
+    def message_and_aggregate(self, K_transpose, x):
+        return matmul(K_transpose, x[0])#, reduce=self.aggr)
         
-        row, col = edge_index
-        node_sum = neighbour_avg(x_j, row, col, N=size[0], dtype=x_j.dtype)
-        node_sum[node_sum==0]=1
-        deg = degree(row, size[0], dtype=x_j.dtype)
-        deg[deg==0]=1
-        node_mean = node_sum/deg
-        return x_j#/node_mean[col,None]
-        # deg = degree(row, size[0], dtype=x_j.dtype)
-        # deginv = deg.pow(-.5)
-        # norm = deginv[row]*deginv[col]
-        # return norm.view(-1,1)*x_j
-
-    # def message_and_aggregate(self, adj_t: SparseTensor,
-    #                           x: OptPairTensor) -> Tensor:
-    #     adj_t = adj_t.set_value(None, layout=None)
-    #     return matmul(adj_t, x[0], reduce=self.aggr)
-    
-def neighbour_avg(x, row, col, N, dtype=None):
-
-    out = torch.zeros((N, ), dtype=dtype, device=row.device)
-    return out.scatter_add_(0, row, x[col].flatten())
-    
+        #we coould have a parameter to control the anisotropy like in PINConv
+        
+        #pass it to sum or mlp
+               
     
 def model_eval(model, data):
     model.eval()

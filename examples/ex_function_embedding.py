@@ -12,6 +12,9 @@ from torch_geometric.utils.convert import to_networkx
 from torch_geometric.data.collate import collate
 from tensorboardX import SummaryWriter
 from datetime import datetime
+from torch_geometric.utils.convert import to_scipy_sparse_matrix
+from scipy.sparse import coo_array
+import scipy.sparse as scp
 
 from sklearn.cluster import KMeans
 
@@ -22,7 +25,7 @@ def main():
     include_position_in_feature = False
     n_clusters=10
     #training parameters
-    par = {'hidden_channels': 3,
+    par = {'hidden_channels': 8,
            'batch_size': 800,
            'num_layers': 1,
            'n_neighbours': [10], #parameter of neighbourhood sampling
@@ -44,6 +47,7 @@ def main():
     for i, y_ in enumerate(y):
         #fit knn before adding function as node attribute
         data_ = embedding.fit_knn_graph(x[i], ind, k=k)
+        data_.pos = torch.tensor(x[i])
             
         #save graph for testing and plotting
         G_ = to_networkx(data_, node_attrs=['x'], edge_attrs=None, to_undirected=True,
@@ -69,12 +73,18 @@ def main():
                                     increment=True,
                                     add_batch=False)
     
+    #define kernels
+    F = project_gauge_to_neighbours(data_train, [[1,0],[0,1]], local=False)
+    data_train.kernels = aggr_directional_derivative(F)
+    
     writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
     
+    #set up model
     model = SAGE(in_channels=data_train.x.shape[1], 
                  hidden_channels=par['hidden_channels'], 
                  num_layers=par['num_layers'])
     
+    #train
     model = train(model, data_train, par, writer)
     
     #embed data and cluster
@@ -86,8 +96,7 @@ def main():
     for i in range(len(slices['x'])-1):
         counts.append(labels[slices['x'][i]:slices['x'][i+1]])
     
-    
-    #plotting
+    #plot
     model_vis(emb, data_train) #TSNE embedding
     
     #histograms
@@ -151,6 +160,39 @@ def f2(x):
 def f3(x):
     f = x[:,[0]]**2 - x[:,[1]]**2
     return torch.tensor(f).float()
+
+def project_gauge_to_neighbours(data, gauge, local=False):
+    n = len(data.x)
+    u = data.pos[:,None].repeat(1,n,1)
+    u = u - torch.swapaxes(u,0,1)
+    A = to_scipy_sparse_matrix(data.edge_index)
+    ind = scp.find(A)
+    mask=torch.tensor(A.todense(),dtype=bool)
+    mask=mask[:,:,None].repeat(1,1,2)
+    u[~mask] = 0
+    u = u.numpy()
+    
+    F = []
+    for g in gauge:
+        g = np.array(g)[None]
+        g=np.repeat(g,n,axis=0)
+        g=g[:,None]
+        g=np.repeat(g,n,axis=1)
+        
+        _F = np.zeros([n,n])
+        for i,j in zip(ind[0],ind[1]):
+            _F[i,j] = g[i,j,:].dot(u[i,j,:])
+        F.append(_F)
+        
+    return torch.tensor(sum(F))
+
+
+def aggr_directional_derivative(F):
+    EPS = 1e-8
+    Fhat = F / (torch.sum(torch.abs(F), keepdim=True, dim=1) + EPS)
+    Bdx = Fhat - torch.diag(torch.sum(Fhat, dim=1))
+    
+    return Bdx
 
 
 if __name__ == '__main__':

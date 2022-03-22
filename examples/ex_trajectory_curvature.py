@@ -14,11 +14,11 @@ def main():
     # par = {'mu': 0.1}
     # fun = 'vanderpol'
     
-    # par = {'sigma': 10.0, 'beta': 8/3.0, 'rho': 28.0, 'tau': 1.0}
-    # fun = 'lorenz'
+    par = {'sigma': 10.0, 'beta': 8/3.0, 'rho': 28.0, 'tau': 1.0}
+    fun = 'lorenz'
     
-    par = {'a': 0.15, 'b': 0.2, 'c': 10.0}
-    fun = 'rossler'
+    # par = {'a': 0.15, 'b': 0.2, 'c': 10.0}
+    # fun = 'rossler'
     
     # par['sigma']*((par['sigma']+par['beta']+3)/(par['sigma']-par['beta']-1))
     
@@ -69,7 +69,7 @@ def main():
     
     #plot trajectory with curvature values
     #use coordinate 0 for lorenz 2 for rossler
-    ax = plotting.time_series(t,X[:,2], node_feature=kappas, style='-', lw=2)
+    ax = plotting.time_series(t,X[:,0], node_feature=kappas, style='-', lw=2)
     # ax.set_xlim([0,20])
 
 if __name__ == '__main__':
