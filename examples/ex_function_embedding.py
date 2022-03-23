@@ -18,14 +18,15 @@ from sklearn.cluster import KMeans
 
 def main():
 
-    n = 1000
+    #parameters
+    n = 200
     k = 10
     include_position_in_feature = False
     n_clusters=10
-    #training parameters
+    
     par = {'hidden_channels': 8,
            'batch_size': 800,
-           'num_layers': 2,
+           'num_layers': 1,
            'n_neighbours': 10, #parameter of neighbourhood sampling
            'epochs': 100,
            'lr': 0.01,
@@ -33,6 +34,7 @@ def main():
     
     ind = np.arange(n)
       
+    #evaluate functions
     x0 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2))
     x1 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2))
     x2 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2)) 
@@ -90,22 +92,16 @@ def main():
     labels = kmeans.labels_
     
     #plot
-    plotting.embedding(emb, data_train, labels=['Constant','Linear','Parabola','Saddle']) #TSNE embedding 
+    titles=['Constant','Linear','Parabola','Saddle']
+    
+    #embedding
+    plotting.embedding(emb, data_train, titles=titles) #TSNE embedding 
     
     #sampled functions
-    fig, axs = plt.subplots(2,2)       
-    axs[0,0].set_aspect('equal', 'box')
-    plotting.graph(G[0],node_colors=y[0],show_colorbar=False,ax=axs[0,0],node_size=5,edge_width=0.5)
-    axs[0,1].set_aspect('equal', 'box')
-    plotting.graph(G[1],node_colors=y[1],show_colorbar=False,ax=axs[1,0],node_size=5,edge_width=0.5)    
-    axs[1,0].set_aspect('equal', 'box')
-    plotting.graph(G[2],node_colors=y[2],show_colorbar=False,ax=axs[1,1],node_size=5,edge_width=0.5)    
-    axs[1,1].set_aspect('equal', 'box')
-    plotting.graph(G[3],node_colors=y[3],show_colorbar=False,ax=axs[0,1],node_size=5,edge_width=0.5)   
-    fig.tight_layout()
+    plot_functions(y, G, titles=titles)
     
     #histograms
-    plotting.histograms(labels, slices, titles=['Constant','Linear','Parabola','Saddle'])
+    plotting.histograms(labels, slices, titles=titles)
     
     #neighbourhoods
     n_samples = 4
@@ -127,6 +123,20 @@ def f2(x):
 def f3(x):
     f = x[:,[0]]**2 - x[:,[1]]**2
     return torch.tensor(f).float()
+
+
+def plot_functions(y, graphs, titles=None):
+    import matplotlib.gridspec as gridspec
+    fig = plt.figure(figsize=(10,10), constrained_layout=True)
+    grid = gridspec.GridSpec(2, 2, wspace=0.2, hspace=0.2)
+    
+    for i, (_y, G) in enumerate(zip(y,graphs)):
+        ax = plt.Subplot(fig, grid[i])
+        ax.set_aspect('equal', 'box')
+        plotting.graph(G,node_colors=_y,show_colorbar=False,ax=ax,node_size=30,edge_width=0.5)
+        if titles is not None:
+            ax.set_title(titles[i])
+        fig.add_subplot(ax)  
 
 
 def project_gauge_to_neighbours(data, gauge, local=False):

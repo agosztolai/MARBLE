@@ -278,7 +278,7 @@ def graph(
             ax.plot(*vizedge.T, color="tab:gray")            
     
 
-def embedding(emb, data, labels=None):
+def embedding(emb, data, titles=None):
     from sklearn.manifold import TSNE
     
     fig, ax = plt.subplots()
@@ -288,14 +288,14 @@ def embedding(emb, data, labels=None):
     cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, c.max()+2), colors)
 
     if emb.shape[1]>2:
-        x, y = zip(*TSNE().fit_transform(emb.detach().numpy()))
+        x, y = zip(*TSNE(init='random',learning_rate='auto').fit_transform(emb.detach().numpy()))
     else:
         x, y = emb[:,0], emb[:,1]
         
     scatter = ax.scatter(x, y, c=c, alpha=0.3, cmap=cmap, norm=norm)
     handles,_ = scatter.legend_elements()
-    if labels is not None:
-        ax.legend(handles,labels)
+    if titles is not None:
+        ax.legend(handles,titles)
         
         
 def histograms(labels, slices, titles=None):
@@ -317,7 +317,7 @@ def histograms(labels, slices, titles=None):
         ax.hist(counts[i], bins=np.arange(n_clusters)-0.5, rwidth=0.85)
         ax.set_xticks(bins)
         ax.set_xlim([0,n_clusters+1])
-        if labels is not None:
+        if titles is not None:
             ax.set_title(titles[i])
         fig.add_subplot(ax)
 
