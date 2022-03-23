@@ -70,6 +70,8 @@ def train(model, data, par, writer):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
     
+    if np.isscalar(par['n_neighbours']):
+        par['n_neighbours'] = [par['n_neighbours'] for i in range(par['num_layers'])]
     assert len(par['n_neighbours'])==par['num_layers'], 'The number of \
     neighbours to be sampled need to be specified for all layers!'
     
@@ -98,13 +100,15 @@ def train(model, data, par, writer):
                 adjs = [adj.to(device) for adj in adjs]
 
             # compute the model for only the nodes in batch n_id
-            if hasattr(data, 'kernels'):
-                K=SparseTensor(row=n_id, col=n_id, value=data.kernels[n_id,n_id],
-                    sparse_sizes=(len(n_id), len(n_id)))
-            else:
-                K=None
+            # if hasattr(data, 'kernels'):
+                # K=SparseTensor(row=n_id, col=n_id, value=data.kernels[n_id,n_id],
+                #     sparse_sizes=(size[0], size[1]))
+            # else:
+                # K=None
             
-            out = model(x[n_id], adjs, K)
+            out = model(x[n_id], 
+                        adjs,
+                        data.kernels[n_id,:][:,n_id] if hasattr(data, 'kernels') else None)
             
             loss = loss_comp(out)
         
@@ -178,11 +182,14 @@ class SAGE(nn.Module):
             x_target = x[:size[1]]  # Target nodes are always placed first.
             
             if K is not None:
-                x = self.convs[i]((x, x_target), K.t(), edge_weight=None)
+                _K = SparseTensor(row=edge_index[0], col=edge_index[1], 
+                                 value=K[edge_index[0],edge_index[1]],
+                                 sparse_sizes=(size[0], size[1]))
+                x = self.convs[i]((x, x_target), _K.t(), edge_weight=None)
             else:
-                # adj = SparseTensor(row=edge_index[0], col=edge_index[1], value=None,
-                #         sparse_sizes=(len(x), len(x)))
-                x = self.convs[i]((x, x_target), edge_index, edge_weight=None)
+                adj = SparseTensor(row=edge_index[0], col=edge_index[1], value=None,
+                        sparse_sizes=(size[0], size[1]))
+                x = self.convs[i]((x, x_target), adj.t(), edge_weight=None)
                 
             if i+1 != self.num_layers:
                 

@@ -5,7 +5,6 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import sys
-from GeoDySys.plotting import set_colors
 from GeoDySys import plotting, embedding
 from GeoDySys.embedding import SAGE, model_eval, train
 from torch_geometric.utils.convert import to_networkx
@@ -13,22 +12,21 @@ from torch_geometric.data.collate import collate
 from tensorboardX import SummaryWriter
 from datetime import datetime
 from torch_geometric.utils.convert import to_scipy_sparse_matrix
-from scipy.sparse import coo_array
 import scipy.sparse as scp
 
 from sklearn.cluster import KMeans
 
 def main():
 
-    n = 200
+    n = 1000
     k = 10
     include_position_in_feature = False
     n_clusters=10
     #training parameters
     par = {'hidden_channels': 8,
            'batch_size': 800,
-           'num_layers': 1,
-           'n_neighbours': [10], #parameter of neighbourhood sampling
+           'num_layers': 2,
+           'n_neighbours': 10, #parameter of neighbourhood sampling
            'epochs': 100,
            'lr': 0.01,
            'edge_dropout':0.0}
@@ -77,14 +75,13 @@ def main():
     F = project_gauge_to_neighbours(data_train, [[1,0],[0,1]], local=False)
     data_train.kernels = aggr_directional_derivative(F)
     
-    writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
-    
     #set up model
     model = SAGE(in_channels=data_train.x.shape[1], 
                  hidden_channels=par['hidden_channels'], 
                  num_layers=par['num_layers'])
     
     #train
+    writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
     model = train(model, data_train, par, writer)
     
     #embed data and cluster
@@ -131,30 +128,32 @@ def f3(x):
     f = x[:,[0]]**2 - x[:,[1]]**2
     return torch.tensor(f).float()
 
+
 def project_gauge_to_neighbours(data, gauge, local=False):
     n = len(data.x)
     u = data.pos[:,None].repeat(1,n,1)
-    u = u - torch.swapaxes(u,0,1)
+    u = torch.swapaxes(u,0,1) - u #uij = xj - xi 
     A = to_scipy_sparse_matrix(data.edge_index)
-    ind = scp.find(A)
-    mask=torch.tensor(A.todense(),dtype=bool)
-    mask=mask[:,:,None].repeat(1,1,2)
+    
+    mask = torch.tensor(A.todense(), dtype=bool)
+    mask = mask[:,:,None].repeat(1,1,2)
     u[~mask] = 0
     u = u.numpy()
     
     F = []
     for g in gauge:
         g = np.array(g)[None]
-        g=np.repeat(g,n,axis=0)
-        g=g[:,None]
-        g=np.repeat(g,n,axis=1)
+        g = np.repeat(g,n,axis=0)
+        g = g[:,None]
+        g = np.repeat(g,n,axis=1)
         
         _F = np.zeros([n,n])
-        for i,j in zip(ind[0],ind[1]):
+        ind = scp.find(A)
+        for i,j in zip(ind[0], ind[1]):
             _F[i,j] = g[i,j,:].dot(u[i,j,:])
         F.append(_F)
         
-    return torch.tensor(sum(F))
+    return torch.tensor(sum(F)/len(F))
 
 
 def aggr_directional_derivative(F):
