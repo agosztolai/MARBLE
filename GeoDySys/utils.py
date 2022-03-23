@@ -5,6 +5,35 @@ from multiprocessing import Pool
 import multiprocessing
 from tqdm import tqdm
 from functools import partial
+import torch
+
+import networkx as nx
+from torch_geometric.nn import knn_graph
+from torch_geometric.utils import to_undirected
+from torch_geometric.data import Data
+
+from cknn import cknneighbors_graph
+
+
+def fit_knn_graph(X, t_sample, k=10, method='cknn'):
+    
+    node_feature = [list(X[i]) for i in t_sample]
+    node_feature = torch.tensor(node_feature, dtype=torch.float)
+    
+    ckng = cknneighbors_graph(node_feature, n_neighbors=k, delta=1.0)    
+    if method=='cknn':
+        edge_index = torch.tensor(list(nx.Graph(ckng).edges), dtype=torch.int64).T
+    elif method=='knn':
+        edge_index = knn_graph(node_feature, k=k)
+    else:
+        NotImplementedError
+    
+    edge_index = to_undirected(edge_index)
+    
+    data = Data(x=node_feature, edge_index=edge_index)
+    
+    return data
+
 
 
 def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):

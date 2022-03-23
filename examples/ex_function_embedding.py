@@ -5,8 +5,9 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import sys
-from GeoDySys import plotting, embedding
-from GeoDySys.embedding import SAGE, model_eval, train
+from GeoDySys import plotting, utils
+from GeoDySys.model import SAGE
+from GeoDySys.traintest import model_eval, train, split
 from torch_geometric.utils.convert import to_networkx
 from torch_geometric.data.collate import collate
 from tensorboardX import SummaryWriter
@@ -46,7 +47,7 @@ def main():
     G = []
     for i, y_ in enumerate(y):
         #fit knn before adding function as node attribute
-        data_ = embedding.fit_knn_graph(x[i], ind, k=k)
+        data_ = utils.fit_knn_graph(x[i], ind, k=k)
         data_.pos = torch.tensor(x[i])
             
         #save graph for testing and plotting
@@ -62,7 +63,7 @@ def main():
         data_.num_nodes = len(x[i])
         data_.num_node_features = data_.x.shape[1]
         data_.y = torch.ones(data_.num_nodes, dtype=int)*i
-        data_ = embedding.traintestsplit(data_, test_size=0.1, val_size=0.5, seed=0)
+        data_ = split(data_, test_size=0.1, val_size=0.5, seed=0)
         
         G.append(G_)
         data_list.append(data_)
