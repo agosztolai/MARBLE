@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import torch
 from torch_geometric.utils import dropout_adj
 from torch_geometric.loader import NeighborSampler as RawNeighborSampler

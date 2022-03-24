@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
@@ -46,9 +43,9 @@ class SAGE(nn.Module):
             if i+1 != self.num_layers:
                 
                 # if self.graph_norm:
-                #     h = h * snorm_n
+                #     x = x * snorm_n
                 # if self.batch_norm:
-                #     h = self.batchnorm_h(h)
+                #     x = self.batchnorm_h(x)
                 x = x.relu()
                 # x = F.dropout(x, p=0.5, training=self.training)
                 

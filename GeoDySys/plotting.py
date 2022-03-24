@@ -13,6 +13,9 @@ import os
 import networkx as nx
 import matplotlib.gridspec as gridspec
 
+from scipy.spatial import Voronoi, voronoi_plot_2d 
+
+
 
 def time_series(T,X, ax=None, style='o', node_feature=None, lw=1, ms=5):
     """
@@ -278,24 +281,33 @@ def graph(
             ax.plot(*vizedge.T, color="tab:gray")            
     
 
-def embedding(emb, data, titles=None):
+def embedding(emb, kmeans, node_colors=None, titles=None):
     from sklearn.manifold import TSNE
+    
+    # plt.scatter(X[:, 0], X[:, 1], c=y_kmeans, s=5, cmap='summer')
     
     fig, ax = plt.subplots()
     
-    c=data.y.numpy()
-    colors = [f"C{i}" for i in np.arange(1, c.max()+1)]
-    cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, c.max()+2), colors)
+    colors = [f"C{i}" for i in np.arange(1, node_colors.max()+1)]
+    cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, node_colors.max()+2), colors)
 
+    emb = emb.detach().numpy()
+    n_emb = emb.shape[0]
+    emb = np.vstack([emb, kmeans.cluster_centers_])
+    
     if emb.shape[1]>2:
-        x, y = zip(*TSNE(init='random',learning_rate='auto').fit_transform(emb.detach().numpy()))
-    else:
-        x, y = emb[:,0], emb[:,1]
+        emb = TSNE(init='random',learning_rate='auto').fit_transform(emb)
         
-    scatter = ax.scatter(x, y, c=c, alpha=0.3, cmap=cmap, norm=norm)
+    x, y = emb[:n_emb,0], emb[:n_emb,1]
+        
+    scatter = ax.scatter(x, y, c=node_colors, alpha=0.3, cmap=cmap, norm=norm)
+    vor = Voronoi(emb[n_emb:,:]) 
+    voronoi_plot_2d(vor, ax=ax) 
     handles,_ = scatter.legend_elements()
     if titles is not None:
         ax.legend(handles,titles)
+        
+    ax.set_axis_off() 
         
         
 def histograms(labels, slices, titles=None):

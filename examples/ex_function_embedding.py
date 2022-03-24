@@ -87,7 +87,7 @@ def main():
     writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
     model = train(model, data_train, par, writer)
     
-    #embed data and cluster
+    #embed data
     emb = model_eval(model, data_train)
     kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(emb)
     labels = kmeans.labels_
@@ -96,7 +96,7 @@ def main():
     titles=['Constant','Linear','Parabola','Saddle']
     
     #embedding
-    plotting.embedding(emb, data_train, titles=titles) #TSNE embedding 
+    plotting.embedding(emb, kmeans, data_train.y.numpy(), titles=titles) #TSNE embedding 
     
     #sampled functions
     plot_functions(y, G, titles=titles)
