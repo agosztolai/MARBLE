@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import sys
+from torch_geometric import seed
 from GeoDySys import plotting, utils
 from GeoDySys.model import SAGE
 from GeoDySys.traintest import model_eval, train, split
@@ -14,22 +15,25 @@ from tensorboardX import SummaryWriter
 from datetime import datetime
 from torch_geometric.utils.convert import to_scipy_sparse_matrix
 import scipy.sparse as scp
-
 from sklearn.cluster import KMeans
 
-def main():
 
+
+def main():
+    
+    seed.seed_everything(2)
+    
     #parameters
     n = 200
     k = 10
     include_position_in_feature = False
-    n_clusters=10
+    n_clusters=12
     
     par = {'hidden_channels': 8,
            'batch_size': 800,
            'num_layers': 1,
-           'n_neighbours': 10, #parameter of neighbourhood sampling
-           'epochs': 100,
+           'n_neighbours': k, #parameter of neighbourhood sampling
+           'epochs': 50,
            'lr': 0.01,
            'edge_dropout':0.0}
     
@@ -99,7 +103,7 @@ def main():
     plotting.embedding(emb, kmeans, data_train.y.numpy(), titles=titles) #TSNE embedding 
     
     #sampled functions
-    plot_functions(y, G, titles=titles)
+    plot_functions(y, G, labels, n, titles=titles)
     
     #histograms
     plotting.histograms(labels, slices, titles=titles)
@@ -126,7 +130,7 @@ def f3(x):
     return torch.tensor(f).float()
 
 
-def plot_functions(y, graphs, titles=None):
+def plot_functions(y, graphs, labels, n_nodes, titles=None):
     import matplotlib.gridspec as gridspec
     fig = plt.figure(figsize=(10,10), constrained_layout=True)
     grid = gridspec.GridSpec(2, 2, wspace=0.2, hspace=0.2)
@@ -134,7 +138,9 @@ def plot_functions(y, graphs, titles=None):
     for i, (_y, G) in enumerate(zip(y,graphs)):
         ax = plt.Subplot(fig, grid[i])
         ax.set_aspect('equal', 'box')
-        plotting.graph(G,node_colors=_y,show_colorbar=False,ax=ax,node_size=30,edge_width=0.5)
+        c=plotting.set_colors(_y.numpy(), cbar=False)
+        plotting.graph(G,node_colors=c,show_colorbar=False,ax=ax,node_size=30,edge_width=0.5)
+        
         if titles is not None:
             ax.set_title(titles[i])
         fig.add_subplot(ax)  

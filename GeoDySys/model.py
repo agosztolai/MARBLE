@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import torch.nn as nn
-import torch.nn.functional as F
 from torch import Tensor
 from torch_sparse import matmul, SparseTensor
 from torch_geometric.nn.conv import MessagePassing
@@ -55,9 +54,8 @@ class SAGE(nn.Module):
     def full_forward(self, x, edge_index):
         for i, conv in enumerate(self.convs):
             x = conv(x, edge_index)
-            if i != self.num_layers - 1:
+            if i+1 != self.num_layers:
                 x = x.relu()
-                x = F.dropout(x, p=0.5, training=self.training)
                 
         return x
     

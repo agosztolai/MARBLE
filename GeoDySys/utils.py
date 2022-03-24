@@ -11,7 +11,6 @@ import networkx as nx
 from torch_geometric.nn import knn_graph
 from torch_geometric.utils import to_undirected
 from torch_geometric.data import Data
-
 from cknn import cknneighbors_graph
 
 

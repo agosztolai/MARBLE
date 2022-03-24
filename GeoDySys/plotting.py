@@ -139,17 +139,18 @@ def neighbourhoods(graphs, node_values, n_clusters, n_samples, labels, n_nodes):
             n_graph = random_node//n_nodes
             ind_subgraph = [np.mod(random_node,n_nodes)] + \
                 list(graphs[n_graph].neighbors(np.mod(random_node,n_nodes)))
-            c=set_colors(node_values[n_graph], cbar=False)
-            c=c[ind_subgraph]
+            c=set_colors(node_values[n_graph].numpy(), cbar=False)
             
             ax = plt.Subplot(fig, inner[j])
             subgraph = graphs[n_graph].subgraph(ind_subgraph)
             
-            x = np.array(list(nx.get_node_attributes(subgraph, 'x').values()))
-            ax.scatter(x[:,0],x[:,1], c=c)
             ax.set_aspect('equal', 'box')
-            graph(subgraph,node_colors=None,
-                           show_colorbar=False,ax=ax,node_size=5,edge_width=0.5)     
+            graph(subgraph,
+                  node_colors=[c[i] for i in ind_subgraph],
+                  show_colorbar=False,
+                  ax=ax,
+                  node_size=30,
+                  edge_width=0.5)     
             ax.set_frame_on(False)
             fig.add_subplot(ax)
 
@@ -248,9 +249,6 @@ def graph(
     
     if ax is None:
         _, ax = create_axis(dim)
-
-    if node_colors is not None:
-        node_colors = set_colors(node_colors,cbar=show_colorbar)
     
     if len(pos[0])==2:
     
