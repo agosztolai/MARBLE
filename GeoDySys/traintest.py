@@ -79,7 +79,7 @@ def loss_comp(out):
     neg_loss = F.logsigmoid(-(out * neg_out).sum(-1)).mean()
     loss = -pos_loss - neg_loss
     
-    return loss
+    return loss/out.shape[0]
 
 
 def split(data, test_size=0.1, val_size=0.5, seed=0):

@@ -6,15 +6,13 @@ import torch
 import matplotlib.pyplot as plt
 import sys
 from torch_geometric import seed
-from GeoDySys import plotting, utils
-from GeoDySys.model import SAGE
+from GeoDySys import plotting, utils, kernels
+from GeoDySys.model import net
 from GeoDySys.traintest import model_eval, train, split
 from torch_geometric.utils.convert import to_networkx
 from torch_geometric.data.collate import collate
 from tensorboardX import SummaryWriter
 from datetime import datetime
-from torch_geometric.utils.convert import to_scipy_sparse_matrix
-import scipy.sparse as scp
 from sklearn.cluster import KMeans
 
 
@@ -25,16 +23,20 @@ def main():
     
     #parameters
     n = 200
-    k = 10
+    k = 30
     include_position_in_feature = False
-    n_clusters=12
+    n_clusters=30
     
     par = {'hidden_channels': 8,
            'batch_size': 800,
            'num_layers': 1,
            'n_neighbours': k, #parameter of neighbourhood sampling
-           'epochs': 50,
+           'epochs': 100,
            'lr': 0.01,
+           'b_norm': False,
+           'adj_norm': True,
+           'activation': False,
+           'dropout': 0.,
            'edge_dropout':0.0}
     
     ind = np.arange(n)
@@ -79,13 +81,12 @@ def main():
                                     add_batch=False)
     
     #define kernels
-    F = project_gauge_to_neighbours(data_train, [[1,0],[0,1]], local=False)
-    data_train.kernels = aggr_directional_derivative(F)
+    gauge = [[1,0],[0,1]]
+    K = kernels.aggr_directional_derivative(data_train, gauge)
+    data_train.kernels = K[0] #later aggregate multiple directions
     
     #set up model
-    model = SAGE(in_channels=data_train.x.shape[1], 
-                 hidden_channels=par['hidden_channels'], 
-                 num_layers=par['num_layers'])
+    model = net(in_channels=data_train.x.shape[1], **par)
     
     #train
     writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
@@ -99,18 +100,18 @@ def main():
     #plot
     titles=['Constant','Linear','Parabola','Saddle']
     
+    #sampled functions
+    plot_functions(y, G, titles=titles)
+    
     #embedding
     plotting.embedding(emb, kmeans, data_train.y.numpy(), titles=titles) #TSNE embedding 
-    
-    #sampled functions
-    plot_functions(y, G, labels, n, titles=titles)
     
     #histograms
     plotting.histograms(labels, slices, titles=titles)
     
     #neighbourhoods
     n_samples = 4
-    plotting.neighbourhoods(G, y, n_clusters, n_samples, labels, n)
+    plotting.neighbourhoods(G, y, n_clusters, n_samples, labels, norm=False)
     
     
 def f0(x):
@@ -130,7 +131,7 @@ def f3(x):
     return torch.tensor(f).float()
 
 
-def plot_functions(y, graphs, labels, n_nodes, titles=None):
+def plot_functions(y, graphs, titles=None):
     import matplotlib.gridspec as gridspec
     fig = plt.figure(figsize=(10,10), constrained_layout=True)
     grid = gridspec.GridSpec(2, 2, wspace=0.2, hspace=0.2)
@@ -144,41 +145,6 @@ def plot_functions(y, graphs, labels, n_nodes, titles=None):
         if titles is not None:
             ax.set_title(titles[i])
         fig.add_subplot(ax)  
-
-
-def project_gauge_to_neighbours(data, gauge, local=False):
-    n = len(data.x)
-    u = data.pos[:,None].repeat(1,n,1)
-    u = torch.swapaxes(u,0,1) - u #uij = xj - xi 
-    A = to_scipy_sparse_matrix(data.edge_index)
-    
-    mask = torch.tensor(A.todense(), dtype=bool)
-    mask = mask[:,:,None].repeat(1,1,2)
-    u[~mask] = 0
-    u = u.numpy()
-    
-    F = []
-    for g in gauge:
-        g = np.array(g)[None]
-        g = np.repeat(g,n,axis=0)
-        g = g[:,None]
-        g = np.repeat(g,n,axis=1)
-        
-        _F = np.zeros([n,n])
-        ind = scp.find(A)
-        for i,j in zip(ind[0], ind[1]):
-            _F[i,j] = g[i,j,:].dot(u[i,j,:])
-        F.append(_F)
-        
-    return torch.tensor(sum(F)/len(F))
-
-
-def aggr_directional_derivative(F):
-    EPS = 1e-8
-    Fhat = F / (torch.sum(torch.abs(F), keepdim=True, dim=1) + EPS)
-    Bdx = Fhat - torch.diag(torch.sum(Fhat, dim=1))
-    
-    return Bdx
 
 
 if __name__ == '__main__':

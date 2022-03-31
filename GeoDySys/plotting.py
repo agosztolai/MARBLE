@@ -6,7 +6,7 @@ import matplotlib
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+# from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
 from pathlib import Path
 import os
@@ -120,33 +120,50 @@ def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, axis=Fals
     return ax
 
 
-def neighbourhoods(graphs, node_values, n_clusters, n_samples, labels, n_nodes):
+def neighbourhoods(graphs, node_values, n_clusters, n_samples, labels, norm=True):
     fig = plt.figure(figsize=(10, 20),constrained_layout=True)
-    outer = gridspec.GridSpec(int(np.ceil(n_clusters//2)), 2, wspace=0.2, hspace=0.2)
+    outer = gridspec.GridSpec(int(np.ceil(n_clusters//3)), 3, wspace=0.2, hspace=0.2)
     
     for i in range(n_clusters):
         inner = gridspec.GridSpecFromSubplotSpec(int(np.ceil(n_samples/2)), 2,
                     subplot_spec=outer[i], wspace=0.1, hspace=0.1)
 
         ax = plt.Subplot(fig, outer[i])
-        ax.set_title("Neighbourhood type {}".format(i+1))
+        ax.set_title("Type {}".format(i+1))
         ax.axis('off')
         fig.add_subplot(ax)
         
+        n_nodes = [nx.number_of_nodes(g) for g in graphs]
+        n_nodes = [0] + n_nodes
+        
         for j in range(n_samples):
-            ind_subgraph = np.where(labels==i)[0]
-            random_node = np.random.choice(ind_subgraph)
-            n_graph = random_node//n_nodes
-            ind_subgraph = [np.mod(random_node,n_nodes)] + \
-                list(graphs[n_graph].neighbors(np.mod(random_node,n_nodes)))
-            c=set_colors(node_values[n_graph].numpy(), cbar=False)
+            label_i = np.where(labels==i)[0]
+            random_node = np.random.choice(label_i)
+            n_graph = len(np.where(np.cumsum(n_nodes)<random_node)[0]) - 1
+            G = graphs[n_graph]
+            start_id = np.cumsum(n_nodes)[n_graph]
+            random_node -= start_id
+            ind_subgraph = [random_node] + list(G.neighbors(random_node))
+            ind_subgraph = np.sort(ind_subgraph)
             
+            #convert node values to colors
+            nv = node_values[n_graph].numpy()
+            if not norm: #set colors based on global values
+                c=set_colors(nv, cbar=False)
+                c=[c[i] for i in ind_subgraph]
+            else: #first extract subgraph, then compute normalized colors
+                nv=nv[ind_subgraph]
+                nv-=nv.mean()
+                c=set_colors(nv, cbar=False)
+                  
             ax = plt.Subplot(fig, inner[j])
-            subgraph = graphs[n_graph].subgraph(ind_subgraph)
+            subgraph = nx.Graph()
+            subgraph.add_nodes_from(sorted(G.subgraph(ind_subgraph).nodes(data=True)))
+            subgraph.add_edges_from(G.subgraph(ind_subgraph).edges(data=True))
             
             ax.set_aspect('equal', 'box')
             graph(subgraph,
-                  node_colors=[c[i] for i in ind_subgraph],
+                  node_colors=c,
                   show_colorbar=False,
                   ax=ax,
                   node_size=30,
@@ -300,7 +317,7 @@ def embedding(emb, kmeans, node_colors=None, titles=None):
         
     scatter = ax.scatter(x, y, c=node_colors, alpha=0.3, cmap=cmap, norm=norm)
     vor = Voronoi(emb[n_emb:,:]) 
-    voronoi_plot_2d(vor, ax=ax) 
+    voronoi_plot_2d(vor, ax=ax, show_vertices=False) 
     handles,_ = scatter.legend_elements()
     if titles is not None:
         ax.legend(handles,titles)
@@ -324,11 +341,13 @@ def histograms(labels, slices, titles=None):
     for i in range(n_slices):
 
         ax = plt.Subplot(fig, outer[i])
-        ax.hist(counts[i], bins=np.arange(n_clusters)-0.5, rwidth=0.85)
+        ax.hist(counts[i], bins=np.arange(n_clusters)-0.5, rwidth=0.85, density=True)
         ax.set_xticks(bins)
         ax.set_xlim([0,n_clusters+1])
         if titles is not None:
             ax.set_title(titles[i])
+            ax.set_xlabel('Feature number')
+            ax.set_ylabel('Probability density')
         fig.add_subplot(ax)
 
 
@@ -341,114 +360,114 @@ def _savefig(fig, folder, filename, ext):
         
         
 
-def transition_diagram(centers, P, ax=None, radius=None, lw=1, ms=1, alpha=0.3, exclude_zeros=False):
+# def transition_diagram(centers, P, ax=None, radius=None, lw=1, ms=1, alpha=0.3, exclude_zeros=False):
     
-    dim = centers.shape[1]
-    assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
+#     dim = centers.shape[1]
+#     assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
     
-    if ax is None:
-        _, ax = create_axis(dim)
+#     if ax is None:
+#         _, ax = create_axis(dim)
         
-    colors = set_colors(P)
-    colors = np.array(colors)
+#     colors = set_colors(P)
+#     colors = np.array(colors)
     
-    for i in range(P.shape[0]):
-        for j in range(P.shape[0]):
-            if exclude_zeros and P[i,j]==0:
-                continue
-            if radius is not None:
-                dist = np.max(np.abs(centers[i]-centers[j]))
-                if radius < dist or np.sum(dist)==0:
-                    continue
-            a = Arrow3D([centers[i][0], centers[j][0]], [centers[i][1], centers[j][1]], 
-                        [centers[i][2], centers[j][2]], mutation_scale=ms, 
-                        lw=lw, arrowstyle="-|>", color=colors[i,j], alpha=alpha)
-            ax.add_artist(a)
+#     for i in range(P.shape[0]):
+#         for j in range(P.shape[0]):
+#             if exclude_zeros and P[i,j]==0:
+#                 continue
+#             if radius is not None:
+#                 dist = np.max(np.abs(centers[i]-centers[j]))
+#                 if radius < dist or np.sum(dist)==0:
+#                     continue
+#             a = Arrow3D([centers[i][0], centers[j][0]], [centers[i][1], centers[j][1]], 
+#                         [centers[i][2], centers[j][2]], mutation_scale=ms, 
+#                         lw=lw, arrowstyle="-|>", color=colors[i,j], alpha=alpha)
+#             ax.add_artist(a)
     
-    return ax
+#     return ax
         
 
-def plot_curvatures(
-    times,
-    kappas,
-    ylog=True,
-    folder="figures",
-    filename="curvature",
-    ext=".svg",
-    ax=None
-):
-    """Plot edge curvature."""
-    if ax is None:
-        fig, ax = create_axis(2)
+# def plot_curvatures(
+#     times,
+#     kappas,
+#     ylog=True,
+#     folder="figures",
+#     filename="curvature",
+#     ext=".svg",
+#     ax=None
+# ):
+#     """Plot edge curvature."""
+#     if ax is None:
+#         fig, ax = create_axis(2)
 
-    for kappa in kappas.T:
-        ax.plot(times, kappa, c='k', lw=0.5, alpha=0.1)
+#     for kappa in kappas.T:
+#         ax.plot(times, kappa, c='k', lw=0.5, alpha=0.1)
 
-    if ylog:
-        ax.set_xscale("symlog")
+#     if ylog:
+#         ax.set_xscale("symlog")
         
-    ax.axhline(0, ls="--", c="k")
-    # ax.axis([np.log10(times[0]), np.log10(times[-1]), np.min(kappas), 1])
-    ax.set_xlabel(r"Time horizon, $log_{10}(T)$")
-    if ylog:
-        ax.set_ylabel(r"Curvature, $log_{10}\kappa_t(T)$")
-    else:
-        ax.set_ylabel(r"Curvature, $\kappa_t(T)$")
+#     ax.axhline(0, ls="--", c="k")
+#     # ax.axis([np.log10(times[0]), np.log10(times[-1]), np.min(kappas), 1])
+#     ax.set_xlabel(r"Time horizon, $log_{10}(T)$")
+#     if ylog:
+#         ax.set_ylabel(r"Curvature, $log_{10}\kappa_t(T)$")
+#     else:
+#         ax.set_ylabel(r"Curvature, $\kappa_t(T)$")
     
-    _savefig(fig, folder, filename, ext=ext)
+#     _savefig(fig, folder, filename, ext=ext)
     
-    return fig, ax
+#     return fig, ax
     
     
-def cuboid_data2(o, size=(1,1,1)):
+# def cuboid_data2(o, size=(1,1,1)):
     
-    X = [[[0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0]],
-         [[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0]],
-         [[1, 0, 1], [1, 0, 0], [1, 1, 0], [1, 1, 1]],
-         [[0, 0, 1], [0, 0, 0], [0, 1, 0], [0, 1, 1]],
-         [[0, 1, 0], [0, 1, 1], [1, 1, 1], [1, 1, 0]],
-         [[0, 1, 1], [0, 0, 1], [1, 0, 1], [1, 1, 1]]]
+#     X = [[[0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0]],
+#          [[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0]],
+#          [[1, 0, 1], [1, 0, 0], [1, 1, 0], [1, 1, 1]],
+#          [[0, 0, 1], [0, 0, 0], [0, 1, 0], [0, 1, 1]],
+#          [[0, 1, 0], [0, 1, 1], [1, 1, 1], [1, 1, 0]],
+#          [[0, 1, 1], [0, 0, 1], [1, 0, 1], [1, 1, 1]]]
     
-    X = np.array(X).astype(float)
-    for i in range(3):
-        X[:,:,i] *= size[i]
-    X += np.array(o)
+#     X = np.array(X).astype(float)
+#     for i in range(3):
+#         X[:,:,i] *= size[i]
+#     X += np.array(o)
     
-    return X
+#     return X
 
 
-def plotCubeAt2(centers,sizes=None,colors=None, **kwargs):
+# def plotCubeAt2(centers,sizes=None,colors=None, **kwargs):
     
-    if not isinstance(colors,(list,np.ndarray)):
-        colors=["C7"]*len(centers)
-    if not isinstance(sizes,(list,np.ndarray)):
-        sizes=[(1,1,1)]*len(centers)
+#     if not isinstance(colors,(list,np.ndarray)):
+#         colors=["C7"]*len(centers)
+#     if not isinstance(sizes,(list,np.ndarray)):
+#         sizes=[(1,1,1)]*len(centers)
         
-    for i in range(centers.shape[0]):
-        centers[i]-=sizes[i]/2
+#     for i in range(centers.shape[0]):
+#         centers[i]-=sizes[i]/2
     
-    g = []
-    for p,s,c in zip(centers,sizes,colors):
-        g.append( cuboid_data2(p, size=s) )
+#     g = []
+#     for p,s,c in zip(centers,sizes,colors):
+#         g.append( cuboid_data2(p, size=s) )
         
-    return Poly3DCollection(np.concatenate(g),  
-                            facecolors=np.repeat(colors,6), **kwargs)
+#     return Poly3DCollection(np.concatenate(g),  
+#                             facecolors=np.repeat(colors,6), **kwargs)
 
 
-def discretisation(centers, sizes, ax=None, alpha=0.2):
-    """
-    Plot the tesselation of the state space as a set of boxes.
-    """
+# def discretisation(centers, sizes, ax=None, alpha=0.2):
+#     """
+#     Plot the tesselation of the state space as a set of boxes.
+#     """
         
-    dim = centers.shape[1]
-    assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
+#     dim = centers.shape[1]
+#     assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
     
-    if ax is None:
-        _, ax = create_axis(dim)
+#     if ax is None:
+#         _, ax = create_axis(dim)
     
-    pc = plotCubeAt2(centers,sizes,colors=None, edgecolor="k", linewidths=0.2, alpha=alpha)
-    ax.add_collection3d(pc)
+#     pc = plotCubeAt2(centers,sizes,colors=None, edgecolor="k", linewidths=0.2, alpha=alpha)
+#     ax.add_collection3d(pc)
     
-    ax = set_axes(ax, data=centers, off=True)
+#     ax = set_axes(ax, data=centers, off=True)
         
-    return ax
+#     return ax

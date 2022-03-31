@@ -96,7 +96,7 @@ def unstack(X, t_sample):
     return X_unstack
 
 
-def standardize_data(X, axis=0):
+def standardize(X, axis=0):
     """
     Normalize data
 
