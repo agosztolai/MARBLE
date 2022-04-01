@@ -14,9 +14,7 @@ def train(model, data, par, writer):
     model = model.to(device)
     
     if np.isscalar(par['n_neighbours']):
-        par['n_neighbours'] = [par['n_neighbours'] for i in range(par['num_layers'])]
-    assert len(par['n_neighbours'])==par['num_layers'], 'The number of \
-    neighbours to be sampled need to be specified for all layers!'
+        par['n_neighbours'] = [par['n_neighbours'] for i in range(par['n_layers'])]
     
     loader = NeighborSampler(data.edge_index,
                              sizes=par['n_neighbours'],
@@ -37,14 +35,21 @@ def train(model, data, par, writer):
             optimizer.zero_grad() #zero gradients, otherwise accumulates gradients
             
             # `adjs` holds a list of `(edge_index, e_id, size)` tuples.
-            if par['num_layers']==1:
+            if par['n_layers']==1:
                 adjs = [adjs.to(device)]
             else:
                 adjs = [adj.to(device) for adj in adjs]
+                
+            #take submatrix corresponding to current batch
+            if hasattr(data, 'kernels'):
+                if isinstance(data.kernels, list):
+                    K = [K_[n_id,:][:,n_id] for K_ in data.kernels]
+                else:
+                    K = [data.kernels[n_id,:][:,n_id]]
+            else:
+                K = None
             
-            out = model(x[n_id], 
-                        adjs,
-                        data.kernels[n_id,:][:,n_id] if hasattr(data, 'kernels') else None)
+            out = model(x[n_id], adjs, K)
             
             loss = loss_comp(out)
         
@@ -64,9 +69,18 @@ def train(model, data, par, writer):
 
 def model_eval(model, data):
     model.eval()
+    
+    if hasattr(data, 'kernels'):
+        if isinstance(data.kernels, list):
+            K = [K_ for K_ in data.kernels]
+        else:
+            K = [data.kernels]
+    else:
+        K = None
+        
     x, edge_index = data.x, data.edge_index
     with torch.no_grad():
-        out = model.full_forward(x, edge_index).cpu()
+        out = model.full_forward(x, edge_index, K).cpu()
 
     return out
 

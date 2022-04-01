@@ -28,8 +28,8 @@ def main():
     n_clusters=30
     
     par = {'hidden_channels': 8,
-           'batch_size': 800,
-           'num_layers': 1,
+           'batch_size': 100,
+           'n_layers': 1,
            'n_neighbours': k, #parameter of neighbourhood sampling
            'epochs': 100,
            'lr': 0.01,
@@ -81,12 +81,12 @@ def main():
                                     add_batch=False)
     
     #define kernels
-    gauge = [[1,0],[0,1]]
+    gauge = [[1,0]]
     K = kernels.aggr_directional_derivative(data_train, gauge)
-    data_train.kernels = K[0] #later aggregate multiple directions
+    data_train.kernels = K
     
     #set up model
-    model = net(in_channels=data_train.x.shape[1], **par)
+    model = net(in_channels=len(gauge)*data_train.x.shape[1], **par)
     
     #train
     writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))

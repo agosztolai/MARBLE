@@ -144,7 +144,7 @@ def neighbourhoods(graphs, node_values, n_clusters, n_samples, labels, norm=True
             start_id = np.cumsum(n_nodes)[n_graph]
             random_node -= start_id
             ind_subgraph = [random_node] + list(G.neighbors(random_node))
-            ind_subgraph = np.sort(ind_subgraph)
+            ind_subgraph = np.sort(ind_subgraph) #sort nodes
             
             #convert node values to colors
             nv = node_values[n_graph].numpy()
@@ -157,6 +157,8 @@ def neighbourhoods(graphs, node_values, n_clusters, n_samples, labels, norm=True
                 c=set_colors(nv, cbar=False)
                   
             ax = plt.Subplot(fig, inner[j])
+            
+            #extract subgraph with nodes sorted
             subgraph = nx.Graph()
             subgraph.add_nodes_from(sorted(G.subgraph(ind_subgraph).nodes(data=True)))
             subgraph.add_edges_from(G.subgraph(ind_subgraph).edges(data=True))
