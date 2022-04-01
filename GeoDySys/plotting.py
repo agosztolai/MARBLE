@@ -139,7 +139,7 @@ def neighbourhoods(graphs, node_values, n_clusters, n_samples, labels, norm=True
         if n_samples>=len(label_i):
             random_node = label_i
         else:
-            random_nodes = np.random.choice(label_i, size=n_samples)
+            random_nodes = np.random.choice(label_i, size=n_samples, replace=False)
         for j in range(n_samples):
             
             random_node=random_nodes[j]
