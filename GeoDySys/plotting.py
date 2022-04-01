@@ -136,9 +136,12 @@ def neighbourhoods(graphs, node_values, n_clusters, n_samples, labels, norm=True
         n_nodes = [nx.number_of_nodes(g) for g in graphs]
         n_nodes = [0] + n_nodes
         
+        label_i = np.where(labels==i)[0]
+        random_nodes = np.random.choice(label_i, size=n_samples)
         for j in range(n_samples):
-            label_i = np.where(labels==i)[0]
-            random_node = np.random.choice(label_i)
+            
+            random_node=random_nodes[j]
+
             n_graph = len(np.where(np.cumsum(n_nodes)<random_node)[0]) - 1
             G = graphs[n_graph]
             start_id = np.cumsum(n_nodes)[n_graph]

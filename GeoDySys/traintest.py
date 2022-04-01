@@ -9,6 +9,26 @@ from sklearn.model_selection import train_test_split
 
 
 def train(model, data, par, writer):
+    """
+    Network training function.
+
+    Parameters
+    ----------
+    model : pytorch network module
+    data : pytorch geometric data object containing
+            .edge_index, .num_nodes, .x, .kernels (optional)
+           If .kernels is omitted, then adjacency matrix 
+           is used for isotropic convolutions (vanilla GCN)
+    par : dict
+        Parameter values for training.
+    writer : tensorboardX summary writer object
+
+    Returns
+    -------
+    model : pytorch network module
+        Trained network.
+
+    """
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
@@ -26,6 +46,7 @@ def train(model, data, par, writer):
     
     optimizer = torch.optim.Adam(model.parameters(), lr=par['lr'])
 
+    #loop over epochs
     x = data.x.to(device)
     for epoch in range(1, par['epochs']):
         total_loss = 0
@@ -50,11 +71,8 @@ def train(model, data, par, writer):
                 K = None
             
             out = model(x[n_id], adjs, K)
-            
             loss = loss_comp(out)
-        
-            #backprop
-            loss.backward()
+            loss.backward() #backprop
             optimizer.step()
 
             total_loss += float(loss) * out.size(0)    
@@ -68,6 +86,23 @@ def train(model, data, par, writer):
 
 
 def model_eval(model, data):
+    """
+    Network evaluating function.
+
+    Parameters
+    ----------
+    model : pytorch network module
+    data : pytorch geometric data object containing
+            .edge_index, .num_nodes, .x, .kernels (optional)
+           If .kernels is omitted, then adjacency matrix 
+           is used for isotropic convolutions (vanilla GCN)
+
+    Returns
+    -------
+    out : torch tensor
+        network output.
+
+    """
     model.eval()
     
     if hasattr(data, 'kernels'):
@@ -86,17 +121,49 @@ def model_eval(model, data):
 
 
 def loss_comp(out):
+    """
+    Unsupervised loss function from Hamilton et al. 2018, using negative sampling.
+
+    Parameters
+    ----------
+    out : pytorch tensor
+        Output of network.
+    Returns
+    -------
+    loss : float
+        Loss.
+
+    """
     out, pos_out, neg_out = out.split(out.size(0) // 3, dim=0)
 
     #loss function from word2vec
     pos_loss = F.logsigmoid((out * pos_out).sum(-1)).mean()
     neg_loss = F.logsigmoid(-(out * neg_out).sum(-1)).mean()
-    loss = -pos_loss - neg_loss
+    loss = (-pos_loss - neg_loss)/out.shape[0]
     
-    return loss/out.shape[0]
+    return loss
 
 
 def split(data, test_size=0.1, val_size=0.5, seed=0):
+    """
+    
+
+    Parameters
+    ----------
+    data : pytorch geometric data object. All entried must be torch tensors
+            for this to work properly.
+    test_size : float between 0 and 1, optional
+        Test set as fraction of total dataset. The default is 0.1.
+    val_size : float between 0 and 1, optional
+        Validation set as fraction of test set. The default is 0.5.
+    seed : int, optional
+        Seed. The default is 0.
+
+    Returns
+    -------
+    data : pytorch geometric data object.
+
+    """
     
     n = len(data.x)
     train_id, test_id = train_test_split(np.arange(n), test_size=test_size, random_state=seed)

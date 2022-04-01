@@ -24,7 +24,6 @@ def main():
     #parameters
     n = 200
     k = 30
-    include_position_in_feature = False
     n_clusters=30
     
     par = {'hidden_channels': 8,
@@ -47,7 +46,7 @@ def main():
     x2 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2)) 
     x3 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2))
     x = [x0, x1, x2, x3]
-    y = [f0(x0), f1(x1), f2(x2), f3(x3)]
+    y = [f0(x0), f1(x1), f2(x2), f3(x3)] #evaluated functions
     
     data_list = []
     G = []
@@ -60,12 +59,8 @@ def main():
         G_ = to_networkx(data_, node_attrs=['x'], edge_attrs=None, to_undirected=True,
                 remove_self_loops=True)
             
-        #add new node feature
-        if include_position_in_feature:
-            data_.x = torch.hstack((data_.x,y_)) #include positional features
-        else:
-            data_.x = y_ #only function value as feature
-
+        #build pytorch geometric object
+        data_.x = y_ #only function value as feature
         data_.num_nodes = len(x[i])
         data_.num_node_features = data_.x.shape[1]
         data_.y = torch.ones(data_.num_nodes, dtype=int)*i
@@ -81,7 +76,7 @@ def main():
                                     add_batch=False)
     
     #define kernels
-    gauge = [[1,0]]
+    gauge = [[1,0],[0,1]]
     K = kernels.aggr_directional_derivative(data_train, gauge)
     data_train.kernels = K
     
