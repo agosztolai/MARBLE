@@ -34,7 +34,7 @@ def train(model, data, par, writer):
     model = model.to(device)
     
     if np.isscalar(par['n_neighbours']):
-        par['n_neighbours'] = [par['n_neighbours'] for i in range(par['n_layers'])]
+        par['n_neighbours'] = [par['n_neighbours'] for i in range(par['n_conv_layers'])]
     
     loader = NeighborSampler(data.edge_index,
                              sizes=par['n_neighbours'],
@@ -56,10 +56,9 @@ def train(model, data, par, writer):
             optimizer.zero_grad() #zero gradients, otherwise accumulates gradients
             
             # `adjs` holds a list of `(edge_index, e_id, size)` tuples.
-            if par['n_layers']==1:
-                adjs = [adjs.to(device)]
-            else:
-                adjs = [adj.to(device) for adj in adjs]
+            if not isinstance(adjs, list):
+                adjs = [adjs]
+            adjs = [adj.to(device) for adj in adjs]
                 
             #take submatrix corresponding to current batch
             if hasattr(data, 'kernels'):

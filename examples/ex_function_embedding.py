@@ -24,21 +24,21 @@ def main():
     #parameters
     n = 200
     k = 30
-    n_clusters=30
+    n_clusters = 30
     
-    par = {'hidden_channels': 8,
-           'batch_size': 100,
-           'n_layers': 1,
+    par = {'batch_size': 100, #batch size, this should be as large as possible
+           'epochs': 50, #optimisation epochs
+           'n_conv_layers': 1, #number of hops in neighbourhood
+           'n_lin_layers': 2, #number of layers if MLP
+           'hidden_channels': 8, #number of internal dimensions in MLP 
            'n_neighbours': k, #parameter of neighbourhood sampling
-           'epochs': 100,
-           'lr': 0.01,
-           'b_norm': False,
-           'adj_norm': True,
-           'activation': False,
-           'dropout': 0.,
-           'edge_dropout':0.0}
-    
-    ind = np.arange(n)
+           'lr': 0.01, #learning rate
+           'b_norm': False, #batch norm
+           'adj_norm': True, #adjacency-wise norm
+           'activation': True, #relu
+           'dropout': 0.3, #dropout in MLP
+           'edge_dropout':0.0 #dropout in convolution graph
+           }
       
     #evaluate functions
     x0 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2))
@@ -47,6 +47,8 @@ def main():
     x3 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2))
     x = [x0, x1, x2, x3]
     y = [f0(x0), f1(x1), f2(x2), f3(x3)] #evaluated functions
+    
+    ind = np.arange(n) #take all points in functions, layer we may change if we subsample
     
     data_list = []
     G = []

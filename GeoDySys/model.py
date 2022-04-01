@@ -163,7 +163,7 @@ class MLP(nn.Module):
         """Forward pass"""
         for i in range(self.n_lin_layers):
             x = self.lin[i](x)
-            if self.activation and i+1!=self.n_layers:
+            if self.activation and i+1!=self.n_lin_layers:
                 x = self.activation(x)
             x = self.dropout(x)
             if self.b_norm:
