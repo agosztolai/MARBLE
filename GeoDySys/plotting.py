@@ -134,24 +134,22 @@ def neighbourhoods(graphs, node_values, n_clusters, n_samples, labels, norm=True
         fig.add_subplot(ax)
         
         n_nodes = [0] + [nx.number_of_nodes(g) for g in graphs]
-        
-        label_i = np.where(labels==i)[0]
-        if n_samples>=len(label_i):
-            random_node = label_i
-        else:
-            random_nodes = np.random.choice(label_i, size=n_samples, replace=False)
-        for j in range(n_samples):
+        n_nodes = np.cumsum(n_nodes)
+
+        for j, G in enumerate(graphs):
             
-            random_node=random_nodes[j]
-            n_graph = len(np.where(np.cumsum(n_nodes)<=random_node)[0]) - 1
-            G = graphs[n_graph]
-            start_id = np.cumsum(n_nodes)[n_graph]
-            random_node -= start_id
+            label_i = labels[n_nodes[j]:n_nodes[j+1]]==i
+            label_i = np.where(label_i)[0]
+            if not list(label_i):
+                continue
+            else:
+                random_node = np.random.choice(label_i)
+            
+            nv = node_values[j].numpy()
             ind_subgraph = [random_node] + list(G.neighbors(random_node))
             ind_subgraph = np.sort(ind_subgraph) #sort nodes
             
             #convert node values to colors
-            nv = node_values[n_graph].numpy()
             if not norm: #set colors based on global values
                 c=set_colors(nv, cbar=False)
                 c=[c[i] for i in ind_subgraph]

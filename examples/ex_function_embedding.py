@@ -30,7 +30,7 @@ def main():
            'epochs': 50, #optimisation epochs
            'n_conv_layers': 1, #number of hops in neighbourhood
            'n_lin_layers': 2, #number of layers if MLP
-           'hidden_channels': 8, #number of internal dimensions in MLP 
+           'hidden_channels': 2, #number of internal dimensions in MLP 
            'n_neighbours': k, #parameter of neighbourhood sampling
            'lr': 0.01, #learning rate
            'b_norm': False, #batch norm
@@ -108,7 +108,7 @@ def main():
     
     #neighbourhoods
     n_samples = 4
-    plotting.neighbourhoods(G, y, n_clusters, n_samples, labels, norm=False)
+    plotting.neighbourhoods(G, y, n_clusters, n_samples, labels, norm=True)
     
     
 def f0(x):
