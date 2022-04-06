@@ -22,15 +22,15 @@ def main():
     seed.seed_everything(2)
     
     #parameters
-    n = 200
-    k = 30
+    n = 500
+    k = 40
     n_clusters = 30
     
     par = {'batch_size': 100, #batch size, this should be as large as possible
-           'epochs': 50, #optimisation epochs
+           'epochs': 20, #optimisation epochs
            'n_conv_layers': 1, #number of hops in neighbourhood
            'n_lin_layers': 2, #number of layers if MLP
-           'hidden_channels': 2, #number of internal dimensions in MLP 
+           'hidden_channels': 8, #number of internal dimensions in MLP 
            'n_neighbours': k, #parameter of neighbourhood sampling
            'lr': 0.01, #learning rate
            'b_norm': False, #batch norm
@@ -83,7 +83,7 @@ def main():
     data_train.kernels = K
     
     #set up model
-    model = net(in_channels=len(gauge)*data_train.x.shape[1], **par)
+    model = net(data_train, **par)
     
     #train
     writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
@@ -108,7 +108,7 @@ def main():
     
     #neighbourhoods
     n_samples = 4
-    plotting.neighbourhoods(G, y, n_clusters, n_samples, labels, norm=True)
+    plotting.neighbourhoods(G, y, n_clusters, n_samples, labels, norm=False)
     
     
 def f0(x):

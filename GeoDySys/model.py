@@ -12,7 +12,7 @@ import torch.nn.functional as F
 
 """Main network architecture"""
 class net(nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels=None, **kwargs):
+    def __init__(self, data, hidden_channels, out_channels=None, **kwargs):
         super(net, self).__init__()
         
         self.n_layers = kwargs['n_layers'] if 'n_layers' in kwargs else 1
@@ -22,9 +22,9 @@ class net(nn.Module):
         for i in range(self.n_layers):
             self.convs.append(AnisoConv(
                 adj_norm=kwargs['adj_norm'] if 'adj_norm' in kwargs else False))
-            
+        
         #initialize multilayer perceptron
-        self.MLP = MLP(in_channels,
+        self.MLP = MLP(in_channels=data.x.shape[1] if not hasattr(data, 'kernels') else len(data.kernels)*data.x.shape[1],
                        hidden_channels=hidden_channels, 
                        out_channels=out_channels,
                        n_lin_layers=kwargs['n_lin_layers'] if 'n_lin_layers' in kwargs else 1,
@@ -72,6 +72,7 @@ class AnisoConv(MessagePassing):
             out = []
             #evaluate all directional kernels and concatenate results columnwise
             for K_ in K:
+                K_ = K_.t()
                 K_ = SparseTensor(row=edge_index[0], col=edge_index[1], 
                                   value=K_[edge_index[0],edge_index[1]],
                                   sparse_sizes=(size[0], size[1]))
@@ -122,7 +123,7 @@ class MLP(nn.Module):
                  hidden_channels=None,
                  out_channels=None,
                  n_lin_layers=1,
-                 activation=False,
+                 activation=True,
                  b_norm=False,
                  dropout=0.):
         super(MLP, self).__init__()
@@ -140,9 +141,8 @@ class MLP(nn.Module):
         for _ in range(n_lin_layers - 1):
             self.lin.append(Linear(in_channels, hidden_channels, bias=True))
   
-        self.lin.append(Linear(hidden_channels, out_channels, bias=False))
-        
-        self.activation = nn.ReLU() if activation else False
+        self.lin.append(Linear(hidden_channels, out_channels, bias=False))       
+        self.activation = nn.ReLU() if activation else None
         self.dropout = nn.Dropout(dropout)
         self.b_norm = (lambda out: F.normalize(out, p=2., dim=-1)) if b_norm else False
         
@@ -153,7 +153,7 @@ class MLP(nn.Module):
     def reset_parameters(self, in_channels):
         """Initialise parameters"""
         for l in self.lin:
-            # l.reset_parameters()
+            l.reset_parameters()
             if self.init_fn is not None:
                 self.init_fn(l.weight, 1/in_channels)
             if l.bias is not None:
@@ -163,7 +163,7 @@ class MLP(nn.Module):
         """Forward pass"""
         for i in range(self.n_lin_layers):
             x = self.lin[i](x)
-            if self.activation and i+1!=self.n_lin_layers:
+            if (self.activation is not None) and (i+1!=self.n_lin_layers):
                 x = self.activation(x)
             x = self.dropout(x)
             if self.b_norm:
