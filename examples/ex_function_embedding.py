@@ -22,9 +22,10 @@ def main():
     seed.seed_everything(2)
     
     #parameters
-    n = 500
+    n = 200
     k = 40
     n_clusters = 30
+    n_dim = 3
     
     par = {'batch_size': 100, #batch size, this should be as large as possible
            'epochs': 20, #optimisation epochs
@@ -46,7 +47,7 @@ def main():
     x2 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2)) 
     x3 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2))
     x = [x0, x1, x2, x3]
-    y = [f0(x0), f1(x1), f2(x2), f3(x3)] #evaluated functions
+    y = [f0(x0, n_dim), f1(x1, n_dim), f2(x2, n_dim), f3(x3, n_dim)] #evaluated functions
     
     ind = np.arange(n) #take all points in functions, layer we may change if we subsample
     
@@ -97,8 +98,12 @@ def main():
     #plot
     titles=['Constant','Linear','Parabola','Saddle']
     
+    # taking 0 dimension of vector for plotting
+    dim = 0
+    y_ = [u[:,dim] for u in y]
+    
     #sampled functions
-    plot_functions(y, G, titles=titles)
+    plot_functions(y_, G, titles=titles)
     
     #embedding
     plotting.embedding(emb, kmeans, data_train.y.numpy(), titles=titles) #TSNE embedding 
@@ -108,23 +113,27 @@ def main():
     
     #neighbourhoods
     n_samples = 4
-    plotting.neighbourhoods(G, y, n_clusters, n_samples, labels, norm=False)
+    plotting.neighbourhoods(G, y_, n_clusters, n_samples, labels, norm=False)
     
     
-def f0(x):
+def f0(x,n_dim):
     f = x[:,[0]]*0
+    f = np.repeat(f,n_dim,axis=1)
     return torch.tensor(f).float()
 
-def f1(x):
+def f1(x,n_dim):
     f = x[:,[0]] + x[:,[1]]
+    f = np.repeat(f,n_dim,axis=1)
     return torch.tensor(f).float()
 
-def f2(x):
+def f2(x,n_dim):
     f = x[:,[0]]**2 + x[:,[1]]**2
+    f = np.repeat(f,n_dim,axis=1)
     return torch.tensor(f).float()
 
-def f3(x):
+def f3(x,n_dim):
     f = x[:,[0]]**2 - x[:,[1]]**2
+    f = np.repeat(f,n_dim,axis=1)
     return torch.tensor(f).float()
 
 
