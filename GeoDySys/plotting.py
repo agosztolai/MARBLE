@@ -120,9 +120,9 @@ def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, axis=Fals
     return ax
 
 
-def neighbourhoods(graphs, node_values, n_clusters, n_samples, labels, norm=True):
+def neighbourhoods(graphs, node_values, n_clusters, labels, n_samples=4, norm=True):
     fig = plt.figure(figsize=(10, 20),constrained_layout=True)
-    outer = gridspec.GridSpec(int(np.ceil(n_clusters//3)), 3, wspace=0.2, hspace=0.2)
+    outer = gridspec.GridSpec(int(np.ceil(n_clusters/3)), 3, wspace=0.2, hspace=0.2)
     
     for i in range(n_clusters):
         inner = gridspec.GridSpecFromSubplotSpec(int(np.ceil(n_samples/2)), 2,

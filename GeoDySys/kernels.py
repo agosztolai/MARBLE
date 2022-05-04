@@ -6,7 +6,7 @@ from torch_geometric.utils.convert import to_scipy_sparse_matrix
 import scipy.sparse as scp
 
 
-def project_gauge_to_neighbours(data, gauge):
+def project_gauge_to_neighbours(data, gauge='global'):
     """
     This function projects the gauge vectors into a local non-orthonormal
     unit vectors defined by the edges pointing outwards from a given node.
@@ -14,8 +14,7 @@ def project_gauge_to_neighbours(data, gauge):
     Parameters
     ----------
     data : pytorch geometric data object containing .pos and .edge_index
-    gauge : list
-        Unit vectors of Euclidean coordinate system.
+    gauge : 'global' or 'local'
 
     Returns
     -------
@@ -24,6 +23,14 @@ def project_gauge_to_neighbours(data, gauge):
         of the gauge to edge vectors.
 
     """
+    
+    if gauge=='global':
+        gauge = []
+        for i in range(data.pos.shape[1]):
+            one_hot = [0 for i in range(data.pos.shape[1])]
+            one_hot[i] = 1
+            gauge.append(one_hot)
+        
     n = data.pos.shape[0]
     u = data.pos[:,None].repeat(1,n,1)
     u = torch.swapaxes(u,0,1) - u #uij = xj - xi 

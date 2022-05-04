@@ -19,12 +19,12 @@ from sklearn.cluster import KMeans
 
 def main():
     
-    seed.seed_everything(2)
+    seed.seed_everything(1)
     
     #parameters
     n = 500
-    k = 40
-    n_clusters = 30
+    k = 30
+    n_clusters = 20
     
     par = {'batch_size': 100, #batch size, this should be as large as possible
            'epochs': 20, #optimisation epochs
@@ -41,6 +41,7 @@ def main():
            }
       
     #evaluate functions
+    # f1: constant, f2: linear, f3: parabola, f4: saddle
     x0 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2))
     x1 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2))
     x2 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2)) 
