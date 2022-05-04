@@ -56,7 +56,7 @@ def main():
     labels = kmeans.labels_
     
     #plot
-    titles=['Random','Linear','Parabola','Saddle']
+    titles=['Linear','Point source','Point vortex','Four vortices']
     plot_functions(y, G, titles=titles) #sampled functions
     plotting.embedding(emb, kmeans, data_train.y.numpy(), titles=titles) #TSNE embedding 
     plotting.histograms(labels, slices, titles=titles) #histograms
@@ -80,9 +80,8 @@ def f2(x):
     return torch.tensor(np.hstack([u,v])).float()
 
 def f3(x):
-
-    u = np.sin(x[:,[0]])*np.cos(x[:,[1]])
-    v = -np.cos(x[:,[0]])*np.sin(x[:,[1]])
+    u = np.sin(x[:,[0]]*np.pi)*np.cos(x[:,[1]]*np.pi)
+    v = -np.cos(x[:,[0]]*np.pi)*np.sin(x[:,[1]]*np.pi)
     return torch.tensor(np.hstack([u,v])).float()
 
 
@@ -95,10 +94,9 @@ def plot_functions(y, graphs, titles=None):
     for i, (_y, G) in enumerate(zip(y,graphs)):
         ax = plt.Subplot(fig, grid[i])
         ax.set_aspect('equal', 'box')
-        # c=plotting.set_colors(_y.numpy(), cbar=False)
         plotting.graph(G,node_colors=None,show_colorbar=False,ax=ax,node_size=30,edge_width=0.5)
         x = np.array(list(nx.get_node_attributes(G,name='x').values()))
-        ax.quiver(x[:,0],x[:,1],_y[:,0],_y[:,1], color='b')
+        ax.quiver(x[:,0],x[:,1],_y[:,0],_y[:,1], color='b', scale=10, scale_units='x')
         
         if titles is not None:
             ax.set_title(titles[i])

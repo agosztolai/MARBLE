@@ -151,7 +151,8 @@ def neighbourhoods(graphs, node_values, n_clusters, labels, n_samples=4, norm=Fa
             
             #if vector take magnitude
             if vector:
-                vf = nv.copy()
+                vx = [nv[i,0] for i in ind_subgraph]
+                vy = [nv[i,1] for i in ind_subgraph]
                 nv = np.sqrt(nv[:,0]**2 + nv[:,1]**2)
                 
             #convert node values to colors
@@ -180,7 +181,8 @@ def neighbourhoods(graphs, node_values, n_clusters, labels, n_samples=4, norm=Fa
             
             if vector:
                 x = np.array(list(nx.get_node_attributes(subgraph,name='x').values()))
-                ax.quiver(x[:,0],x[:,1],vf[ind_subgraph,0],vf[ind_subgraph,1], color=c)
+                ax.quiver(x[:,0],x[:,1],vx,vy, 
+                          color=c, scale=10, scale_units='x')
             
             ax.set_frame_on(False)
             fig.add_subplot(ax)
