@@ -32,6 +32,7 @@ class AnisoConv(MessagePassing):
                                   sparse_sizes=(size[0], size[1]))
                 out.append(self.propagate(K_.t(), x=x, edge_weight=edge_weight, size=size))
             out = torch.cat(out, axis=1)
+            
         else: #use adjacency matrix (vanilla GCN)
             out = self.propagate(edge_index, x=x, edge_weight=edge_weight, size=size)
         
@@ -39,7 +40,7 @@ class AnisoConv(MessagePassing):
             adj = self.adjacency_matrix(edge_index, size)
             out = self.adj_norm_(x[0], out, adj.t())
 
-        out += x[1] #add back root nodes
+        out += x[1].repeat([1,out.shape[1]//x[1].shape[1]]) #add back root nodes
             
         return out
     
@@ -47,8 +48,8 @@ class AnisoConv(MessagePassing):
         """Normalize features by mean of neighbours"""
         ones = torch.ones_like(x)
         x = x**norm
-        norm_x = matmul(adj_t, x) / matmul(adj_t, ones)
-        out -= norm_x
+        norm_x = matmul(adj_t, x) / matmul(adj_t, ones)     
+        out -= norm_x.repeat([1,out.shape[1]//x.shape[1]])
         
         return out
     

@@ -120,7 +120,7 @@ def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, axis=Fals
     return ax
 
 
-def neighbourhoods(graphs, node_values, n_clusters, labels, n_samples=4, norm=True):
+def neighbourhoods(graphs, node_values, n_clusters, labels, n_samples=4, norm=False, vector=False):
     fig = plt.figure(figsize=(10, 20),constrained_layout=True)
     outer = gridspec.GridSpec(int(np.ceil(n_clusters/3)), 3, wspace=0.2, hspace=0.2)
     
@@ -149,6 +149,11 @@ def neighbourhoods(graphs, node_values, n_clusters, labels, n_samples=4, norm=Tr
             ind_subgraph = [random_node] + list(G.neighbors(random_node))
             ind_subgraph = np.sort(ind_subgraph) #sort nodes
             
+            #if vector take magnitude
+            if vector:
+                vf = nv.copy()
+                nv = np.sqrt(nv[:,0]**2 + nv[:,1]**2)
+                
             #convert node values to colors
             if not norm: #set colors based on global values
                 c=set_colors(nv, cbar=False)
@@ -167,11 +172,16 @@ def neighbourhoods(graphs, node_values, n_clusters, labels, n_samples=4, norm=Tr
             
             ax.set_aspect('equal', 'box')
             graph(subgraph,
-                  node_colors=c,
+                  node_colors=c if not vector else None,
                   show_colorbar=False,
                   ax=ax,
                   node_size=30,
-                  edge_width=0.5)     
+                  edge_width=0.5)
+            
+            if vector:
+                x = np.array(list(nx.get_node_attributes(subgraph,name='x').values()))
+                ax.quiver(x[:,0],x[:,1],vf[ind_subgraph,0],vf[ind_subgraph,1], color=c)
+            
             ax.set_frame_on(False)
             fig.add_subplot(ax)
 
@@ -246,7 +256,7 @@ def set_colors(color, cbar=True):
 def graph(
     G,
     edge_width=1,
-    node_colors=None,
+    node_colors='b',
     node_size=20,
     show_colorbar=True,
     layout=None,
@@ -273,20 +283,21 @@ def graph(
     
     if len(pos[0])==2:
     
-        nx.draw_networkx_nodes(
-            G,
-            pos=pos,
-            node_size=node_size,
-            node_color=node_colors,
-            alpha=0.8,
-            ax=ax
-        )
+        if node_colors is not None:
+            nx.draw_networkx_nodes(
+                G,
+                pos=pos,
+                node_size=node_size,
+                node_color=node_colors,
+                alpha=0.8,
+                ax=ax
+            )
 
         nx.draw_networkx_edges(
             G,
             pos=pos,
             width=edge_width,
-            alpha=0.5,
+            alpha=0.3,
             ax=ax
         )
     
