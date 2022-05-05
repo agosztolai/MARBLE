@@ -120,7 +120,15 @@ def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, axis=Fals
     return ax
 
 
-def neighbourhoods(graphs, node_values, n_clusters, labels, n_samples=4, norm=False, vector=False):
+def neighbourhoods(graphs, 
+                   node_values, 
+                   n_clusters, 
+                   labels, 
+                   n_samples=4, 
+                   norm=False, 
+                   vector=False, 
+                   plot_graph=False):
+    
     fig = plt.figure(figsize=(10, 20),constrained_layout=True)
     outer = gridspec.GridSpec(int(np.ceil(n_clusters/3)), 3, wspace=0.2, hspace=0.2)
     
@@ -172,19 +180,24 @@ def neighbourhoods(graphs, node_values, n_clusters, labels, n_samples=4, norm=Fa
             subgraph.add_edges_from(G.subgraph(ind_subgraph).edges(data=True))
             
             ax.set_aspect('equal', 'box')
-            graph(subgraph,
-                  node_colors=c if not vector else None,
-                  show_colorbar=False,
-                  ax=ax,
-                  node_size=30,
-                  edge_width=0.5)
+            if plot_graph:
+                graph(subgraph,
+                      node_values=None,
+                      show_colorbar=False,
+                      ax=ax,
+                      node_size=30,
+                      edge_width=0.5)
             
+            x = np.array(list(nx.get_node_attributes(subgraph,name='x').values()))
             if vector:
-                x = np.array(list(nx.get_node_attributes(subgraph,name='x').values()))
                 ax.quiver(x[:,0],x[:,1],vx,vy, 
-                          color=c, scale=10, scale_units='x')
+                          color=c, scale=20, scale_units='x',width=0.02)  
+            else:
+                ax.scatter(x[:,0],x[:,1],c=c)
             
             ax.set_frame_on(False)
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
             fig.add_subplot(ax)
 
 
@@ -257,18 +270,17 @@ def set_colors(color, cbar=True):
 
 def graph(
     G,
+    node_values='b',
     edge_width=1,
-    node_colors='b',
     node_size=20,
     show_colorbar=True,
     layout=None,
     ax=None,
     node_attr="x"
 ):
-    """Plot the curvature on the graph."""
+    """Plot scalar values on graph nodes embedded in 2D or 3D."""
         
     G = nx.convert_node_labels_to_integers(G)
-    
     pos = list(nx.get_node_attributes(G, node_attr).values())
     
     if pos==[]:
@@ -285,12 +297,12 @@ def graph(
     
     if len(pos[0])==2:
     
-        if node_colors is not None:
+        if node_values is not None:
             nx.draw_networkx_nodes(
                 G,
                 pos=pos,
                 node_size=node_size,
-                node_color=node_colors,
+                node_color=node_values,
                 alpha=0.8,
                 ax=ax
             )
@@ -307,7 +319,7 @@ def graph(
         node_xyz = np.array([pos[v] for v in sorted(G)])
         edge_xyz = np.array([(pos[u], pos[v]) for u, v in G.edges()])
     
-        # ax.scatter(*node_xyz.T, s=node_size, ec="w")
+        ax.scatter(*node_xyz.T, s=node_size, ec="w")
         
         for vizedge in edge_xyz:
             ax.plot(*vizedge.T, color="tab:gray")            

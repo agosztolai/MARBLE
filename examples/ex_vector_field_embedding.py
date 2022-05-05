@@ -21,18 +21,13 @@ def main():
     k = 30
     n_clusters = 20
     
-    par = {'batch_size': 100, #batch size, this should be as large as possible
-           'epochs': 10, #optimisation epochs
+    par = {'batch_size': 200, #batch size, this should be as large as possible
+           'epochs': 20, #optimisation epochs
            'n_conv_layers': 1, #number of hops in neighbourhood
-           'n_lin_layers': 2, #number of layers if MLP
-           'hidden_channels': 8, #number of internal dimensions in MLP 
+           'hidden_channels': 16, #number of internal dimensions in MLP 
            'n_neighbours': k, #parameter of neighbourhood sampling
-           'lr': 0.01, #learning rate
            'b_norm': False, #batch norm
-           'adj_norm': True, #adjacency-wise norm
-           'activation': True, #relu
            'dropout': 0.3, #dropout in MLP
-           'edge_dropout':0.0 #dropout in convolution graph
            }
       
     #evaluate functions
@@ -49,7 +44,7 @@ def main():
     
     #set up model
     model = net(data_train, kernel='directional_derivative', gauge='global', **par)
-    model.train_model(data_train, par)
+    model.train_model(data_train)
     emb = model.eval_model(data_train)
 
     kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(emb)
@@ -68,15 +63,17 @@ def f0(x):
     return torch.tensor(f).float()
 
 def f1(x):
-    norm = x[:,[0]]**2 + x[:,[1]]**2
+    eps = 1e-3
+    norm = np.sqrt(x[:,[0]]**2 + x[:,[1]]**2) + eps
     u = 2*x[:,[0]]/norm
     v = 2*x[:,[1]]/norm
     return torch.tensor(np.hstack([u,v])).float()
 
 def f2(x):
-    norm = 1 + (x[:,[1]]/x[:,[0]])**2
-    u = -(x[:,[1]]/x[:,[0]]**2)/norm
-    v = (1/x[:,[0]])/norm
+    eps = 1e-1
+    norm = 1 + (x[:,[1]]/(x[:,[0]]+eps))**2
+    u = -(x[:,[1]]/(x[:,[0]]+eps)**2)/norm
+    v = (1/(x[:,[0]]+eps))/norm
     return torch.tensor(np.hstack([u,v])).float()
 
 def f3(x):
@@ -94,7 +91,7 @@ def plot_functions(y, graphs, titles=None):
     for i, (_y, G) in enumerate(zip(y,graphs)):
         ax = plt.Subplot(fig, grid[i])
         ax.set_aspect('equal', 'box')
-        plotting.graph(G,node_colors=None,show_colorbar=False,ax=ax,node_size=30,edge_width=0.5)
+        plotting.graph(G,node_values=None,show_colorbar=False,ax=ax,node_size=30,edge_width=0.5)
         x = np.array(list(nx.get_node_attributes(G,name='x').values()))
         ax.quiver(x[:,0],x[:,1],_y[:,0],_y[:,1], color='b', scale=10, scale_units='x')
         

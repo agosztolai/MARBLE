@@ -22,17 +22,12 @@ def main():
     n_clusters = 20
     
     par = {'batch_size': 100, #batch size, this should be as large as possible
-           'epochs': 10, #optimisation epochs
+           'epochs': 20, #optimisation epochs
            'n_conv_layers': 1, #number of hops in neighbourhood
-           'n_lin_layers': 2, #number of layers if MLP
            'hidden_channels': 8, #number of internal dimensions in MLP 
            'n_neighbours': k, #parameter of neighbourhood sampling
-           'lr': 0.01, #learning rate
            'b_norm': False, #batch norm
-           'adj_norm': True, #adjacency-wise norm
-           'activation': True, #relu
            'dropout': 0.3, #dropout in MLP
-           'edge_dropout':0.0 #dropout in convolution graph
            }
       
     #evaluate functions
@@ -49,7 +44,7 @@ def main():
     
     #set up model
     model = net(data_train, kernel='directional_derivative', gauge='global', **par)
-    model.train_model(data_train, par)
+    model.train_model(data_train)
     emb = model.eval_model(data_train)
 
     kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(emb)
@@ -60,7 +55,7 @@ def main():
     plot_functions(y, G, titles=titles) #sampled functions
     plotting.embedding(emb, kmeans, data_train.y.numpy(), titles=titles) #TSNE embedding 
     plotting.histograms(labels, slices, titles=titles) #histograms
-    plotting.neighbourhoods(G, y, n_clusters, labels, n_samples=4, norm=False) #neighbourhoods
+    plotting.neighbourhoods(G, y, n_clusters, labels, n_samples=4, norm=True) #neighbourhoods
     
     
 def f0(x):
@@ -89,7 +84,7 @@ def plot_functions(y, graphs, titles=None):
         ax = plt.Subplot(fig, grid[i])
         ax.set_aspect('equal', 'box')
         c=plotting.set_colors(_y.numpy(), cbar=False)
-        plotting.graph(G,node_colors=c,show_colorbar=False,ax=ax,node_size=30,edge_width=0.5)
+        plotting.graph(G,node_values=c,show_colorbar=False,ax=ax,node_size=30,edge_width=0.5)
         
         if titles is not None:
             ax.set_title(titles[i])

@@ -17,7 +17,7 @@ class AnisoConv(MessagePassing):
         
         self.adj_norm = adj_norm
 
-    def forward(self, x, edge_index, K=None, edge_weight=None, size=None):
+    def forward(self, x, edge_index, K=None, size=None):
         """forward pass"""
         if isinstance(x, Tensor):
             x: OptPairTensor = (x, x)
@@ -30,11 +30,11 @@ class AnisoConv(MessagePassing):
                 K_ = SparseTensor(row=edge_index[0], col=edge_index[1], 
                                   value=K_[edge_index[0],edge_index[1]],
                                   sparse_sizes=(size[0], size[1]))
-                out.append(self.propagate(K_.t(), x=x, edge_weight=edge_weight, size=size))
+                out.append(self.propagate(K_.t(), x=x, size=size))
             out = torch.cat(out, axis=1)
             
         else: #use adjacency matrix (vanilla GCN)
-            out = self.propagate(edge_index, x=x, edge_weight=edge_weight, size=size)
+            out = self.propagate(edge_index, x=x, size=size)
         
         if self.adj_norm: #normalize features by the mean of neighbours
             adj = self.adjacency_matrix(edge_index, size)
