@@ -2,3 +2,6 @@ data/
 examples/log/
 *.pyo
 *.pyc
+.DS_Store
+__pycache__/
+*egg/
