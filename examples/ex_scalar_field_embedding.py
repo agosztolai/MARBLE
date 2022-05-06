@@ -27,6 +27,7 @@ def main():
            'n_neighbours': k, #parameter of neighbourhood sampling
            'b_norm': False, #batch norm
            'dropout': 0.3, #dropout in MLP
+           'adj_norm': True
            }
       
     #evaluate functions

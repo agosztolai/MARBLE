@@ -18,7 +18,7 @@ def main():
     #parameters
     n = 500
     k = 30
-    n_clusters = 20
+    n_clusters = 15
     
     par = {'batch_size': 400, #batch size, this should be as large as possible
            'epochs': 30, #optimisation epochs
@@ -29,7 +29,7 @@ def main():
            'n_neighbours': k, #parameter of neighbourhood sampling
            'b_norm': False, #batch norm
            'dropout': 0.3, #dropout in MLP
-           'adj_norm':True
+           'adj_norm':False
            }
       
     #evaluate functions
@@ -54,7 +54,7 @@ def main():
     labels = kmeans.labels_
     
     #plot
-    titles=['Linear','Point source','Point vortex','Four vortices']
+    titles=['Linear','Point source','Point vortex','Saddle']
     plot_functions(y, G, titles=titles) #sampled functions
     plotting.embedding(emb, kmeans, data_train.y.numpy(), titles=titles) #TSNE embedding 
     plotting.histograms(labels, slices, titles=titles) #histograms
@@ -74,14 +74,16 @@ def f1(x):
 
 def f2(x):
     eps = 1e-1
-    norm = 1 + (x[:,[1]]/(x[:,[0]]+eps))**2
-    u = -(x[:,[1]]/(x[:,[0]]+eps)**2)/norm
-    v = (1/(x[:,[0]]+eps))/norm
+    norm = x[:,[0]]**2 + x[:,[1]]**2 + eps
+    u = x[:,[1]]/norm
+    v = -x[:,[0]]/norm
     return torch.tensor(np.hstack([u,v])).float()
 
 def f3(x):
-    u = np.sin(x[:,[0]]*np.pi)*np.cos(x[:,[1]]*np.pi)
-    v = -np.cos(x[:,[0]]*np.pi)*np.sin(x[:,[1]]*np.pi)
+    eps = 1e-1
+    norm = x[:,[0]]**2 + x[:,[1]]**2 + eps
+    u = x[:,[1]]/norm
+    v = x[:,[0]]/norm
     return torch.tensor(np.hstack([u,v])).float()
 
 
@@ -101,7 +103,7 @@ def plot_functions(y, graphs, titles=None):
         x = np.array(list(nx.get_node_attributes(G,name='x').values()))
         c = np.array(np.sqrt(_y[:,0]**2 + _y[:,1]**2))
         c = plotting.set_colors(c, cbar=False)
-        ax.quiver(x[:,0],x[:,1],_y[:,0],_y[:,1], color=c, scale=10, scale_units='x')
+        ax.quiver(x[:,0],x[:,1],_y[:,0],_y[:,1], color=c, scale=10, scale_units='x',width=0.005)
         
         if titles is not None:
             ax.set_title(titles[i])

@@ -310,7 +310,7 @@ def graph(
             G,
             pos=pos,
             width=edge_width,
-            alpha=0.3,
+            alpha=0.1,
             ax=ax
         )
     

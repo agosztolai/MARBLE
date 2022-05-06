@@ -3,7 +3,7 @@ lr: 0.01 #learning rate
 dropout: 0. #dropout in the MLP
 edge_dropout: 0. #dropout in the convolution graph
 activation: True #use ReLU
-adj_norm: True #adjacency-wise norm
+adj_norm: False #adjacency-wise norm
 n_conv_layers: 1 #number of hops in neighbourhood
 n_lin_layers: 2 #number of layers if MLP
 b_norm: False #batch norm
