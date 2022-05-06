@@ -1,2 +1,4 @@
 data/
 examples/log/
+*.pyo
+*.pyc

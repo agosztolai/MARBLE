@@ -50,6 +50,7 @@ class AnisoConv(MessagePassing):
         x = x**norm
         norm_x = matmul(adj_t, x) / matmul(adj_t, ones)     
         out -= norm_x.repeat([1,out.shape[1]//x.shape[1]])
+        # norm_x = torch.norm(x,dim=1)
         
         return out
     
@@ -83,9 +84,9 @@ class MLP(nn.Module):
                  dropout):
         super(MLP, self).__init__()
         
-        if n_lin_layers <= 1:
-            out_channels=hidden_channels
-            hidden_channels=in_channels
+        assert n_lin_layers>0, 'n_lin_layers must an integer >0'
+        self.n_lin_layers = n_lin_layers
+        
         if hidden_channels is None:
             hidden_channels = in_channels
         if out_channels is None:
@@ -93,17 +94,20 @@ class MLP(nn.Module):
             
         #stack linear layers
         self.lin = nn.ModuleList()
-        for _ in range(n_lin_layers - 1):
-            self.lin.append(Linear(in_channels, hidden_channels, bias=True))
-  
-        self.lin.append(Linear(hidden_channels, out_channels, bias=False))       
+        ch = [in_channels] + \
+             [hidden_channels for i in range(n_lin_layers-1)] + \
+             [out_channels]
+        
+        for i in range(n_lin_layers):
+            bias = True if i<n_lin_layers else False
+            self.lin.append(Linear(ch[i], ch[i+1], bias=bias))
+        
         self.activation = nn.ReLU() if activation else None
         self.dropout = nn.Dropout(dropout)
         self.b_norm = (lambda out: F.normalize(out, p=2., dim=-1)) if b_norm else False
         
         self.init_fn = nn.init.xavier_uniform_
         self.reset_parameters(in_channels)
-        self.n_lin_layers = n_lin_layers
         
     def reset_parameters(self, in_channels):
         """Initialise parameters"""

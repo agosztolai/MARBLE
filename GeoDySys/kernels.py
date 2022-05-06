@@ -8,7 +8,7 @@ import scipy.sparse as scp
 
 def project_gauge_to_neighbours(data, gauge='global'):
     """
-    This function projects the gauge vectors into a local non-orthonormal
+    Project the gauge vectors into a local non-orthonormal
     unit vectors defined by the edges pointing outwards from a given node.
     
     Parameters
@@ -25,27 +25,24 @@ def project_gauge_to_neighbours(data, gauge='global'):
     """
     
     if gauge=='global':
-        gauge = []
-        for i in range(data.pos.shape[1]):
-            one_hot = [0 for i in range(data.pos.shape[1])]
-            one_hot[i] = 1
-            gauge.append(one_hot)
+        gauge = torch.eye(data.pos.shape[1],dtype=torch.float64)
+            
+    elif gauge=='local':
+        NotImplemented
         
-    n = data.pos.shape[0]
-    u = data.pos[:,None].repeat(1,n,1)
-    u = torch.swapaxes(u,0,1) - u #uij = xj - xi 
     A = to_scipy_sparse_matrix(data.edge_index)
-    
     mask = torch.tensor(A.todense(), dtype=bool)
     mask = mask[:,:,None].repeat(1,1,2)
+    
+    n = data.pos.shape[0]
+    
+    u = data.pos.repeat(n,1,1)
+    u = u - torch.swapaxes(u,0,1) #uij = xj - xi 
     u[~mask] = 0
     
     F = []
     for g in gauge:
-        g = torch.tensor(g, dtype=float)[None]
-        g = g.repeat([n,1])
-        g = g[:,None]
-        g = g.repeat([1,n,1])
+        g = g.repeat(n,n,1)
         
         _F = torch.zeros([n,n])
         ind = scp.find(A)

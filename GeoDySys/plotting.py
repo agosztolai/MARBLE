@@ -183,7 +183,6 @@ def neighbourhoods(graphs,
             if plot_graph:
                 graph(subgraph,
                       node_values=None,
-                      show_colorbar=False,
                       ax=ax,
                       node_size=30,
                       edge_width=0.5)
@@ -273,7 +272,7 @@ def graph(
     node_values='b',
     edge_width=1,
     node_size=20,
-    show_colorbar=True,
+    show_colorbar=False,
     layout=None,
     ax=None,
     node_attr="x"

@@ -23,7 +23,9 @@ def main():
     par = {'batch_size': 400, #batch size, this should be as large as possible
            'epochs': 30, #optimisation epochs
            'n_conv_layers': 1, #number of hops in neighbourhood
-           'hidden_channels': 16, #number of internal dimensions in MLP 
+           'n_lin_layers': 3,
+           'hidden_channels': 32, #number of internal dimensions in MLP 
+           'out_channels': 8,
            'n_neighbours': k, #parameter of neighbourhood sampling
            'b_norm': False, #batch norm
            'dropout': 0.3, #dropout in MLP
@@ -37,6 +39,7 @@ def main():
     x2 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2)) 
     x3 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2))
     x = [x0, x1, x2, x3]
+    # y = [f0(x0)[:,[1]], f1(x1)[:,[1]], f2(x2)[:,[1]], f3(x3)[:,[1]]] #evaluated functions
     y = [f0(x0), f1(x1), f2(x2), f3(x3)] #evaluated functions
         
     #construct PyG data object
@@ -91,6 +94,9 @@ def plot_functions(y, graphs, titles=None):
     for i, (_y, G) in enumerate(zip(y,graphs)):
         ax = plt.Subplot(fig, grid[i])
         ax.set_aspect('equal', 'box')
+        c=plotting.set_colors(_y.numpy(), cbar=False)
+        # plotting.graph(G,node_values=c,show_colorbar=False,ax=ax,node_size=30,edge_width=0.5)
+        
         plotting.graph(G,node_values=None,show_colorbar=False,ax=ax,node_size=30,edge_width=0.5)
         x = np.array(list(nx.get_node_attributes(G,name='x').values()))
         c = np.array(np.sqrt(_y[:,0]**2 + _y[:,1]**2))
