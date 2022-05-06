@@ -11,7 +11,6 @@ from GeoDySys.model import net
 from sklearn.cluster import KMeans
 
 
-
 def main():
     
     seed.seed_everything(1)
@@ -19,9 +18,9 @@ def main():
     #parameters
     n = 500
     k = 30
-    n_clusters = 20
+    n_clusters = 15
     
-    par = {'batch_size': 100, #batch size, this should be as large as possible
+    par = {'batch_size': 400, #batch size, this should be as large as possible
            'epochs': 20, #optimisation epochs
            'n_conv_layers': 1, #number of hops in neighbourhood
            'hidden_channels': 8, #number of internal dimensions in MLP 

@@ -348,6 +348,12 @@ def embedding(emb, kmeans, node_colors=None, titles=None):
     vor = Voronoi(emb[n_emb:,:]) 
     voronoi_plot_2d(vor, ax=ax, show_vertices=False) 
     handles,_ = scatter.legend_elements()
+    
+    #annotate clusters
+    for k in range(kmeans.n_clusters):
+        ax.annotate(k+1,emb[n_emb:][k,:])
+    
+    #add legend
     if titles is not None:
         ax.legend(handles,titles)
         
@@ -368,9 +374,8 @@ def histograms(labels, slices, titles=None):
     outer = gridspec.GridSpec(int(np.ceil(n_slices//2)), 2, wspace=0.2, hspace=0.2)
     
     for i in range(n_slices):
-
         ax = plt.Subplot(fig, outer[i])
-        ax.hist(counts[i], bins=np.arange(n_clusters)-0.5, rwidth=0.85, density=True)
+        ax.hist(counts[i], bins=np.arange(n_clusters)+0.5, rwidth=0.85, density=True)
         ax.set_xticks(bins)
         ax.set_xlim([0,n_clusters+1])
         if titles is not None:

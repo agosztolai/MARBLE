@@ -11,7 +11,6 @@ from .layers import AnisoConv, MLP
 from .kernels import aggr_directional_derivative
 import yaml
 import os
-
 import numpy as np
 
 """Main network architecture"""
@@ -46,40 +45,27 @@ class net(nn.Module):
                        b_norm=self.par['b_norm'])
         
     def forward(self, x, adjs, K=None):
-        """forward pass"""
+        """Forward pass @ training (minibatches)"""
         for i, (edge_index, _, size) in enumerate(adjs): #loop over minibatches
             #messages are passed from x_source (all nodes) to x_target
             x_source = x 
             x_target = x[:size[1]]
             
             x = self.convs[i]((x_source, x_target), edge_index, K=K, size=size)
-            x = self.MLP(x) #may consider putting this after the loop
+            x = self.MLP(x) #may consider putting this after the graph convs
                                               
         return x
 
-    # for testing, we don't do minibatch
-    def forward_test(self, x, edge_index, K=None):        
+    def forward_test(self, x, edge_index, K=None):  
+        """Forward pass @ testing (no minibatches)"""
         for conv in self.convs:
             x = conv(x, edge_index, K=K, size=(x.shape[0],x.shape[0]))
             x = self.MLP(x)
             
         return x        
     
-    
     def train_model(self, data):
-        
-        """
-        Network training function.
-
-        Parameters
-        ----------
-        data : pytorch geometric data object containing
-                .edge_index, .num_nodes, .x
-               
-        par : dict
-            Parameter values for training.
-
-        """
+        """Network training"""
         
         writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -98,9 +84,8 @@ class net(nn.Module):
         
         optimizer = torch.optim.Adam(self.parameters(), lr=self.par['lr'])
 
-        #loop over epochs
         x = data.x.to(device)
-        for epoch in range(1, self.par['epochs']):
+        for epoch in range(1, self.par['epochs']): #loop over epochs
             total_loss = 0
             self.train()
             
@@ -127,25 +112,10 @@ class net(nn.Module):
             
             total_loss /= data.num_nodes       
             writer.add_scalar("loss", total_loss, epoch)
-            print("Epoch {}. Loss: {:.4f}. ".format(
-                    epoch, total_loss))
-            
+            print("Epoch {}. Loss: {:.4f}. ".format(epoch, total_loss))
             
     def eval_model(self, data):
-        """
-        Network evaluating function.
-
-        Parameters
-        ----------
-        data : pytorch geometric data object containing
-                .edge_index, .num_nodes, .x
-
-        Returns
-        -------
-        out : torch tensor
-            network output.
-
-        """
+        """Evaluate network"""
         self.eval()
             
         x, edge_index = data.x, data.edge_index
@@ -157,21 +127,11 @@ class net(nn.Module):
 
 def loss_comp(out):
     """
-    Unsupervised loss function from Hamilton et al. 2018, using negative sampling.
-
-    Parameters
-    ----------
-    out : pytorch tensor
-        Output of network.
-    Returns
-    -------
-    loss : float
-        Loss.
+    Unsupervised loss from Hamilton et al. 2018, using negative sampling.
 
     """
     out, pos_out, neg_out = out.split(out.size(0) // 3, dim=0)
 
-    #loss function from word2vec
     pos_loss = F.logsigmoid((out * pos_out).sum(-1)).mean()
     neg_loss = F.logsigmoid(-(out * neg_out).sum(-1)).mean()
     loss = (-pos_loss - neg_loss)/out.shape[0]

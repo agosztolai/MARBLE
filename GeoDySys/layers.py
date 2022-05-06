@@ -18,7 +18,7 @@ class AnisoConv(MessagePassing):
         self.adj_norm = adj_norm
 
     def forward(self, x, edge_index, K=None, size=None):
-        """forward pass"""
+        """Forward pass"""
         if isinstance(x, Tensor):
             x: OptPairTensor = (x, x)
             
@@ -75,12 +75,12 @@ class AnisoConv(MessagePassing):
 class MLP(nn.Module):
     def __init__(self,
                  in_channels,
-                 hidden_channels=None,
-                 out_channels=None,
-                 n_lin_layers=1,
-                 activation=True,
-                 b_norm=False,
-                 dropout=0.):
+                 hidden_channels,
+                 out_channels,
+                 n_lin_layers,
+                 activation,
+                 b_norm,
+                 dropout):
         super(MLP, self).__init__()
         
         if n_lin_layers <= 1:

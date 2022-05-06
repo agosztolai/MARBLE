@@ -11,7 +11,6 @@ from GeoDySys.model import net
 from sklearn.cluster import KMeans
 
 
-
 def main():
     
     seed.seed_everything(1)
@@ -21,13 +20,14 @@ def main():
     k = 30
     n_clusters = 20
     
-    par = {'batch_size': 200, #batch size, this should be as large as possible
-           'epochs': 20, #optimisation epochs
+    par = {'batch_size': 400, #batch size, this should be as large as possible
+           'epochs': 30, #optimisation epochs
            'n_conv_layers': 1, #number of hops in neighbourhood
            'hidden_channels': 16, #number of internal dimensions in MLP 
            'n_neighbours': k, #parameter of neighbourhood sampling
            'b_norm': False, #batch norm
            'dropout': 0.3, #dropout in MLP
+           'adj_norm':True
            }
       
     #evaluate functions
@@ -93,7 +93,9 @@ def plot_functions(y, graphs, titles=None):
         ax.set_aspect('equal', 'box')
         plotting.graph(G,node_values=None,show_colorbar=False,ax=ax,node_size=30,edge_width=0.5)
         x = np.array(list(nx.get_node_attributes(G,name='x').values()))
-        ax.quiver(x[:,0],x[:,1],_y[:,0],_y[:,1], color='b', scale=10, scale_units='x')
+        c = np.array(np.sqrt(_y[:,0]**2 + _y[:,1]**2))
+        c = plotting.set_colors(c, cbar=False)
+        ax.quiver(x[:,0],x[:,1],_y[:,0],_y[:,1], color=c, scale=10, scale_units='x')
         
         if titles is not None:
             ax.set_title(titles[i])
