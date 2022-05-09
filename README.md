@@ -6,13 +6,15 @@ This package contains a data-driven method to analyse transitions and state-spac
 
 ## Installation
 
-We recommend you install the code on a fresh Conda virtual environment. The code is built in PyG (PyTorch Geometric), which needs to be preinstalled.
+We recommend you install the code on a fresh Anaconda virtual environment or create a Docker image. The code is built in [PyG (PyTorch Geometric)](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html), which needs to be preinstalled. We recommend you do this via Pip (and not Conda).
+
+Then clone this repository, 
 
 ```
-conda install pyg -c pyg
+git clone https://github.com/agosztolai/GeoDySys
 ```
 
-To install this package, clone this repository, and run
+Finally, install by running inside the main folder
 
 ```
 pip install -e . 
