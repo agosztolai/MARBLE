@@ -48,7 +48,7 @@ class AnisoConv(MessagePassing):
         """Normalize features by mean of neighbours"""
         ones = torch.ones_like(x)
         norm_x = matmul(adj_t, x) / matmul(adj_t, ones)
-        out -= norm_x
+        out -= norm_x.repeat([1,out.shape[1]//x.shape[1]])
         
         return out
     

@@ -4,14 +4,15 @@ setup(
     name="GeoDySys",
     version="1.0",
     install_requires=[
-        "numpy>=1.19.5",
-        "scipy>=1.6.0",
+        "numpy",
         "scipy",
         "sklearn",
         "matplotlib",
-        "matplotlib>=3.3.3",
-        "tqdm>=4.56.0",
-        "msmtools"
+        "networkx",
+        "torch",
+        'cknn @ git+https://github.com/chlorochrule/cknn',
+        "tensorboardX",
+        "pyyaml",
     ],
     packages=find_packages(),
 )
