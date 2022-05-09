@@ -1,10 +1,16 @@
-# Geomatric Dynamical Systems analysis based on coarse-curvature 
+# Geomatric Dynamical Systems analysis
 
-This package contains a data-driven method to analyse transitions and state-space evolution of dynamical systems based on notions of coarse-curvature.
+This package contains a data-driven method to analyse transitions and state-space evolution of dynamical systems.
 
 ## Getting started
 
-### Installation
+## Installation
+
+We recommend you install the code on a fresh Conda virtual environment. The code is built in PyG (PyTorch Geometric), which needs to be preinstalled.
+
+```
+conda install pyg -c pyg
+```
 
 To install this package, clone this repository, and run
 
@@ -12,4 +18,6 @@ To install this package, clone this repository, and run
 pip install -e . 
 ```
 
-To run the code is very simple. The folder `/examples` contains some example scripts.
+## Examples
+
+The folder `/examples` contains some example scripts.
