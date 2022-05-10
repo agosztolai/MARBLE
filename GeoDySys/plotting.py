@@ -124,7 +124,8 @@ def neighbourhoods(graphs,
                    node_values, 
                    n_clusters, 
                    labels, 
-                   n_samples=4, 
+                   n_samples=4,
+                   radius=1,
                    norm=False, 
                    vector=False, 
                    plot_graph=False):
@@ -154,21 +155,21 @@ def neighbourhoods(graphs,
                 random_node = np.random.choice(label_i)
             
             nv = node_values[j].numpy()
-            ind_subgraph = [random_node] + list(G.neighbors(random_node))
-            ind_subgraph = np.sort(ind_subgraph) #sort nodes
+            node_ids = nx.ego_graph(G,random_node,radius=radius).nodes
+            node_ids = np.sort(node_ids) #sort nodes
             
             #if vector take magnitude
             if vector:
-                vx = [nv[i,0] for i in ind_subgraph]
-                vy = [nv[i,1] for i in ind_subgraph]
+                vx = [nv[i,0] for i in node_ids]
+                vy = [nv[i,1] for i in node_ids]
                 nv = np.sqrt(nv[:,0]**2 + nv[:,1]**2)
                 
             #convert node values to colors
             if not norm: #set colors based on global values
                 c=set_colors(nv, cbar=False)
-                c=[c[i] for i in ind_subgraph]
+                c=[c[i] for i in node_ids]
             else: #first extract subgraph, then compute normalized colors
-                nv=nv[ind_subgraph]
+                nv=nv[node_ids]
                 nv-=nv.mean()
                 c=set_colors(nv, cbar=False)
                   
@@ -176,8 +177,8 @@ def neighbourhoods(graphs,
             
             #extract subgraph with nodes sorted
             subgraph = nx.Graph()
-            subgraph.add_nodes_from(sorted(G.subgraph(ind_subgraph).nodes(data=True)))
-            subgraph.add_edges_from(G.subgraph(ind_subgraph).edges(data=True))
+            subgraph.add_nodes_from(sorted(G.subgraph(node_ids).nodes(data=True)))
+            subgraph.add_edges_from(G.subgraph(node_ids).edges(data=True))
             
             ax.set_aspect('equal', 'box')
             if plot_graph:

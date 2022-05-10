@@ -16,7 +16,7 @@ def main():
     seed.seed_everything(1)
     
     #parameters
-    n = 500
+    n = 1000
     k = 30
     n_clusters = 15
     
@@ -27,7 +27,7 @@ def main():
            'n_neighbours': k, #parameter of neighbourhood sampling
            'b_norm': False, #batch norm
            'dropout': 0.3, #dropout in MLP
-           'adj_norm': True
+           'adj_norm': True,
            }
       
     #evaluate functions
@@ -55,7 +55,7 @@ def main():
     plot_functions(y, G, titles=titles) #sampled functions
     plotting.embedding(emb, kmeans, data_train.y.numpy(), titles=titles) #TSNE embedding 
     plotting.histograms(labels, slices, titles=titles) #histograms
-    plotting.neighbourhoods(G, y, n_clusters, labels, n_samples=4, norm=True) #neighbourhoods
+    plotting.neighbourhoods(G, y, n_clusters, labels, n_samples=4, radius=par['n_conv_layers'], norm=True) #neighbourhoods
     
     
 def f0(x):

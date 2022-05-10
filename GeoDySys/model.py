@@ -36,7 +36,7 @@ class net(nn.Module):
             self.convs.append(AnisoConv(adj_norm=self.par['adj_norm']))
         
         #initialize multilayer perceptron
-        self.MLP = MLP(in_channels=in_channels,
+        self.MLP = MLP(in_channels=in_channels*self.par['n_conv_layers'],
                        hidden_channels=self.par['hidden_channels'], 
                        out_channels=self.par['out_channels'],
                        n_lin_layers=self.par['n_lin_layers'],
@@ -52,7 +52,8 @@ class net(nn.Module):
             x_target = x[:size[1]]
             
             x = self.convs[i]((x_source, x_target), edge_index, K=K, size=size)
-            x = self.MLP(x) #may consider putting this after the graph convs
+            
+        x = self.MLP(x)
                                               
         return x
 
@@ -60,7 +61,8 @@ class net(nn.Module):
         """Forward pass @ testing (no minibatches)"""
         for conv in self.convs:
             x = conv(x, edge_index, K=K, size=(x.shape[0],x.shape[0]))
-            x = self.MLP(x)
+            
+        x = self.MLP(x)
             
         return x        
     
