@@ -325,7 +325,7 @@ def graph(
             ax.plot(*vizedge.T, color="tab:gray")            
     
 
-def embedding(emb, kmeans, node_colors=None, titles=None):
+def embedding(emb, clusters, node_colors=None, titles=None):
     from sklearn.manifold import TSNE
     
     # plt.scatter(X[:, 0], X[:, 1], c=y_kmeans, s=5, cmap='summer')
@@ -337,7 +337,7 @@ def embedding(emb, kmeans, node_colors=None, titles=None):
 
     emb = emb.detach().numpy()
     n_emb = emb.shape[0]
-    emb = np.vstack([emb, kmeans.cluster_centers_])
+    emb = np.vstack([emb, clusters['centroids']])
     
     if emb.shape[1]>2:
         emb = TSNE(init='random',learning_rate='auto').fit_transform(emb)
@@ -350,7 +350,7 @@ def embedding(emb, kmeans, node_colors=None, titles=None):
     handles,_ = scatter.legend_elements()
     
     #annotate clusters
-    for k in range(kmeans.n_clusters):
+    for k in range(clusters['n_clusters']):
         ax.annotate(k+1,emb[n_emb:][k,:])
     
     #add legend

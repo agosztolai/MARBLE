@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import numpy as np
-from multiprocessing import Pool
-import multiprocessing
-from tqdm import tqdm
-from functools import partial
 import torch
 
 import networkx as nx
@@ -15,7 +11,8 @@ from torch_geometric.data import Data
 from torch_geometric.data.collate import collate
 from cknn import cknneighbors_graph
 from sklearn.model_selection import train_test_split
-
+from sklearn.cluster import KMeans
+from sklearn.metrics import pairwise_distances
 
 
 def construct_data_object(x, y, graph_type='knn', k=10):
@@ -108,87 +105,27 @@ def fit_knn_graph(X, k=10, graph_type='cknn'):
     return data
 
 
-
-def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
-    if processes==-1:
-        processes = multiprocessing.cpu_count()
-    pool = Pool(processes=processes)
-    fun = partial(fun, inputs)
-    result = list(tqdm(pool.imap(fun, iterable), 
-                            total=len(iterable), 
-                            desc=desc)
-                  )
-    pool.close()
-    pool.join()
+def cluster(emb, typ='knn', n_clusters=15, seed=0):
+    
+    clusters = dict()
+    if typ=='knn':
+        kmeans = KMeans(n_clusters=n_clusters, random_state=seed).fit(emb)
+        clusters['n_clusters'] = n_clusters
+        clusters['labels'] = kmeans.labels_
+        clusters['centroids'] = kmeans.cluster_centers_
         
-    return result
-
-
-def stack(X):
-    """
-    Stak ensemble of trajectories into attractor
-
-    Parameters
-    ----------
-    X : list[np.array)]
-        Individual trajectories in separate lists.
-
-    Returns
-    -------
-    X_stacked : np.array
-        Trajectories stacked.
-
-    """
-    
-    X_stacked = np.vstack(X)
-    
-    return X_stacked
-
-
-def unstack(X, t_sample):
-    """
-    Unstack attractor into ensemble of individual trajectories.
-
-    Parameters
-    ----------
-    X : np.array
-        Attractor.
-    t_sample : list[list]
-        Time indices of the individual trajectories.
-
-    Returns
-    -------
-    X_unstack : list[np.array]
-        Ensemble of trajectories.
-
-    """
-    
-    X_unstack = []
-    for t in t_sample:
-        X_unstack.append(X[t,:])
+    #reorder such that close clusters have similar label numbers
+    pd = pairwise_distances(clusters['centroids'], metric='euclidean')
+    new_labels = [0]
+    for i in range(n_clusters-1):
+        ind_min=np.array(0)
+        while (ind_min==new_labels).any():
+            pd[i,ind_min] += np.max(pd)
+            ind_min = np.argmin(pd[i,:])
+        new_labels.append(ind_min)
         
-    return X_unstack
-
-
-def standardize(X, axis=0):
-    """
-    Normalize data
-
-    Parameters
-    ----------
-    X : nxd array (dimensions are columns!)
-        Coordinates of n points on a manifold in d-dimensional space..
-    axis : 0,1, optional
-        Dimension to normalize. The default is 0 (along dimensions).
-
-    Returns
-    -------
-    X : nxd array (dimensions are columns!)
-        Normalized data.
-
-    """
-    
-    X -= np.mean(X, axis=axis, keepdims=True)
-    X /= np.std(X, axis=axis, keepdims=True)
+    mapping = {i:new_labels[i] for i in range(n_clusters)}
+    clusters['labels'] = np.array([mapping[clusters['labels'][i]] for i,_ in enumerate(clusters['labels'])])
+    clusters['centroids'] = clusters['centroids'][new_labels]
         
-    return X
+    return clusters

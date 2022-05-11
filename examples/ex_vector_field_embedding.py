@@ -8,7 +8,6 @@ import sys
 from torch_geometric import seed
 from GeoDySys import plotting, utils
 from GeoDySys.model import net
-from sklearn.cluster import KMeans
 
 
 def main():
@@ -24,7 +23,7 @@ def main():
            'epochs': 30, #optimisation epochs
            'n_conv_layers': 1, #number of hops in neighbourhood
            'n_lin_layers': 3,
-           'hidden_channels': 32, #number of internal dimensions in MLP 
+           'hidden_channels': 32, #number of internal dimensions in MLP
            'out_channels': 8,
            'n_neighbours': k, #parameter of neighbourhood sampling
            'b_norm': True, #batch norm
@@ -45,20 +44,18 @@ def main():
     #construct PyG data object
     data_train, slices, G = utils.construct_data_object(x, y, graph_type='knn', k=k)
     
-    #set up model
+    #train model
     model = net(data_train, kernel='directional_derivative', gauge='global', **par)
     model.train_model(data_train)
     emb = model.eval_model(data_train)
-
-    kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(emb)
-    labels = kmeans.labels_
+    clusters = utils.cluster(emb)
     
     #plot
     titles=['Linear','Point source','Point vortex','Saddle']
     plot_functions(y, G, titles=titles) #sampled functions
-    plotting.embedding(emb, kmeans, data_train.y.numpy(), titles=titles) #TSNE embedding 
-    plotting.histograms(labels, slices, titles=titles) #histograms
-    plotting.neighbourhoods(G, y, n_clusters, labels, n_samples=4, vector=True) #neighbourhoods
+    plotting.embedding(emb, clusters, data_train.y.numpy(), titles=titles) #TSNE embedding 
+    plotting.histograms(clusters['labels'], slices, titles=titles) #histograms
+    plotting.neighbourhoods(G, y, n_clusters, clusters['labels'], n_samples=4, vector=True) #neighbourhoods
     
     
 def f0(x):
