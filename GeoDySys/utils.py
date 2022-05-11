@@ -117,17 +117,18 @@ def cluster(emb, typ='knn', n_clusters=15, seed=0):
         
     #reorder such that close clusters have similar label numbers
     pd = pairwise_distances(clusters['centroids'], metric='euclidean')
+    pd += np.max(pd)*np.eye(n_clusters)
     new_labels = [0]
     for i in range(n_clusters-1):
-        ind_min=np.array(0)
+        ind_min = np.argmin(pd[i,:])
         while (ind_min==new_labels).any():
             pd[i,ind_min] += np.max(pd)
             ind_min = np.argmin(pd[i,:])
         new_labels.append(ind_min)
         
     mapping = {i:new_labels[i] for i in range(n_clusters)}
-    clusters['labels'] = np.array([mapping[clusters['labels'][i]] for i,_ in enumerate(clusters['labels'])])
+    clusters['labels'] = np.array([mapping[clusters['labels'][i]] 
+                                    for i,_ in enumerate(clusters['labels'])])
     clusters['centroids'] = clusters['centroids'][new_labels]
-    print(new_labels)
         
     return clusters
