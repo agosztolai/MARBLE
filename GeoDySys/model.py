@@ -36,7 +36,7 @@ class net(nn.Module):
             self.convs.append(AnisoConv(adj_norm=self.par['adj_norm']))
         
         #initialize multilayer perceptron
-        self.MLP = MLP(in_channels=in_channels*self.par['n_conv_layers'],
+        self.MLP = MLP(in_channels=in_channels*2**(self.par['n_conv_layers']-1),
                        hidden_channels=self.par['hidden_channels'], 
                        out_channels=self.par['out_channels'],
                        n_lin_layers=self.par['n_lin_layers'],

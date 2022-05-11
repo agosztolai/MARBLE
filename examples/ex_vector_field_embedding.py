@@ -27,9 +27,9 @@ def main():
            'hidden_channels': 32, #number of internal dimensions in MLP 
            'out_channels': 8,
            'n_neighbours': k, #parameter of neighbourhood sampling
-           'b_norm': False, #batch norm
+           'b_norm': True, #batch norm
            'dropout': 0.3, #dropout in MLP
-           'adj_norm':False
+           'adj_norm':True
            }
       
     #evaluate functions
