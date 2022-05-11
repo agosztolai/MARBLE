@@ -45,7 +45,7 @@ def main():
     model = net(data_train, kernel='directional_derivative', gauge='global', **par)
     model.train_model(data_train)
     emb = model.eval_model(data_train)
-    clusters = utils.cluster(emb, n_clusters)
+    clusters = utils.cluster(emb, n_clusters=n_clusters)
     
     #plot
     titles=['Constant','Linear','Parabola','Saddle']
