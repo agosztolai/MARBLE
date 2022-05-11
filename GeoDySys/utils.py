@@ -49,7 +49,7 @@ def construct_data_object(x, y, graph_type='knn', k=10):
     
 def split(data, test_size=0.1, val_size=0.5, seed=0):
     """
-    
+    Split training and test datasets
 
     Parameters
     ----------
@@ -99,7 +99,6 @@ def fit_knn_graph(X, k=10, graph_type='cknn'):
         NotImplementedError
     
     edge_index = to_undirected(edge_index)
-    
     data = Data(x=node_feature, edge_index=edge_index)
     
     return data
@@ -113,6 +112,8 @@ def cluster(emb, typ='knn', n_clusters=15, seed=0):
         clusters['n_clusters'] = n_clusters
         clusters['labels'] = kmeans.labels_
         clusters['centroids'] = kmeans.cluster_centers_
+    else:
+        NotImplementedError
         
     #reorder such that close clusters have similar label numbers
     pd = pairwise_distances(clusters['centroids'], metric='euclidean')
@@ -127,5 +128,6 @@ def cluster(emb, typ='knn', n_clusters=15, seed=0):
     mapping = {i:new_labels[i] for i in range(n_clusters)}
     clusters['labels'] = np.array([mapping[clusters['labels'][i]] for i,_ in enumerate(clusters['labels'])])
     clusters['centroids'] = clusters['centroids'][new_labels]
+    print(new_labels)
         
     return clusters

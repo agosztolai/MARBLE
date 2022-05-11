@@ -42,7 +42,7 @@ class net(nn.Module):
                        n_lin_layers=self.par['n_lin_layers'],
                        activation=self.par['activation'],
                        dropout=self.par['dropout'],
-                       b_norm=self.par['b_norm'])
+                       vec_norm=self.par['vec_norm'])
         
     def forward(self, x, adjs, K=None):
         """Forward pass @ training (minibatches)"""

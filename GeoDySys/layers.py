@@ -78,7 +78,7 @@ class MLP(nn.Module):
                  out_channels,
                  n_lin_layers,
                  activation,
-                 b_norm,
+                 vec_norm,
                  dropout):
         super(MLP, self).__init__()
         
@@ -102,7 +102,7 @@ class MLP(nn.Module):
         
         self.activation = nn.ReLU() if activation else None
         self.dropout = nn.Dropout(dropout)
-        self.b_norm = (lambda out: F.normalize(out, p=2., dim=-1)) if b_norm else False
+        self.vec_norm = (lambda out: F.normalize(out, p=2., dim=-1)) if vec_norm else False
         
         self.init_fn = nn.init.xavier_uniform_
         self.reset_parameters(in_channels)
@@ -123,6 +123,6 @@ class MLP(nn.Module):
             if (self.activation is not None) and (i+1!=self.n_lin_layers):
                 x = self.activation(x)
             x = self.dropout(x)
-            if self.b_norm:
-                x = self.b_norm(x)
+            if self.vec_norm:
+                x = self.vec_norm(x)
         return x

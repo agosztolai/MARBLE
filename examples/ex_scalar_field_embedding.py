@@ -17,7 +17,7 @@ def main():
     #parameters
     n = 500
     k = 30
-    n_clusters = 15
+    n_clusters = 20
     
     par = {'batch_size': 400, #batch size, this should be as large as possible
            'epochs': 20, #optimisation epochs
@@ -25,7 +25,6 @@ def main():
            'hidden_channels': 8, #number of internal dimensions in MLP
            'out_channels':8,
            'n_neighbours': k, #parameter of neighbourhood sampling
-           'b_norm': True, #batch norm
            'dropout': 0.3, #dropout in MLP
            'adj_norm': True,
            }
@@ -46,14 +45,14 @@ def main():
     model = net(data_train, kernel='directional_derivative', gauge='global', **par)
     model.train_model(data_train)
     emb = model.eval_model(data_train)
-    clusters = utils.cluster(emb)
+    clusters = utils.cluster(emb, n_clusters)
     
     #plot
     titles=['Constant','Linear','Parabola','Saddle']
     plot_functions(y, G, titles=titles) #sampled functions
     plotting.embedding(emb, clusters, data_train.y.numpy(), titles=titles) #TSNE embedding 
-    plotting.histograms(clusters['labels'], slices, titles=titles) #histograms
-    plotting.neighbourhoods(G, y, n_clusters, clusters['labels'], n_samples=4, radius=par['n_conv_layers'], norm=True) #neighbourhoods
+    plotting.histograms(clusters, slices, titles=titles) #histograms
+    plotting.neighbourhoods(G, y, clusters, n_samples=4, radius=par['n_conv_layers'], norm=True) #neighbourhoods
     
     
 def f0(x):

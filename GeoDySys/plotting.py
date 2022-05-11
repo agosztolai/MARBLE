@@ -122,18 +122,18 @@ def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, axis=Fals
 
 def neighbourhoods(graphs, 
                    node_values, 
-                   n_clusters, 
-                   labels, 
+                   clusters, 
                    n_samples=4,
                    radius=1,
                    norm=False, 
                    vector=False, 
                    plot_graph=False):
     
+    nc = clusters['n_clusters']
     fig = plt.figure(figsize=(10, 20),constrained_layout=True)
-    outer = gridspec.GridSpec(int(np.ceil(n_clusters/3)), 3, wspace=0.2, hspace=0.2)
+    outer = gridspec.GridSpec(int(np.ceil(nc/3)), 3, wspace=0.2, hspace=0.2)
     
-    for i in range(n_clusters):
+    for i in range(nc):
         inner = gridspec.GridSpecFromSubplotSpec(int(np.ceil(n_samples/2)), 2,
                     subplot_spec=outer[i], wspace=0.1, hspace=0.1)
 
@@ -147,7 +147,7 @@ def neighbourhoods(graphs,
 
         for j, G in enumerate(graphs):
             
-            label_i = labels[n_nodes[j]:n_nodes[j+1]]==i
+            label_i = clusters['labels'][n_nodes[j]:n_nodes[j+1]]==i
             label_i = np.where(label_i)[0]
             if not list(label_i):
                 continue
@@ -327,9 +327,7 @@ def graph(
 
 def embedding(emb, clusters, node_colors=None, titles=None):
     from sklearn.manifold import TSNE
-    
-    # plt.scatter(X[:, 0], X[:, 1], c=y_kmeans, s=5, cmap='summer')
-    
+        
     fig, ax = plt.subplots()
     
     colors = [f"C{i}" for i in np.arange(1, node_colors.max()+1)]
@@ -340,6 +338,7 @@ def embedding(emb, clusters, node_colors=None, titles=None):
     emb = np.vstack([emb, clusters['centroids']])
     
     if emb.shape[1]>2:
+        print('Performed t-SNE embedding on embedded results.')
         emb = TSNE(init='random',learning_rate='auto').fit_transform(emb)
         
     x, y = emb[:n_emb,0], emb[:n_emb,1]
@@ -360,24 +359,25 @@ def embedding(emb, clusters, node_colors=None, titles=None):
     ax.set_axis_off() 
         
         
-def histograms(labels, slices, titles=None):
-    fig = plt.figure(figsize=(10, 10),constrained_layout=True)
-    
-    n_clusters = np.max(labels)+1
+def histograms(clusters, slices, titles=None):
+        
+    l = clusters['labels']
+    nc = clusters['n_clusters']
     n_slices = len(slices['x'])-1
     counts = []
     for i in range(n_slices):
-        counts.append(labels[slices['x'][i]:slices['x'][i+1]]+1)
+        counts.append(l[slices['x'][i]:slices['x'][i+1]]+1)
         
-    bins = [i+1 for i in range(n_clusters)]
+    bins = [i+1 for i in range(nc)]
     
-    outer = gridspec.GridSpec(int(np.ceil(n_slices//2)), 2, wspace=0.2, hspace=0.2)
+    fig = plt.figure(figsize=(10, 10),constrained_layout=True)
+    grid = gridspec.GridSpec(int(np.ceil(n_slices//2)), 2, wspace=0.2, hspace=0.2)  
     
     for i in range(n_slices):
-        ax = plt.Subplot(fig, outer[i])
-        ax.hist(counts[i], bins=np.arange(n_clusters)+0.5, rwidth=0.85, density=True)
+        ax = plt.Subplot(fig, grid[i])
+        ax.hist(counts[i], bins=np.arange(nc+1)+0.5, rwidth=0.85, density=True)
         ax.set_xticks(bins)
-        ax.set_xlim([0,n_clusters+1])
+        ax.set_xlim([0,nc+1])
         if titles is not None:
             ax.set_title(titles[i])
             ax.set_xlabel('Feature number')
