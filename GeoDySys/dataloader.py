@@ -8,7 +8,7 @@ from torch_cluster import random_walk
 
 
 class NeighborSampler(RawNeighborSampler):
-    def __init__(self,*args,dropout=0.1,**kwargs):
+    def __init__(self,*args,dropout=0.,**kwargs):
         super().__init__(*args,**kwargs)
         self.dropout=dropout
         

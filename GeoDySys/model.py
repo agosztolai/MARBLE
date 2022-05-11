@@ -4,6 +4,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch_geometric.utils import subgraph
 from tensorboardX import SummaryWriter
 from datetime import datetime
 from .dataloader import NeighborSampler
@@ -45,10 +46,11 @@ class net(nn.Module):
                        vec_norm=self.par['vec_norm'])
         
     def forward(self, x, adjs, K=None):
-        """Forward pass @ training (minibatches)"""
+        """Forward pass @ training (with minibatches)"""
         for i, (edge_index, _, size) in enumerate(adjs): #loop over minibatches
             #messages are passed from x_source (all nodes) to x_target
-            x_source = x 
+            #by convention of the NeighborSampler
+            x_source = x
             x_target = x[:size[1]]
             
             x = self.convs[i]((x_source, x_target), edge_index, K=K, size=size)
@@ -76,7 +78,7 @@ class net(nn.Module):
         if np.isscalar(self.par['n_neighbours']):
             n_neighbours = [self.par['n_neighbours'] for i in range(self.par['n_conv_layers'])]
         
-        loader = NeighborSampler(data.edge_index,
+        train_loader = NeighborSampler(data.edge_index,
                                  sizes=n_neighbours,
                                  batch_size=self.par['batch_size'],
                                  shuffle=True, 
@@ -88,10 +90,10 @@ class net(nn.Module):
 
         x = data.x.to(device)
         for epoch in range(1, self.par['epochs']): #loop over epochs
-            total_loss = 0
-            self.train()
             
-            for _, n_id, adjs in loader:
+            self.train()
+            train_loss = 0
+            for _, n_id, adjs in train_loader: #loop over batches
                 optimizer.zero_grad() #zero gradients, otherwise accumulates gradients
                 
                 # `adjs` holds a list of `(edge_index, e_id, size)` tuples.
@@ -110,19 +112,27 @@ class net(nn.Module):
                 loss.backward() #backprop
                 optimizer.step()
 
-                total_loss += float(loss) * out.size(0)    
+                train_loss += float(loss) * out.size(0)
+                
+            self.eval()
+            # out = self.eval_model(data, test=True)
+            # test_loss = loss_comp(out) / data.num_nodes
+            test_loss = 0
             
-            total_loss /= data.num_nodes       
-            writer.add_scalar("loss", total_loss, epoch)
-            print("Epoch {}. Loss: {:.4f}. ".format(epoch, total_loss))
+            train_loss /= data.num_nodes
+            writer.add_scalar("loss", train_loss, epoch)
+            print("Epoch {}  Training loss: {:.4f} Test loss: {:.4f}".format(epoch, train_loss, test_loss))
             
-    def eval_model(self, data):
+    def eval_model(self, data, test=False):
         """Evaluate network"""
-        self.eval()
             
         x, edge_index = data.x, data.edge_index
+            
         with torch.no_grad():
             out = self.forward_test(x, edge_index, self.kernel).cpu()
+            
+        if test:
+            out = out[data.test_mask]
 
         return out
     

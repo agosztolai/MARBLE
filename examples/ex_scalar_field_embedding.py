@@ -39,18 +39,18 @@ def main():
     y = [f0(x0), f1(x1), f2(x2), f3(x3)] #evaluated functions
         
     #construct PyG data object
-    data_train, slices, G = utils.construct_data_object(x, y, graph_type='knn', k=k)
+    data, slices, G = utils.construct_data_object(x, y, graph_type='knn', k=k)
     
     #train model
-    model = net(data_train, kernel='directional_derivative', gauge='global', **par)
-    model.train_model(data_train)
-    emb = model.eval_model(data_train)
+    model = net(data, kernel='directional_derivative', gauge='global', **par)
+    model.train_model(data)
+    emb = model.eval_model(data)
     clusters = utils.cluster(emb, n_clusters=n_clusters)
     
     #plot
     titles=['Constant','Linear','Parabola','Saddle']
     plot_functions(y, G, titles=titles) #sampled functions
-    plotting.embedding(emb, clusters, data_train.y.numpy(), titles=titles) #TSNE embedding 
+    plotting.embedding(emb, clusters, data.y.numpy(), titles=titles) #TSNE embedding 
     plotting.histograms(clusters, slices, titles=titles) #histograms
     plotting.neighbourhoods(G, y, clusters, n_samples=4, radius=par['n_conv_layers'], norm=True) #neighbourhoods
     

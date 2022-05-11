@@ -28,7 +28,7 @@ class AnisoConv(MessagePassing):
             for K_ in K:
                 K_ = K_.t()
                 K_ = SparseTensor(row=edge_index[0], col=edge_index[1], 
-                                  value=K_[edge_index[0],edge_index[1]],
+                                  value=K_[edge_index[0], edge_index[1]],
                                   sparse_sizes=(size[0], size[1]))
                 out.append(self.propagate(K_.t(), x=x, size=size))
             out = torch.cat(out, axis=1)
