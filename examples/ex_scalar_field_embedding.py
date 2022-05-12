@@ -20,12 +20,12 @@ def main():
     n_clusters = 20
     
     par = {'batch_size': 400, #batch size, this should be as large as possible
-           'epochs': 20, #optimisation epochs
+           'epochs': 30, #optimisation epochs
            'n_conv_layers': 1, #number of hops in neighbourhood
+           'n_lin_layers': 2,
            'hidden_channels': 8, #number of internal dimensions in MLP
-           'out_channels':8,
+           'out_channels':4,
            'n_neighbours': k, #parameter of neighbourhood sampling
-           'dropout': 0.3, #dropout in MLP
            'adj_norm': True,
            }
       

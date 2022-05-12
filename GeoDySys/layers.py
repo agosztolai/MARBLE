@@ -8,11 +8,12 @@ from torch_sparse import matmul, SparseTensor
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn.dense.linear import Linear
 from torch_geometric.typing import OptPairTensor
-import torch.nn.functional as F
 
 """Convolution"""
 class AnisoConv(MessagePassing):    
-    def __init__(self, adj_norm=False, **kwargs):
+    def __init__(self, 
+                 adj_norm=False, 
+                 **kwargs):
         super().__init__(aggr='add', **kwargs)
         
         self.adj_norm = adj_norm
@@ -74,21 +75,25 @@ class AnisoConv(MessagePassing):
 class MLP(nn.Module):
     def __init__(self,
                  in_channels,
-                 hidden_channels,
-                 out_channels,
-                 n_lin_layers,
-                 activation,
-                 vec_norm,
-                 dropout):
+                 hidden_channels=None,
+                 out_channels=None,
+                 n_lin_layers=1,
+                 activation=True,
+                 b_norm=True,
+                 dropout=0.):
         super(MLP, self).__init__()
         
         assert n_lin_layers>0, 'n_lin_layers must an integer >0'
         self.n_lin_layers = n_lin_layers
         
-        if hidden_channels is None:
-            hidden_channels = in_channels
+        #parse inputs
         if out_channels is None:
-            out_channels=hidden_channels
+            if hidden_channels is not None:
+                out_channels=hidden_channels
+            elif hidden_channels is None:
+                out_channels=in_channels
+        if hidden_channels is None:
+            hidden_channels = out_channels
             
         #stack linear layers
         self.lin = nn.ModuleList()
@@ -102,7 +107,7 @@ class MLP(nn.Module):
         
         self.activation = nn.ReLU() if activation else None
         self.dropout = nn.Dropout(dropout)
-        self.vec_norm = (lambda out: F.normalize(out, p=2., dim=-1)) if vec_norm else False
+        self.b_norm = None # this is to be implemented!!!
         
         self.init_fn = nn.init.xavier_uniform_
         self.reset_parameters(in_channels)
@@ -123,6 +128,6 @@ class MLP(nn.Module):
             if (self.activation is not None) and (i+1!=self.n_lin_layers):
                 x = self.activation(x)
             x = self.dropout(x)
-            if self.vec_norm:
-                x = self.vec_norm(x)
+            if self.b_norm is not None:
+                x = self.b_norm(x)
         return x

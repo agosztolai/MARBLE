@@ -26,24 +26,40 @@ class net(nn.Module):
         
         if kernel == 'directional_derivative':
             self.kernel = aggr_directional_derivative(data, gauge)
-            in_channels = len(self.kernel)*data.x.shape[1]
+            ch = [len(self.kernel)*data.x.shape[1]]
+            for i in range(self.par['n_conv_layers']-1):
+                ch.append(ch[-1]*len(self.kernel))
         else: #isotropic convolutions (vanilla GCN)
             self.kernel = None
-            in_channels = data.x.shape[1]
+            ch = [data.x.shape[1]]
+            for i in range(self.par['n_conv_layers']-1):
+                ch.append(ch[-1])
         
-        #initialize conv layers
+        #initialise conv layers
         self.convs = nn.ModuleList() #could use nn.Sequential because we execute in order
         for i in range(self.par['n_conv_layers']):
             self.convs.append(AnisoConv(adj_norm=self.par['adj_norm']))
         
-        #initialize multilayer perceptron
-        self.MLP = MLP(in_channels=in_channels*2**(self.par['n_conv_layers']-1),
-                       hidden_channels=self.par['hidden_channels'], 
-                       out_channels=self.par['out_channels'],
-                       n_lin_layers=self.par['n_lin_layers'],
-                       activation=self.par['activation'],
-                       dropout=self.par['dropout'],
-                       vec_norm=self.par['vec_norm'])
+        #initialise multilayer perceptrons
+        self.MLPs = nn.ModuleList()
+        for i in range(self.par['n_conv_layers']-1):
+            self.MLPs.append(MLP(in_channels=ch[i],
+                                 # hidden_channels=self.par['hidden_channels'], 
+                                 out_channels=ch[i],
+                                 n_lin_layers=1,
+                                 activation=self.par['activation'],
+                                 dropout=self.par['dropout'],
+                                 b_norm=self.par['b_norm']))
+        self.MLPs.append(MLP(in_channels=ch[-1],
+                             hidden_channels=self.par['hidden_channels'], 
+                             out_channels=self.par['out_channels'],
+                             n_lin_layers=self.par['n_lin_layers'],
+                             activation=self.par['activation'],
+                             dropout=self.par['dropout'],
+                             b_norm=self.par['b_norm']))
+        
+        #initialise vector normalisation
+        self.vec_norm = lambda out: F.normalize(out, p=2., dim=-1)
         
     def forward(self, x, adjs, K=None):
         """Forward pass @ training (with minibatches)"""
@@ -53,18 +69,20 @@ class net(nn.Module):
             x_source = x
             x_target = x[:size[1]]
             
-            x = self.convs[i]((x_source, x_target), edge_index, K=K, size=size)
-            
-        x = self.MLP(x)
+            x = self.convs[i]((x_source, x_target), edge_index, K=K, size=size) 
+            x = self.MLPs[i](x)
+            if self.par['vec_norm']:
+                x = self.vec_norm(x)
                                               
         return x
 
     def forward_test(self, x, edge_index, K=None):  
         """Forward pass @ testing (no minibatches)"""
-        for conv in self.convs:
-            x = conv(x, edge_index, K=K, size=(x.shape[0],x.shape[0]))
-            
-        x = self.MLP(x)
+        for i in range(self.par['n_conv_layers']):
+            x = self.convs[i](x, edge_index, K=K, size=(x.shape[0],x.shape[0]))    
+            x = self.MLPs[i](x)
+            if self.par['vec_norm']:
+                x = self.vec_norm(x)
             
         return x        
     
@@ -91,7 +109,7 @@ class net(nn.Module):
         x = data.x.to(device)
         for epoch in range(1, self.par['epochs']): #loop over epochs
             
-            self.train()
+            self.train() #switch to training mode
             train_loss = 0
             for _, n_id, adjs in train_loader: #loop over batches
                 optimizer.zero_grad() #zero gradients, otherwise accumulates gradients
@@ -114,7 +132,7 @@ class net(nn.Module):
 
                 train_loss += float(loss) * out.size(0)
                 
-            self.eval()
+            self.eval() #switch to testing mode (this disables dropout in MLP)
             # out = self.eval_model(data, test=True)
             # test_loss = loss_comp(out) / data.num_nodes
             test_loss = 0
@@ -125,7 +143,6 @@ class net(nn.Module):
             
     def eval_model(self, data, test=False):
         """Evaluate network"""
-            
         x, edge_index = data.x, data.edge_index
             
         with torch.no_grad():
