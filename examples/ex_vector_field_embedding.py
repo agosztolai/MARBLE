@@ -15,19 +15,18 @@ def main():
     seed.seed_everything(1)
     
     #parameters
-    n = 500
+    n = 1000
     k = 30
     n_clusters = 15
     
     par = {'batch_size': 400, #batch size, this should be as large as possible
-           'epochs': 30, #optimisation epochs
+           'epochs': 50, #optimisation epochs
            'n_conv_layers': 1, #number of hops in neighbourhood
            'n_lin_layers': 3,
            'hidden_channels': 32, #number of internal dimensions in MLP
            'out_channels': 8,
            'n_neighbours': k, #parameter of neighbourhood sampling
            'dropout': 0., #dropout in MLP
-           'adj_norm':True
            }
       
     #evaluate functions

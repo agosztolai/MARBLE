@@ -9,4 +9,4 @@ n_lin_layers: 2 #number of layers if MLP
 vec_norm: True #vector normalisation of embedded features
 b_norm: False #batch normalisation
 hideen_channels: 16 #number of hidden channels
-out_channels: null #number of output channels (if None, then =hidden_channels)
+out_channels: null #number of output channels (if null, then =hidden_channels)
