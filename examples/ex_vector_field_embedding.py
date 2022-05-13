@@ -20,7 +20,7 @@ def main():
     n_clusters = 15
     
     par = {'batch_size': 400, #batch size, this should be as large as possible
-           'epochs': 50, #optimisation epochs
+           'epochs': 20, #optimisation epochs
            'n_conv_layers': 1, #number of hops in neighbourhood
            'n_lin_layers': 3,
            'hidden_channels': 32, #number of internal dimensions in MLP

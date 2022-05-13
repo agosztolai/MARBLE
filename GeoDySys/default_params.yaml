@@ -2,11 +2,10 @@
 lr: 0.01 #learning rate 
 dropout: 0. #dropout in the MLP
 edge_dropout: 0. #dropout in the convolution graph
-activation: True #use ReLU
 adj_norm: False #adjacency-wise norm
 n_conv_layers: 1 #number of hops in neighbourhood
 n_lin_layers: 2 #number of layers if MLP
 vec_norm: True #vector normalisation of embedded features
-b_norm: False #batch normalisation
+b_norm: True #batch normalisation
 hideen_channels: 16 #number of hidden channels
 out_channels: null #number of output channels (if null, then =hidden_channels)

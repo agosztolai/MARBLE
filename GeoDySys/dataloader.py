@@ -3,11 +3,12 @@
 
 import torch
 from torch_geometric.utils import dropout_adj
-from torch_geometric.loader import NeighborSampler as RawNeighborSampler
+from torch_geometric.loader import NeighborSampler as NeighborLoader
+# from torch_geometric.loader import NeighborLoader
 from torch_cluster import random_walk
 
 
-class NeighborSampler(RawNeighborSampler):
+class NeighborSampler(NeighborLoader):
     def __init__(self,*args,dropout=0.,**kwargs):
         super().__init__(*args,**kwargs)
         self.dropout=dropout

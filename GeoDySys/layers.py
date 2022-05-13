@@ -2,11 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import torch
-import torch.nn as nn
 from torch import Tensor
 from torch_sparse import matmul, SparseTensor
 from torch_geometric.nn.conv import MessagePassing
-from torch_geometric.nn.dense.linear import Linear
 from torch_geometric.typing import OptPairTensor
 
 """Convolution"""
@@ -18,24 +16,23 @@ class AnisoConv(MessagePassing):
         
         self.adj_norm = adj_norm
 
-    def forward(self, x, edge_index, K=None, size=None):
+    def forward(self, x, edge_index, K=None):
         """Forward pass"""
         if isinstance(x, Tensor):
             x: OptPairTensor = (x, x)
             
+        size = (len(x[0]), len(x[1]))
         if K is not None: #anisotropic kernel
             out = []
             #evaluate all directional kernels and concatenate results columnwise
             for K_ in K:
                 K_ = K_.t()
-                K_ = SparseTensor(row=edge_index[0], col=edge_index[1], 
-                                  value=K_[edge_index[0], edge_index[1]],
-                                  sparse_sizes=(size[0], size[1]))
-                out.append(self.propagate(K_.t(), x=x, size=size))
+                K_ = self.adjacency_matrix(edge_index, size, value=K_) 
+                out.append(self.propagate(K_.t(), x=x))
             out = torch.cat(out, axis=1)
             
         else: #use adjacency matrix (vanilla GCN)
-            out = self.propagate(edge_index, x=x, size=size)
+            out = self.propagate(edge_index, x=x)
         
         if self.adj_norm: #normalize features by the mean of neighbours
             adj = self.adjacency_matrix(edge_index, size)
@@ -53,10 +50,13 @@ class AnisoConv(MessagePassing):
         
         return out
     
-    def adjacency_matrix(self, edge_index, size):
+    def adjacency_matrix(self, edge_index, size, value=None):
         """Compute adjacency matrix from edge_index"""
-        adj = SparseTensor(row=edge_index[0], col=edge_index[1], value=None,
-                sparse_sizes=(size[0], size[1]))
+        if value is not None:
+            value=value[edge_index[0], edge_index[1]]
+        adj = SparseTensor(row=edge_index[0], col=edge_index[1], 
+                           value=value,
+                           sparse_sizes=(size[0], size[1]))
         
         return adj
 
@@ -69,65 +69,3 @@ class AnisoConv(MessagePassing):
         """Convolution step. This is executed if input to propagate() is 
         an edge list tensor"""
         return x_j if edge_weight is None else edge_weight.view(-1, 1) * x_j
-    
-    
-"""Multi-layer perceptron composed of linear layers, activation and batch norm"""
-class MLP(nn.Module):
-    def __init__(self,
-                 in_channels,
-                 hidden_channels=None,
-                 out_channels=None,
-                 n_lin_layers=1,
-                 activation=True,
-                 b_norm=True,
-                 dropout=0.):
-        super(MLP, self).__init__()
-        
-        assert n_lin_layers>0, 'n_lin_layers must an integer >0'
-        self.n_lin_layers = n_lin_layers
-        
-        #parse inputs
-        if out_channels is None:
-            if hidden_channels is not None:
-                out_channels=hidden_channels
-            elif hidden_channels is None:
-                out_channels=in_channels
-        if hidden_channels is None:
-            hidden_channels = out_channels
-            
-        #stack linear layers
-        self.lin = nn.ModuleList()
-        ch = [in_channels] + \
-             [hidden_channels for i in range(n_lin_layers-1)] + \
-             [out_channels]
-        
-        for i in range(n_lin_layers):
-            bias = True if i<n_lin_layers else False
-            self.lin.append(Linear(ch[i], ch[i+1], bias=bias))
-        
-        self.activation = nn.ReLU() if activation else None
-        self.dropout = nn.Dropout(dropout)
-        self.b_norm = None # this is to be implemented!!!
-        
-        self.init_fn = nn.init.xavier_uniform_
-        self.reset_parameters(in_channels)
-        
-    def reset_parameters(self, in_channels):
-        """Initialise parameters"""
-        for l in self.lin:
-            l.reset_parameters()
-            if self.init_fn is not None:
-                self.init_fn(l.weight, 1/in_channels)
-            if l.bias is not None:
-                l.bias.data.zero_()
-        
-    def forward(self, x):
-        """Forward pass"""
-        for i in range(self.n_lin_layers):
-            x = self.lin[i](x)
-            if (self.activation is not None) and (i+1!=self.n_lin_layers):
-                x = self.activation(x)
-            x = self.dropout(x)
-            if self.b_norm is not None:
-                x = self.b_norm(x)
-        return x

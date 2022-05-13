@@ -4,11 +4,12 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.utils import subgraph
 from tensorboardX import SummaryWriter
 from datetime import datetime
 from .dataloader import NeighborSampler
-from .layers import AnisoConv, MLP
+# from torch_geometric.loader import DataLoader, LinkNeighborLoader
+from .layers import AnisoConv
+from torch_geometric.nn import MLP
 from .kernels import aggr_directional_derivative
 import yaml
 import os
@@ -46,17 +47,17 @@ class net(nn.Module):
             self.MLPs.append(MLP(in_channels=ch[i],
                                  # hidden_channels=self.par['hidden_channels'], 
                                  out_channels=ch[i],
-                                 n_lin_layers=1,
-                                 activation=self.par['activation'],
+                                 num_layers=1,
                                  dropout=self.par['dropout'],
-                                 b_norm=self.par['b_norm']))
+                                 batch_norm=self.par['b_norm'],
+                                 bias=True))
         self.MLPs.append(MLP(in_channels=ch[-1],
                              hidden_channels=self.par['hidden_channels'], 
                              out_channels=self.par['out_channels'],
-                             n_lin_layers=self.par['n_lin_layers'],
-                             activation=self.par['activation'],
+                             num_layers=self.par['n_lin_layers'],
                              dropout=self.par['dropout'],
-                             b_norm=self.par['b_norm']))
+                             batch_norm=self.par['b_norm'],
+                             bias=True))
         
         #initialise vector normalisation
         self.vec_norm = lambda out: F.normalize(out, p=2., dim=-1)
@@ -69,22 +70,25 @@ class net(nn.Module):
             x_source = x
             x_target = x[:size[1]]
             
-            x = self.convs[i]((x_source, x_target), edge_index, K=K, size=size) 
+            x = self.convs[i]((x_source, x_target), edge_index, K=K) 
             x = self.MLPs[i](x)
             if self.par['vec_norm']:
                 x = self.vec_norm(x)
                                               
         return x
-
-    def forward_test(self, x, edge_index, K=None):  
-        """Forward pass @ testing (no minibatches)"""
-        for i in range(self.par['n_conv_layers']):
-            x = self.convs[i](x, edge_index, K=K, size=(x.shape[0],x.shape[0]))    
-            x = self.MLPs[i](x)
-            if self.par['vec_norm']:
-                x = self.vec_norm(x)
+    
+    def eval_model(self, data, test=False):
+        """Evaluate network"""
+        x, edge_index = data.x, data.edge_index
             
-        return x        
+        with torch.no_grad():
+            for i in range(self.par['n_conv_layers']):
+                x = self.convs[i](x, edge_index, K=self.kernel)
+                x = self.MLPs[i](x)
+                if self.par['vec_norm']:
+                    x = self.vec_norm(x)
+
+        return x
     
     def train_model(self, data):
         """Network training"""
@@ -96,12 +100,27 @@ class net(nn.Module):
         if np.isscalar(self.par['n_neighbours']):
             n_neighbours = [self.par['n_neighbours'] for i in range(self.par['n_conv_layers'])]
         
+        # loader = LinkNeighborLoader(data,
+        #                           num_neighbors=n_neighbours,
+        #                           batch_size=self.par['batch_size'],
+        #                           shuffle=True,
+        #                           neg_sampling_ratio=1,
+        #                           # num_nodes=data.num_nodes,
+        #                           # dropout=self.par['edge_dropout'],
+        #                           )
+        
         train_loader = NeighborSampler(data.edge_index,
                                  sizes=n_neighbours,
                                  batch_size=self.par['batch_size'],
                                  shuffle=True, 
                                  num_nodes=data.num_nodes,
-                                 dropout=self.par['edge_dropout'],
+                                 )
+        
+        test_loader = NeighborSampler(data.edge_index,
+                                 sizes=n_neighbours,
+                                 batch_size=self.par['batch_size'],
+                                 shuffle=False, 
+                                 num_nodes=data.num_nodes,
                                  )
         
         optimizer = torch.optim.Adam(self.parameters(), lr=self.par['lr'])
@@ -133,25 +152,28 @@ class net(nn.Module):
                 train_loss += float(loss) * out.size(0)
                 
             self.eval() #switch to testing mode (this disables dropout in MLP)
-            # out = self.eval_model(data, test=True)
-            # test_loss = loss_comp(out) / data.num_nodes
             test_loss = 0
+            for _, n_id, adjs in test_loader: #loop over batches                
+                # `adjs` holds a list of `(edge_index, e_id, size)` tuples.
+                if not isinstance(adjs, list):
+                    adjs = [adjs]
+                adjs = [adj.to(device) for adj in adjs]
+                    
+                #take submatrix corresponding to current batch
+                if self.kernel is not None:
+                    K = [K_[n_id,:][:,n_id] for K_ in self.kernel]
+                else:
+                    K = None
+                
+                out = self(x[n_id], adjs, K)
+                loss = loss_comp(out)
+
+                test_loss += float(loss) * out.size(0)
             
             train_loss /= data.num_nodes
+            test_loss /= data.num_nodes
             writer.add_scalar("loss", train_loss, epoch)
             print("Epoch {}  Training loss: {:.4f} Test loss: {:.4f}".format(epoch, train_loss, test_loss))
-            
-    def eval_model(self, data, test=False):
-        """Evaluate network"""
-        x, edge_index = data.x, data.edge_index
-            
-        with torch.no_grad():
-            out = self.forward_test(x, edge_index, self.kernel).cpu()
-            
-        if test:
-            out = out[data.test_mask]
-
-        return out
     
 
 def loss_comp(out):
@@ -160,7 +182,6 @@ def loss_comp(out):
 
     """
     out, pos_out, neg_out = out.split(out.size(0) // 3, dim=0)
-
     pos_loss = F.logsigmoid((out * pos_out).sum(-1)).mean()
     neg_loss = F.logsigmoid(-(out * neg_out).sum(-1)).mean()
     loss = (-pos_loss - neg_loss)/out.shape[0]
