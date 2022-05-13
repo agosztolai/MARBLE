@@ -2,10 +2,42 @@
 # -*- coding: utf-8 -*-
 
 import torch
+from torch_cluster import random_walk
+
 from torch_geometric.utils import dropout_adj
 from torch_geometric.loader import NeighborSampler as NeighborLoader
-# from torch_geometric.loader import NeighborLoader
-from torch_cluster import random_walk
+from torch_geometric.transforms import RandomNodeSplit
+from torch_geometric.data import Data, Batch
+
+from GeoDySys.utils import fit_knn_graph
+
+
+def construct_dataset(x, y, graph_type='knn', k=10):
+        
+    data_list = []
+    for i, y_ in enumerate(y):
+        #fit knn before adding function as node attribute
+        x_ = torch.tensor(x[i], dtype=torch.float)
+        edge_index = fit_knn_graph(x_, k=k)
+        data_ = Data(x=x_, edge_index=edge_index)
+        data_.pos = torch.tensor(x[i])
+            
+        #build pytorch geometric object
+        data_.x = y_ #only function value as feature
+        data_.num_nodes = len(x[i])
+        data_.num_node_features = data_.x.shape[1]
+        data_.y = torch.ones(data_.num_nodes, dtype=int)*i
+        
+        data_list.append(data_)
+        
+    #collate datasets
+    batch = Batch.from_data_list(data_list)
+    
+    #split into training/validation/test datasets
+    split = RandomNodeSplit(split='train_rest', num_val=0.1, num_test=0.1)
+    split(batch)
+    
+    return batch
 
 
 class NeighborSampler(NeighborLoader):

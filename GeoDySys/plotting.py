@@ -12,6 +12,7 @@ from pathlib import Path
 import os
 import networkx as nx
 import matplotlib.gridspec as gridspec
+from torch_geometric.utils.convert import to_networkx
 
 from scipy.spatial import Voronoi, voronoi_plot_2d 
 
@@ -120,8 +121,7 @@ def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, axis=Fals
     return ax
 
 
-def neighbourhoods(graphs, 
-                   node_values, 
+def neighbourhoods(data,
                    clusters, 
                    n_samples=4,
                    radius=1,
@@ -132,6 +132,12 @@ def neighbourhoods(graphs,
     nc = clusters['n_clusters']
     fig = plt.figure(figsize=(10, 20),constrained_layout=True)
     outer = gridspec.GridSpec(int(np.ceil(nc/3)), 3, wspace=0.2, hspace=0.2)
+    
+    data_list = data.to_data_list()
+    graphs = [to_networkx(d, node_attrs=['pos'], edge_attrs=None, to_undirected=True,
+            remove_self_loops=True) for d in data_list]
+    
+    node_values = [d.x for d in data_list]
     
     for i in range(nc):
         inner = gridspec.GridSpecFromSubplotSpec(int(np.ceil(n_samples/2)), 2,
@@ -188,7 +194,7 @@ def neighbourhoods(graphs,
                       node_size=30,
                       edge_width=0.5)
             
-            x = np.array(list(nx.get_node_attributes(subgraph,name='x').values()))
+            x = np.array(list(nx.get_node_attributes(subgraph,name='pos').values()))
             if vector:
                 ax.quiver(x[:,0],x[:,1],vx,vy, 
                           color=c, scale=20, scale_units='x',width=0.02)  
@@ -276,7 +282,7 @@ def graph(
     show_colorbar=False,
     layout=None,
     ax=None,
-    node_attr="x"
+    node_attr="pos"
 ):
     """Plot scalar values on graph nodes embedded in 2D or 3D."""
         
@@ -359,14 +365,15 @@ def embedding(emb, clusters, node_colors=None, titles=None):
     ax.set_axis_off() 
         
         
-def histograms(clusters, slices, titles=None):
+def histograms(data, clusters, titles=None):
         
     l = clusters['labels']
     nc = clusters['n_clusters']
-    n_slices = len(slices['x'])-1
+    slices = data._slice_dict['x']
+    n_slices = len(slices)-1
     counts = []
     for i in range(n_slices):
-        counts.append(l[slices['x'][i]:slices['x'][i+1]]+1)
+        counts.append(l[slices[i]:slices[i+1]]+1)
         
     bins = [i+1 for i in range(nc)]
     

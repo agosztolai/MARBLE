@@ -7,7 +7,6 @@ import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from datetime import datetime
 from .dataloader import NeighborSampler
-# from torch_geometric.loader import DataLoader, LinkNeighborLoader
 from .layers import AnisoConv
 from torch_geometric.nn import MLP
 from .kernels import aggr_directional_derivative
@@ -97,28 +96,19 @@ class net(nn.Module):
         if np.isscalar(self.par['n_neighbours']):
             n_neighbours = [self.par['n_neighbours'] for i in range(self.par['n_conv_layers'])]
         
-        # loader = LinkNeighborLoader(data,
-        #                           num_neighbors=n_neighbours,
-        #                           batch_size=self.par['batch_size'],
-        #                           shuffle=True,
-        #                           neg_sampling_ratio=1,
-        #                           # num_nodes=data.num_nodes,
-        #                           # dropout=self.par['edge_dropout'],
-        #                           )
-        
         train_loader = NeighborSampler(data.edge_index,
                                  sizes=n_neighbours,
                                  batch_size=self.par['batch_size'],
-                                 shuffle=True, 
+                                 shuffle=True,
                                  num_nodes=data.num_nodes,
-                                 )
+                                 node_idx=data.train_mask)
         
         test_loader = NeighborSampler(data.edge_index,
                                  sizes=n_neighbours,
                                  batch_size=self.par['batch_size'],
-                                 shuffle=False, 
+                                 shuffle=False,
                                  num_nodes=data.num_nodes,
-                                 )
+                                 node_idx=data.test_mask)
         
         optimizer = torch.optim.Adam(self.parameters(), lr=self.par['lr'])
 
