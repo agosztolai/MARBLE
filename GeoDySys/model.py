@@ -86,6 +86,23 @@ class net(nn.Module):
 
         return x
     
+    def batch_eval_model(self, x, adjs, n_id, device):
+        
+        # `adjs` holds a list of `(edge_index, e_id, size)` tuples.
+        if not isinstance(adjs, list):
+            adjs = [adjs]
+        adjs = [adj.to(device) for adj in adjs]
+            
+        #take submatrix corresponding to current batch
+        if self.kernel is not None:
+            K = [K_[n_id,:][:,n_id] for K_ in self.kernel]
+        else:
+            K = None
+        
+        x = self(x[n_id], adjs, K)
+        
+        return x
+    
     def train_model(self, data):
         """Network training"""
         
@@ -103,6 +120,13 @@ class net(nn.Module):
                                  num_nodes=data.num_nodes,
                                  node_idx=data.train_mask)
         
+        val_loader = NeighborSampler(data.edge_index,
+                                 sizes=n_neighbours,
+                                 batch_size=self.par['batch_size'],
+                                 shuffle=False,
+                                 num_nodes=data.num_nodes,
+                                 node_idx=data.test_mask)
+        
         test_loader = NeighborSampler(data.edge_index,
                                  sizes=n_neighbours,
                                  batch_size=self.par['batch_size'],
@@ -119,48 +143,37 @@ class net(nn.Module):
             train_loss = 0
             for _, n_id, adjs in train_loader: #loop over batches
                 optimizer.zero_grad() #zero gradients, otherwise accumulates gradients
-                
-                # `adjs` holds a list of `(edge_index, e_id, size)` tuples.
-                if not isinstance(adjs, list):
-                    adjs = [adjs]
-                adjs = [adj.to(device) for adj in adjs]
-                    
-                #take submatrix corresponding to current batch
-                if self.kernel is not None:
-                    K = [K_[n_id,:][:,n_id] for K_ in self.kernel]
-                else:
-                    K = None
-                
-                out = self(x[n_id], adjs, K)
+                out = self.batch_eval_model(x, adjs, n_id, device)
                 loss = loss_comp(out)
                 loss.backward() #backprop
                 optimizer.step()
 
                 train_loss += float(loss) * out.size(0)
                 
-            self.eval() #switch to testing mode (this disables dropout in MLP)
-            test_loss = 0
-            for _, n_id, adjs in test_loader: #loop over batches                
-                # `adjs` holds a list of `(edge_index, e_id, size)` tuples.
-                if not isinstance(adjs, list):
-                    adjs = [adjs]
-                adjs = [adj.to(device) for adj in adjs]
-                    
-                #take submatrix corresponding to current batch
-                if self.kernel is not None:
-                    K = [K_[n_id,:][:,n_id] for K_ in self.kernel]
-                else:
-                    K = None
-                
-                out = self(x[n_id], adjs, K)
-                loss = loss_comp(out)
-
-                test_loss += float(loss) * out.size(0)
-            
             train_loss /= data.num_nodes
-            test_loss /= data.num_nodes
-            writer.add_scalar("loss", train_loss, epoch)
-            print("Epoch {}  Training loss: {:.4f} Test loss: {:.4f}".format(epoch, train_loss, test_loss))
+                
+            self.eval() #switch to testing mode (this disables dropout in MLP)
+            val_loss = 0
+            for _, n_id, adjs in val_loader: #loop over batches                
+                out = self.batch_eval_model(x, adjs, n_id, device)
+                loss = loss_comp(out)
+                val_loss += float(loss) * out.size(0)
+            
+            val_loss /= data.num_nodes
+            
+            writer.add_scalar('Loss/train', train_loss, epoch)
+            writer.add_scalar('Loss/test', val_loss, epoch)
+            print("Epoch: {},  Training loss: {:.4f}, Validation loss: {:.4f}".format(epoch, train_loss, val_loss))
+        
+        test_loss = 0
+        for _, n_id, adjs in test_loader: #loop over batches                
+            out = self.batch_eval_model(x, adjs, n_id, device)
+            loss = loss_comp(out)
+            test_loss += float(loss) * out.size(0)
+        
+        test_loss /= data.num_nodes
+            
+        print('Final error: {:.4f}'.format(test_loss))
     
 
 def loss_comp(out):
