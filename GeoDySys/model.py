@@ -44,10 +44,7 @@ class net(nn.Module):
         #initialise multilayer perceptrons
         self.MLPs = nn.ModuleList()
         for i in range(self.par['n_conv_layers']-1):
-            self.MLPs.append(MLP(in_channels=ch[i],
-                                 # hidden_channels=self.par['hidden_channels'], 
-                                 out_channels=ch[i],
-                                 num_layers=1,
+            self.MLPs.append(MLP(channel_list=[ch[i], ch[i]],
                                  dropout=self.par['dropout'],
                                  batch_norm=self.par['b_norm'],
                                  bias=True))
