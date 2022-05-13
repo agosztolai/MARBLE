@@ -87,7 +87,7 @@ class net(nn.Module):
         return x
     
     def batch_eval_model(self, x, adjs, n_id, device):
-        
+        """Evaluate network in batches"""
         # `adjs` holds a list of `(edge_index, e_id, size)` tuples.
         if not isinstance(adjs, list):
             adjs = [adjs]
