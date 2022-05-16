@@ -46,7 +46,7 @@ def main():
     model = net(data, kernel='directional_derivative', gauge='global', **par)
     model.train_model(data)
     emb = model.eval_model(data)
-    clusters = utils.cluster(emb, n_clusters=n_clusters)
+    emb, clusters = utils.cluster(emb, n_clusters=n_clusters)
     
     #plot
     titles=['Linear','Point source','Point vortex','Saddle']

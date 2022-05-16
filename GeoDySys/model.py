@@ -6,15 +6,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from datetime import datetime
-from .dataloader import NeighborSampler
 from .layers import AnisoConv
 from torch_geometric.nn import MLP
 from .kernels import aggr_directional_derivative
+from .dataloader import loaders
 import yaml
 import os
 import numpy as np
 
-"""Main network architecture"""
+"""Main network"""
 class net(nn.Module):
     def __init__(self, data, kernel='directional_derivative', gauge='global', **kwargs):
         super(net, self).__init__()
@@ -23,6 +23,9 @@ class net(nn.Module):
         file = os.path.dirname(__file__) + '/default_params.yaml'
         par = yaml.load(open(file,'rb'), Loader=yaml.FullLoader)
         self.par = {**par,**kwargs}
+        
+        if np.isscalar(self.par['n_neighbours']):
+            self.par['n_neighbours'] = [self.par['n_neighbours'] for i in range(self.par['n_conv_layers'])]
         
         if kernel == 'directional_derivative':
             self.kernel = aggr_directional_derivative(data, gauge)
@@ -108,35 +111,13 @@ class net(nn.Module):
         
         writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self = self.to(device)
-        
-        if np.isscalar(self.par['n_neighbours']):
-            n_neighbours = [self.par['n_neighbours'] for i in range(self.par['n_conv_layers'])]
-        
-        train_loader = NeighborSampler(data.edge_index,
-                                 sizes=n_neighbours,
-                                 batch_size=self.par['batch_size'],
-                                 shuffle=True,
-                                 num_nodes=data.num_nodes,
-                                 node_idx=data.train_mask)
-        
-        val_loader = NeighborSampler(data.edge_index,
-                                 sizes=n_neighbours,
-                                 batch_size=self.par['batch_size'],
-                                 shuffle=False,
-                                 num_nodes=data.num_nodes,
-                                 node_idx=data.test_mask)
-        
-        test_loader = NeighborSampler(data.edge_index,
-                                 sizes=n_neighbours,
-                                 batch_size=self.par['batch_size'],
-                                 shuffle=False,
-                                 num_nodes=data.num_nodes,
-                                 node_idx=data.test_mask)
-        
+        train_loader, val_loader, test_loader = loaders(data, 
+                                                        self.par['n_neighbours'], 
+                                                        self.par['batch_size'])       
         optimizer = torch.optim.Adam(self.parameters(), lr=self.par['lr'])
-
+        self = self.to(device)
         x = data.x.to(device)
+        
         for epoch in range(1, self.par['epochs']): #loop over epochs
             
             self.train() #switch to training mode
@@ -173,14 +154,11 @@ class net(nn.Module):
         
         test_loss /= data.num_nodes
             
-        print('Final error: {:.4f}'.format(test_loss))
+        print('Final test error: {:.4f}'.format(test_loss))
     
 
 def loss_comp(out):
-    """
-    Unsupervised loss from Hamilton et al. 2018, using negative sampling.
-
-    """
+    """Unsupervised loss from Hamilton et al. 2018."""
     out, pos_out, neg_out = out.split(out.size(0) // 3, dim=0)
     pos_loss = F.logsigmoid((out * pos_out).sum(-1)).mean()
     neg_loss = F.logsigmoid(-(out * neg_out).sum(-1)).mean()

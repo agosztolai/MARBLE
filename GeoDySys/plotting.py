@@ -332,31 +332,20 @@ def graph(
     
 
 def embedding(emb, clusters, node_colors=None, titles=None):
-    from sklearn.manifold import TSNE
         
     fig, ax = plt.subplots()
     
     colors = [f"C{i}" for i in np.arange(1, node_colors.max()+1)]
     cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, node_colors.max()+2), colors)
-
-    emb = emb.detach().numpy()
-    n_emb = emb.shape[0]
-    emb = np.vstack([emb, clusters['centroids']])
-    
-    if emb.shape[1]>2:
-        print('Performed t-SNE embedding on embedded results.')
-        emb = TSNE(init='random',learning_rate='auto').fit_transform(emb)
         
-    x, y = emb[:n_emb,0], emb[:n_emb,1]
-        
-    scatter = ax.scatter(x, y, c=node_colors, alpha=0.3, cmap=cmap, norm=norm)
-    vor = Voronoi(emb[n_emb:,:]) 
+    scatter = ax.scatter(emb[:,0], emb[:,1], c=node_colors, alpha=0.3, cmap=cmap, norm=norm)
+    vor = Voronoi(clusters['centroids']) 
     voronoi_plot_2d(vor, ax=ax, show_vertices=False) 
     handles,_ = scatter.legend_elements()
     
     #annotate clusters
     for k in range(clusters['n_clusters']):
-        ax.annotate(k+1,emb[n_emb:][k,:])
+        ax.annotate(k+1,clusters['centroids'][k,:])
     
     #add legend
     if titles is not None:

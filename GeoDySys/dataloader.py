@@ -12,6 +12,32 @@ from torch_geometric.data import Data, Batch
 from GeoDySys.utils import fit_knn_graph
 
 
+def loaders(data, n_neighbours, batch_size):
+    
+    train_loader = NeighborSampler(data.edge_index,
+                             sizes=n_neighbours,
+                             batch_size=batch_size,
+                             shuffle=True,
+                             num_nodes=data.num_nodes,
+                             node_idx=data.train_mask)
+    
+    val_loader = NeighborSampler(data.edge_index,
+                             sizes=n_neighbours,
+                             batch_size=batch_size,
+                             shuffle=False,
+                             num_nodes=data.num_nodes,
+                             node_idx=data.test_mask)
+    
+    test_loader = NeighborSampler(data.edge_index,
+                             sizes=n_neighbours,
+                             batch_size=batch_size,
+                             shuffle=False,
+                             num_nodes=data.num_nodes,
+                             node_idx=data.test_mask)
+    
+    return train_loader, val_loader, test_loader
+
+
 def construct_dataset(x, y, graph_type='knn', k=10):
         
     data_list = []
