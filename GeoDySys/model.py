@@ -113,7 +113,7 @@ class net(nn.Module):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         train_loader, val_loader, test_loader = loaders(data, 
                                                         self.par['n_neighbours'], 
-                                                        self.par['batch_size'])       
+                                                        self.par['batch_size'])
         optimizer = torch.optim.Adam(self.parameters(), lr=self.par['lr'])
         self = self.to(device)
         x = data.x.to(device)
@@ -128,32 +128,25 @@ class net(nn.Module):
                 loss = loss_comp(out)
                 loss.backward() #backprop
                 optimizer.step()
-
-                train_loss += float(loss) * out.size(0)
-                
-            train_loss /= data.num_nodes
-                
+                train_loss += float(loss)
+                                
             self.eval() #switch to testing mode (this disables dropout in MLP)
             val_loss = 0
             for _, n_id, adjs in val_loader: #loop over batches                
                 out = self.batch_eval_model(x, adjs, n_id, device)
-                loss = loss_comp(out)
-                val_loss += float(loss) * out.size(0)
-            
-            val_loss /= data.num_nodes
+                val_loss += float(loss_comp(out))  
+            val_loss /= (sum(data.val_mask)/sum(data.train_mask))
             
             writer.add_scalar('Loss/train', train_loss, epoch)
-            writer.add_scalar('Loss/test', val_loss, epoch)
-            print("Epoch: {},  Training loss: {:.4f}, Validation loss: {:.4f}".format(epoch, train_loss, val_loss))
+            writer.add_scalar('Loss/validation', val_loss, epoch)
+            print("Epoch: {},  Training loss: {:.4f}, Validation loss: {:.4f}"\
+                  .format(epoch, train_loss, val_loss))
         
         test_loss = 0
         for _, n_id, adjs in test_loader: #loop over batches                
             out = self.batch_eval_model(x, adjs, n_id, device)
-            loss = loss_comp(out)
-            test_loss += float(loss) * out.size(0)
-        
-        test_loss /= data.num_nodes
-            
+            test_loss += float(loss_comp(out))
+        test_loss /= (sum(data.test_mask)/sum(data.train_mask))
         print('Final test error: {:.4f}'.format(test_loss))
     
 
@@ -162,6 +155,5 @@ def loss_comp(out):
     out, pos_out, neg_out = out.split(out.size(0) // 3, dim=0)
     pos_loss = F.logsigmoid((out * pos_out).sum(-1)).mean()
     neg_loss = F.logsigmoid(-(out * neg_out).sum(-1)).mean()
-    loss = (-pos_loss - neg_loss)/out.shape[0]
     
-    return loss
+    return -pos_loss - neg_loss
