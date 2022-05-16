@@ -19,13 +19,12 @@ def main():
     k = 30
     n_clusters = 20
     
-    par = {'batch_size': 400, #batch size, this should be as large as possible
-           'epochs': 30, #optimisation epochs
+    par = {'batch_size': 500, #batch size, this should be as large as possible
+           'epochs': 40, #optimisation epochs
            'n_conv_layers': 1, #number of hops in neighbourhood
            'n_lin_layers': 2,
            'hidden_channels': 8, #number of internal dimensions in MLP
-           'out_channels':4,
-           'n_neighbours': k, #parameter of neighbourhood sampling
+           'out_channels':3,
            'adj_norm': True,
            }
       
@@ -44,7 +43,7 @@ def main():
     #train model
     model = net(data, kernel='directional_derivative', gauge='global', **par)
     model.train_model(data)
-    emb = model.eval_model(data)
+    emb = model.evaluate(data)
     emb, clusters = utils.cluster(emb, n_clusters=n_clusters)
     
     #plot

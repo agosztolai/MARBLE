@@ -25,12 +25,11 @@ def main():
            'n_lin_layers': 3,
            'hidden_channels': 32, #number of internal dimensions in MLP
            'out_channels': 8,
-           'n_neighbours': k, #parameter of neighbourhood sampling
            'dropout': 0., #dropout in MLP
            }
       
     #evaluate functions
-    # f0: linear, f1: point source, f2: point vortex, f3: doublet
+    # f0: linear, f1: point source, f2: point vortex, f3: saddle
     x0 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2))
     x1 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2))
     x2 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2)) 
@@ -45,7 +44,7 @@ def main():
     #train model
     model = net(data, kernel='directional_derivative', gauge='global', **par)
     model.train_model(data)
-    emb = model.eval_model(data)
+    emb = model.evaluate(data)
     emb, clusters = utils.cluster(emb, n_clusters=n_clusters)
     
     #plot

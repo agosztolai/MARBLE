@@ -26,8 +26,7 @@ class AnisoConv(MessagePassing):
             out = []
             #evaluate all directional kernels and concatenate results columnwise
             for K_ in K:
-                K_ = K_.t()
-                K_ = self.adjacency_matrix(edge_index, size, value=K_) 
+                K_ = self.adjacency_matrix(edge_index, size, value=K_.t())
                 out.append(self.propagate(K_.t(), x=x))
             out = torch.cat(out, axis=1)
             

@@ -12,7 +12,6 @@ from .kernels import aggr_directional_derivative
 from .dataloader import loaders
 import yaml
 import os
-import numpy as np
 
 """Main network"""
 class net(nn.Module):
@@ -24,39 +23,40 @@ class net(nn.Module):
         par = yaml.load(open(file,'rb'), Loader=yaml.FullLoader)
         self.par = {**par,**kwargs}
         
-        if np.isscalar(self.par['n_neighbours']):
-            self.par['n_neighbours'] = [self.par['n_neighbours'] for i in range(self.par['n_conv_layers'])]
+        #how many neighbours to sample when computing the loss function
+        ncl = self.par['n_conv_layers']
+        self.par['n_neighb'] = [self.par['n_neighb'] for i in range(ncl)]
         
+        #channel numbers in consecutive MLP layers
+        nx = data.x.shape[1]
         if kernel == 'directional_derivative':
             self.kernel = aggr_directional_derivative(data, gauge)
-            ch = [len(self.kernel)*data.x.shape[1]]
-            for i in range(self.par['n_conv_layers']-1):
-                ch.append(ch[-1]*len(self.kernel))
+            nk = len(self.kernel)
+            ch = [(nx*(nk**(i+1)*2**i), nx*nk**(i+1)*2**(i+1)) \
+                  for i in range(ncl)]
         else: #isotropic convolutions (vanilla GCN)
             self.kernel = None
-            ch = [data.x.shape[1]]
-            for i in range(self.par['n_conv_layers']-1):
-                ch.append(ch[-1])
+            ch = [(nx, nx) for i in range(ncl)]
         
         #initialise conv layers
         self.convs = nn.ModuleList() #could use nn.Sequential because we execute in order
-        for i in range(self.par['n_conv_layers']):
+        for i in range(ncl):
             self.convs.append(AnisoConv(adj_norm=self.par['adj_norm']))
         
         #initialise multilayer perceptrons
         self.MLPs = nn.ModuleList()
-        for i in range(self.par['n_conv_layers']-1):
-            self.MLPs.append(MLP(channel_list=[ch[i], ch[i]],
+        for i in range(ncl-1):
+            self.MLPs.append(MLP(channel_list=[ch[i][0], ch[i][1]],
                                  dropout=self.par['dropout'],
                                  batch_norm=self.par['b_norm'],
-                                 bias=True))
-        self.MLPs.append(MLP(in_channels=ch[-1],
+                                 bias=self.par['bias']))
+        self.MLPs.append(MLP(in_channels=ch[-1][0],
                              hidden_channels=self.par['hidden_channels'], 
                              out_channels=self.par['out_channels'],
                              num_layers=self.par['n_lin_layers'],
                              dropout=self.par['dropout'],
                              batch_norm=self.par['b_norm'],
-                             bias=True))
+                             bias=self.par['bias']))
         
         #initialise vector normalisation
         self.vec_norm = lambda out: F.normalize(out, p=2., dim=-1)
@@ -76,7 +76,7 @@ class net(nn.Module):
                                               
         return x
     
-    def eval_model(self, data, test=False):
+    def evaluate(self, data, test=False):
         """Evaluate network"""
         x, edge_index = data.x, data.edge_index
             
@@ -89,7 +89,7 @@ class net(nn.Module):
 
         return x
     
-    def batch_eval_model(self, x, adjs, n_id, device):
+    def batch_evaluate(self, x, adjs, n_id, device):
         """Evaluate network in batches"""
         # `adjs` holds a list of `(edge_index, e_id, size)` tuples.
         if not isinstance(adjs, list):
@@ -102,9 +102,7 @@ class net(nn.Module):
         else:
             K = None
         
-        x = self(x[n_id], adjs, K)
-        
-        return x
+        return self(x[n_id], adjs, K)
     
     def train_model(self, data):
         """Network training"""
@@ -112,7 +110,7 @@ class net(nn.Module):
         writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         train_loader, val_loader, test_loader = loaders(data, 
-                                                        self.par['n_neighbours'], 
+                                                        self.par['n_neighb'], 
                                                         self.par['batch_size'])
         optimizer = torch.optim.Adam(self.parameters(), lr=self.par['lr'])
         self = self.to(device)
@@ -124,7 +122,7 @@ class net(nn.Module):
             train_loss = 0
             for _, n_id, adjs in train_loader: #loop over batches
                 optimizer.zero_grad() #zero gradients, otherwise accumulates gradients
-                out = self.batch_eval_model(x, adjs, n_id, device)
+                out = self.batch_evaluate(x, adjs, n_id, device)
                 loss = loss_comp(out)
                 loss.backward() #backprop
                 optimizer.step()
@@ -133,7 +131,7 @@ class net(nn.Module):
             self.eval() #switch to testing mode (this disables dropout in MLP)
             val_loss = 0
             for _, n_id, adjs in val_loader: #loop over batches                
-                out = self.batch_eval_model(x, adjs, n_id, device)
+                out = self.batch_evaluate(x, adjs, n_id, device)
                 val_loss += float(loss_comp(out))  
             val_loss /= (sum(data.val_mask)/sum(data.train_mask))
             
@@ -144,7 +142,7 @@ class net(nn.Module):
         
         test_loss = 0
         for _, n_id, adjs in test_loader: #loop over batches                
-            out = self.batch_eval_model(x, adjs, n_id, device)
+            out = self.batch_evaluate(x, adjs, n_id, device)
             test_loss += float(loss_comp(out))
         test_loss /= (sum(data.test_mask)/sum(data.train_mask))
         print('Final test error: {:.4f}'.format(test_loss))
