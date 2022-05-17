@@ -63,7 +63,7 @@ def aggr_directional_derivative(data, gauge):
     ----------
     data : pytorch geometric data object containing .pos and .edge_index
     gauge : list
-        Unit vectors of local coordinate system.
+        Unit vectors of Euclidean coordinate system.
 
     Returns
     -------
@@ -76,7 +76,7 @@ def aggr_directional_derivative(data, gauge):
 
     K = []
     for _F in F:
-        Fhat = normalize(_F, dim=-1, p=2)
+        Fhat = normalize(_F, dim=-1, p=1)
         K.append(Fhat - torch.diag(torch.sum(Fhat, dim=1)))
     
     return K
