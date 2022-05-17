@@ -19,12 +19,13 @@ def main():
     k = 30
     n_clusters = 20
     
-    par = {'batch_size': 256, #batch size, this should be as large as possible
+    par = {'batch_size': 500, #batch size, this should be as large as possible
            'epochs': 40, #optimisation epochs
            'n_conv_layers': 1, #number of hops in neighbourhood
            'n_lin_layers': 2,
-           'hidden_channels': 16, #number of internal dimensions in MLP
-           'out_channels': 4,
+           'hidden_channels': 8, #number of internal dimensions in MLP
+           'out_channels': 3,
+           'adj_norm': True,
            }
       
     #evaluate functions
@@ -37,7 +38,7 @@ def main():
     y = [f0(x0), f1(x1), f2(x2), f3(x3)] #evaluated functions
         
     #construct PyG data object
-    data = utils.construct_dataset(x, y, graph_type='knn', k=k)
+    data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
     
     #train model
     model = net(data, kernel='directional_derivative', gauge='global', **par)

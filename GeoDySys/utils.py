@@ -11,7 +11,6 @@ from torch_geometric.data import Data, Batch
 from torch_sparse import SparseTensor
 
 from cknn import cknneighbors_graph
-
 from sklearn.cluster import KMeans
 from sklearn.metrics import pairwise_distances
 from sklearn.manifold import TSNE
@@ -27,32 +26,13 @@ def adjacency_matrix(edge_index, size, value=None):
     
     return adj
 
-
-def fit_knn_graph(X, graph_type='cknn', p=1):
-    
-    ckng = cknneighbors_graph(X, n_neighbors=p, delta=1.0)
-    
-    if graph_type=='cknn':
-        edge_index = torch.tensor(list(nx.Graph(ckng).edges), dtype=torch.int64).T
-    elif graph_type=='knn':
-        edge_index = knn_graph(X, k=p)
-    elif graph_type=='radius':
-        edge_index = radius_graph(X, r=p)
-    else:
-        NotImplementedError
-    
-    edge_index = to_undirected(edge_index)
-    
-    return edge_index
-
-
 def construct_dataset(x, y, graph_type='cknn', k=10):
         
     data_list = []
     for i, y_ in enumerate(y):
         #fit knn before adding function as node attribute
         x_ = torch.tensor(x[i], dtype=torch.float)
-        edge_index = fit_knn_graph(x_, graph_type=graph_type, p=k)
+        edge_index = fit_knn_graph(x_, graph_type=graph_type, par=k)
         data_ = Data(x=x_, edge_index=edge_index)
         data_.pos = torch.tensor(x[i])
             
@@ -72,6 +52,24 @@ def construct_dataset(x, y, graph_type='cknn', k=10):
     split(batch)
     
     return batch
+
+
+def fit_knn_graph(X, graph_type='cknn', par=1):
+    
+    ckng = cknneighbors_graph(X, n_neighbors=par, delta=1.0)
+    
+    if graph_type=='cknn':
+        edge_index = torch.tensor(list(nx.Graph(ckng).edges), dtype=torch.int64).T
+    elif graph_type=='knn':
+        edge_index = knn_graph(X, k=par)
+    elif graph_type=='radius':
+        edge_index = radius_graph(X, r=par)
+    else:
+        NotImplementedError
+    
+    edge_index = to_undirected(edge_index)
+    
+    return edge_index
 
 
 def cluster(emb, typ='knn', n_clusters=15, reorder=True, tsne_embed=True, seed=0):

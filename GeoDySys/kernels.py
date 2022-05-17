@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import torch
+from torch.nn.functional import normalize
 from torch_geometric.utils.convert import to_scipy_sparse_matrix
 import scipy.sparse as scp
-import torch.nn.functional as func
 
 
 def project_gauge_to_neighbours(data, gauge='global'):
@@ -36,6 +36,7 @@ def project_gauge_to_neighbours(data, gauge='global'):
     mask = mask[:,:,None].repeat(1,1,2)
     
     n = data.pos.shape[0]
+    
     u = data.pos.repeat(n,1,1)
     u = u - torch.swapaxes(u,0,1) #uij = xj - xi 
     u[~mask] = 0
@@ -66,8 +67,8 @@ def aggr_directional_derivative(data, gauge):
 
     Returns
     -------
-    Bdx : list[torch tensor]
-        Anisotropic kernels in gauge coordinate directions.
+    K : list[torch tensor]
+        Anisotropic kernel.
 
     """
     
@@ -75,7 +76,7 @@ def aggr_directional_derivative(data, gauge):
 
     K = []
     for _F in F:
-        _F = func.normalize(_F,p=2,dim=-1, eps=1e-8)
-        K.append(_F - torch.diag(torch.sum(_F, dim=1)))
+        Fhat = normalize(_F, dim=-1, p=2)
+        K.append(Fhat - torch.diag(torch.sum(Fhat, dim=1)))
     
     return K

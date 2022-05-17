@@ -49,7 +49,7 @@ class net(nn.Module):
         #initialise multilayer perceptrons
         self.MLPs = nn.ModuleList()
         for i in range(ncl-1):
-            self.MLPs.append(MLP(channel_list=[ch[i][0], 8, ch[i][1]],
+            self.MLPs.append(MLP(channel_list=[ch[i][0], ch[i][1]],
                                  dropout=self.par['dropout'],
                                  batch_norm=self.par['b_norm'],
                                  bias=self.par['bias']))
@@ -94,12 +94,12 @@ class net(nn.Module):
     
     def batch_evaluate(self, x, adjs, n_id, device):
         """Evaluate network in batches"""
-        #adjs is a list of (edge_index, e_id, size) tuples.
-        #n_id nodes in current batch
+        # `adjs` holds a list of `(edge_index, e_id, size)` tuples.
         if not isinstance(adjs, list):
             adjs = [adjs]
         adjs = [adj.to(device) for adj in adjs]
             
+        #take submatrix corresponding to current batch
         if self.kernel is not None:
             K = [K_[n_id,:][:,n_id] for K_ in self.kernel]
         else:
