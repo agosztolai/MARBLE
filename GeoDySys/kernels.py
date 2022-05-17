@@ -4,6 +4,7 @@
 import torch
 from torch_geometric.utils.convert import to_scipy_sparse_matrix
 import scipy.sparse as scp
+import torch.nn.functional as func
 
 
 def project_gauge_to_neighbours(data, gauge='global'):
@@ -35,7 +36,6 @@ def project_gauge_to_neighbours(data, gauge='global'):
     mask = mask[:,:,None].repeat(1,1,2)
     
     n = data.pos.shape[0]
-    
     u = data.pos.repeat(n,1,1)
     u = u - torch.swapaxes(u,0,1) #uij = xj - xi 
     u[~mask] = 0
@@ -53,7 +53,7 @@ def project_gauge_to_neighbours(data, gauge='global'):
     return F
 
 
-def aggr_directional_derivative(data, gauge, eps=1e-8):
+def aggr_directional_derivative(data, gauge):
     """
     This function implements the directional derivative kernel 
     from Beaini et al. 2021.
@@ -62,22 +62,20 @@ def aggr_directional_derivative(data, gauge, eps=1e-8):
     ----------
     data : pytorch geometric data object containing .pos and .edge_index
     gauge : list
-        Unit vectors of Euclidean coordinate system.
-    eps : float, optional
-        Small value to avoid numerical blow-ups. The default is 1e-8.
+        Unit vectors of local coordinate system.
 
     Returns
     -------
     Bdx : list[torch tensor]
-        Anisotropic kernel.
+        Anisotropic kernels in gauge coordinate directions.
 
     """
     
     F = project_gauge_to_neighbours(data, gauge)
 
-    Bdx = []
-    for F_ in F:
-        Fhat = F_ / (torch.sum(torch.abs(F_), keepdim=True, dim=1) + eps)
-        Bdx.append(Fhat - torch.diag(torch.sum(Fhat, dim=1)))
+    K = []
+    for _F in F:
+        _F = func.normalize(_F,p=2,dim=-1, eps=1e-8)
+        K.append(_F - torch.diag(torch.sum(_F, dim=1)))
     
-    return Bdx
+    return K

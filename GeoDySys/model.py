@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import yaml
+import os
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch_sparse import matmul
+from torch_geometric.nn import MLP
+
 from tensorboardX import SummaryWriter
 from datetime import datetime
+
 from .layers import AnisoConv
-from torch_geometric.nn import MLP
 from .kernels import aggr_directional_derivative
 from .dataloader import loaders
-import yaml
-import os
 
 """Main network"""
 class net(nn.Module):
@@ -46,7 +49,7 @@ class net(nn.Module):
         #initialise multilayer perceptrons
         self.MLPs = nn.ModuleList()
         for i in range(ncl-1):
-            self.MLPs.append(MLP(channel_list=[ch[i][0], ch[i][1]],
+            self.MLPs.append(MLP(channel_list=[ch[i][0], 8, ch[i][1]],
                                  dropout=self.par['dropout'],
                                  batch_norm=self.par['b_norm'],
                                  bias=self.par['bias']))
@@ -76,7 +79,7 @@ class net(nn.Module):
                                               
         return x
     
-    def evaluate(self, data, test=False):
+    def evaluate(self, data):
         """Evaluate network"""
         x, edge_index = data.x, data.edge_index
             
@@ -91,12 +94,12 @@ class net(nn.Module):
     
     def batch_evaluate(self, x, adjs, n_id, device):
         """Evaluate network in batches"""
-        # `adjs` holds a list of `(edge_index, e_id, size)` tuples.
+        #adjs is a list of (edge_index, e_id, size) tuples.
+        #n_id nodes in current batch
         if not isinstance(adjs, list):
             adjs = [adjs]
         adjs = [adj.to(device) for adj in adjs]
             
-        #take submatrix corresponding to current batch
         if self.kernel is not None:
             K = [K_[n_id,:][:,n_id] for K_ in self.kernel]
         else:

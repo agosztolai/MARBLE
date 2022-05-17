@@ -3,11 +3,12 @@
 
 import torch
 from torch import Tensor
-from torch_sparse import matmul, SparseTensor
+from torch_sparse import matmul
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.typing import OptPairTensor
+from .utils import adjacency_matrix
 
-"""Convolution"""
+"""Anisotropic convolution"""
 class AnisoConv(MessagePassing):    
     def __init__(self, 
                  adj_norm=False, 
@@ -26,7 +27,7 @@ class AnisoConv(MessagePassing):
             out = []
             #evaluate all directional kernels and concatenate results columnwise
             for K_ in K:
-                K_ = self.adjacency_matrix(edge_index, size, value=K_.t())
+                K_ = adjacency_matrix(edge_index, size, value=K_.t())
                 out.append(self.propagate(K_.t(), x=x))
             out = torch.cat(out, axis=1)
             
@@ -34,30 +35,12 @@ class AnisoConv(MessagePassing):
             out = self.propagate(edge_index, x=x)
         
         if self.adj_norm: #normalize features by the mean of neighbours
-            adj = self.adjacency_matrix(edge_index, size)
-            out = self.adj_norm_(x[0], out, adj.t())
-
-        out += x[1].repeat([1,out.shape[1]//x[1].shape[1]]) #add back root nodes
+            adj = adjacency_matrix(edge_index, size)
+            out = adj_norm(x[0], out, adj.t())
+            
+        # out += x[1].repeat([1,out.shape[1]//x[1].shape[1]]) #add back root nodes
             
         return out
-    
-    def adj_norm_(self, x, out, adj_t):
-        """Normalize features by mean of neighbours"""
-        ones = torch.ones_like(x)
-        norm_x = matmul(adj_t, x) / matmul(adj_t, ones)
-        out -= norm_x.repeat([1,out.shape[1]//x.shape[1]])
-        
-        return out
-    
-    def adjacency_matrix(self, edge_index, size, value=None):
-        """Compute adjacency matrix from edge_index"""
-        if value is not None:
-            value=value[edge_index[0], edge_index[1]]
-        adj = SparseTensor(row=edge_index[0], col=edge_index[1], 
-                           value=value,
-                           sparse_sizes=(size[0], size[1]))
-        
-        return adj
 
     def message_and_aggregate(self, K_t, x):
         """Anisotropic convolution step. Need to be transposed because of PyG 
@@ -68,3 +51,15 @@ class AnisoConv(MessagePassing):
         """Convolution step. This is executed if input to propagate() is 
         an edge list tensor"""
         return x_j if edge_weight is None else edge_weight.view(-1, 1) * x_j
+    
+    
+def adj_norm(x, out, adj_t):
+    """Normalize features by mean of neighbours"""
+    
+    ones = torch.ones([x.shape[0],1])
+    x = x.norm(dim=-1,p=2, keepdim=True)
+    mu_x = matmul(adj_t, x) / matmul(adj_t, ones)
+    out /= mu_x #repeat([1,out.shape[1]//x.shape[1]])
+    out[torch.isnan(out)]=0
+    
+    return out

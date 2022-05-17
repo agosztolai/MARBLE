@@ -4,29 +4,74 @@ import torch
 import networkx as nx
 import numpy as np
 
-from torch_geometric.nn import knn_graph
+from torch_geometric.nn import knn_graph, radius_graph
 from torch_geometric.utils import to_undirected
+from torch_geometric.transforms import RandomNodeSplit
+from torch_geometric.data import Data, Batch
+from torch_sparse import SparseTensor
 
 from cknn import cknneighbors_graph
+
 from sklearn.cluster import KMeans
 from sklearn.metrics import pairwise_distances
 from sklearn.manifold import TSNE
 
 
-def fit_knn_graph(X, k=10, graph_type='cknn'):
+def adjacency_matrix(edge_index, size, value=None):
+    """Compute adjacency matrix from edge_index"""
+    if value is not None:
+        value=value[edge_index[0], edge_index[1]]
+    adj = SparseTensor(row=edge_index[0], col=edge_index[1], 
+                       value=value,
+                       sparse_sizes=(size[0], size[1]))
     
-    ckng = cknneighbors_graph(X, n_neighbors=k, delta=1.0)
+    return adj
+
+
+def fit_knn_graph(X, graph_type='cknn', p=1):
+    
+    ckng = cknneighbors_graph(X, n_neighbors=p, delta=1.0)
     
     if graph_type=='cknn':
         edge_index = torch.tensor(list(nx.Graph(ckng).edges), dtype=torch.int64).T
     elif graph_type=='knn':
-        edge_index = knn_graph(X, k=k)
+        edge_index = knn_graph(X, k=p)
+    elif graph_type=='radius':
+        edge_index = radius_graph(X, r=p)
     else:
         NotImplementedError
     
     edge_index = to_undirected(edge_index)
     
     return edge_index
+
+
+def construct_dataset(x, y, graph_type='cknn', k=10):
+        
+    data_list = []
+    for i, y_ in enumerate(y):
+        #fit knn before adding function as node attribute
+        x_ = torch.tensor(x[i], dtype=torch.float)
+        edge_index = fit_knn_graph(x_, graph_type=graph_type, p=k)
+        data_ = Data(x=x_, edge_index=edge_index)
+        data_.pos = torch.tensor(x[i])
+            
+        #build pytorch geometric object
+        data_.x = y_ #only function value as feature
+        data_.num_nodes = len(x[i])
+        data_.num_node_features = data_.x.shape[1]
+        data_.y = torch.ones(data_.num_nodes, dtype=int)*i
+        
+        data_list.append(data_)
+        
+    #collate datasets
+    batch = Batch.from_data_list(data_list)
+    
+    #split into training/validation/test datasets
+    split = RandomNodeSplit(split='train_rest', num_val=0.1, num_test=0.1)
+    split(batch)
+    
+    return batch
 
 
 def cluster(emb, typ='knn', n_clusters=15, reorder=True, tsne_embed=True, seed=0):
