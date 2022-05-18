@@ -7,6 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch_geometric.nn import MLP
+from torch_geometric.nn.dense.linear import Linear
 
 from tensorboardX import SummaryWriter
 from datetime import datetime
@@ -17,13 +18,20 @@ from .dataloader import loaders
 
 """Main network"""
 class net(nn.Module):
-    def __init__(self, data, kernel='directional_derivative', gauge='global', **kwargs):
+    def __init__(self, 
+                 data, 
+                 kernel='directional_derivative', 
+                 gauge='global', 
+                 root_weight=True,
+                 **kwargs):
         super(net, self).__init__()
         
         #load default parameters
         file = os.path.dirname(__file__) + '/default_params.yaml'
         par = yaml.load(open(file,'rb'), Loader=yaml.FullLoader)
         self.par = {**par,**kwargs}
+        
+        self.root_weight=root_weight
         
         #how many neighbours to sample when computing the loss function
         ncl = self.par['n_conv_layers']
@@ -44,6 +52,9 @@ class net(nn.Module):
         self.convs = nn.ModuleList() #could use nn.Sequential because we execute in order
         for i in range(ncl):
             self.convs.append(AnisoConv(adj_norm=self.par['adj_norm']))
+            
+        if self.root_weight:
+            self.lin_r = Linear(nx, nx*nk, bias=False)
         
         #initialise multilayer perceptrons
         self.MLPs = nn.ModuleList()
@@ -72,6 +83,11 @@ class net(nn.Module):
             x_target = x[:size[1]]
             
             x = self.convs[i]((x_source, x_target), edge_index, K=K) 
+            
+            # if self.root_weight:
+            #     x += self.lin_r(x_target)
+            # x+=x_target
+            
             x = self.MLPs[i](x)
             if self.par['vec_norm']:
                 x = self.vec_norm(x)
@@ -84,12 +100,15 @@ class net(nn.Module):
             
         with torch.no_grad():
             for i in range(self.par['n_conv_layers']):
-                x = self.convs[i](x, edge_index, K=self.kernel)
-                x = self.MLPs[i](x)
+                out = self.convs[i](x, edge_index, K=self.kernel)
+                # if self.root_weight:
+                #     out += self.lin_r(x)
+                # out+= x
+                out = self.MLPs[i](out)
                 if self.par['vec_norm']:
-                    x = self.vec_norm(x)
+                    out = self.vec_norm(out)
 
-        return x
+        return out
     
     def batch_evaluate(self, x, adjs, n_id, device):
         """Evaluate network in batches"""

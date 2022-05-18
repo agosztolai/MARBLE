@@ -19,7 +19,7 @@ def main():
     k = 30
     n_clusters = 15
     
-    par = {'batch_size': 400, #batch size, this should be as large as possible
+    par = {'batch_size': 256, #batch size, this should be as large as possible
            'epochs': 20, #optimisation epochs
            'n_conv_layers': 1, #number of hops in neighbourhood
            'n_lin_layers': 3,

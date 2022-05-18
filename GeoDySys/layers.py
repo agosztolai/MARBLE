@@ -6,7 +6,9 @@ from torch import Tensor
 from torch_sparse import matmul
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.typing import OptPairTensor
+from torch_geometric.utils import add_self_loops
 from .utils import adjacency_matrix
+
 
 """Convolution"""
 class AnisoConv(MessagePassing):    
@@ -33,13 +35,13 @@ class AnisoConv(MessagePassing):
             
         else: #use adjacency matrix (vanilla GCN)
             out = self.propagate(edge_index, x=x)
+            
+        out += x[1].repeat([1,out.shape[1]//x[1].shape[1]]) #add back root nodes
         
         if self.adj_norm: #normalize features by the mean of neighbours
             adj = adjacency_matrix(edge_index, size)
             out = adj_norm(x[0], out, adj.t())
-
-        out += x[1].repeat([1,out.shape[1]//x[1].shape[1]]) #add back root nodes
-            
+  
         return out
 
     def message_and_aggregate(self, K_t, x):
@@ -56,7 +58,7 @@ def adj_norm(x, out, adj_t):
     """Normalize features by mean of neighbours"""
     ones = torch.ones([x.shape[0],1])
     # x = x.norm(dim=-1,p=2, keepdim=True)
-    mu_x = matmul(adj_t, x) / matmul(adj_t, ones)
+    mu_x = (matmul(adj_t, x)+out) / (matmul(adj_t, ones)+1)
     # sigma_x = (matmul(adj_t, x**2) / matmul(adj_t, ones)) - mu_x**2
     out -= mu_x#.repeat([1,out.shape[1]//x.shape[1]])
     # out /= (sigma_x)**(.5)
