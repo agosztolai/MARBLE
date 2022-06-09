@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.neighbors import NearestNeighbors
 from sklearn.neighbors import KDTree
 import numpy.ma as ma
-from GeoDySys.utils import parallel_proc
+from .utils import parallel_proc
 
 
 def delay_embed(x, k, tau=1, typ='asy'):
@@ -139,9 +139,9 @@ def find_nn(ind_query, X, nn=1, r=None, theiler=10, n_jobs=2):
     kdt = KDTree(X, leaf_size=30, metric='euclidean')
     
     res = parallel_proc(nb_query, 
-                       range(len(ind_query)), 
-                       [kdt, X, ind_query, r, nn, theiler], 
-                       desc="Computing neighbours...")
+                        range(len(ind_query)), 
+                        [kdt, X, ind_query, r, nn, theiler], 
+                        desc="Computing neighbours...")
     
     dist, ind = zip(*res)
     

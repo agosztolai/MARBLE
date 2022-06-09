@@ -22,6 +22,7 @@ class AnisoConv(MessagePassing):
         self.adj_norm = adj_norm
         self.root_weight = root_weight
         
+        #uf root_weight=True then eps is a trainable parameter
         if root_weight:
             self.eps = torch.nn.Parameter(torch.Tensor([eps]))
         else:
@@ -30,13 +31,14 @@ class AnisoConv(MessagePassing):
         self.reset_parameters(eps)
 
     def reset_parameters(self, eps):
-        # eps = 1+eps if self.root_weight else eps
         self.eps.data.fill_(eps)
 
     def forward(self, x, edge_index, K=None):
         """Forward pass"""
         if isinstance(x, Tensor):
-            x: OptPairTensor = (x, x)
+            #when there is no minibatching, messages are passed from all source
+            #to all target nodes
+            x: OptPairTensor = (x, x) 
             
         size = (len(x[0]), len(x[1]))
         if K is not None: #anisotropic kernel
@@ -46,7 +48,8 @@ class AnisoConv(MessagePassing):
                 K_ = adjacency_matrix(edge_index, size, value=K_.t())
                 out_ = self.propagate(K_.t(), x=x[0])
                 
-                out_ += self.eps * x[1] #this is zero unless root_weight=True
+                #skip connection
+                out_ += self.eps * x[1] 
                 
                 if self.adj_norm: #adjacency features
                     adj = adjacency_matrix(edge_index, size)
@@ -79,7 +82,5 @@ def adj_norm(x, out, adj_t, K_t, eps):
     K1 = matmul(K_t, ones)
     # sigma_x = (matmul(adj_t, x**2) / matmul(adj_t, ones)) - mu_x**2
     out -= (K1*mu_x)#.repeat([1,out.shape[1]//x.shape[1]])
-    # out /= (sigma_x)**(.5)
-    # out[torch.isnan(out)]=0
     
     return out

@@ -9,7 +9,7 @@ setup(
         "sklearn",
         "matplotlib",
         "networkx",
-        "torch",
+	"torch",
         'cknn @ git+https://github.com/chlorochrule/cknn',
         "tensorboardX",
         "pyyaml",

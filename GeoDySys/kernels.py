@@ -54,7 +54,7 @@ def project_gauge_to_neighbours(data, gauge='global'):
     return F
 
 
-def aggr_directional_derivative(data, gauge):
+def DD(data, gauge):
     """
     This function implements the directional derivative kernel 
     from Beaini et al. 2021.
@@ -79,4 +79,32 @@ def aggr_directional_derivative(data, gauge):
         Fhat = normalize(_F, dim=-1, p=1)
         K.append(Fhat - torch.diag(torch.sum(Fhat, dim=1)))
     
+    return K
+
+
+def DA(data, gauge):
+    """
+    This function implements the directional average kernel 
+    from Beaini et al. 2021.
+
+    Parameters
+    ----------
+    data : pytorch geometric data object containing .pos and .edge_index
+    gauge : list
+        Unit vectors of Euclidean coordinate system.
+
+    Returns
+    -------
+    K : list[torch tensor]
+        Anisotropic kernel.
+
+    """
+    
+    F = project_gauge_to_neighbours(data, gauge)
+
+    K = []
+    for _F in F:
+        Fhat = normalize(_F, dim=-1, p=1)
+        K.append(Fhat)
+        
     return K

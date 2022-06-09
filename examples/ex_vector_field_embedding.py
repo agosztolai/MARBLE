@@ -5,30 +5,29 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import sys
-from torch_geometric import seed
 from GeoDySys import plotting, utils
 from GeoDySys.model import net
 
 
 def main():
     
-    seed.seed_everything(1)
     
     #parameters
-    n = 1000
+    n = 512
     k = 30
-    n_clusters = 15
+    n_clusters = 10
     
     par = {'batch_size': 256, #batch size, this should be as large as possible
-           'epochs': 20, #optimisation epochs
+           'epochs': 40, #optimisation epochs
            'n_conv_layers': 1, #number of hops in neighbourhood
-           'n_lin_layers': 3,
-           'hidden_channels': 32, #number of internal dimensions in MLP
+           'n_lin_layers': 2,
+           'hidden_channels': 16, #number of internal dimensions in MLP
            'out_channels': 8,
            }
       
     #evaluate functions
     # f0: linear, f1: point source, f2: point vortex, f3: saddle
+    np.random.seed(1)
     x0 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2))
     x1 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2))
     x2 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2)) 
@@ -41,13 +40,13 @@ def main():
     data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
     
     #train model
-    model = net(data, kernel='directional_derivative', gauge='global', **par)
+    model = net(data, kernel=['DD'], gauge='global', **par)
     model.train_model(data)
     emb = model.evaluate(data)
     emb, clusters = utils.cluster(emb, n_clusters=n_clusters)
     
     #plot
-    titles=['Linear','Point source','Point vortex','Saddle']
+    titles=['Linear left','Linear right','Vortex right','Vortex left']
     plot_functions(data, titles=titles) #sampled functions
     plotting.embedding(emb, clusters, data.y.numpy(), titles=titles) #TSNE embedding 
     plotting.histograms(data, clusters, titles=titles) #histograms
@@ -55,29 +54,48 @@ def main():
     
     
 def f0(x):
-    f = x*0 + 1
+    f = x*0 + np.array([-1,-1])
     return torch.tensor(f).float()
 
 def f1(x):
-    eps = 1e-3
-    norm = np.sqrt(x[:,[0]]**2 + x[:,[1]]**2) + eps
-    u = 2*x[:,[0]]/norm
-    v = 2*x[:,[1]]/norm
-    return torch.tensor(np.hstack([u,v])).float()
+    f = x*0 + np.array([1,1])
+    return torch.tensor(f).float()
+
+# def f2(x):
+#     f = x*0 + np.array([1,0])
+#     return torch.tensor(f).float()
+
+def f3(x):
+    f = x*0 + np.array([0,1])
+    return torch.tensor(f).float()
+
+# def f1(x):
+#     eps = 1e-3
+#     norm = np.sqrt(x[:,[0]]**2 + x[:,[1]]**2) + eps
+#     u = 2*x[:,[0]]/norm
+#     v = 2*x[:,[1]]/norm
+#     return torch.tensor(np.hstack([u,v])).float()
 
 def f2(x):
     eps = 1e-1
-    norm = x[:,[0]]**2 + x[:,[1]]**2 + eps
+    norm = np.sqrt((x[:,[0]]+1)**2 + x[:,[1]]**2 + eps)
     u = x[:,[1]]/norm
-    v = -x[:,[0]]/norm
+    v = -(x[:,[0]]+1)/norm
     return torch.tensor(np.hstack([u,v])).float()
 
 def f3(x):
     eps = 1e-1
-    norm = x[:,[0]]**2 + x[:,[1]]**2 + eps
+    norm = np.sqrt((x[:,[0]]-1)**2 + x[:,[1]]**2 + eps)
     u = x[:,[1]]/norm
-    v = x[:,[0]]/norm
+    v = -(x[:,[0]]-1)/norm
     return torch.tensor(np.hstack([u,v])).float()
+
+# def f3(x):
+#     eps = 1e-1
+#     norm = x[:,[0]]**2 + x[:,[1]]**2 + eps
+#     u = x[:,[1]]/norm
+#     v = x[:,[0]]/norm
+#     return torch.tensor(np.hstack([u,v])).float()
 
 
 def plot_functions(data, titles=None):

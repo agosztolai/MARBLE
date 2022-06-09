@@ -15,6 +15,11 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import pairwise_distances
 from sklearn.manifold import TSNE
 
+import multiprocessing
+from multiprocessing import Pool
+from functools import partial
+from tqdm import tqdm
+
 
 def adjacency_matrix(edge_index, size, value=None):
     """Compute adjacency matrix from edge_index"""
@@ -27,12 +32,18 @@ def adjacency_matrix(edge_index, size, value=None):
     return adj
 
 def construct_dataset(x, y, graph_type='cknn', k=10):
+    """Construct PyG dataset from node positions and features"""
+        
+    if not isinstance(x, list):
+        x = [x]
+    if not isinstance(y, list):
+        y = [y]
         
     data_list = []
     for i, y_ in enumerate(y):
         #fit knn before adding function as node attribute
         x_ = torch.tensor(x[i], dtype=torch.float)
-        edge_index = fit_knn_graph(x_, graph_type=graph_type, par=k)
+        edge_index = fit_graph(x_, graph_type=graph_type, par=k)
         data_ = Data(x=x_, edge_index=edge_index)
         data_.pos = torch.tensor(x[i])
             
@@ -54,7 +65,8 @@ def construct_dataset(x, y, graph_type='cknn', k=10):
     return batch
 
 
-def fit_knn_graph(X, graph_type='cknn', par=1):
+def fit_graph(X, graph_type='cknn', par=1):
+    """Fit graph to node positions"""
     
     ckng = cknneighbors_graph(X, n_neighbors=par, delta=1.0)
     
@@ -72,12 +84,13 @@ def fit_knn_graph(X, graph_type='cknn', par=1):
     return edge_index
 
 
-def cluster(emb, typ='knn', n_clusters=15, reorder=True, tsne_embed=True, seed=0):
+def cluster(emb, typ='kmeans', n_clusters=15, reorder=True, tsne_embed=True, seed=0):
+    """Cluster embedding"""
     
     emb = emb.detach().numpy()
     
     clusters = dict()
-    if typ=='knn':
+    if typ=='kmeans':
         kmeans = KMeans(n_clusters=n_clusters, random_state=seed).fit(emb)
         clusters['n_clusters'] = n_clusters
         clusters['labels'] = kmeans.labels_
@@ -115,3 +128,19 @@ def cluster(emb, typ='knn', n_clusters=15, reorder=True, tsne_embed=True, seed=0
         
         
     return emb, clusters
+
+
+def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
+    """Parallel processing, distribute an iterable function between processes"""
+    if processes==-1:
+        processes = multiprocessing.cpu_count()
+    pool = Pool(processes=processes)
+    fun = partial(fun, inputs)
+    result = list(tqdm(pool.imap(fun, iterable), 
+                            total=len(iterable), 
+                            desc=desc)
+                  )
+    pool.close()
+    pool.join()
+        
+    return result

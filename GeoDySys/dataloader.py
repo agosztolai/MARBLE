@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 import torch
 from torch_cluster import random_walk
 
 from torch_geometric.utils import dropout_adj
-from torch_geometric.loader import NeighborSampler as NeighborLoader
+from torch_geometric.loader import NeighborSampler as NS
+from torch_geometric import seed
 
 
 def loaders(data, n_neighbours, batch_size):
@@ -22,7 +22,7 @@ def loaders(data, n_neighbours, batch_size):
                              batch_size=batch_size,
                              shuffle=False,
                              num_nodes=data.num_nodes,
-                             node_idx=data.test_mask)
+                             node_idx=data.val_mask)
     
     test_loader = NeighborSampler(data.edge_index,
                              sizes=n_neighbours,
@@ -33,8 +33,7 @@ def loaders(data, n_neighbours, batch_size):
     
     return train_loader, val_loader, test_loader
 
-
-class NeighborSampler(NeighborLoader):
+class NeighborSampler(NS):
     def __init__(self,*args,dropout=0.,**kwargs):
         super().__init__(*args,**kwargs)
         self.dropout=dropout
@@ -48,6 +47,8 @@ class NeighborSampler(NeighborLoader):
 
         # For each node in `batch`, we sample a direct neighbor (as positive
         # example) and a random node (as negative example):
+        seed.seed_everything(0)
+        torch.use_deterministic_algorithms(True)
         pos_batch = random_walk(row, col, batch, walk_length=1, coalesced=False)
 
         neg_batch = torch.randint(0, self.adj_t.size(1), (batch.numel(), ),

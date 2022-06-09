@@ -12,38 +12,38 @@ from tensorboardX import SummaryWriter
 from datetime import datetime
 
 from .layers import AnisoConv
-from .kernels import aggr_directional_derivative
+from .kernels import DA, DD
 from .dataloader import loaders
 
 """Main network"""
 class net(nn.Module):
     def __init__(self, 
                  data, 
-                 kernel='directional_derivative', 
+                 kernel=[], 
                  gauge='global', 
                  root_weight=True,
                  **kwargs):
         super(net, self).__init__()
-        
+                
         #load default parameters
         file = os.path.dirname(__file__) + '/default_params.yaml'
         par = yaml.load(open(file,'rb'), Loader=yaml.FullLoader)
         self.par = {**par,**kwargs}
+        ncl = self.par['n_conv_layers']
+        nx = data.x.shape[1]
                 
         #how many neighbours to sample when computing the loss function
-        ncl = self.par['n_conv_layers']
         self.par['n_neighb'] = [self.par['n_neighb'] for i in range(ncl)]
         
-        #channel numbers in consecutive MLP layers
-        nx = data.x.shape[1]
-        if kernel == 'directional_derivative':
-            self.kernel = aggr_directional_derivative(data, gauge)
-            nk = len(self.kernel)
-            ch = [(nx*(nk**(i+1)*2**i), nx*nk**(i+1)*2**(i+1)) \
-                  for i in range(ncl)]
-        else: #isotropic convolutions (vanilla GCN)
+        #kernels
+        self.kernel = []
+        kernel = kernel if isinstance(kernel, list) else [kernel]
+        if 'DD' in kernel:
+            self.kernel += DD(data, gauge)
+        if 'DA' in kernel:
+            self.kernel += DA(data, gauge)
+        if kernel == []: #isotropic convolutions (vanilla GCN)
             self.kernel = None
-            ch = [(nx, nx) for i in range(ncl)]
         
         #initialise conv layers
         self.convs = nn.ModuleList() #could use nn.Sequential because we execute in order
@@ -51,55 +51,59 @@ class net(nn.Module):
             self.convs.append(AnisoConv(adj_norm=self.par['adj_norm']))
         
         #initialise multilayer perceptrons
-        self.MLPs = nn.ModuleList()
-        for i in range(ncl-1):
-            self.MLPs.append(MLP(channel_list=[ch[i][0], ch[i][1]],
-                                 dropout=self.par['dropout'],
-                                 batch_norm=self.par['b_norm'],
-                                 bias=self.par['bias']))
-        self.MLPs.append(MLP(in_channels=ch[-1][0],
-                             hidden_channels=self.par['hidden_channels'], 
-                             out_channels=self.par['out_channels'],
-                             num_layers=self.par['n_lin_layers'],
-                             dropout=self.par['dropout'],
-                             batch_norm=self.par['b_norm'],
-                             bias=self.par['bias']))
+        self.MLP = MLP(in_channels=nx*len(self.kernel)**ncl,
+                       hidden_channels=self.par['hidden_channels'], 
+                       out_channels=self.par['out_channels'],
+                       num_layers=self.par['n_lin_layers'],
+                       dropout=self.par['dropout'],
+                       batch_norm=self.par['b_norm'],
+                       bias=self.par['bias'])
         
         #initialise vector normalisation
         self.vec_norm = lambda out: F.normalize(out, p=2., dim=-1)
         
         self.reset_parameters()
-
+        
     def reset_parameters(self):
-        for mlp in self.MLPs:
-            mlp.reset_parameters()
+        self.MLP.reset_parameters()
         
     def forward(self, x, adjs, K=None):
-        """Forward pass @ training (with minibatches)"""
+        """Forward pass @ training (with minibatches). 
+        Messages are passed to a set target nodes (batch variable in 
+        NeighborSampler) from sources nodes. By convention, the variable x
+        is constructed such that the target nodes are placed first, i.e,
+        x = concat[x_target, x_other]."""
+        out = []
         for i, (edge_index, _, size) in enumerate(adjs): #loop over minibatches
-            #messages are passed from x_source (all nodes) to x_target
-            #by convention of the NeighborSampler
-            x_source = x
-            x_target = x[:size[1]]
+            x_source = x #source of messages (all nodes)
+            x_target = x[:size[1]] #target of messages
+            x = self.convs[i]((x_source, x_target), edge_index, K=K)
+            out.append(x[:adjs[-1].size[1]])
+        
+        out = torch.cat(out, axis=1)
             
-            x = self.convs[i]((x_source, x_target), edge_index, K=K) 
-            x = self.MLPs[i](x)
-            if self.par['vec_norm']:
-                x = self.vec_norm(x)
-                                              
-        return x
+        out = self.MLP(out)
+        if self.par['vec_norm']:
+            out = self.vec_norm(out)
+        
+        return out
     
     def evaluate(self, data):
-        """Evaluate network"""
+        """Forward pass @ evaluation (no minibatches)"""
         x, edge_index = data.x, data.edge_index
             
         with torch.no_grad():
+            out = []
             for i in range(self.par['n_conv_layers']):
-                out = self.convs[i](x, edge_index, K=self.kernel)
-                out = self.MLPs[i](out)
-                if self.par['vec_norm']:
-                    out = self.vec_norm(out)
-
+                x = self.convs[i](x, edge_index, K=self.kernel)
+                out.append(x)
+                
+            out = torch.cat(out, axis=1)
+            
+            out = self.MLP(out)
+            if self.par['vec_norm']:
+                out = self.vec_norm(out)
+        
         return out
     
     def batch_evaluate(self, x, adjs, n_id, device):

@@ -57,7 +57,7 @@ def time_series(T,X, ax=None, style='o', node_feature=None, lw=1, ms=5):
     return ax
 
 
-def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, axis=False, alpha=None):
+def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, arrowhead=1, axis=False, alpha=None):
     """
     Plot trajectory in phase space. If multiple trajectories
     are given, they are plotted with different colors.
@@ -87,32 +87,38 @@ def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, axis=Fals
     if ax is None:
         _, ax = create_axis(dim)
             
-    color = set_colors(node_feature)
+    c = set_colors(node_feature)
     if alpha is not None:
         al=np.ones(len(X))*alpha
-    elif len(color)>1 and not isinstance(color,str):
+    elif len(c)>1 and not isinstance(c,str):
         al=np.abs(node_feature)/np.max(np.abs(node_feature))
     else:
         al=1
                 
     if dim==2:
-        ax.scatter(X[:, 0], X[:, 1], c=color, s=ms, alpha=al)
-        # ax.plot(X_l[:, 0], X_l[:, 1], style, c=c, linewidth=lw, markersize=ms, alpha=al)
-        if style=='-':               
+        if 'o' in style:
+            ax.scatter(X[:, 0], X[:, 1], c=c, s=ms, alpha=al)
+        if '-' in style:
+            ax.plot(X[:, 0], X[:, 1], c=c, linewidth=lw, markersize=ms, alpha=al)
+        if '>' in style:
+            arrow_prop_dict = dict(color=c, alpha=al, lw=lw)
             for j in range(X.shape[0]):
                 if j>0:
                     a = ax.arrow(X[j,0], X[j,1], X[j,0]-X[j-1,0], X[j,1]-X[j-2,1],
-                                 lw=lw, arrowstyle="-|>", color=color, alpha=al)
+                                 **arrow_prop_dict)
                     ax.add_artist(a)
     elif dim==3:
-        ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=color, s=ms, alpha=al)
-        # ax.plot(X_l[:, 0], X_l[:, 1], X_l[:, 2], style, c=c, linewidth=lw, markersize=ms,alpha=al)
-        if style=='-':
+        if 'o' in style:
+            ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=c, s=ms, alpha=al)
+        if '-' in style:
+            ax.plot(X[:, 0], X[:, 1], X[:, 2], c=c, linewidth=lw, markersize=ms,alpha=al)
+        if '>' in style:
+            arrow_prop_dict = dict(mutation_scale=arrowhead, arrowstyle='-|>', color=c, alpha=al, lw=lw)
             for j in range(X.shape[0]):
                 if j>0:
                     a = Arrow3D([X[j-1,0], X[j,0]], [X[j-1,1], X[j,1]], 
-                                [X[j-1,2], X[j,2]], mutation_scale=ms, 
-                                 lw=lw, arrowstyle="-|>", color=color, alpha=al)
+                                [X[j-1,2], X[j,2]], 
+                                 **arrow_prop_dict)
                     ax.add_artist(a)
                 
     if not axis:
@@ -173,7 +179,7 @@ def neighbourhoods(data,
             #convert node values to colors
             if not norm: #set colors based on global values
                 c=set_colors(nv, cbar=False)
-                c=[c[i] for i in node_ids]
+                c=[c[i] for i in node_ids] if isinstance(c,list) else c
             else: #first extract subgraph, then compute normalized colors
                 nv=nv[node_ids]
                 nv-=nv.mean()
@@ -217,6 +223,13 @@ class Arrow3D(FancyArrowPatch):
         xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, self.axes.M)
         self.set_positions((xs[0],ys[0]),(xs[1],ys[1]))
         FancyArrowPatch.draw(self, renderer)
+        
+    def do_3d_projection(self, renderer=None):
+        xs3d, ys3d, zs3d = self._verts3d
+        xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, self.axes.M)
+        self.set_positions((xs[0],ys[0]),(xs[1],ys[1]))
+
+        return np.min(zs)
 
 
 def create_axis(dim):
@@ -254,7 +267,7 @@ def set_axes(ax,data=None, padding=0.1, off=True):
 def set_colors(color, cbar=True):
     
     if color is None:
-        colors = ['C0']
+        colors = 'C0'
     else:
         if isinstance(color, (list, tuple, np.ndarray)):
             cmap = plt.cm.coolwarm

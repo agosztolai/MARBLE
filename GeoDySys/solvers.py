@@ -40,7 +40,7 @@ def simulate_ODE(whichmodel, t, X0, par=None, **noise_pars):
     return X
 
 
-def addnoise(X, noise_type='Gaussian', **noise_pars):
+def addnoise(X, **noise_pars):
     """
     Add noise to trajectories
 
@@ -48,8 +48,6 @@ def addnoise(X, noise_type='Gaussian', **noise_pars):
     ----------
     X : np array
         Trajectories.
-    noise_type : string, optional
-        Type of noise. The default is 'Gaussian'.
     **noise_pars : additional keyword argument to specify noise parameters
 
     Returns
@@ -59,7 +57,7 @@ def addnoise(X, noise_type='Gaussian', **noise_pars):
 
     """
     
-    if noise_type=='Gaussian':
+    if noise_pars['noise']=='Gaussian':
         mu = noise_pars['mu']
         sigma = noise_pars['sigma']
         X += np.random.normal(mu, sigma, size = X.shape)

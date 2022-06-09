@@ -5,22 +5,19 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import sys
-from torch_geometric import seed
 from GeoDySys import plotting, utils
 from GeoDySys.model import net
 
 
 def main():
     
-    seed.seed_everything(1)
-    
     #parameters
-    n = 500
+    n = 512
     k = 30
     n_clusters = 20
     
     par = {'batch_size': 256, #batch size, this should be as large as possible
-           'epochs': 20, #optimisation epochs
+           'epochs': 50, #optimisation epochs
            'n_conv_layers': 1, #number of hops in neighbourhood
            'n_lin_layers': 2,
            'hidden_channels': 8, #number of internal dimensions in MLP
@@ -30,6 +27,7 @@ def main():
       
     #evaluate functions
     # f1: constant, f2: linear, f3: parabola, f4: saddle
+    np.random.seed(1)
     x0 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2))
     x1 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2))
     x2 = np.random.uniform(low=(-1,-1),high=(1,1),size=(n,2)) 
@@ -41,7 +39,7 @@ def main():
     data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
     
     #train model
-    model = net(data, kernel='directional_derivative', gauge='global', **par)
+    model = net(data, kernel=['DD'], gauge='global', **par)
     model.train_model(data)
     emb = model.evaluate(data)
     emb, clusters = utils.cluster(emb, n_clusters=n_clusters)
