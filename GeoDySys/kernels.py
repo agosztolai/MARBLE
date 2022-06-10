@@ -56,8 +56,7 @@ def project_gauge_to_neighbours(data, gauge='global'):
 
 def DD(data, gauge):
     """
-    This function implements the directional derivative kernel 
-    from Beaini et al. 2021.
+    Directional derivative kernel from Beaini et al. 2021.
 
     Parameters
     ----------
@@ -84,8 +83,7 @@ def DD(data, gauge):
 
 def DA(data, gauge):
     """
-    This function implements the directional average kernel 
-    from Beaini et al. 2021.
+    Directional average kernel from Beaini et al. 2021.
 
     Parameters
     ----------
@@ -105,6 +103,6 @@ def DA(data, gauge):
     K = []
     for _F in F:
         Fhat = normalize(_F, dim=-1, p=1)
-        K.append(Fhat)
+        K.append(torch.abs(Fhat))
         
     return K
