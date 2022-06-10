@@ -40,7 +40,7 @@ def main():
     data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
     
     #train model
-    model = net(data, kernel=['DD'], gauge='global', **par)
+    model = net(data, gauge='global', **par)
     model.train_model(data)
     emb = model.evaluate(data)
     emb, clusters = utils.cluster(emb, n_clusters=n_clusters)
