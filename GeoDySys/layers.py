@@ -5,7 +5,6 @@ import torch
 from torch import Tensor
 from torch_sparse import matmul
 from torch_geometric.nn.conv import MessagePassing
-# from torch_geometric.nn.inits import reset
 from torch_geometric.typing import OptPairTensor
 from .utils import adjacency_matrix
 

@@ -19,7 +19,7 @@ from .dataloader import loaders
 class net(nn.Module):
     def __init__(self, 
                  data,
-                 GCN=False,
+                 vanilla_GCN=False,
                  gauge='global', 
                  root_weight=True,
                  **kwargs):
@@ -29,35 +29,38 @@ class net(nn.Module):
         file = os.path.dirname(__file__) + '/default_params.yaml'
         par = yaml.load(open(file,'rb'), Loader=yaml.FullLoader)
         self.par = {**par,**kwargs}
+        d = self.par['depth']
         o = self.par['order']
         nx = data.x.shape[1]
-        self.GCN = GCN
+        self.vanilla_GCN = vanilla_GCN
         
         #how many neighbours to sample when computing the loss function
-        self.par['n_neighb'] = [self.par['n_neighb'] for i in range(o)]
+        self.par['n_neighb'] = [self.par['n_neighb'] for i in range(o+d)]
         
         #kernels
-        if not GCN:
+        if not vanilla_GCN:
             self.kernel_DD = DD(data, gauge)
-            nkd = len(self.kernel_DD)
+            self.kernel_DA = DA(data, gauge)
+            k = len(self.kernel_DD)
         else: #isotropic convolutions (vanilla GCN)
             self.kernel_DD = None
-            nkd = nka = 1
+            self.kernel_DA = None
+            k  = 1
             
-        #initialise conv layers
+        #conv layers
         self.convs = nn.ModuleList() #could use nn.Sequential because we execute in order
-        for i in range(o):
+        for i in range(o+d):
             self.convs.append(AnisoConv(adj_norm=self.par['adj_norm']))
         
-        #initialise linear layers
-        d=2
-        out_channels = nx*nkd*o
-        self.lin = nn.ModuleList()
-        for i in range(self.par['n_hops']):
-            in_channels = nx*nkd*o*2**i
-            out_channels = nx*nkd*o*d*2**i
-            self.lin.append(Linear(in_channels, out_channels, bias = True))
-        
+        #linear layers
+        # d=2
+        out_channels = ((1-k**(o+1))//(1-k)-1)*(1-k**(d+1))//(1-k)#nx*k*o
+        # self.lin = nn.ModuleList()
+        # for i in range(self.par['n_hops']):
+        #     in_channels = nx*k*o*2**i
+        #     out_channels = nx*k*o*d*2**i
+        #     self.lin.append(Linear(in_channels, out_channels, bias = True))
+                
         #initialise multilayer perceptron
         self.MLP = MLP(in_channels=out_channels,
                        hidden_channels=self.par['hidden_channels'], 
@@ -74,29 +77,44 @@ class net(nn.Module):
         
     def reset_parameters(self):
         self.MLP.reset_parameters()
-        for i in range(self.par['n_hops']):
-            self.lin[i].reset_parameters()
+        # for i in range(self.par['n_hops']):
+        #     self.lin[i].reset_parameters()
         
-    def forward(self, x, adjs=None, K=None):
+    def forward(self, x, adjs=None, K_DD=None, K_DA=None):
         """Forward pass. 
         Messages are passed to a set target nodes (batch variable in 
         NeighborSampler) from sources nodes. By convention, the variable x
         is constructed such that the target nodes are placed first, i.e,
         x = concat[x_target, x_other]."""
         
-        if K is None:
-            K = self.kernel_DD
+        #taking derivatives (directional difference filters)
+        if K_DD is not None:
+            out = []
+            size_last = adjs[self.par['order']-1][-1][1] #output dim of last layer
+            for i, (edge_index, _, size) in enumerate(adjs): #loop over minibatches
+                if i < self.par['order']:
+                    x_source = x #source of messages (all nodes)
+                    x_target = x[:size[1]] #target of messages
+                    x = self.convs[i]((x_source, x_target), edge_index, K=K_DD)
+                    out.append(x[:size_last])
             
-        out = []
-        size_last = adjs[-1][-1][1] #output dim of last layer
-        for i, (edge_index, _, size) in enumerate(adjs): #loop over minibatches
-            x_source = x #source of messages (all nodes)
-            x_target = x[:size[1]] #target of messages
-            x = self.convs[i]((x_source, x_target), edge_index, K=K)
-            out.append(x[:size_last])
+            x = torch.cat(out, axis=1)
         
+        #directional aggregating  (directional average filters)
+        for i, (edge_index, _, size) in enumerate(adjs): #loop over minibatches
+            if i >= self.par['order']:
+                x_source = x #source of messages (all nodes)
+                x_target = x[:size[1]] #target of messages
+                x = self.convs[i]((x_source, x_target), edge_index, K=K_DA)
+                out.append(x)
+                
+        #resize everything to match output dimension
+        size_last = adjs[-1][-1][1] #output dim
+        for i, o in enumerate(out):
+            out[i] = o[:size_last]
+                
         out = torch.cat(out, axis=1)
-            
+                
         out = self.MLP(out)
         if self.par['vec_norm']:
             out = self.vec_norm(out)
@@ -106,8 +124,9 @@ class net(nn.Module):
     def evaluate(self, data):
         """Forward pass @ evaluation (no minibatches)"""            
         with torch.no_grad():
-            size = (data.x.shape[0], data.x.shape[0])
-            return self(data.x, [[data.edge_index, None, size]])
+            adjs = [[data.edge_index, None, (data.x.shape[0], data.x.shape[0])]]
+            adjs *= (self.par['depth'] + self.par['order'])
+            return self(data.x, adjs, self.kernel_DD, self.kernel_DA)
     
     def batch_evaluate(self, x, adjs, n_id, device):
         """Evaluate network in batches"""
@@ -117,12 +136,13 @@ class net(nn.Module):
                 adjs = [adjs]
             adjs = [adj.to(device) for adj in adjs]
         
-        K = self.kernel_DD
-        if (n_id is not None) and (not self.GCN):       
+        K_DD, K_DA = self.kernel_DD, self.kernel_DA
+        if (n_id is not None) and (not self.vanilla_GCN):       
             #take submatrix corresponding to current batch  
-            K = [K_[n_id,:][:,n_id] for K_ in self.kernel_DD]
+            K_DD = [K_[n_id,:][:,n_id] for K_ in self.kernel_DD]
+            K_DA = [K_[n_id,:][:,n_id] for K_ in self.kernel_DA]
         
-        return self(x[n_id], adjs, K)
+        return self(x[n_id], adjs, K_DD, K_DA)
     
     def train_model(self, data):
         """Network training"""

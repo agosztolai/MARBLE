@@ -11,25 +11,25 @@ from torch_geometric import seed
 def loaders(data, n_neighbours, batch_size):
     
     train_loader = NeighborSampler(data.edge_index,
-                             sizes=n_neighbours,
-                             batch_size=batch_size,
-                             shuffle=True,
-                             num_nodes=data.num_nodes,
-                             node_idx=data.train_mask)
+                                   sizes=n_neighbours,
+                                   batch_size=batch_size,
+                                   shuffle=True,
+                                   num_nodes=data.num_nodes,
+                                   node_idx=data.train_mask)
     
     val_loader = NeighborSampler(data.edge_index,
-                             sizes=n_neighbours,
-                             batch_size=batch_size,
-                             shuffle=False,
-                             num_nodes=data.num_nodes,
-                             node_idx=data.val_mask)
+                                 sizes=n_neighbours,
+                                 batch_size=batch_size,
+                                 shuffle=False,
+                                 num_nodes=data.num_nodes,
+                                 node_idx=data.val_mask)
     
     test_loader = NeighborSampler(data.edge_index,
-                             sizes=n_neighbours,
-                             batch_size=batch_size,
-                             shuffle=False,
-                             num_nodes=data.num_nodes,
-                             node_idx=data.test_mask)
+                                  sizes=n_neighbours,
+                                  batch_size=batch_size,
+                                  shuffle=False,
+                                  num_nodes=data.num_nodes,
+                                  node_idx=data.test_mask)
     
     return train_loader, val_loader, test_loader
 

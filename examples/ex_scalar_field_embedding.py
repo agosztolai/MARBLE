@@ -17,11 +17,12 @@ def main():
     n_clusters = 20
     
     par = {'batch_size': 256, #batch size, this should be as large as possible
-           'epochs': 50, #optimisation epochs
-           'n_conv_layers': 1, #number of hops in neighbourhood
+           'epochs': 20, #optimisation epochs
+           'order': 1, #order of derivatives
+           'depth': 3, #number of hops in neighbourhood
            'n_lin_layers': 2,
-           'hidden_channels': 8, #number of internal dimensions in MLP
-           'out_channels': 3,
+           'hidden_channels': 64, #number of internal dimensions in MLP
+           'out_channels': 8,
            'adj_norm': True,
            }
       
@@ -49,7 +50,7 @@ def main():
     plot_functions(data, titles=titles) #sampled functions
     plotting.embedding(emb, clusters, data.y.numpy(), titles=titles) #TSNE embedding 
     plotting.histograms(data, clusters, titles=titles) #histograms
-    plotting.neighbourhoods(data, clusters, n_samples=4, radius=par['n_conv_layers'], norm=True) #neighbourhoods
+    plotting.neighbourhoods(data, clusters, n_samples=4, radius=par['depth']+1, norm=True) #neighbourhoods
     
     
 def f0(x):
