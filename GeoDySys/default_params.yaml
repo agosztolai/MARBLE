@@ -7,7 +7,6 @@ n_neighb: 30 #parameter of neighbourhood sampling
 adj_norm: False #adjacency-wise norm
 order: 1 #order to which to compute the directional derivatives
 depth: 1 #depth of network (size of neighbourhood)
-n_hops: 0 #to what depth to aggregate the derivative features
 n_lin_layers: 2 #number of layers if MLP
 vec_norm: False #vector normalisation of embedded features
 b_norm: True #batch normalisation

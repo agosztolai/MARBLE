@@ -54,15 +54,18 @@ class net(nn.Module):
         
         #linear layers
         # d=2
-        out_channels = ((1-k**(o+1))//(1-k)-1)*(1-k**(d+1))//(1-k)#nx*k*o
-        # self.lin = nn.ModuleList()
-        # for i in range(self.par['n_hops']):
-        #     in_channels = nx*k*o*2**i
-        #     out_channels = nx*k*o*d*2**i
-        #     self.lin.append(Linear(in_channels, out_channels, bias = True))
-                
+        # out_channels = ((1-k**(o+1))//(1-k)-1)*(1-k**(d+1))//(1-k)#nx*k*o
+        out_channels = (1-k**(o+1))//(1-k)-1
+        self.lin = nn.ModuleList()
+        for i in range(d-1):
+            in_channels = out_channels*k
+            out_channels = in_channels*2
+            self.lin.append(Linear(in_channels, out_channels, bias = True))
+            
+        self.ReLU = nn.ReLU()
+                        
         #initialise multilayer perceptron
-        self.MLP = MLP(in_channels=out_channels,
+        self.MLP = MLP(in_channels=out_channels*k,
                        hidden_channels=self.par['hidden_channels'], 
                        out_channels=self.par['out_channels'],
                        num_layers=self.par['n_lin_layers'],
@@ -106,14 +109,20 @@ class net(nn.Module):
                 x_source = x #source of messages (all nodes)
                 x_target = x[:size[1]] #target of messages
                 x = self.convs[i]((x_source, x_target), edge_index, K=K_DA)
-                out.append(x)
+                
+                if i < len(adjs)-1:
+                    x = self.lin[i-self.par['order']](x)  
+                    x = self.ReLU(x)
+                # out.append(x)
                 
         #resize everything to match output dimension
-        size_last = adjs[-1][-1][1] #output dim
-        for i, o in enumerate(out):
-            out[i] = o[:size_last]
+        # size_last = adjs[-1][-1][1] #output dim
+        # for i, o in enumerate(out):
+        #     out[i] = o[:size_last]
                 
-        out = torch.cat(out, axis=1)
+        # out = torch.cat(out, axis=1)
+        
+        out = x
                 
         out = self.MLP(out)
         if self.par['vec_norm']:

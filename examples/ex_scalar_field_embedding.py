@@ -22,8 +22,8 @@ def main():
            'depth': 3, #number of hops in neighbourhood
            'n_lin_layers': 2,
            'hidden_channels': 64, #number of internal dimensions in MLP
-           'out_channels': 8,
-           'adj_norm': True,
+           'out_channels': 4,
+           'adj_norm': False,
            }
       
     #evaluate functions
