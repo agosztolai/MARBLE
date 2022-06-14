@@ -18,10 +18,10 @@ def main():
     
     par = {'batch_size': 256, #batch size, this should be as large as possible
            'epochs': 20, #optimisation epochs
-           'order': 1, #order of derivatives
-           'depth': 3, #number of hops in neighbourhood
+           'order': 2, #order of derivatives
+           'depth': 2, #number of hops in neighbourhood
            'n_lin_layers': 2,
-           'hidden_channels': 64, #number of internal dimensions in MLP
+           'hidden_channels': 16, #number of internal dimensions in MLP
            'out_channels': 4,
            'adj_norm': False,
            }

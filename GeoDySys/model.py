@@ -45,7 +45,7 @@ class net(nn.Module):
         else: #isotropic convolutions (vanilla GCN)
             self.kernel_DD = None
             self.kernel_DA = None
-            k  = 1
+            k = 1
             
         #conv layers
         self.convs = nn.ModuleList() #could use nn.Sequential because we execute in order
@@ -57,15 +57,19 @@ class net(nn.Module):
         # out_channels = ((1-k**(o+1))//(1-k)-1)*(1-k**(d+1))//(1-k)#nx*k*o
         out_channels = (1-k**(o+1))//(1-k)-1
         self.lin = nn.ModuleList()
-        for i in range(d-1):
-            in_channels = out_channels*k
-            out_channels = in_channels*2
-            self.lin.append(Linear(in_channels, out_channels, bias = True))
+        for i in range(d):
+            if i < d-1:
+                in_channels = out_channels*k
+                out_channels = in_channels*2
+                self.lin.append(Linear(in_channels, out_channels, bias = True))
+            else:
+                out_channels *= k
             
+        #non-linearity
         self.ReLU = nn.ReLU()
                         
         #initialise multilayer perceptron
-        self.MLP = MLP(in_channels=out_channels*k,
+        self.MLP = MLP(in_channels=out_channels,
                        hidden_channels=self.par['hidden_channels'], 
                        out_channels=self.par['out_channels'],
                        num_layers=self.par['n_lin_layers'],
@@ -111,7 +115,7 @@ class net(nn.Module):
                 x = self.convs[i]((x_source, x_target), edge_index, K=K_DA)
                 
                 if i < len(adjs)-1:
-                    x = self.lin[i-self.par['order']](x)  
+                    x = self.lin[i-self.par['order']](x)
                     x = self.ReLU(x)
                 # out.append(x)
                 
