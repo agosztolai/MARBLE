@@ -25,18 +25,21 @@ class net(nn.Module):
                  **kwargs):
         super(net, self).__init__()
                 
-        #load default parameters
+        #load default parameters and merge with user specified parameters
         file = os.path.dirname(__file__) + '/default_params.yaml'
         par = yaml.load(open(file,'rb'), Loader=yaml.FullLoader)
-        self.par = {**par,**kwargs}
-        d = self.par['depth']
-        o = self.par['order']
-        self.vanilla_GCN = vanilla_GCN
+        for key in par.keys():
+            if key not in kwargs.keys():
+                kwargs[key] = par[key]
+        par = kwargs
         
         #how many neighbours to sample when computing the loss function
+        d = self.par['depth']
+        o = self.par['order']
         self.par['n_neighb'] = [self.par['n_neighb'] for i in range(o+d)]
         
         #kernels
+        self.vanilla_GCN = vanilla_GCN
         self.kernel_DD = DD(data, gauge)
         k1 = len(self.kernel_DD)
         if not vanilla_GCN:
@@ -79,10 +82,14 @@ class net(nn.Module):
         
         self.reset_parameters()
         
+        #print settings
+        print_settings(self)
+        
+        
     def reset_parameters(self):
-        self.MLP.reset_parameters()
-        for i, _ in enumerate(self.lin):
-            self.lin[i].reset_parameters()
+        for layer in self.children():
+            if hasattr(layer, 'reset_parameters'):
+                layer.reset_parameters()
         
     def forward(self, x, adjs=None, K_DD=None, K_DA=None):
         """Forward pass. 
@@ -114,6 +121,7 @@ class net(nn.Module):
                 if i < len(adjs)-1:
                     x = self.lin[i-self.par['order']](x)
                     x = self.ReLU(x)
+                    x = self.vec_norm(x)
                 # out.append(x)
                 
         #resize everything to match output dimension
@@ -169,6 +177,8 @@ class net(nn.Module):
         self = self.to(device)
         x = data.x.to(device)
         
+        print('\n---- Starting training ... \n')
+        
         for epoch in range(1, self.par['epochs']): #loop over epochs
             
             self.train() #switch to training mode
@@ -208,3 +218,17 @@ def loss_comp(out):
     neg_loss = F.logsigmoid(-(out * neg_out).sum(-1)).mean()
     
     return -pos_loss - neg_loss
+
+
+def print_settings(model):
+    
+    print('---- Settings: \n')
+    
+    for x in model.par:
+        print (x,':',model.par[x])
+        
+    print('\n')
+    
+    np = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    
+    print('---- Total number of parameters: ', np)

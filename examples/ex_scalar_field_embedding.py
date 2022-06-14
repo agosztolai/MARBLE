@@ -14,18 +14,18 @@ def main():
     #parameters
     n = 512
     k = 30
-    n_clusters = 20
+    n_clusters = 10
     
     par = {'batch_size': 256, #batch size, this should be as large as possible
            'epochs': 30, #optimisation epochs
            'order': 2, #order of derivatives
-           'depth': 2, #number of hops in neighbourhood
+           'depth': 0, #number of hops in neighbourhood
            'n_lin_layers': 2,
-           'hidden_channels': 32, #number of internal dimensions in MLP
-           'out_channels': 8,
+           'hidden_channels': 16, #number of internal dimensions in MLP
+           'out_channels': 4,
            'adj_norm': False,
            }
-      
+    
     #evaluate functions
     # f1: constant, f2: linear, f3: parabola, f4: saddle
     np.random.seed(1)
@@ -48,9 +48,13 @@ def main():
     #plot
     titles=['Constant','Linear','Parabola','Saddle']
     plot_functions(data, titles=titles) #sampled functions
+    plt.savefig('../results/scalar_fields.svg')
     plotting.embedding(emb, clusters, data.y.numpy(), titles=titles) #TSNE embedding 
+    plt.savefig('../results/scalar_fields_embedding.svg')
     plotting.histograms(data, clusters, titles=titles) #histograms
+    plt.savefig('../results/scalar_fields_histogram.svg')
     plotting.neighbourhoods(data, clusters, n_samples=4, radius=par['depth']+1, norm=True) #neighbourhoods
+    plt.savefig('../results/scalar_fields_nhoods.svg')
     
     
 def f0(x):
