@@ -19,7 +19,7 @@ from .dataloader import loaders
 class net(nn.Module):
     def __init__(self, 
                  data,
-                 vanilla_GCN=False,
+                 vanilla_GCN=True,
                  gauge='global', 
                  root_weight=True,
                  **kwargs):
@@ -31,21 +31,19 @@ class net(nn.Module):
         self.par = {**par,**kwargs}
         d = self.par['depth']
         o = self.par['order']
-        # nx = data.x.shape[1]
         self.vanilla_GCN = vanilla_GCN
         
         #how many neighbours to sample when computing the loss function
         self.par['n_neighb'] = [self.par['n_neighb'] for i in range(o+d)]
         
         #kernels
+        self.kernel_DD = DD(data, gauge)
+        k1 = len(self.kernel_DD)
         if not vanilla_GCN:
-            self.kernel_DD = DD(data, gauge)
             self.kernel_DA = DA(data, gauge)
-            k = len(self.kernel_DD)
         else: #isotropic convolutions (vanilla GCN)
-            self.kernel_DD = None
             self.kernel_DA = None
-            k = 1
+            k2 = 1
             
         #conv layers
         self.convs = nn.ModuleList() #could use nn.Sequential because we execute in order
@@ -53,17 +51,15 @@ class net(nn.Module):
             self.convs.append(AnisoConv(adj_norm=self.par['adj_norm']))
         
         #linear layers
-        # d=2
-        # out_channels = ((1-k**(o+1))//(1-k)-1)*(1-k**(d+1))//(1-k)#nx*k*o
-        out_channels = (1-k**(o+1))//(1-k)-1
+        out_channels = (1-k1**(o+1))//(1-k1)-1
         self.lin = nn.ModuleList()
         for i in range(d):
             if i < d-1:
-                in_channels = out_channels*k
-                out_channels = in_channels*2
+                in_channels = out_channels*k2
+                out_channels = in_channels#*2
                 self.lin.append(Linear(in_channels, out_channels, bias = True))
             else:
-                out_channels *= k
+                out_channels *= k2
             
         #non-linearity
         self.ReLU = nn.ReLU()
@@ -150,10 +146,13 @@ class net(nn.Module):
             adjs = [adj.to(device) for adj in adjs]
         
         K_DD, K_DA = self.kernel_DD, self.kernel_DA
-        if (n_id is not None) and (not self.vanilla_GCN):       
+        if n_id is not None:       
             #take submatrix corresponding to current batch  
             K_DD = [K_[n_id,:][:,n_id] for K_ in self.kernel_DD]
-            K_DA = [K_[n_id,:][:,n_id] for K_ in self.kernel_DA]
+            if not self.vanilla_GCN:
+                K_DA = [K_[n_id,:][:,n_id] for K_ in self.kernel_DA]
+            else:
+                K_DA = None
         
         return self(x[n_id], adjs, K_DD, K_DA)
     

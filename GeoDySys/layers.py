@@ -37,29 +37,32 @@ class AnisoConv(MessagePassing):
         if isinstance(x, Tensor):
             #when there is no minibatching, messages are passed from all source
             #to all target nodes
-            x: OptPairTensor = (x, x) 
+            x: OptPairTensor = (x, x)
+            
+        if not isinstance(K, list):
+            K = [K]
             
         size = (len(x[0]), len(x[1]))
-        if K is not None: #anisotropic kernel
-            out = []
-            #evaluate all directional kernels and concatenate results columnwise
-            for K_ in K:
+        out = []
+        #evaluate all directional kernels and concatenate results columnwise
+        for K_ in K:
+            if K_ is not None: #anisotropic kernel
                 K_ = adjacency_matrix(edge_index, size, value=K_.t())
-                out_ = self.propagate(K_.t(), x=x[0])
+            else: #adjacency matrix (vanilla GCN)
+                K_ = adjacency_matrix(edge_index, size, value=None)
                 
-                #skip connection
-                out_ += self.eps * x[1] 
+            out_ = self.propagate(K_.t(), x=x[0])
                 
-                if self.adj_norm: #adjacency features
-                    adj = adjacency_matrix(edge_index, size)
-                    out_ = adj_norm(x[0], out_, adj.t(), K_.t(), float(self.eps))
+            #skip connection
+            out_ += self.eps * x[1] 
+                
+            if self.adj_norm: #adjacency features
+                adj = adjacency_matrix(edge_index, size)
+                out_ = adj_norm(x[0], out_, adj.t(), K_.t(), float(self.eps))
                     
-                out.append(out_)
+            out.append(out_)
                     
-            out = torch.cat(out, axis=1)
-            
-        else: #use adjacency matrix (vanilla GCN)
-            out = self.propagate(edge_index, x=x)
+        out = torch.cat(out, axis=1)
   
         return out
 
@@ -68,10 +71,6 @@ class AnisoConv(MessagePassing):
         convention. This is executed if input to propagate() is a SparseTensor"""
         return matmul(K_t, x, reduce=self.aggr)
     
-    def message(self, x_j, edge_weight):
-        """Convolution step. This is executed if input to propagate() is 
-        an edge list tensor"""
-        return x_j if edge_weight is None else edge_weight.view(-1, 1) * x_j
     
 def adj_norm(x, out, adj_t, K_t, eps):
     """Normalize features by mean of neighbours"""
