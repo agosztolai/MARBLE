@@ -31,7 +31,7 @@ class net(nn.Module):
         self.par = {**par,**kwargs}
         d = self.par['depth']
         o = self.par['order']
-        nx = data.x.shape[1]
+        # nx = data.x.shape[1]
         self.vanilla_GCN = vanilla_GCN
         
         #how many neighbours to sample when computing the loss function
@@ -80,8 +80,8 @@ class net(nn.Module):
         
     def reset_parameters(self):
         self.MLP.reset_parameters()
-        # for i in range(self.par['n_hops']):
-        #     self.lin[i].reset_parameters()
+        for i, _ in enumerate(self.lin):
+            self.lin[i].reset_parameters()
         
     def forward(self, x, adjs=None, K_DD=None, K_DA=None):
         """Forward pass. 
@@ -103,7 +103,7 @@ class net(nn.Module):
             
             x = torch.cat(out, axis=1)
         
-        #directional aggregating  (directional average filters)
+        #directional aggregation  (directional average filters)
         for i, (edge_index, _, size) in enumerate(adjs): #loop over minibatches
             if i >= self.par['order']:
                 x_source = x #source of messages (all nodes)
