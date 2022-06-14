@@ -19,7 +19,7 @@ from .dataloader import loaders
 class net(nn.Module):
     def __init__(self, 
                  data,
-                 vanilla_GCN=True,
+                 vanilla_GCN=False,
                  gauge='global', 
                  root_weight=True,
                  **kwargs):
@@ -41,6 +41,7 @@ class net(nn.Module):
         k1 = len(self.kernel_DD)
         if not vanilla_GCN:
             self.kernel_DA = DA(data, gauge)
+            k2 = k1
         else: #isotropic convolutions (vanilla GCN)
             self.kernel_DA = None
             k2 = 1

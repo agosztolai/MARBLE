@@ -21,8 +21,8 @@ def main():
            'order': 2, #order of derivatives
            'depth': 2, #number of hops in neighbourhood
            'n_lin_layers': 2,
-           'hidden_channels': 16, #number of internal dimensions in MLP
-           'out_channels': 4,
+           'hidden_channels': 32, #number of internal dimensions in MLP
+           'out_channels': 8,
            'adj_norm': False,
            }
       
