@@ -31,7 +31,7 @@ class net(nn.Module):
         for key in par.keys():
             if key not in kwargs.keys():
                 kwargs[key] = par[key]
-        par = kwargs
+        self.par = kwargs
         
         #how many neighbours to sample when computing the loss function
         d = self.par['depth']
@@ -83,7 +83,7 @@ class net(nn.Module):
         self.reset_parameters()
         
         #print settings
-        print_settings(self)
+        print_settings(self, out_channels)
         
         
     def reset_parameters(self):
@@ -220,7 +220,7 @@ def loss_comp(out):
     return -pos_loss - neg_loss
 
 
-def print_settings(model):
+def print_settings(model, out_channels):
     
     print('---- Settings: \n')
     
@@ -231,4 +231,5 @@ def print_settings(model):
     
     np = sum(p.numel() for p in model.parameters() if p.requires_grad)
     
+    print('--- Number of channels to pass to the MLP: ', out_channels)
     print('---- Total number of parameters: ', np)

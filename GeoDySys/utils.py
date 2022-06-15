@@ -34,9 +34,9 @@ def adjacency_matrix(edge_index, size, value=None):
 def construct_dataset(x, y, graph_type='cknn', k=10):
     """Construct PyG dataset from node positions and features"""
         
-    if not isinstance(x, list):
+    if not isinstance(x, (list,tuple)):
         x = [x]
-    if not isinstance(y, list):
+    if not isinstance(y, (list,tuple)):
         y = [y]
         
     data_list = []
@@ -48,7 +48,7 @@ def construct_dataset(x, y, graph_type='cknn', k=10):
         data_.pos = torch.tensor(x[i])
             
         #build pytorch geometric object
-        data_.x = y_ #only function value as feature
+        data_.x = torch.tensor(y_).float() #only function value as feature
         data_.num_nodes = len(x[i])
         data_.num_node_features = data_.x.shape[1]
         data_.y = torch.ones(data_.num_nodes, dtype=int)*i
@@ -98,7 +98,7 @@ def cluster(emb, typ='kmeans', n_clusters=15, reorder=True, tsne_embed=True, see
     else:
         NotImplementedError
         
-    #reorder such that close clusters have similar label numbers
+    #reorder to give close clusters similar labels
     if reorder:
         pd = pairwise_distances(clusters['centroids'], metric='euclidean')
         pd += np.max(pd)*np.eye(n_clusters)
