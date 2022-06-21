@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import torch
+import scipy
 
 
 def sample_2d(n=100, interval=[[-1,-1],[1,1]], method='uniform', seed=0):
@@ -17,7 +19,9 @@ def sample_2d(n=100, interval=[[-1,-1],[1,1]], method='uniform', seed=0):
                               (n,2))         
     return x
 
-
+# =============================================================================
+# Functions for plotting on sphere
+# =============================================================================
 def grid_sphere(b, grid_type="Driscoll-Healy"):
     ''' returns the spherical grid in euclidean
     coordinates, where the sphere's center is moved
@@ -193,4 +197,123 @@ def rotate_grid(rot, grid):
     x, y, z = grid
     xyz = np.array((x, y, z))
     x_r, y_r, z_r = np.einsum('ij,jab->iab', rot, xyz)
+    
     return x_r, y_r, z_r
+
+
+
+
+
+def compute_operators(verts, k_eig=2):
+    """
+    Builds spectral operators for a mesh/point cloud. Constructs mass matrix, eigenvalues/vectors for Laplacian, and gradient matrix.
+    Arguments:
+      - verts: (V,3) vertex positions
+      - k_eig: number of eigenvectors to use
+    Returns:
+      - frames: (V,3,3) X/Y/Z coordinate frame at each vertex. Z coordinate is normal (e.g. [:,2,:] for normals)
+      - L: (VxV) real sparse matrix of (weak) Laplacian
+      - evals: (k) list of eigenvalues of the Laplacian
+      - evecs: (V,k) list of eigenvectors of the Laplacian 
+      - grad_mat: (VxVxdim) sparse matrix which gives the gradient in the local basis at the vertex
+    """
+
+    eps = 1e-8
+
+
+    # Build the scalar Laplacian
+    L = 0
+    
+    # === Compute the eigenbasis
+    L_eigsh = (L + scipy.sparse.identity(L.shape[0])*eps).tocsc()
+
+    failcount = 0
+    while True:
+        try:
+            evals, evecs = sla.eigsh(L_eigsh, k=k_eig)
+            
+            # Clip off any eigenvalues that end up slightly negative due to numerical weirdness
+            evals = np.clip(evals, a_min=0., a_max=float('inf'))
+
+            break
+        except Exception as e:
+            print(e)
+            if(failcount > 3):
+                raise ValueError("failed to compute eigendecomp")
+            failcount += 1
+            print("--- decomp failed; adding eps ===> count: " + str(failcount))
+            L_eigsh = L_eigsh + scipy.sparse.identity(L.shape[0]) * (eps * 10**failcount)
+
+
+    # == Build gradient matrices
+    # frames = build_tangent_frames(verts)
+    grad_mat = build_grad(verts, frames)
+
+    return L, evals, evecs, grad_mat
+
+
+# def build_tangent_frames(verts):
+#     #assigns arbitrary orthogonal tangent coordinates to vertices
+
+#     V = verts.shape[0]
+
+#     vert_normals = vertex_normals(verts)  # (V,3)
+
+#     # = find an orthogonal basis
+#     basis_cand1 = torch.tensor([1, 0, 0]).expand(V, -1)
+#     basis_cand2 = torch.tensor([0, 1, 0]).expand(V, -1)
+    
+#     basisX = torch.where((torch.abs(dot(vert_normals, basis_cand1))
+#                           < 0.9).unsqueeze(-1), basis_cand1, basis_cand2)
+#     basisX = project_to_tangent(basisX, vert_normals)
+#     basisX = normalize(basisX)
+#     basisY = cross(vert_normals, basisX)
+#     frames = torch.stack((basisX, basisY, vert_normals), dim=-2)
+    
+#     if torch.any(torch.isnan(frames)):
+#         raise ValueError("NaN coordinate frame! Must be very degenerate")
+
+#     return frames
+
+
+# def vertex_normals(verts, n_nb=30):
+    
+#     _, neigh_inds = find_knn(verts, verts, n_nb, omit_diagonal=True, method='cpu_kd')
+#     neigh_points = verts[neigh_inds,:]
+#     neigh_vecs = neigh_points - verts[:,np.newaxis,:]
+    
+#     (u, s, vh) = np.linalg.svd(neigh_vecs, full_matrices=False)
+#     normal = vh[:,2,:]
+#     normal /= np.linalg.norm(normal,axis=-1, keepdims=True)
+        
+#     if torch.any(torch.isnan(normal)): raise ValueError("NaN normals :(")
+
+#     return normal
+
+
+# def build_grad_point_cloud(verts, frames, n_nb=30):
+
+#     _, neigh_inds = find_knn(verts, verts, n_nb, omit_diagonal=True, method='cpu_kd')
+
+#     edge_inds_from = np.repeat(np.arange(verts.shape[0]), n_nb)
+#     edges = np.stack((edge_inds_from, neigh_inds.flatten()))
+#     edge_tangent_vecs = edge_tangent_vectors(verts, frames, edges)#this is the F in Beaini (?)
+    
+#     return build_grad(verts, torch.tensor(edges), edge_tangent_vecs)
+
+
+# def edge_tangent_vectors(verts, frames, edges):
+#     edge_vecs = verts[edges[1, :], :] - verts[edges[0, :], :]
+#     basisX = frames[edges[0, :], 0, :]
+#     basisY = frames[edges[0, :], 1, :]
+
+#     compX = edge_vecs.dot(basisX)
+#     compY = edge_vecs.dot(basisY)
+#     edge_tangent = torch.stack((compX, compY), dim=-1)
+
+#     return edge_tangent
+
+
+# def project_to_tangent(vecs, unit_normals):
+#     dots = vecs.dot(unit_normals)
+#     return vecs - unit_normals * dots.unsqueeze(-1)

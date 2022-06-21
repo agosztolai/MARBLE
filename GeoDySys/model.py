@@ -55,7 +55,7 @@ class net(nn.Module):
             self.convs.append(AnisoConv(adj_norm=self.par['adj_norm']))
         
         #linear layers
-        out_channels = (1-k1**(o+1))//(1-k1)-1
+        out_channels = data.x.shape[1]*((1-k1**(o+1))//(1-k1)-1)
         self.lin = nn.ModuleList()
         for i in range(d):
             if i < d-1:
@@ -231,5 +231,5 @@ def print_settings(model, out_channels):
     
     np = sum(p.numel() for p in model.parameters() if p.requires_grad)
     
-    print('--- Number of channels to pass to the MLP: ', out_channels)
+    print('---- Number of channels to pass to the MLP: ', out_channels)
     print('---- Total number of parameters: ', np)

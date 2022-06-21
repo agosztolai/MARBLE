@@ -19,7 +19,7 @@ def main():
     par = {'batch_size': 256, #batch size, this should be as large as possible
            'epochs': 40, #optimisation epochs
            'order': 1, #order of derivatives
-           'depth': 1, #number of hops in neighbourhood
+           'depth': 0, #number of hops in neighbourhood
            'n_lin_layers': 2,
            'hidden_channels': 16, #number of internal dimensions in MLP
            'out_channels': 8,
@@ -47,10 +47,13 @@ def main():
     #plot
     titles=['Linear left','Linear right','Vortex right','Vortex left']
     plot_functions(data, titles=titles) #sampled functions
+    plt.savefig('../results/scalar_fields.svg')
     plotting.embedding(emb, clusters, data.y.numpy(), titles=titles) #TSNE embedding 
+    plt.savefig('../results/scalar_fields_embedding.svg')
     plotting.histograms(data, clusters, titles=titles) #histograms
+    plt.savefig('../results/scalar_fields_embedding.svg')
     plotting.neighbourhoods(data, clusters, n_samples=4, vector=True) #neighbourhoods
-    
+    plt.savefig('../results/scalar_fields_nhoods.svg')
     
 def f0(x):
     return x*0 + np.array([-1,-1])

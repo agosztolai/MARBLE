@@ -3,8 +3,38 @@
 
 import torch
 from torch.nn.functional import normalize
-from torch_geometric.utils.convert import to_scipy_sparse_matrix
-import scipy.sparse as scp
+
+
+def neighbor_vectors(data):
+    """Spatial gradient vectors around each node"""
+    
+    x = data.pos
+    n, dim = x.shape
+    
+    mask = torch.zeros([n,n],dtype=bool)
+    mask[data.edge_index[0],data.edge_index[1]] = 1
+    mask = mask.unsqueeze(2).repeat(1,1,dim)
+    
+    G = x.repeat(n,1,1)
+    G = G - torch.swapaxes(G,0,1) #Gij = xj - xi 
+    G[~mask] = 0
+    
+    return G
+
+
+def gradient_op(G_diff):
+    
+    G_ls = torch.zeros_like(G_diff, dtype=torch.float64)
+    for i, g_ in enumerate(G_diff):
+        neigh_ind = torch.where(g_[:,0]!=0)[0]
+        g_ = g_[neigh_ind]
+        b = torch.column_stack([-1.*torch.ones((len(neigh_ind),1),dtype=torch.float64),
+                                torch.eye(len(neigh_ind),dtype=torch.float64)])
+        grad = torch.linalg.lstsq(g_, b).solution
+        G_ls[i,i,:] = grad[:,[0]].T
+        G_ls[i,neigh_ind,:] = grad[:,1:].T
+            
+    return G_ls
 
 
 def project_gauge_to_neighbours(data, gauge='global'):
@@ -26,29 +56,22 @@ def project_gauge_to_neighbours(data, gauge='global'):
     """
     
     if gauge=='global':
-        gauge = torch.eye(data.pos.shape[1],dtype=torch.float64)
+        gauge = torch.eye(data.pos.shape[1], dtype=torch.float64)
             
     elif gauge=='local':
         NotImplemented
         
-    A = to_scipy_sparse_matrix(data.edge_index)
-    mask = torch.tensor(A.todense(), dtype=bool)
-    mask = mask[:,:,None].repeat(1,1,2)
-    
-    n = data.pos.shape[0]
-    
-    u = data.pos.repeat(n,1,1)
-    u = u - torch.swapaxes(u,0,1) #uij = xj - xi 
-    u[~mask] = 0
+    G = neighbor_vectors(data)
+    n = G.shape[0]
     
     F = []
     for g in gauge:
         g = g.repeat(n,n,1)
         
         _F = torch.zeros([n,n])
-        ind = scp.find(A)
-        for i,j in zip(ind[0], ind[1]):
-            _F[i,j] = g[i,j,:].dot(u[i,j,:])
+        ind = torch.nonzero(G[...,0])
+        for i,j in zip(ind[:,0], ind[:,1]):
+            _F[i,j] = g[i,j,:].dot(G[i,j,:])
         F.append(_F)
         
     return F
