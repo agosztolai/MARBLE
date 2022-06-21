@@ -47,13 +47,13 @@ def main():
     #plot
     titles=['Linear left','Linear right','Vortex right','Vortex left']
     plot_functions(data, titles=titles) #sampled functions
-    plt.savefig('../results/scalar_fields.svg')
+    plt.savefig('../results/vector_fields.svg')
     plotting.embedding(emb, clusters, data.y.numpy(), titles=titles) #TSNE embedding 
-    plt.savefig('../results/scalar_fields_embedding.svg')
+    plt.savefig('../results/vector_fields_embedding.svg')
     plotting.histograms(data, clusters, titles=titles) #histograms
-    plt.savefig('../results/scalar_fields_embedding.svg')
+    plt.savefig('../results/vector_fields_embedding.svg')
     plotting.neighbourhoods(data, clusters, n_samples=4, vector=True) #neighbourhoods
-    plt.savefig('../results/scalar_fields_nhoods.svg')
+    plt.savefig('../results/vector_fields_nhoods.svg')
     
 def f0(x):
     return x*0 + np.array([-1,-1])
