@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
 import numpy as np
-from GeoDySys.solvers import generate_trajectories, sample_trajectories, simulate_ODE
+from GeoDySys.solvers import simulate_ODE
 from GeoDySys.time_series import delay_embed, find_nn
-from GeoDySys import plotting, utils
+from GeoDySys import plotting
+from GeoDySys.geometry import furthest_point_sampling
 from scipy.spatial.transform import Rotation as R
 import sys
           
@@ -18,15 +19,9 @@ def main():
     
     ax = plotting.trajectories(X, style='->', lw=0.5, arrowhead=5, axis=True)
     
-    n=100
-        
-    x = np.random.uniform(np.min(X[:,0]),np.max(X[:,0]),n)
-    y = np.random.uniform(np.min(X[:,1]),np.max(X[:,1]),n)
-    z = np.random.uniform(np.min(X[:,2]),np.max(X[:,2]),n)
+    N=100
     
-    ind = []
-    for x_i in np.vstack([x,y,z]).T:
-        ind.append(np.argmin(np.sum((X-x_i)**2,axis=1)))
+    ind, _ = furthest_point_sampling(X, N)
 
     ind = np.array(list(set(ind)))
     _, nn = find_nn(ind, X, nn=2)
@@ -40,15 +35,22 @@ def main():
     
     plt.savefig('../results/Lorenz_cover.svg')
     
-    # plt.figure()
-    # plt.plot(t,X[:,0])
+    tau = -2
+    dim = 3
     
-    # tau = -1
-    # dim = 3
+    X_emb = delay_embed(X[:,0],dim,tau)
     
-    # X = delay_embed(X[:,0],dim,tau)
-    # plotting.trajectories(X, style='->', lw=0.5, arrowhead=5)
-    # plt.savefig('../results/Lorenz_reconstructed.svg')
+    ind, _ = furthest_point_sampling(X_emb, N)
+
+    ax = plotting.trajectories(X_emb, style='->', lw=0.5, arrowhead=5, axis=True)
+
+    ind = np.array(list(set(ind)))
+    _, nn = find_nn(ind, X_emb, nn=2)
+    
+    for i, nn_ in enumerate(nn):
+        ax = circle(ax, 2, X_emb[[ind[i]] + list(nn_)])
+        
+    plt.savefig('../results/Lorenz_reconstructed.svg')
     
 
 def circle(ax, r, X_p):

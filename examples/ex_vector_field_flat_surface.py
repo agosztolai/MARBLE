@@ -17,7 +17,7 @@ def main():
     n_clusters = 10
     
     par = {'batch_size': 256, #batch size, this should be as large as possible
-           'epochs': 40, #optimisation epochs
+           'epochs': 2, #optimisation epochs
            'order': 1, #order of derivatives
            'depth': 0, #number of hops in neighbourhood
            'n_lin_layers': 2,

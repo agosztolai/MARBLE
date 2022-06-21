@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import torch
 import scipy
+from sklearn.metrics.pairwise import pairwise_distances
 
-
+# =============================================================================
+# Sampling
+# =============================================================================
 def sample_2d(n=100, interval=[[-1,-1],[1,1]], method='uniform', seed=0):
     
     if method=='uniform':
@@ -18,6 +20,39 @@ def sample_2d(n=100, interval=[[-1,-1],[1,1]], method='uniform', seed=0):
                               (interval[1][0], interval[1][1]), 
                               (n,2))         
     return x
+
+
+def furthest_point_sampling(X, N=None):
+    """
+    A Naive O(N^2) algorithm to do furthest points sampling
+    
+    Parameters
+    ----------
+    D : ndarray (N, N) 
+        An NxN distance matrix for points
+    Return
+    ------
+    tuple (list, list) 
+        (permutation (N-length array of indices), 
+        lambdas (N-length array of insertion radii))
+    """
+    
+    D = pairwise_distances(X, metric='euclidean')
+
+    N = D.shape[0] if N is None else N
+    
+    #By default, takes the first point in the list to be the
+    #first point in the permutation, but could be random
+    perm = np.zeros(N, dtype=np.int64)
+    lambdas = np.zeros(N)
+    ds = D[0, :]
+    for i in range(1, N):
+        idx = np.argmax(ds)
+        perm[i] = idx
+        lambdas[i] = ds[idx]
+        ds = np.minimum(ds, D[idx, :])
+        
+    return perm, lambdas
 
 # =============================================================================
 # Functions for plotting on sphere
