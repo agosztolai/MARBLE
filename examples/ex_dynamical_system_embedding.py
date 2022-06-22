@@ -17,7 +17,7 @@ def main():
     t = np.linspace(0, 20, 1000)
     X = simulate_ODE('lorenz', t, x0, par)
     
-    ax = plotting.trajectories(X, style='->', lw=0.5, arrowhead=5, axis=True)
+    ax = plotting.trajectories(X, style='->', lw=0.5, arrowhead=5, axis=False)
     
     N=100
     
@@ -28,10 +28,6 @@ def main():
     
     for i, nn_ in enumerate(nn):
         ax = circle(ax, 4, X[[ind[i]] + list(nn_)])
-        
-    ax.set_xlim([-20,20])
-    ax.set_ylim([-20,20])
-    ax.set_zlim([0,50])
     
     plt.savefig('../results/Lorenz_cover.svg')
     
@@ -42,7 +38,7 @@ def main():
     
     ind, _ = furthest_point_sampling(X_emb, N)
 
-    ax = plotting.trajectories(X_emb, style='->', lw=0.5, arrowhead=5, axis=True)
+    ax = plotting.trajectories(X_emb, style='->', lw=0.5, arrowhead=5, axis=False)
 
     ind = np.array(list(set(ind)))
     _, nn = find_nn(ind, X_emb, nn=2)

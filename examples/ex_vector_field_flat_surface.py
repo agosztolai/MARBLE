@@ -10,14 +10,13 @@ from GeoDySys.model import net
 
 def main():
     
-    
     #parameters
     n = 512
     k = 30
     n_clusters = 10
     
     par = {'batch_size': 256, #batch size, this should be as large as possible
-           'epochs': 2, #optimisation epochs
+           'epochs': 20, #optimisation epochs
            'order': 1, #order of derivatives
            'depth': 0, #number of hops in neighbourhood
            'n_lin_layers': 2,

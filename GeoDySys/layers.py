@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import scipy.sparse.linalg as sla
+
 import torch
 from torch import Tensor
+import torch.nn as nn
+
 from torch_sparse import matmul
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.typing import OptPairTensor
+
 from .utils import adjacency_matrix
 
 
@@ -71,6 +76,89 @@ class AnisoConv(MessagePassing):
         convention. This is executed if input to propagate() is a SparseTensor"""
         return matmul(K_t, x, reduce=self.aggr)
     
+    
+class Diffusion(nn.Module):
+    """
+    Applies diffusion with learned per-channel t.
+    In the spectral domain this becomes 
+        f_out = e^(lambda_i t) f_in
+    Inputs:
+      - values: (V,C) in the spectral domain
+      - L: (V,V) sparse laplacian
+      - evals: (K) eigenvalues
+      - mass: (V) mass matrix diagonal
+      (note: L/evals may be omitted as None depending on method)
+    Outputs:
+      - (V,C) diffused values 
+    """
+
+    def __init__(self, C_inout, method='matrix_exp'):
+        super(Diffusion, self).__init__()
+        self.C_inout = C_inout
+        self.diffusion_time = nn.Parameter(torch.Tensor(C_inout))
+        self.method = method # one of ['spectral', 'implicit_dense']
+        
+    def reset_parameters(self):
+        nn.init.constant_(self.diffusion_time, 0.0)   
+
+    def forward(self, x, L):
+
+        L, mass, evals, evecs = L
+        
+        if mass is None:
+            mass = torch.tensor(1)
+        
+        # project times to the positive halfspace
+        # (and away from 0 in the incredibly rare chance that they get stuck)
+        with torch.no_grad():
+            self.diffusion_time.data = torch.clamp(self.diffusion_time, min=1e-8)
+
+        if x.shape[-1] != self.C_inout:
+            raise ValueError(
+                "Tensor has wrong shape = {}. Last dim shape should have number of channels = {}".format(
+                    x.shape, self.C_inout))
+            
+        if self.method == 'matrix_exp':
+            
+            time = self.diffusion_time
+            for i, t in enumerate(time):
+                x_diff = sla.expm_multiply(-t.detach().numpy() * L.numpy(), x[:,i].numpy())
+                x[:,i] = torch.tensor(x_diff)
+            return x
+
+        elif self.method == 'spectral':
+
+            # Transform to spectral
+            x_spec = evecs.T@x*mass.unsqueeze(-1)
+
+            # Diffuse
+            time = self.diffusion_time
+            diffusion_coefs = torch.exp(-evals.unsqueeze(-1) * time.unsqueeze(0))
+            x_spec *= diffusion_coefs
+
+            # Transform back to per-vertex 
+            return evecs@x_spec
+            
+        elif self.method == 'implicit_dense':
+            V = x.shape[-2]
+
+            # Form the dense matrices (M + tL) with dims (B,C,V,V)
+            mat_dense = L.unsqueeze(1).expand(-1, self.C_inout, V, V).clone()
+            mat_dense *= self.diffusion_time.unsqueeze(0).unsqueeze(-1).unsqueeze(-1)
+            mat_dense += torch.diag_embed(mass).unsqueeze(1)
+
+            # Factor the system
+            cholesky_factors = torch.linalg.cholesky(mat_dense)
+            
+            # Solve the system
+            rhs = x * mass.unsqueeze(-1)
+            rhsT = torch.transpose(rhs, 1, 2).unsqueeze(-1)
+            sols = torch.cholesky_solve(rhsT, cholesky_factors)
+            return torch.transpose(sols.squeeze(-1), 1, 2)
+
+        else:
+            raise ValueError("unrecognized method") 
+
     
 def adj_norm(x, out, adj_t, K_t, eps):
     """Normalize features by mean of neighbours"""

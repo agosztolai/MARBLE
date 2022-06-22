@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import scipy.sparse.linalg as sla
 import scipy
 from sklearn.metrics.pairwise import pairwise_distances
+from torch_geometric.utils import get_laplacian, to_scipy_sparse_matrix
+from .utils import np2torch
 
 # =============================================================================
 # Sampling
@@ -38,7 +41,6 @@ def furthest_point_sampling(X, N=None):
     """
     
     D = pairwise_distances(X, metric='euclidean')
-
     N = D.shape[0] if N is None else N
     
     #By default, takes the first point in the list to be the
@@ -236,32 +238,26 @@ def rotate_grid(rot, grid):
     return x_r, y_r, z_r
 
 
-
-
-
-def compute_operators(verts, k_eig=2):
+# =============================================================================
+# Discrete differential operators
+# =============================================================================
+def compute_laplacian(data, k_eig=2, eps=1e-8):
     """
     Builds spectral operators for a mesh/point cloud. Constructs mass matrix, eigenvalues/vectors for Laplacian, and gradient matrix.
     Arguments:
-      - verts: (V,3) vertex positions
       - k_eig: number of eigenvectors to use
     Returns:
-      - frames: (V,3,3) X/Y/Z coordinate frame at each vertex. Z coordinate is normal (e.g. [:,2,:] for normals)
       - L: (VxV) real sparse matrix of (weak) Laplacian
       - evals: (k) list of eigenvalues of the Laplacian
       - evecs: (V,k) list of eigenvectors of the Laplacian 
       - grad_mat: (VxVxdim) sparse matrix which gives the gradient in the local basis at the vertex
     """
 
-    eps = 1e-8
-
-
-    # Build the scalar Laplacian
-    L = 0
+    L = get_laplacian(data.edge_index, normalization="rw")
+    L = to_scipy_sparse_matrix(L[0], edge_attr=L[1])
     
-    # === Compute the eigenbasis
+    # Compute the eigenbasis
     L_eigsh = (L + scipy.sparse.identity(L.shape[0])*eps).tocsc()
-
     failcount = 0
     while True:
         try:
@@ -282,9 +278,9 @@ def compute_operators(verts, k_eig=2):
 
     # == Build gradient matrices
     # frames = build_tangent_frames(verts)
-    grad_mat = build_grad(verts, frames)
-
-    return L, evals, evecs, grad_mat
+    # grad_mat = build_grad(verts, frames)
+    
+    return [np2torch(L.toarray()), None, np2torch(evals), np2torch(evecs)]
 
 
 # def build_tangent_frames(verts):

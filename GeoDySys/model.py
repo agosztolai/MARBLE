@@ -11,9 +11,10 @@ from torch_geometric.nn import MLP, Linear
 from tensorboardX import SummaryWriter
 from datetime import datetime
 
-from .layers import AnisoConv
+from .layers import AnisoConv, Diffusion
 from .kernels import DA, DD
 from .dataloader import loaders
+from .geometry import compute_laplacian
 
 """Main network"""
 class net(nn.Module):
@@ -38,16 +39,21 @@ class net(nn.Module):
         o = self.par['order']
         self.par['n_neighb'] = [self.par['n_neighb'] for i in range(o+d)]
         
+        self.L = compute_laplacian(data, k_eig=128, eps = 1e-8)
+        
         #kernels
         self.vanilla_GCN = vanilla_GCN
         self.kernel_DD = DD(data, gauge)
         k1 = len(self.kernel_DD)
         if not vanilla_GCN:
             self.kernel_DA = DA(data, gauge)
-            k2 = k1
+            # k2 = k1
         else: #isotropic convolutions (vanilla GCN)
             self.kernel_DA = None
-            k2 = 1
+            # k2 = 1
+            
+        #diffusion layer
+        self.diffusion = Diffusion(data.x.shape[1])
             
         #conv layers
         self.convs = nn.ModuleList() #could use nn.Sequential because we execute in order
@@ -56,14 +62,14 @@ class net(nn.Module):
         
         #linear layers
         out_channels = data.x.shape[1]*((1-k1**(o+1))//(1-k1)-1)
-        self.lin = nn.ModuleList()
-        for i in range(d):
-            if i < d-1:
-                in_channels = out_channels*k2
-                out_channels = in_channels#*2
-                self.lin.append(Linear(in_channels, out_channels, bias = True))
-            else:
-                out_channels *= k2
+        # self.lin = nn.ModuleList()
+        # for i in range(d):
+        #     if i < d-1:
+        #         in_channels = out_channels*k2
+        #         out_channels = in_channels#*2
+        #         self.lin.append(Linear(in_channels, out_channels, bias = True))
+        #     else:
+        #         out_channels *= k2
             
         #non-linearity
         self.ReLU = nn.ReLU()
@@ -87,16 +93,22 @@ class net(nn.Module):
         
         
     def reset_parameters(self):
+        self.diffusion.reset_parameters()
         for layer in self.children():
             if hasattr(layer, 'reset_parameters'):
                 layer.reset_parameters()
         
-    def forward(self, x, adjs=None, K_DD=None, K_DA=None):
+    def forward(self, x, n_id=None, adjs=None, L=None, K_DD=None, K_DA=None):
         """Forward pass. 
         Messages are passed to a set target nodes (batch variable in 
         NeighborSampler) from sources nodes. By convention, the variable x
         is constructed such that the target nodes are placed first, i.e,
         x = concat[x_target, x_other]."""
+        
+        x = self.diffusion(x, L)
+        
+        if n_id is not None:
+            x = x[n_id]
         
         #taking derivatives (directional difference filters)
         if K_DD is not None:
@@ -112,17 +124,16 @@ class net(nn.Module):
             x = torch.cat(out, axis=1)
         
         #directional aggregation  (directional average filters)
-        for i, (edge_index, _, size) in enumerate(adjs): #loop over minibatches
-            if i >= self.par['order']:
-                x_source = x #source of messages (all nodes)
-                x_target = x[:size[1]] #target of messages
-                x = self.convs[i]((x_source, x_target), edge_index, K=K_DA)
+        # for i, (edge_index, _, size) in enumerate(adjs): #loop over minibatches
+        #     if i >= self.par['order']:
+        #         x_source = x #source of messages (all nodes)
+        #         x_target = x[:size[1]] #target of messages
+        #         x = self.convs[i]((x_source, x_target), edge_index, K=K_DA)
                 
-                if i < len(adjs)-1:
-                    x = self.lin[i-self.par['order']](x)
-                    x = self.ReLU(x)
-                    x = self.vec_norm(x)
-                # out.append(x)
+        #         if i < len(adjs)-1:
+        #             x = self.lin[i-self.par['order']](x)
+        #             x = self.ReLU(x)
+        #             x = self.vec_norm(x)
                 
         #resize everything to match output dimension
         # size_last = adjs[-1][-1][1] #output dim
@@ -130,21 +141,19 @@ class net(nn.Module):
         #     out[i] = o[:size_last]
                 
         # out = torch.cat(out, axis=1)
-        
-        out = x
-                
-        out = self.MLP(out)
+                        
+        x = self.MLP(x)
         if self.par['vec_norm']:
-            out = self.vec_norm(out)
+            x = self.vec_norm(x)
         
-        return out
+        return x
     
     def evaluate(self, data):
         """Forward pass @ evaluation (no minibatches)"""            
         with torch.no_grad():
             adjs = [[data.edge_index, None, (data.x.shape[0], data.x.shape[0])]]
             adjs *= (self.par['depth'] + self.par['order'])
-            return self(data.x, adjs, self.kernel_DD, self.kernel_DA)
+            return self(data.x, None, adjs, self.L, self.kernel_DD, self.kernel_DA)
     
     def batch_evaluate(self, x, adjs, n_id, device):
         """Evaluate network in batches"""
@@ -155,15 +164,14 @@ class net(nn.Module):
             adjs = [adj.to(device) for adj in adjs]
         
         K_DD, K_DA = self.kernel_DD, self.kernel_DA
-        if n_id is not None:       
-            #take submatrix corresponding to current batch  
-            K_DD = [K_[n_id,:][:,n_id] for K_ in self.kernel_DD]
-            if not self.vanilla_GCN:
-                K_DA = [K_[n_id,:][:,n_id] for K_ in self.kernel_DA]
-            else:
-                K_DA = None
+        #take submatrix corresponding to current batch  
+        K_DD = [K_[n_id,:][:,n_id] for K_ in self.kernel_DD]
+        if not self.vanilla_GCN:
+            K_DA = [K_[n_id,:][:,n_id] for K_ in self.kernel_DA]
+        else:
+            K_DA = None
         
-        return self(x[n_id], adjs, K_DD, K_DA)
+        return self(x, n_id, adjs, self.L, K_DD, K_DA)
     
     def train_model(self, data):
         """Network training"""

@@ -31,6 +31,7 @@ def adjacency_matrix(edge_index, size, value=None):
     
     return adj
 
+
 def construct_dataset(x, y, graph_type='cknn', k=10):
     """Construct PyG dataset from node positions and features"""
         
@@ -144,3 +145,11 @@ def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
     pool.join()
         
     return result
+
+
+def torch2np(x):
+    return x.detach().to(torch.device('cpu')).numpy()
+
+
+def np2torch(x):
+    return torch.from_numpy(x).float()
