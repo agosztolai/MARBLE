@@ -120,9 +120,11 @@ class Diffusion(nn.Module):
             
         if self.method == 'matrix_exp':
             
-            time = self.diffusion_time
+            time = self.diffusion_time.detach()
+            if time.nelement() == 1:
+                time = time.unsqueeze(-1)
             for i, t in enumerate(time):
-                x_diff = sla.expm_multiply(-t.detach().numpy() * L.numpy(), x[:,i].numpy())
+                x_diff = sla.expm_multiply(-t.numpy() * L.numpy(), x[:,i].numpy())
                 x[:,i] = torch.tensor(x_diff)
             return x
 

@@ -23,7 +23,7 @@ def main():
     data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
     
     L = geometry.compute_laplacian(data, k_eig=128, eps = 1e-8)
-    diffusion = Diffusion(data.x.shape[1])
+    diffusion = Diffusion(data.x.shape[1], method='matrix_exp')
     diffusion.diffusion_time.data = torch.tensor(5.)
     data.x = diffusion(data.x, L)#.detach()
  
