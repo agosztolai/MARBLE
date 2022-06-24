@@ -11,7 +11,7 @@ from torch_sparse import matmul
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.typing import OptPairTensor
 
-from .utils import adjacency_matrix
+from .utils import adjacency_matrix, np2torch
 
 
 """Convolution"""
@@ -92,14 +92,17 @@ class Diffusion(nn.Module):
       - (V,C) diffused values 
     """
 
-    def __init__(self, C_inout, method='matrix_exp'):
+    def __init__(self, C_inout, method='matrix_exp', init=[0]):
         super(Diffusion, self).__init__()
         self.C_inout = C_inout
-        self.diffusion_time = nn.Parameter(torch.Tensor(C_inout))
-        self.method = method # one of ['spectral', 'implicit_dense']
+        self.diffusion_time = []
+        for i in init:
+            self.diffusion_time.append(nn.Parameter(torch.Tensor(C_inout)))
+        self.method = method # one of ['matrix_exp', 'spectral', 'implicit_dense']
         
     def reset_parameters(self):
-        nn.init.constant_(self.diffusion_time, 0.0)   
+        for d in self.diffusion_time:
+            nn.init.constant_(d, 0.0)   
 
     def forward(self, x, L):
 
@@ -111,7 +114,8 @@ class Diffusion(nn.Module):
         # project times to the positive halfspace
         # (and away from 0 in the incredibly rare chance that they get stuck)
         with torch.no_grad():
-            self.diffusion_time.data = torch.clamp(self.diffusion_time, min=1e-8)
+            for d in self.diffusion_time:
+                d.data = torch.clamp(d, min=1e-8)
 
         if x.shape[-1] != self.C_inout:
             raise ValueError(
@@ -120,43 +124,45 @@ class Diffusion(nn.Module):
             
         if self.method == 'matrix_exp':
             
-            time = self.diffusion_time.detach()
-            if time.nelement() == 1:
-                time = time.unsqueeze(-1)
-            for i, t in enumerate(time):
-                x_diff = sla.expm_multiply(-t.numpy() * L.numpy(), x[:,i].numpy())
-                x[:,i] = torch.tensor(x_diff)
-            return x
+            out = []
+            for t in self.diffusion_time:
+                t = t.detach()
+                t = t.unsqueeze(-1) if t.nelement() == 1 else t
+                for i, t in enumerate(t):
+                    x_diff = sla.expm_multiply(-t.numpy() * L.numpy(), x[:,[i]].numpy()) 
+                    out.append(np2torch(x_diff))
+                    
+            return torch.cat(out, axis=1)
 
-        elif self.method == 'spectral':
+        # elif self.method == 'spectral':
 
-            # Transform to spectral
-            x_spec = evecs.T@x*mass.unsqueeze(-1)
+        #     # Transform to spectral
+        #     x_spec = evecs.T@x*mass.unsqueeze(-1)
 
-            # Diffuse
-            time = self.diffusion_time
-            diffusion_coefs = torch.exp(-evals.unsqueeze(-1) * time.unsqueeze(0))
-            x_spec *= diffusion_coefs
+        #     # Diffuse
+        #     time = self.diffusion_time
+        #     diffusion_coefs = torch.exp(-evals.unsqueeze(-1) * time.unsqueeze(0))
+        #     x_spec *= diffusion_coefs
 
-            # Transform back to per-vertex 
-            return evecs@x_spec
+        #     # Transform back to per-vertex 
+        #     return evecs@x_spec
             
-        elif self.method == 'implicit_dense':
-            V = x.shape[-2]
+        # elif self.method == 'implicit_dense':
+        #     V = x.shape[-2]
 
-            # Form the dense matrices (M + tL) with dims (B,C,V,V)
-            mat_dense = L.unsqueeze(1).expand(-1, self.C_inout, V, V).clone()
-            mat_dense *= self.diffusion_time.unsqueeze(0).unsqueeze(-1).unsqueeze(-1)
-            mat_dense += torch.diag_embed(mass).unsqueeze(1)
+        #     # Form the dense matrices (M + tL) with dims (B,C,V,V)
+        #     mat_dense = L.unsqueeze(1).expand(-1, self.C_inout, V, V).clone()
+        #     mat_dense *= self.diffusion_time.unsqueeze(0).unsqueeze(-1).unsqueeze(-1)
+        #     mat_dense += torch.diag_embed(mass).unsqueeze(1)
 
-            # Factor the system
-            cholesky_factors = torch.linalg.cholesky(mat_dense)
+        #     # Factor the system
+        #     cholesky_factors = torch.linalg.cholesky(mat_dense)
             
-            # Solve the system
-            rhs = x * mass.unsqueeze(-1)
-            rhsT = torch.transpose(rhs, 1, 2).unsqueeze(-1)
-            sols = torch.cholesky_solve(rhsT, cholesky_factors)
-            return torch.transpose(sols.squeeze(-1), 1, 2)
+        #     # Solve the system
+        #     rhs = x * mass.unsqueeze(-1)
+        #     rhsT = torch.transpose(rhs, 1, 2).unsqueeze(-1)
+        #     sols = torch.cholesky_solve(rhsT, cholesky_factors)
+        #     return torch.transpose(sols.squeeze(-1), 1, 2)
 
         else:
             raise ValueError("unrecognized method") 

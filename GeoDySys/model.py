@@ -53,7 +53,9 @@ class net(nn.Module):
             # k2 = 1
             
         #diffusion layer
-        self.diffusion = Diffusion(data.x.shape[1])
+        nt = self.par['n_scales']
+        init = list(torch.linspace(0,self.par['large_scale'], nt))
+        self.diffusion = Diffusion(data.x.shape[1], init=init)
             
         #conv layers
         self.convs = nn.ModuleList() #could use nn.Sequential because we execute in order
@@ -61,7 +63,7 @@ class net(nn.Module):
             self.convs.append(AnisoConv(adj_norm=self.par['adj_norm']))
         
         #linear layers
-        out_channels = data.x.shape[1]*((1-k1**(o+1))//(1-k1)-1)
+        out_channels = data.x.shape[1]*nt*((1-k1**(o+1))//(1-k1)-1)
         # self.lin = nn.ModuleList()
         # for i in range(d):
         #     if i < d-1:

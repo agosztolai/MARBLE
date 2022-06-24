@@ -21,10 +21,12 @@ from functools import partial
 from tqdm import tqdm
 
 
-def adjacency_matrix(edge_index, size, value=None):
+def adjacency_matrix(edge_index, size=None, value=None):
     """Compute adjacency matrix from edge_index"""
     if value is not None:
         value=value[edge_index[0], edge_index[1]]
+    if size is None:
+        size = (edge_index.max()+1, edge_index.max()+1)
     adj = SparseTensor(row=edge_index[0], col=edge_index[1], 
                        value=value,
                        sparse_sizes=(size[0], size[1]))
@@ -32,7 +34,7 @@ def adjacency_matrix(edge_index, size, value=None):
     return adj
 
 
-def construct_dataset(x, y, graph_type='cknn', k=10):
+def construct_dataset(x, y=None, graph_type='cknn', k=10):
     """Construct PyG dataset from node positions and features"""
         
     if not isinstance(x, (list,tuple)):
@@ -47,8 +49,9 @@ def construct_dataset(x, y, graph_type='cknn', k=10):
         edge_index = fit_graph(x_, graph_type=graph_type, par=k)
         data_ = Data(x=x_, edge_index=edge_index)
         data_.pos = torch.tensor(x[i])
-            
-        #build pytorch geometric object
+        if y_ is None:
+            A = adjacency_matrix(edge_index)
+            y_ = A.sum(1).unsqueeze(-1)
         data_.x = torch.tensor(y_).float() #only function value as feature
         data_.num_nodes = len(x[i])
         data_.num_node_features = data_.x.shape[1]

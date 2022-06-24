@@ -291,6 +291,7 @@ def graph(
     G,
     node_values='b',
     edge_width=1,
+    edge_alpha=0.2,
     node_size=20,
     show_colorbar=False,
     layout=None,
@@ -330,7 +331,7 @@ def graph(
             G,
             pos=pos,
             width=edge_width,
-            alpha=0.1,
+            alpha=edge_alpha,
             ax=ax
         )
     
@@ -338,10 +339,13 @@ def graph(
         node_xyz = np.array([pos[v] for v in sorted(G)])
         edge_xyz = np.array([(pos[u], pos[v]) for u, v in G.edges()])
     
-        ax.scatter(*node_xyz.T, s=node_size, ec="w")
+        if node_values is not None:
+            ax.scatter(*node_xyz.T, s=node_size, ec="w")
         
         for vizedge in edge_xyz:
-            ax.plot(*vizedge.T, color="tab:gray")            
+            ax.plot(*vizedge.T, color="tab:gray", alpha=edge_alpha, linewidth=edge_width)      
+            
+    return ax
     
 
 def embedding(emb, clusters, node_colors=None, titles=None):
