@@ -4,9 +4,15 @@
 import numpy as np
 import scipy.sparse.linalg as sla
 import scipy
-from sklearn.metrics.pairwise import pairwise_distances
+
 from torch_geometric.utils import get_laplacian, to_scipy_sparse_matrix
+
+from sklearn.cluster import KMeans
+from sklearn.metrics import pairwise_distances
+from sklearn.manifold import TSNE
+
 from .utils import np2torch
+
 
 # =============================================================================
 # Sampling
@@ -17,6 +23,7 @@ def sample_2d(n=100, interval=[[-1,-1],[1,1]], method='uniform', seed=0):
         x = np.linspace(interval[0][0], interval[1][0], int(np.sqrt(n)))
         y = np.linspace(interval[0][1], interval[1][1], int(np.sqrt(n)))
         x = np.stack([x,y],axis=1)
+        
     elif method=='random':
         np.random.seed(seed)
         x = np.random.uniform((interval[0][0], interval[0][1]), 
@@ -55,6 +62,56 @@ def furthest_point_sampling(X, N=None):
         ds = np.minimum(ds, D[idx, :])
         
     return perm, lambdas
+
+
+# =============================================================================
+# Clustering
+# =============================================================================
+def cluster(emb, typ='kmeans', n_clusters=15, reorder=True, tsne_embed=True, seed=0):
+    """Cluster embedding"""
+    
+    emb = emb.detach().numpy()
+    
+    clusters = dict()
+    if typ=='kmeans':
+        kmeans = KMeans(n_clusters=n_clusters, random_state=seed).fit(emb)
+        clusters['n_clusters'] = n_clusters
+        clusters['labels'] = kmeans.labels_
+        clusters['centroids'] = kmeans.cluster_centers_
+    else:
+        NotImplementedError
+        
+    #reorder to give close clusters similar labels
+    if reorder:
+        pd = pairwise_distances(clusters['centroids'], metric='euclidean')
+        pd += np.max(pd)*np.eye(n_clusters)
+        mapping = {}
+        id_old = 0
+        for i in range(n_clusters):
+            id_new = np.argmin(pd[id_old,:])
+            while id_new in mapping.keys():
+                pd[id_old,id_new] += np.max(pd)
+                id_new = np.argmin(pd[id_old,:])
+            mapping[id_new] = i
+            id_old = id_new
+            
+        l = clusters['labels']
+        clusters['labels'] = np.array([mapping[l[i]] for i,_ in enumerate(l)])
+        clusters['centroids'] = clusters['centroids'][list(mapping.keys())]
+        
+    if tsne_embed:
+        n_emb = emb.shape[0]
+        emb = np.vstack([emb, clusters['centroids']])
+        if emb.shape[1]>2:
+            print('Performed t-SNE embedding on embedded results.')
+            emb = TSNE(init='random',learning_rate='auto').fit_transform(emb)
+            
+        clusters['centroids'] = emb[n_emb:]
+        emb = emb[:n_emb]       
+        
+        
+    return emb, clusters
+
 
 # =============================================================================
 # Functions for plotting on sphere

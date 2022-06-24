@@ -56,7 +56,7 @@ def project_gauge_to_neighbours(data, gauge='global'):
     """
     
     if gauge=='global':
-        gauge = torch.eye(data.pos.shape[1], dtype=torch.float64)
+        gauge = torch.eye(data.pos.shape[1])
             
     elif gauge=='local':
         NotImplemented

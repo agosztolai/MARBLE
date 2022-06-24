@@ -15,3 +15,4 @@ out_channels: null #number of output channels (if null, then =hidden_channels)
 bias: False #learn bias parameters in MLP
 large_scale: 5
 n_scales: 4
+vanilla_GCN: False

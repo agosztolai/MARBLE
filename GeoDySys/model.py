@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import yaml
-import os
 
 import torch
 import torch.nn as nn
@@ -15,24 +13,18 @@ from .layers import AnisoConv, Diffusion
 from .kernels import DA, DD
 from .dataloader import loaders
 from .geometry import compute_laplacian
+from .utils import parse_parameters
 
 """Main network"""
 class net(nn.Module):
     def __init__(self, 
                  data,
-                 vanilla_GCN=False,
                  gauge='global', 
                  root_weight=True,
                  **kwargs):
         super(net, self).__init__()
-                
-        #load default parameters and merge with user specified parameters
-        file = os.path.dirname(__file__) + '/default_params.yaml'
-        par = yaml.load(open(file,'rb'), Loader=yaml.FullLoader)
-        for key in par.keys():
-            if key not in kwargs.keys():
-                kwargs[key] = par[key]
-        self.par = kwargs
+        
+        self = parse_parameters(self, kwargs)
         
         #how many neighbours to sample when computing the loss function
         d = self.par['depth']
@@ -42,10 +34,9 @@ class net(nn.Module):
         self.L = compute_laplacian(data, k_eig=128, eps = 1e-8)
         
         #kernels
-        self.vanilla_GCN = vanilla_GCN
         self.kernel_DD = DD(data, gauge)
         k1 = len(self.kernel_DD)
-        if not vanilla_GCN:
+        if not self.vanilla_GCN:
             self.kernel_DA = DA(data, gauge)
             # k2 = k1
         else: #isotropic convolutions (vanilla GCN)
