@@ -9,8 +9,8 @@ from torch_geometric.nn import MLP, Linear
 from tensorboardX import SummaryWriter
 from datetime import datetime
 
-from .layers import AnisoConv, Diffusion
-from .kernels import DA, DD
+from .layers import AnisoConv, Diffusion, InnerProductFeatures
+from .kernels import DA, DD, gradient_op
 from .dataloader import loaders
 from .geometry import compute_laplacian
 from .utils import parse_parameters
@@ -28,13 +28,13 @@ class net(nn.Module):
         
         #how many neighbours to sample when computing the loss function
         d = self.par['depth']
-        o = self.par['order']
-        self.par['n_neighb'] = [self.par['n_neighb'] for i in range(o+d)]
+        self.par['n_neighb'] = [self.par['n_neighb'] for i in range(d)]
         
-        self.L = compute_laplacian(data, k_eig=128, eps = 1e-8)
+        self.L = compute_laplacian(data, k_eig=128, eps=1e-8)
         
         #kernels
-        self.kernel_DD = DD(data, gauge)
+        # self.kernel_DD = gradient_op(data)
+        self.kernel_DD = DD(data, gauge, order=self.par['order'])
         k1 = len(self.kernel_DD)
         if not self.vanilla_GCN:
             self.kernel_DA = DA(data, gauge)
@@ -47,14 +47,17 @@ class net(nn.Module):
         nt = self.par['n_scales']
         init = list(torch.linspace(0,self.par['large_scale'], nt))
         self.diffusion = Diffusion(data.x.shape[1], init=init)
+        
+        #inner pproduct features
+        self.inner_products = InnerProductFeatures(nt, k1)
             
         #conv layers
         self.convs = nn.ModuleList() #could use nn.Sequential because we execute in order
-        for i in range(o+d):
+        for i in range(d):
             self.convs.append(AnisoConv(adj_norm=self.par['adj_norm']))
         
         #linear layers
-        out_channels = data.x.shape[1]*nt*((1-k1**(o+1))//(1-k1)-1)
+        out_channels = data.x.shape[1]*nt*k1#*((1-k1**(o+1))//(1-k1)-1)
         # self.lin = nn.ModuleList()
         # for i in range(d):
         #     if i < d-1:
@@ -86,7 +89,6 @@ class net(nn.Module):
         
         
     def reset_parameters(self):
-        self.diffusion.reset_parameters()
         for layer in self.children():
             if hasattr(layer, 'reset_parameters'):
                 layer.reset_parameters()
@@ -105,47 +107,24 @@ class net(nn.Module):
         
         #taking derivatives (directional difference filters)
         if K_DD is not None:
-            out = []
-            size_last = adjs[self.par['order']-1][-1][1] #output dim of last layer
             for i, (edge_index, _, size) in enumerate(adjs): #loop over minibatches
-                if i < self.par['order']:
-                    x_source = x #source of messages (all nodes)
-                    x_target = x[:size[1]] #target of messages
-                    x = self.convs[i]((x_source, x_target), edge_index, K=K_DD)
-                    out.append(x[:size_last])
-            
-            x = torch.cat(out, axis=1)
-        
-        #directional aggregation  (directional average filters)
-        # for i, (edge_index, _, size) in enumerate(adjs): #loop over minibatches
-        #     if i >= self.par['order']:
-        #         x_source = x #source of messages (all nodes)
-        #         x_target = x[:size[1]] #target of messages
-        #         x = self.convs[i]((x_source, x_target), edge_index, K=K_DA)
+                x_source = x #source of messages (all nodes)
+                x_target = x[:size[1]] #target of messages
+                x = self.convs[i]((x_source, x_target), edge_index, K=K_DD)
                 
-        #         if i < len(adjs)-1:
-        #             x = self.lin[i-self.par['order']](x)
-        #             x = self.ReLU(x)
-        #             x = self.vec_norm(x)
-                
-        #resize everything to match output dimension
-        # size_last = adjs[-1][-1][1] #output dim
-        # for i, o in enumerate(out):
-        #     out[i] = o[:size_last]
-                
-        # out = torch.cat(out, axis=1)
+                # x = self.inner_products(x)
                         
-        x = self.MLP(x)
-        if self.par['vec_norm']:
-            x = self.vec_norm(x)
-        
+                x = self.MLP(x)
+                if self.par['vec_norm']:
+                    x = self.vec_norm(x)
+            
         return x
     
     def evaluate(self, data):
         """Forward pass @ evaluation (no minibatches)"""            
         with torch.no_grad():
             adjs = [[data.edge_index, None, (data.x.shape[0], data.x.shape[0])]]
-            adjs *= (self.par['depth'] + self.par['order'])
+            adjs *= self.par['depth']
             return self(data.x, None, adjs, self.L, self.kernel_DD, self.kernel_DA)
     
     def batch_evaluate(self, x, adjs, n_id, device):

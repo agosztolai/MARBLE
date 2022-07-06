@@ -13,6 +13,6 @@ b_norm: True #batch normalisation
 hideen_channels: 16 #number of hidden channels
 out_channels: null #number of output channels (if null, then =hidden_channels)
 bias: False #learn bias parameters in MLP
-large_scale: 5
+large_scale: 4
 n_scales: 4
 vanilla_GCN: False

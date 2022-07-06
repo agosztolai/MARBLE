@@ -27,9 +27,11 @@ def parse_parameters(model, kwargs):
     file = os.path.dirname(__file__) + '/default_params.yaml'
     par = yaml.load(open(file,'rb'), Loader=yaml.FullLoader)
     
+    #merge dictionaries without duplications
     for key in par.keys():
         if key not in kwargs.keys():
             kwargs[key] = par[key]
+            
     model.par = kwargs
     model.vanilla_GCN = par['vanilla_GCN']
     
@@ -50,13 +52,11 @@ def adjacency_matrix(edge_index, size=None, value=None):
     return adj
 
 
-def construct_dataset(positions, features=None, graph_type='cknn', k=10):
+def construct_dataset(positions, features=None, graph_type='cknn', k=10, connect_datasets=False):
     """Construct PyG dataset from node positions and features"""
         
-    if not isinstance(positions, (list,tuple)):
-        positions = [positions]
-    if not isinstance(features, (list,tuple)):
-        features = [features]
+    positions = tolist(positions)
+    features = tolist(features)
         
     positions = [torch.tensor(p).float() for p in positions]
     features = [torch.tensor(x).float() for x in features]
@@ -64,6 +64,13 @@ def construct_dataset(positions, features=None, graph_type='cknn', k=10):
     data_list = []
     for i, x in enumerate(features):
         edge_index = fit_graph(positions[i], graph_type=graph_type, par=k)
+        n = len(positions[i])
+        
+        if connect_datasets:
+            if i < len(features)-1:
+                edge_index = torch.hstack([edge_index, 
+                                           torch.tensor([n-1,n]).unsqueeze(-1)])
+            
         data_ = Data(x=positions[i], edge_index=edge_index)
         
         if x is None:
@@ -72,7 +79,7 @@ def construct_dataset(positions, features=None, graph_type='cknn', k=10):
             
         data_.pos = positions[i] #positions
         data_.x = x #features
-        data_.num_nodes = len(positions[i])
+        data_.num_nodes = n
         data_.num_node_features = data_.x.shape[1]
         data_.y = torch.ones(data_.num_nodes, dtype=int)*i
         
@@ -128,3 +135,10 @@ def torch2np(x):
 
 def np2torch(x):
     return torch.from_numpy(x).float()
+
+
+def tolist(x):
+    if not isinstance(x, (list,tuple)):
+        x = [x]
+        
+    return x

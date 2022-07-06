@@ -97,12 +97,8 @@ class Diffusion(nn.Module):
         self.C_inout = C_inout
         self.diffusion_time = []
         for i in init:
-            self.diffusion_time.append(nn.Parameter(torch.Tensor(C_inout)))
+            self.diffusion_time.append(nn.Parameter(torch.Tensor(i)))
         self.method = method # one of ['matrix_exp', 'spectral', 'implicit_dense']
-        
-    def reset_parameters(self):
-        for d in self.diffusion_time:
-            nn.init.constant_(d, 0.0)   
 
     def forward(self, x, L):
 
@@ -165,7 +161,58 @@ class Diffusion(nn.Module):
         #     return torch.transpose(sols.squeeze(-1), 1, 2)
 
         else:
-            raise ValueError("unrecognized method") 
+            raise ValueError("unrecognized method")
+            
+    
+class InnerProductFeatures(nn.Module):
+    """
+    Compute inner-products between channel vectors.
+    
+    Input:
+        - vectors: (V,C,D)
+    Output:
+        - dots: (V,C)
+    """
+
+    def __init__(self, C, D, with_rotations=False):
+        super(InnerProductFeatures, self).__init__()
+
+        self.with_rotations = with_rotations
+        self.D = D
+        self.C = C
+
+        self.A = []
+        if with_rotations:
+            for i in range(C):
+                self.A.append(nn.Linear(D, D, bias=False))     
+        else:
+            self.A.append(nn.Linear(D, D, bias=False))
+            
+    def reset_parameters(self):
+        for lin in self.A:
+            lin.reset_parameters()
+
+    def forward(self, x):
+        
+        x = x.reshape(x.shape[0], self.C, self.D)
+        
+        with torch.no_grad():
+            for A in self.A:
+                A.weight.data = A.weight.data.clamp(min=1e-8)
+
+        Ax = []
+        for j in range(self.C): #batch over features
+            if self.with_rotations:
+                Ax.append(self.A[j](x[:,j,:])) #broadcast over vertices  
+            else:
+                Ax.append(self.A[0](x[:,j,:]))
+            
+        Ax = torch.stack(Ax, dim=1)
+        Ax = Ax.unsqueeze(1).repeat(1,self.C,1,1)
+        Ax = Ax.sum(1)
+        dots = (Ax*x).sum(2)
+
+        return dots#torch.tanh(dots)
 
     
 def adj_norm(x, out, adj_t, K_t, eps):

@@ -24,7 +24,7 @@ def main():
     
     L = geometry.compute_laplacian(data, k_eig=128, eps = 1e-8)
     diffusion = Diffusion(data.x.shape[1], method='matrix_exp')
-    diffusion.diffusion_time.data = torch.tensor(5.)
+    diffusion.diffusion_time[0].data = torch.tensor(4)
     data.x = diffusion(data.x, L)#.detach()
  
     #plot
