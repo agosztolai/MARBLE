@@ -28,13 +28,14 @@ class net(nn.Module):
         
         #how many neighbours to sample when computing the loss function
         d = self.par['depth']
-        self.par['n_neighb'] = [self.par['n_neighb'] for i in range(d)]
+        o = self.par['order']
+        self.par['n_neighb'] = [self.par['n_neighb'] for i in range(o+d)]
         
         self.L = compute_laplacian(data, k_eig=128, eps=1e-8)
         
         #kernels
         # self.kernel_DD = gradient_op(data)
-        self.kernel_DD = DD(data, gauge, order=self.par['order'])
+        self.kernel_DD = DD(data, gauge)
         k1 = len(self.kernel_DD)
         if not self.vanilla_GCN:
             self.kernel_DA = DA(data, gauge)
@@ -53,11 +54,11 @@ class net(nn.Module):
             
         #conv layers
         self.convs = nn.ModuleList() #could use nn.Sequential because we execute in order
-        for i in range(d):
+        for i in range(o+d):
             self.convs.append(AnisoConv(adj_norm=self.par['adj_norm']))
         
         #linear layers
-        out_channels = data.x.shape[1]*nt*k1#*((1-k1**(o+1))//(1-k1)-1)
+        out_channels = data.x.shape[1]*nt#*((1-k1**(o+1))//(1-k1)-1)
         # self.lin = nn.ModuleList()
         # for i in range(d):
         #     if i < d-1:
@@ -107,24 +108,49 @@ class net(nn.Module):
         
         #taking derivatives (directional difference filters)
         if K_DD is not None:
+            out = []
+            size_last = adjs[self.par['order']-1][-1][1] #output dim of last layer
             for i, (edge_index, _, size) in enumerate(adjs): #loop over minibatches
-                x_source = x #source of messages (all nodes)
-                x_target = x[:size[1]] #target of messages
-                x = self.convs[i]((x_source, x_target), edge_index, K=K_DD)
-                
-                # x = self.inner_products(x)
-                        
-                x = self.MLP(x)
-                if self.par['vec_norm']:
-                    x = self.vec_norm(x)
+                if i < self.par['order']:
+                    x_source = x #source of messages (all nodes)
+                    x_target = x[:size[1]] #target of messages
+                    x = self.convs[i]((x_source, x_target), edge_index, K=K_DD)
+                    out.append(x[:size_last])
             
+            x = torch.cat(out, axis=1)
+            
+        x = self.inner_products(x)
+        
+        #directional aggregation  (directional average filters)
+        # for i, (edge_index, _, size) in enumerate(adjs): #loop over minibatches
+        #     if i >= self.par['order']:
+        #         x_source = x #source of messages (all nodes)
+        #         x_target = x[:size[1]] #target of messages
+        #         x = self.convs[i]((x_source, x_target), edge_index, K=K_DA)
+                
+        #         if i < len(adjs)-1:
+        #             x = self.lin[i-self.par['order']](x)
+        #             x = self.ReLU(x)
+        #             x = self.vec_norm(x)
+                
+        #resize everything to match output dimension
+        # size_last = adjs[-1][-1][1] #output dim
+        # for i, o in enumerate(out):
+        #     out[i] = o[:size_last]
+                
+        # out = torch.cat(out, axis=1)
+                        
+        x = self.MLP(x)
+        if self.par['vec_norm']:
+            x = self.vec_norm(x)
+        
         return x
     
     def evaluate(self, data):
         """Forward pass @ evaluation (no minibatches)"""            
         with torch.no_grad():
             adjs = [[data.edge_index, None, (data.x.shape[0], data.x.shape[0])]]
-            adjs *= self.par['depth']
+            adjs *= (self.par['depth'] + self.par['order'])
             return self(data.x, None, adjs, self.L, self.kernel_DD, self.kernel_DA)
     
     def batch_evaluate(self, x, adjs, n_id, device):
