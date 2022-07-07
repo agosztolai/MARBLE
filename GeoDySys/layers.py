@@ -18,24 +18,10 @@ from .utils import adjacency_matrix, np2torch
 class AnisoConv(MessagePassing):    
     def __init__(self, 
                  adj_norm=False, 
-                 root_weight=True,
-                 eps=0.,
                  **kwargs):
         super().__init__(aggr='add', **kwargs)
         
         self.adj_norm = adj_norm
-        self.root_weight = root_weight
-        
-        #uf root_weight=True then eps is a trainable parameter
-        if root_weight:
-            self.eps = torch.nn.Parameter(torch.Tensor([eps]))
-        else:
-            self.register_buffer('eps', torch.Tensor([eps]))
-        
-        self.reset_parameters(eps)
-
-    def reset_parameters(self, eps):
-        self.eps.data.fill_(eps)
 
     def forward(self, x, edge_index, K=None):
         """Forward pass"""
@@ -57,9 +43,6 @@ class AnisoConv(MessagePassing):
                 K_ = adjacency_matrix(edge_index, size, value=None)
                 
             out_ = self.propagate(K_.t(), x=x[0])
-                
-            #skip connection
-            out_ += self.eps * x[1] 
                 
             if self.adj_norm: #adjacency features
                 adj = adjacency_matrix(edge_index, size)
@@ -123,8 +106,7 @@ class Diffusion(nn.Module):
             out = []
             for t in self.diffusion_time:
                 t = t.detach()
-                t = t.unsqueeze(-1) if t.nelement() == 1 else t
-                for i, t in enumerate(t):
+                for i in range(x.shape[-1]):
                     x_diff = sla.expm_multiply(-t.numpy() * L.numpy(), x[:,[i]].numpy()) 
                     out.append(np2torch(x_diff))
                     

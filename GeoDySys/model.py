@@ -4,7 +4,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import MLP, Linear
+from torch_geometric.nn import MLP
 
 from tensorboardX import SummaryWriter
 from datetime import datetime
@@ -58,18 +58,7 @@ class net(nn.Module):
             self.convs.append(AnisoConv(adj_norm=self.par['adj_norm']))
         
         #linear layers
-        out_channels = data.x.shape[1]*nt#*((1-k1**(o+1))//(1-k1)-1)
-        # self.lin = nn.ModuleList()
-        # for i in range(d):
-        #     if i < d-1:
-        #         in_channels = out_channels*k2
-        #         out_channels = in_channels#*2
-        #         self.lin.append(Linear(in_channels, out_channels, bias = True))
-        #     else:
-        #         out_channels *= k2
-            
-        #non-linearity
-        self.ReLU = nn.ReLU()
+        out_channels = data.x.shape[1]*nt*k1#*((1-k1**(o+1))//(1-k1)-1)
                         
         #initialise multilayer perceptron
         self.MLP = MLP(in_channels=out_channels,
@@ -118,28 +107,7 @@ class net(nn.Module):
                     out.append(x[:size_last])
             
             x = torch.cat(out, axis=1)
-            
-        x = self.inner_products(x)
         
-        #directional aggregation  (directional average filters)
-        # for i, (edge_index, _, size) in enumerate(adjs): #loop over minibatches
-        #     if i >= self.par['order']:
-        #         x_source = x #source of messages (all nodes)
-        #         x_target = x[:size[1]] #target of messages
-        #         x = self.convs[i]((x_source, x_target), edge_index, K=K_DA)
-                
-        #         if i < len(adjs)-1:
-        #             x = self.lin[i-self.par['order']](x)
-        #             x = self.ReLU(x)
-        #             x = self.vec_norm(x)
-                
-        #resize everything to match output dimension
-        # size_last = adjs[-1][-1][1] #output dim
-        # for i, o in enumerate(out):
-        #     out[i] = o[:size_last]
-                
-        # out = torch.cat(out, axis=1)
-                        
         x = self.MLP(x)
         if self.par['vec_norm']:
             x = self.vec_norm(x)

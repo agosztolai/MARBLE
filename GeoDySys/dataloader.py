@@ -47,8 +47,6 @@ class NeighborSampler(NS):
 
         # For each node in `batch`, we sample a direct neighbor (as positive
         # example) and a random node (as negative example):
-        seed.seed_everything(0)
-        torch.use_deterministic_algorithms(True)
         pos_batch = random_walk(row, col, batch, walk_length=1, coalesced=False)
 
         neg_batch = torch.randint(0, self.adj_t.size(1), (batch.numel(), ),

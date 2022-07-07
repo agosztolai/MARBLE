@@ -18,6 +18,7 @@ def main():
     par = {'batch_size': 256, #batch size, this should be as large as possible
            'epochs': 20, #optimisation epochs
            'order': 1, #order of derivatives
+           'depth': 0,
            'n_lin_layers': 2,
            'hidden_channels': 16, #number of internal dimensions in MLP
            'out_channels': 8,
@@ -40,7 +41,7 @@ def main():
     model = net(data, gauge='global', **par)
     model.train_model(data)
     emb = model.evaluate(data)
-    emb, clusters = utils.cluster(emb, n_clusters=n_clusters)
+    emb, clusters = geometry.cluster(emb, n_clusters=n_clusters)
     
     #plot
     titles=['Linear left','Linear right','Vortex right','Vortex left']
