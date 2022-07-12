@@ -15,7 +15,7 @@ def neighbour_vectors(x, edge_index):
     mask = mask.unsqueeze(2).repeat(1,1,dim)
     
     nvec = x.repeat(n,1,1)
-    nvec = nvec - torch.swapaxes(nvec,0,1) #Gij = xj - xi 
+    nvec = nvec - nvec.swapaxes(0,1) #Gij = xj - xi 
     nvec[~mask] = 0
     
     return nvec
@@ -51,7 +51,7 @@ def gradient_op(data):
     return [G[...,i] for i in range(G.shape[-1])]
 
 
-def project_gauge_to_neighbours(data, gauge='global'):
+def project_gauge_to_neighbours(data, gauge=None):
     """
     Project the gauge vectors into a local non-orthonormal
     unit vectors defined by the edges pointing outwards from a given node.
@@ -59,7 +59,7 @@ def project_gauge_to_neighbours(data, gauge='global'):
     Parameters
     ----------
     data : pytorch geometric data object containing .pos and .edge_index
-    gauge : 'global' or 'local'
+    gauge : local gauge, if None, global gauge is generated
 
     Returns
     -------
@@ -69,29 +69,19 @@ def project_gauge_to_neighbours(data, gauge='global'):
 
     """
     
-    if gauge=='global':
-        gauge = torch.eye(data.pos.shape[1])
-            
-    elif gauge=='local':
-        NotImplemented
-        
     nvec = neighbour_vectors(data.pos, data.edge_index)
     n = nvec.shape[0]
     
-    F = []
-    for g in gauge:
-        g = g.repeat(n,n,1)
-        
-        _F = torch.zeros([n,n])
-        ind = torch.nonzero(nvec[...,0])
-        for i,j in zip(ind[:,0], ind[:,1]):
-            _F[i,j] = g[i,j,:].dot(nvec[i,j,:])
-        F.append(_F)
+    if gauge is None:
+        gauge = torch.eye(data.pos.shape[1])
+        gauge = gauge.unsqueeze(1).repeat(1,n,1)
+    
+    F = [(nvec*g).sum(-1) for g in gauge] #dot product in last dimension
         
     return F
 
 
-def DD(data, gauge, order=1):
+def DD(data, gauge, order=1, include_identity=False):
     """
     Directional derivative kernel from Beaini et al. 2021.
 
@@ -110,7 +100,11 @@ def DD(data, gauge, order=1):
     
     F = project_gauge_to_neighbours(data, gauge)
 
-    K = []
+    if include_identity:
+        K = [torch.eye(F[0].shape[0])]
+    else:
+        K = []
+        
     for _F in F:
         Fhat = normalize(_F, dim=-1, p=1)
         K.append(Fhat - torch.diag(torch.sum(Fhat, dim=1)))

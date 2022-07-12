@@ -33,9 +33,23 @@ def parse_parameters(model, kwargs):
             kwargs[key] = par[key]
             
     model.par = kwargs
-    model.vanilla_GCN = par['vanilla_GCN']
     
     return model
+
+
+def print_settings(model, out_channels):
+    
+    print('---- Settings: \n')
+    
+    for x in model.par:
+        print (x,':',model.par[x])
+        
+    print('\n')
+    
+    np = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    
+    print('---- Number of channels to pass to the MLP: ', out_channels)
+    print('---- Total number of parameters: ', np)
 
 
 def adjacency_matrix(edge_index, size=None, value=None):

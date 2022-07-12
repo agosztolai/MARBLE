@@ -6,23 +6,43 @@ import scipy.sparse.linalg as sla
 import torch
 from torch import Tensor
 import torch.nn as nn
+import torch.nn.functional as F
 
 from torch_sparse import matmul
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.typing import OptPairTensor
+from torch_geometric.nn.dense.linear import Linear
 
 from .utils import adjacency_matrix, np2torch
 
 
 """Convolution"""
 class AnisoConv(MessagePassing):    
-    def __init__(self, 
-                 adj_norm=False, 
-                 **kwargs):
+    def __init__(self, in_channels, out_channels=None, lin_trnsf=True,
+                 bias=False, ReLU=True, vec_norm=False, **kwargs):
         super().__init__(aggr='add', **kwargs)
         
-        self.adj_norm = adj_norm
-
+        if out_channels is None:
+            out_channels = in_channels
+            
+        if lin_trnsf:
+            self.lin = Linear(in_channels, out_channels, bias=bias)
+        else:
+            self.lin = nn.Identity()
+        
+        if vec_norm:
+            self.vec_norm = lambda out: F.normalize(out, p=2., dim=-1)
+        else:
+            self.vec_norm = nn.Identity()
+        
+        if ReLU:
+            self.ReLU = nn.ReLU()
+        else:
+            self.ReLU = nn.Identity()
+                
+    def reset_parameters(self):
+        self.lin.reset_parameters()
+        
     def forward(self, x, edge_index, K=None):
         """Forward pass"""
         if isinstance(x, Tensor):
@@ -43,26 +63,24 @@ class AnisoConv(MessagePassing):
                 K_ = adjacency_matrix(edge_index, size, value=None)
                 
             out_ = self.propagate(K_.t(), x=x[0])
-                
-            if self.adj_norm: #adjacency features
-                adj = adjacency_matrix(edge_index, size)
-                out_ = adj_norm(x[0], out_, adj.t(), K_.t(), float(self.eps))
-                    
             out.append(out_)
-                    
+            
         out = torch.cat(out, axis=1)
-  
+        out = self.lin(out)
+        out = self.ReLU(out)
+        out = self.vec_norm(out)
+            
         return out
 
     def message_and_aggregate(self, K_t, x):
-        """Anisotropic convolution step. Need to be transposed because of PyG 
+        """Anisotropic convolution step. K needs to be transposed because of PyG 
         convention. This is executed if input to propagate() is a SparseTensor"""
         return matmul(K_t, x, reduce=self.aggr)
     
     
 class Diffusion(nn.Module):
     """
-    Applies diffusion with learned per-channel t.
+    Applies diffusion with learned t.
     In the spectral domain this becomes 
         f_out = e^(lambda_i t) f_in
     Inputs:
@@ -144,66 +162,3 @@ class Diffusion(nn.Module):
 
         else:
             raise ValueError("unrecognized method")
-            
-    
-class InnerProductFeatures(nn.Module):
-    """
-    Compute inner-products between channel vectors.
-    
-    Input:
-        - vectors: (V,C,D)
-    Output:
-        - dots: (V,C)
-    """
-
-    def __init__(self, C, D, with_rotations=False):
-        super(InnerProductFeatures, self).__init__()
-
-        self.with_rotations = with_rotations
-        self.D = D
-        self.C = C
-
-        self.A = []
-        if with_rotations:
-            for i in range(C):
-                self.A.append(nn.Linear(D, D, bias=False))     
-        else:
-            self.A.append(nn.Linear(D, D, bias=False))
-            
-    def reset_parameters(self):
-        for lin in self.A:
-            lin.reset_parameters()
-
-    def forward(self, x):
-        
-        x = x.reshape(x.shape[0], self.C, self.D)
-        
-        with torch.no_grad():
-            for A in self.A:
-                A.weight.data = A.weight.data.clamp(min=1e-8)
-
-        Ax = []
-        for j in range(self.C): #batch over features
-            if self.with_rotations:
-                Ax.append(self.A[j](x[:,j,:])) #broadcast over vertices  
-            else:
-                Ax.append(self.A[0](x[:,j,:]))
-            
-        Ax = torch.stack(Ax, dim=1)
-        Ax = Ax.unsqueeze(1).repeat(1,self.C,1,1)
-        Ax = Ax.sum(1)
-        dots = (Ax*x).sum(2)
-
-        return dots#torch.tanh(dots)
-
-    
-def adj_norm(x, out, adj_t, K_t, eps):
-    """Normalize features by mean of neighbours"""
-    ones = torch.ones([x.shape[0],1])
-    # x = x.norm(dim=-1,p=2, keepdim=True)
-    mu_x = (matmul(adj_t, x) + eps*out) / (matmul(adj_t, ones) + (eps>0)*1)
-    K1 = matmul(K_t, ones)
-    # sigma_x = (matmul(adj_t, x**2) / matmul(adj_t, ones)) - mu_x**2
-    out -= (K1*mu_x)#.repeat([1,out.shape[1]//x.shape[1]])
-    
-    return out

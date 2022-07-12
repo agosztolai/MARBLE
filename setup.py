@@ -1,4 +1,6 @@
-from setuptools import setup, find_packages
+from setuptools import setup, find_packages, Extension
+from Cython.Build import cythonize
+import numpy
 
 setup(
     name="GeoDySys",
@@ -15,4 +17,11 @@ setup(
         "pyyaml",
     ],
     packages=find_packages(),
+    ext_modules=cythonize(
+        Extension(
+            "ptu_dijkstra",
+            ["GeoDySys/lib/ptu_dijkstra.pyx"],
+            include_dirs=[numpy.get_include()]
+        )
+    )
 )

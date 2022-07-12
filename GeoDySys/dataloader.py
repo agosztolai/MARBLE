@@ -5,28 +5,29 @@ from torch_cluster import random_walk
 
 from torch_geometric.utils import dropout_adj
 from torch_geometric.loader import NeighborSampler as NS
-from torch_geometric import seed
 
 
-def loaders(data, n_neighbours, batch_size):
+def loaders(data, par):
+    
+    nb = [par['n_neighb'] for i in range(par['order'])]
     
     train_loader = NeighborSampler(data.edge_index,
-                                   sizes=n_neighbours,
-                                   batch_size=batch_size,
+                                   sizes=nb,
+                                   batch_size=par['batch_size'],
                                    shuffle=True,
                                    num_nodes=data.num_nodes,
                                    node_idx=data.train_mask)
     
     val_loader = NeighborSampler(data.edge_index,
-                                 sizes=n_neighbours,
-                                 batch_size=batch_size,
+                                 sizes=nb,
+                                 batch_size=par['batch_size'],
                                  shuffle=False,
                                  num_nodes=data.num_nodes,
                                  node_idx=data.val_mask)
     
     test_loader = NeighborSampler(data.edge_index,
-                                  sizes=n_neighbours,
-                                  batch_size=batch_size,
+                                  sizes=nb,
+                                  batch_size=par['batch_size'],
                                   shuffle=False,
                                   num_nodes=data.num_nodes,
                                   node_idx=data.test_mask)

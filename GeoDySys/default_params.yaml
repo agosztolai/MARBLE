@@ -4,9 +4,7 @@ lr: 0.01 #learning rate
 dropout: 0. #dropout in the MLP
 edge_dropout: 0. #dropout in the convolution graph
 n_neighb: 30 #parameter of neighbourhood sampling
-adj_norm: False #adjacency-wise norm
 order: 1 #order to which to compute the directional derivatives
-depth: 1 #depth of network (size of neighbourhood)
 n_lin_layers: 2 #number of layers if MLP
 vec_norm: False #vector normalisation of embedded features
 b_norm: True #batch normalisation
@@ -15,4 +13,3 @@ out_channels: null #number of output channels (if null, then =hidden_channels)
 bias: False #learn bias parameters in MLP
 large_scale: 4
 n_scales: 4
-vanilla_GCN: False
