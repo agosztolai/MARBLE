@@ -3,7 +3,8 @@ seed: 0 #seed for reproducibility
 lr: 0.01 #learning rate 
 dropout: 0. #dropout in the MLP
 edge_dropout: 0. #dropout in the convolution graph
-n_neighb: 30 #parameter of neighbourhood sampling
+n_sampled_nb: 30 #parameter of neighbourhood sampling
+n_geodesic_nb: 50 #number of geodesic neighbours to map to tangent space
 order: 1 #order to which to compute the directional derivatives
 n_lin_layers: 2 #number of layers if MLP
 vec_norm: False #vector normalisation of embedded features

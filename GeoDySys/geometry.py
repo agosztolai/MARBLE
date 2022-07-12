@@ -164,23 +164,18 @@ def compute_laplacian(data, k_eig=2, eps=1e-8):
             failcount += 1
             print("--- decomp failed; adding eps ===> count: " + str(failcount))
             L_eigsh = L_eigsh + scipy.sparse.identity(L.shape[0]) * (eps * 10**failcount)
-
-
-    # == Build gradient matrices
-    # frames = build_tangent_frames(verts)
-    # grad_mat = build_grad(verts, frames)
     
     return [np2torch(L.toarray()), None, np2torch(evals), np2torch(evecs)]
 
 
-def compute_tangent_frames(data, n_geodesic_neighbours=10):
+def compute_tangent_frames(data, n_geodesic_nb=10):
 
     X = data.pos.numpy().astype(np.float64)
     A = to_scipy_sparse_matrix(data.edge_index).tocsr()
 
-    tangents = ptu_dijkstra(X, A, 2, n_geodesic_neighbours, return_predecessors=False)
+    tangents = ptu_dijkstra(X, A, 2, n_geodesic_nb, return_predecessors=False)
     
-    return tangents.swapaxes(0,1)
+    return tangents
 
 
 # def vertex_normals(verts, n_nb=30):

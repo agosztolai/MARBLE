@@ -6,7 +6,7 @@ from torch.nn.functional import normalize
 
 
 def neighbour_vectors(x, edge_index):
-    """Spatial gradient vectors around each node"""
+    """Local edge vectors around each node"""
     
     n, dim = x.shape
     
@@ -22,8 +22,7 @@ def neighbour_vectors(x, edge_index):
 
 
 def gradient_op(data):
-    """
-    Gradient operator
+    """Gradient operator
 
     Parameters
     ----------
@@ -51,37 +50,38 @@ def gradient_op(data):
     return [G[...,i] for i in range(G.shape[-1])]
 
 
-def project_gauge_to_neighbours(data, gauge=None):
+def project_gauge_to_neighbours(x, edge_index, local_gauge=None):
     """
-    Project the gauge vectors into a local non-orthonormal
-    unit vectors defined by the edges pointing outwards from a given node.
+    Project the gauge vectors to local edge vectors.
     
     Parameters
     ----------
-    data : pytorch geometric data object containing .pos and .edge_index
-    gauge : local gauge, if None, global gauge is generated
+    x : nxdim torch tensor
+    edge_index : 2xE torch tensor
+    local_gauge : dimxnxdim torch tensor, if None, global gauge is generated
 
     Returns
     -------
-    F : torch tensor
-        Each row contains vectors whose components are projections (inner products)
-        of the gauge to edge vectors.
-
+    F : list of nxn torch tensors of projected components
+    
     """
     
-    nvec = neighbour_vectors(data.pos, data.edge_index)
-    n = nvec.shape[0]
+    nvec = neighbour_vectors(x, edge_index)
     
-    if gauge is None:
-        gauge = torch.eye(data.pos.shape[1])
-        gauge = gauge.unsqueeze(1).repeat(1,n,1)
+    n = x.shape[0]
+    dim = x.shape[1]
     
-    F = [(nvec*g).sum(-1) for g in gauge] #dot product in last dimension
+    if local_gauge is None:
+        local_gauge = torch.eye(dim)
+        local_gauge = local_gauge.repeat(n,1,1)
+    
+    local_gauge = local_gauge.swapaxes(0,1) #(nxdimxdim) -> (dimxnxdim)
+    F = [(nvec*g).sum(-1) for g in local_gauge] #dot product in last dimension
         
     return F
 
 
-def DD(data, gauge, order=1, include_identity=False):
+def DD(data, local_gauge, order=1, include_identity=False):
     """
     Directional derivative kernel from Beaini et al. 2021.
 
@@ -98,7 +98,7 @@ def DD(data, gauge, order=1, include_identity=False):
 
     """
     
-    F = project_gauge_to_neighbours(data, gauge)
+    F = project_gauge_to_neighbours(data.pos, data.edge_index, local_gauge)
 
     if include_identity:
         K = [torch.eye(F[0].shape[0])]
@@ -120,7 +120,7 @@ def DD(data, gauge, order=1, include_identity=False):
     return K
 
 
-def DA(data, gauge):
+def DA(data, local_gauge):
     """
     Directional average kernel from Beaini et al. 2021.
 
@@ -137,7 +137,7 @@ def DA(data, gauge):
 
     """
     
-    F = project_gauge_to_neighbours(data, gauge)
+    F = project_gauge_to_neighbours(data, local_gauge)
 
     K = []
     for _F in F:

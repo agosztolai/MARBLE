@@ -11,13 +11,13 @@ def main():
     
     #parameters
     n = 512
-    k = 30
+    k = 20
     n_clusters = 10
+    radius = 1
     
     par = {'batch_size': 256, #batch size, this should be as large as possible
            'epochs': 20, #optimisation epochs
            'order': 1, #order of derivatives
-           'depth': 0, #number of hops in neighbourhood
            'n_lin_layers': 2,
            'hidden_channels': 16, #number of internal dimensions in MLP
            'out_channels': 4,
@@ -49,7 +49,7 @@ def main():
     plt.savefig('../results/scalar_fields_embedding.svg')
     plotting.histograms(data, clusters, titles=titles) #histograms
     plt.savefig('../results/scalar_fields_histogram.svg')
-    plotting.neighbourhoods(data, clusters, n_samples=4, radius=par['depth']+1, norm=True) #neighbourhoods
+    plotting.neighbourhoods(data, clusters, n_samples=4, radius=radius, norm=True) #neighbourhoods
     plt.savefig('../results/scalar_fields_nhoods.svg')
     
 

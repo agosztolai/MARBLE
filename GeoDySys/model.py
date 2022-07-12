@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import warnings
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -13,28 +15,30 @@ from .layers import AnisoConv, Diffusion
 from .kernels import DD, gradient_op
 from .dataloader import loaders
 from .geometry import compute_laplacian, compute_tangent_frames
-from .utils import parse_parameters, print_settings
+from .utils import parse_parameters, print_settings, check_parameters
 
 """Main network"""
 class net(nn.Module):
     def __init__(self, 
                  data,
-                 local_gauge=False, 
+                 local_gauge=True, 
                  include_identity=False,
                  **kwargs):
         super(net, self).__init__()
         
-        self = parse_parameters(self, kwargs)
+        self.par = parse_parameters(self, data, kwargs)
+        self.par = check_parameters(self.par, data)
         self.include_identity = include_identity
         self.L = compute_laplacian(data, k_eig=128, eps=1e-8)
-        if local_gauge:
-            gauge = compute_tangent_frames(data, n_geodesic_neighbours=10)
-        else:
-            gauge = None
+        
+        if local_gauge is not None:
+            local_gauge = compute_tangent_frames(
+                    data, 
+                    n_geodesic_nb=self.par['n_geodesic_nb'])
         
         #kernels
         # self.kernel = gradient_op(data)
-        self.kernel = DD(data, gauge=gauge, order=1, include_identity=False)
+        self.kernel = DD(data, local_gauge=local_gauge)
             
         #diffusion layer
         nt = self.par['n_scales']
@@ -48,7 +52,10 @@ class net(nn.Module):
             in_channels *= len(self.kernel)
             if include_identity:
                 in_channels += 1
-            self.convs.append(AnisoConv(in_channels))
+            self.convs.append(AnisoConv(in_channels, 
+                                        vec_norm=self.par['vec_norm']
+                                        )
+                              )
                         
         #multilayer perceptron
         self.MLP = MLP(in_channels=in_channels,
@@ -57,7 +64,8 @@ class net(nn.Module):
                        num_layers=self.par['n_lin_layers'],
                        dropout=self.par['dropout'],
                        batch_norm=self.par['b_norm'],
-                       bias=self.par['bias'])
+                       bias=self.par['bias']
+                       )
         
         self.reset_parameters()
         
@@ -78,14 +86,10 @@ class net(nn.Module):
         
         x = self.diffusion(x, L)
         
-        if n_id is not None:
-            x = x[n_id]
-        
-        #taking derivatives (directional difference filters)
-        out = []
-        if self.include_identity:
-            out.append(x)
+        x = x[n_id] if n_id is not None else x  
+        out = [x] if self.include_identity else []
             
+        #taking derivatives (directional difference filters)
         for i, (edge_index, _, size) in enumerate(adjs):
             x_source = x #all nodes
             x_target = x[:size[1]]
@@ -101,7 +105,7 @@ class net(nn.Module):
         """Forward pass @ evaluation (no minibatches)"""            
         with torch.no_grad():
             adjs = [[data.edge_index, None, (data.x.shape[0], data.x.shape[0])]]
-            adjs *= (self.par['depth'] + self.par['order'])
+            adjs *= self.par['order']
             return self(data.x, None, adjs, self.L, self.kernel)
     
     def batch_evaluate(self, x, adjs, n_id, device):

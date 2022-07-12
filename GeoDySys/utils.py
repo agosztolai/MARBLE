@@ -4,6 +4,7 @@ import torch
 
 import yaml
 import os
+import warnings
 
 import networkx as nx
 
@@ -21,8 +22,8 @@ from functools import partial
 from tqdm import tqdm
 
 
-def parse_parameters(model, kwargs):
-    """load default parameters and merge with user specified parameters"""
+def parse_parameters(model, data, kwargs):
+    """Load default parameters and merge with user specified parameters"""
     
     file = os.path.dirname(__file__) + '/default_params.yaml'
     par = yaml.load(open(file,'rb'), Loader=yaml.FullLoader)
@@ -31,10 +32,22 @@ def parse_parameters(model, kwargs):
     for key in par.keys():
         if key not in kwargs.keys():
             kwargs[key] = par[key]
-            
-    model.par = kwargs
+                  
+    return kwargs
+
+
+def check_parameters(par, data):
+    if data.degree >= par['n_geodesic_nb']:
+        par['n_geodesic_nb'] = data.degree
+        warnings.warn('Number of geodesic neighbours (n_geodesic_nb) should \
+                      be (ideally) greater than the number of neighbours!')
     
-    return model
+    if data.degree < par['n_sampled_nb']:
+        par['n_sampled_nb'] = data.degree
+        warnings.warn('Sampled points (n_nb_samples) exceeds the degree (k)\
+                      of the graph! Continuing with n_nb_samples=k... ')
+                      
+    return par
 
 
 def print_settings(model, out_channels):
@@ -53,7 +66,6 @@ def print_settings(model, out_channels):
 
 
 def adjacency_matrix(edge_index, size=None, value=None):
-    """Compute adjacency matrix from edge_index"""
     
     if value is not None:
         value=value[edge_index[0], edge_index[1]]
@@ -101,6 +113,7 @@ def construct_dataset(positions, features=None, graph_type='cknn', k=10, connect
         
     #collate datasets
     batch = Batch.from_data_list(data_list)
+    batch.degree = k
     
     #split into training/validation/test datasets
     split = RandomNodeSplit(split='train_rest', num_val=0.1, num_test=0.1)
@@ -108,17 +121,17 @@ def construct_dataset(positions, features=None, graph_type='cknn', k=10, connect
     return split(batch)
 
 
-def fit_graph(X, graph_type='cknn', par=1):
+def fit_graph(x, graph_type='cknn', par=1):
     """Fit graph to node positions"""
     
-    ckng = cknneighbors_graph(X, n_neighbors=par, delta=1.0)
+    ckng = cknneighbors_graph(x, n_neighbors=par, delta=1.0)
     
     if graph_type=='cknn':
         edge_index = torch.tensor(list(nx.Graph(ckng).edges), dtype=torch.int64).T
     elif graph_type=='knn':
-        edge_index = knn_graph(X, k=par)
+        edge_index = knn_graph(x, k=par)
     elif graph_type=='radius':
-        edge_index = radius_graph(X, r=par)
+        edge_index = radius_graph(x, r=par)
     else:
         NotImplementedError
     
@@ -142,7 +155,9 @@ def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
         
     return result
 
-
+# =============================================================================
+# Conversions
+# =============================================================================
 def torch2np(x):
     return x.detach().to(torch.device('cpu')).numpy()
 
