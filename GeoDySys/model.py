@@ -32,12 +32,12 @@ class net(nn.Module):
         self.L = compute_laplacian(data, k_eig=128, eps=1e-8)
         
         if local_gauge is not None:
-            local_gauge = compute_tangent_frames(
+            local_gauge, R = compute_tangent_frames(
                     data, 
                     n_geodesic_nb=self.par['n_geodesic_nb'])
         
         #kernels
-        # self.kernel = gradient_op(data)
+        self.kernel = gradient_op(data)
         self.kernel = DD(data, local_gauge=local_gauge)
             
         #diffusion layer
@@ -48,6 +48,7 @@ class net(nn.Module):
         #conv layers
         self.convs = nn.ModuleList() #could use nn.Sequential because we execute in order
         in_channels = data.x.shape[1]*nt
+        cum_channels = 0
         for i in range(self.par['order']):
             in_channels *= len(self.kernel)
             if include_identity:
@@ -56,9 +57,10 @@ class net(nn.Module):
                                         vec_norm=self.par['vec_norm']
                                         )
                               )
+            cum_channels += in_channels
                         
         #multilayer perceptron
-        self.MLP = MLP(in_channels=in_channels,
+        self.MLP = MLP(in_channels=cum_channels,
                        hidden_channels=self.par['hidden_channels'], 
                        out_channels=self.par['out_channels'],
                        num_layers=self.par['n_lin_layers'],

@@ -173,9 +173,9 @@ def compute_tangent_frames(data, n_geodesic_nb=10):
     X = data.pos.numpy().astype(np.float64)
     A = to_scipy_sparse_matrix(data.edge_index).tocsr()
 
-    tangents = ptu_dijkstra(X, A, 2, n_geodesic_nb, return_predecessors=False)
+    tangents, R = ptu_dijkstra(X, A, 2, n_geodesic_nb, return_predecessors=False)
     
-    return tangents
+    return tangents, R
 
 
 # def vertex_normals(verts, n_nb=30):

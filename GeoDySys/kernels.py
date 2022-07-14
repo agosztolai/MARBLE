@@ -66,7 +66,7 @@ def project_gauge_to_neighbours(x, edge_index, local_gauge=None):
     
     """
     
-    nvec = neighbour_vectors(x, edge_index)
+    nvec = neighbour_vectors(x, edge_index) #(nxnxdim)
     
     n = x.shape[0]
     dim = x.shape[1]
@@ -74,6 +74,8 @@ def project_gauge_to_neighbours(x, edge_index, local_gauge=None):
     if local_gauge is None:
         local_gauge = torch.eye(dim)
         local_gauge = local_gauge.repeat(n,1,1)
+    else:
+        assert local_gauge.shape==(n,dim,dim), 'Incorrect dimensions for local_gauge.'
     
     local_gauge = local_gauge.swapaxes(0,1) #(nxdimxdim) -> (dimxnxdim)
     F = [(nvec*g).sum(-1) for g in local_gauge] #dot product in last dimension
