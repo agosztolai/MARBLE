@@ -27,7 +27,6 @@ class net(nn.Module):
         super(net, self).__init__()
         
         self.par = parse_parameters(self, data, kwargs)
-        self.par = check_parameters(self.par, data)
         self.include_identity = include_identity
         L = compute_laplacian(data)
         

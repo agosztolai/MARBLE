@@ -2,18 +2,20 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import scipy.sparse.linalg as sla
-import scipy
+import scipy.sparse as sp
 
-from torch_geometric.utils import get_laplacian, to_scipy_sparse_matrix
+import torch_geometric.utils as PyGu
+from torch_geometric.nn import knn_graph, radius_graph
+from torch_sparse import SparseTensor
+from cknn import cknneighbors_graph
 
 from sklearn.cluster import KMeans
 from sklearn.metrics import pairwise_distances
 from sklearn.manifold import TSNE
 
-from .utils import np2torch
-
 from ptu_dijkstra import ptu_dijkstra
+
+from GeoDySys import utils
 
 
 # =============================================================================
@@ -152,14 +154,49 @@ def relabel_by_proximity(clusters):
 
 
 # =============================================================================
-# Discrete differential operators
+# Manifold operations
 # =============================================================================
+def adjacency_matrix(edge_index, size=None, value=None):
+    """Adjacency matrix as torch_sparse tensor"""
+    
+    if value is not None:
+        value=value[edge_index[0], edge_index[1]]
+    if size is None:
+        size = (edge_index.max()+1, edge_index.max()+1)
+        
+    adj = SparseTensor(row=edge_index[0], col=edge_index[1], 
+                       value=value,
+                       sparse_sizes=(size[0], size[1]))
+    
+    return adj
+
+
+def fit_graph(x, graph_type='cknn', par=1):
+    """Fit graph to node positions"""
+    
+    if graph_type=='cknn':
+        ckng = cknneighbors_graph(x, n_neighbors=par, delta=1.0)
+        ckng += sp.eye(ckng.shape[0])
+        edge_index = np.vstack(ckng.nonzero())
+        edge_index = utils.np2torch(edge_index, dtype='double')
+    elif graph_type=='knn':
+        edge_index = knn_graph(x, k=par)
+    elif graph_type=='radius':
+        edge_index = radius_graph(x, r=par)
+    else:
+        NotImplementedError
+    
+    edge_index = PyGu.to_undirected(edge_index)
+    
+    return edge_index
+
+
 def compute_laplacian(data, normalization="rw"):
     
-    L = get_laplacian(data.edge_index, normalization=normalization)
-    L = to_scipy_sparse_matrix(L[0], edge_attr=L[1])
+    L = PyGu.get_laplacian(data.edge_index, normalization=normalization)
+    L = PyGu.to_scipy_sparse_matrix(L[0], edge_attr=L[1])
     
-    return np2torch(L.toarray())
+    return utils.np2torch(L.toarray())
 
 
 def compute_connection_laplacian(L, R):
@@ -208,11 +245,11 @@ def compute_eigendecomposition(A, k=2, eps=1e-8):
     """
     
     # Compute the eigenbasis
-    A_eigsh = (A + scipy.sparse.identity(A.shape[0])*eps).tocsc()
+    A_eigsh = (A + sp.identity(A.shape[0])*eps).tocsc()
     failcount = 0
     while True:
         try:
-            evals, evecs = sla.eigsh(A_eigsh, k=k)
+            evals, evecs = sp.linalg.eigsh(A_eigsh, k=k)
             
             # Clip off any eigenvalues that end up slightly negative due to numerical weirdness
             evals = np.clip(evals, a_min=0., a_max=float('inf'))
@@ -224,9 +261,9 @@ def compute_eigendecomposition(A, k=2, eps=1e-8):
                 raise ValueError("failed to compute eigendecomp")
             failcount += 1
             print("--- decomp failed; adding eps ===> count: " + str(failcount))
-            A_eigsh = A_eigsh + scipy.sparse.identity(A.shape[0]) * (eps * 10**failcount)
+            A_eigsh = A_eigsh + sp.identity(A.shape[0]) * (eps * 10**failcount)
     
-    return np2torch(evals), np2torch(evecs)
+    return utils.np2torch(evals), utils.np2torch(evecs)
 
 
 def compute_tangent_frames(data, n_geodesic_nb=10, return_predecessors=False):

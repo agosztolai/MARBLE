@@ -4,7 +4,6 @@
 import scipy.sparse.linalg as sla
 
 import torch
-from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -13,7 +12,8 @@ from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.typing import OptPairTensor
 from torch_geometric.nn.dense.linear import Linear
 
-from .utils import adjacency_matrix, np2torch
+from .utils import np2torch
+from .geometry import adjacency_matrix
 
 
 """Convolution"""
@@ -44,7 +44,7 @@ class AnisoConv(MessagePassing):
         self.lin.reset_parameters()
         
     def forward(self, x, edge_index, K=None):
-        if isinstance(x, Tensor):
+        if isinstance(x, torch.Tensor):
             x: OptPairTensor = (x, x) #message from all nodes to all nodes
             
         if not isinstance(K, list):
