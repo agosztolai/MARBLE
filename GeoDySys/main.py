@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import warnings
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -11,44 +9,40 @@ from torch_geometric.nn import MLP
 from tensorboardX import SummaryWriter
 from datetime import datetime
 
-from .layers import AnisoConv, Diffusion
-from .kernels import DD, gradient_op
-from .dataloader import loaders
-from .geometry import compute_laplacian, compute_tangent_frames, compute_connection_laplacian
-from .utils import parse_parameters, print_settings, check_parameters
+from GeoDySys import geometry, utils, layers, dataloader
 
 """Main network"""
 class net(nn.Module):
     def __init__(self, 
                  data,
-                 local_gauge=False, 
+                 local_gauge=True, 
                  include_identity=False,
                  **kwargs):
         super(net, self).__init__()
         
-        self.par = parse_parameters(self, data, kwargs)
+        self.par = utils.parse_parameters(self, data, kwargs)
         self.include_identity = include_identity
-        L = compute_laplacian(data)
+        L = geometry.compute_laplacian(data)
         
         if local_gauge:
             local_gauge, R = \
-                compute_tangent_frames(
+                geometry.compute_tangent_bundle(
                     data, 
                     n_geodesic_nb=self.par['n_geodesic_nb'],
                     return_predecessors=True
                     )
-            Lc = compute_connection_laplacian(L, R)
+            Lc = geometry.compute_connection_laplacian(L, R)
         else:
             local_gauge=None
         
         #kernels
-        # self.kernel = gradient_op(data)
-        self.kernel = DD(data, local_gauge=local_gauge)
+        # self.kernel = geometry.gradient_op(data)
+        self.kernel = geometry.DD(data, local_gauge=local_gauge)
             
         #diffusion layer
         nt = self.par['n_scales']
         init = list(torch.linspace(0,self.par['large_scale'], nt))
-        self.diffusion = Diffusion(L, data.x.shape[1], init=init)
+        self.diffusion = layers.Diffusion(L, data.x.shape[1], init=init)
             
         #conv layers
         self.convs = nn.ModuleList() #could use nn.Sequential because we execute in order
@@ -58,7 +52,7 @@ class net(nn.Module):
             in_channels *= len(self.kernel)
             if include_identity:
                 in_channels += 1
-            self.convs.append(AnisoConv(in_channels, 
+            self.convs.append(layers.AnisoConv(in_channels, 
                                         vec_norm=self.par['vec_norm']
                                         )
                               )
@@ -76,7 +70,7 @@ class net(nn.Module):
         
         self.reset_parameters()
         
-        print_settings(self, in_channels)
+        utils.print_settings(self, in_channels)
         
         
     def reset_parameters(self):
@@ -133,7 +127,7 @@ class net(nn.Module):
         
         writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        train_loader, val_loader, test_loader = loaders(data, self.par)
+        train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
         optimizer = torch.optim.Adam(self.parameters(), lr=self.par['lr'])
         self = self.to(device)
         x = data.x.to(device)

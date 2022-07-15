@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import torch
 import numpy as np
 import scipy.sparse as sp
 
@@ -8,6 +9,8 @@ import torch_geometric.utils as PyGu
 from torch_geometric.nn import knn_graph, radius_graph
 from torch_sparse import SparseTensor
 from cknn import cknneighbors_graph
+
+from torch.nn.functional import normalize
 
 from sklearn.cluster import KMeans
 from sklearn.metrics import pairwise_distances
@@ -156,6 +159,155 @@ def relabel_by_proximity(clusters):
 # =============================================================================
 # Manifold operations
 # =============================================================================
+def neighbour_vectors(x, edge_index):
+    """
+    Local out-going edge vectors around each node.
+
+    Parameters
+    ----------
+    x : (nxdim) Matrix of node positions
+    edge_index : (2x|E|) Matrix of edge indices
+
+    Returns
+    -------
+    nvec : (nxnxdim) Matrix of neighbourhood vectors.
+
+    """
+    
+    n, dim = x.shape
+    
+    mask = torch.zeros([n,n],dtype=bool)
+    mask[edge_index[0], edge_index[1]] = 1
+    mask = mask.unsqueeze(2).repeat(1,1,dim)
+    
+    nvec = x.repeat(n,1,1)
+    nvec = nvec - nvec.swapaxes(0,1) #Gij = xj - xi 
+    nvec[~mask] = 0
+    
+    return nvec
+
+
+def gradient_op(nvec):
+    """Gradient operator
+
+    Parameters
+    ----------
+    nvec : (nxnxdim) Matrix of neighbourhood vectors.
+
+    Returns
+    -------
+    G : (nxn) Gradient operator matrix.
+
+    """
+    
+    G = torch.zeros_like(nvec)
+    for i, g_ in enumerate(nvec):
+        neigh_ind = torch.where(g_[:,0]!=0)[0]
+        g_ = g_[neigh_ind]
+        b = torch.column_stack([-1.*torch.ones((len(neigh_ind),1)),
+                                torch.eye(len(neigh_ind))])
+        grad = torch.linalg.lstsq(g_, b).solution
+        G[i,i,:] = grad[:,[0]].T
+        G[i,neigh_ind,:] = grad[:,1:].T
+            
+    return [G[...,i] for i in range(G.shape[-1])]
+
+
+def DD(data, local_gauge, order=1, include_identity=False):
+    """
+    Directional derivative kernel from Beaini et al. 2021.
+
+    Parameters
+    ----------
+    data : pytorch geometric data object containing .pos and .edge_index
+    gauge : List of orthonormal unit vectors
+
+    Returns
+    -------
+    K : list of (nxn) Anisotropic kernels.
+
+    """
+    
+    F = project_gauge_to_neighbours(data.pos, data.edge_index, local_gauge)
+
+    if include_identity:
+        K = [torch.eye(F[0].shape[0])]
+    else:
+        K = []
+        
+    for _F in F:
+        Fhat = normalize(_F, dim=-1, p=1)
+        K.append(Fhat - torch.diag(torch.sum(Fhat, dim=1)))
+        
+    #derivative orders
+    if order>1:
+        n = len(K)
+        K0 = K
+        for i in range(order-1):
+            Ki = [K0[j]*K0[k] for j in range(n) for k in range(n)]
+            K += Ki
+    
+    return K
+
+
+def DA(data, local_gauge):
+    """
+    Directional average kernel from Beaini et al. 2021.
+
+    Parameters
+    ----------
+    data : pytorch geometric data object containing .pos and .edge_index
+    gauge : List of orthonormal unit vectors
+
+    Returns
+    -------
+    K : list of (nxn) Anisotropic kernels.
+
+    """
+    
+    F = project_gauge_to_neighbours(data, local_gauge)
+
+    K = []
+    for _F in F:
+        Fhat = normalize(_F, dim=-1, p=1)
+        K.append(torch.abs(Fhat))
+        
+    return K
+
+
+def project_gauge_to_neighbours(x, edge_index, local_gauge=None):
+    """
+    Project the gauge vectors to local edge vectors.
+    
+    Parameters
+    ----------
+    x : nxdim torch tensor
+    edge_index : 2xE torch tensor
+    local_gauge : dimxnxdim torch tensor, if None, global gauge is generated
+
+    Returns
+    -------
+    F : list of nxn torch tensors of projected components
+    
+    """
+    
+    nvec = neighbour_vectors(x, edge_index) #(nxnxdim)
+    
+    n = x.shape[0]
+    dim = x.shape[1]
+    
+    if local_gauge is None:
+        local_gauge = torch.eye(dim)
+        local_gauge = local_gauge.repeat(n,1,1)
+    else:
+        assert local_gauge.shape==(n,dim,dim), 'Incorrect dimensions for local_gauge.'
+    
+    local_gauge = local_gauge.swapaxes(0,1) #(nxdimxdim) -> (dimxnxdim)
+    F = [(nvec*g).sum(-1) for g in local_gauge] #dot product in last dimension
+        
+    return F
+
+
 def adjacency_matrix(edge_index, size=None, value=None):
     """Adjacency matrix as torch_sparse tensor"""
     
@@ -205,15 +357,12 @@ def compute_connection_laplacian(L, R):
 
     Parameters
     ----------
-    L : nxn torch tensor
-        Laplacian matrix.
-    R : nxnxdimxdim torch tensor
-        Connection matrices between all pairs of nodes.
+    L : (nxn) Laplacian matrix.
+    R : (nxnxdimxdim) Connection matrices between all pairs of nodes.
 
     Returns
     -------
-    n*dimxn*dim torch tensor
-        Connection Laplacian.
+    (n*dimxn*dim) Connection Laplacian matrox.
 
     """    
     n = L.shape[0]
@@ -266,10 +415,25 @@ def compute_eigendecomposition(A, k=2, eps=1e-8):
     return utils.np2torch(evals), utils.np2torch(evecs)
 
 
-def compute_tangent_frames(data, n_geodesic_nb=10, return_predecessors=False):
+def compute_tangent_bundle(data, n_geodesic_nb=10, return_predecessors=False):
+    """
+    Orthonormal gauges for the tangent space at each node, and connection 
+    matrices between each pair of adjacent nodes.
 
+    Parameters
+    ----------
+    data : Pytorch geometric data object.
+    n_geodesic_nb : number of geodesic neighbours. The default is 10.
+    return_predecessors : bool. The default is False.
+
+    Returns
+    -------
+    tangents : (nxdimxdim) Matrix containing dim unit vectors for each node.
+    R : (nxnxdimxdim) Connection matrices between all pairs of nodes.
+
+    """
     X = data.pos.numpy().astype(np.float64)
-    A = to_scipy_sparse_matrix(data.edge_index).tocsr()
+    A = PyGu.to_scipy_sparse_matrix(data.edge_index).tocsr()
 
     _, _, tangents, R = ptu_dijkstra(X, A, 2, n_geodesic_nb, return_predecessors)
     

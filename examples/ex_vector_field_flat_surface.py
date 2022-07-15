@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 from GeoDySys import plotting, utils, geometry
-from GeoDySys.model import net
+from GeoDySys.main import net
 
 
 def main():
