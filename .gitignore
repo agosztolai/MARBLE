@@ -2,6 +2,7 @@ results/
 build/
 data/
 examples/log/
+*.c
 *.so
 *.pyo
 *.pyc
