@@ -213,7 +213,7 @@ def gradient_op(nvec):
     return [G[...,i] for i in range(G.shape[-1])]
 
 
-def DD(data, local_gauge, order=1, include_identity=False):
+def DD(data, gauges, order=1, include_identity=False):
     """
     Directional derivative kernel from Beaini et al. 2021.
 
@@ -228,7 +228,9 @@ def DD(data, local_gauge, order=1, include_identity=False):
 
     """
     
-    F = project_gauge_to_neighbours(data.pos, data.edge_index, local_gauge)
+    nvec = neighbour_vectors(data.x, data.edge_index) #(nxnxdim)
+    
+    F = project_gauge_to_neighbours(nvec, gauges)
 
     if include_identity:
         K = [torch.eye(F[0].shape[0])]
@@ -250,14 +252,14 @@ def DD(data, local_gauge, order=1, include_identity=False):
     return K
 
 
-def DA(data, local_gauge):
+def DA(data, gauges):
     """
     Directional average kernel from Beaini et al. 2021.
 
     Parameters
     ----------
     data : pytorch geometric data object containing .pos and .edge_index
-    gauge : List of orthonormal unit vectors
+    gauges : (n,dim,dim) matric of orthogonal unit vectors for each node
 
     Returns
     -------
@@ -265,7 +267,9 @@ def DA(data, local_gauge):
 
     """
     
-    F = project_gauge_to_neighbours(data, local_gauge)
+    nvec = neighbour_vectors(data.x, data.edge_index) #(nxnxdim)
+    
+    F = project_gauge_to_neighbours(nvec, gauges)
 
     K = []
     for _F in F:
@@ -275,14 +279,46 @@ def DA(data, local_gauge):
     return K
 
 
-def project_gauge_to_neighbours(x, edge_index, local_gauge=None):
+def compute_gauges(data, local=False, n_geodesic_nb=10):
+    """
+    Compute gauges
+
+    Parameters
+    ----------
+    data : pytorch geometric data object containing .pos and .edge_index
+    local : bool, The default is False.
+    n_geodesic_nb : int, The default is 10.
+
+    Returns
+    -------
+    gauges : (n,dim,dim) matric of orthogonal unit vectors for each node
+    R : (n,n,dim,dim) connection matrices. If local=True.
+
+    """
+    
+    n = data.x.shape[0]
+    dim = data.x.shape[-1]
+    
+    if local:
+        gauges, R = compute_tangent_bundle(
+            data, 
+            n_geodesic_nb=n_geodesic_nb,
+            return_predecessors=True
+            )
+        return gauges, R
+    else:      
+        gauges = torch.eye(dim)
+        gauges = gauges.repeat(n,1,1)      
+        return gauges, None
+
+
+def project_gauge_to_neighbours(nvec, gauges):
     """
     Project the gauge vectors to local edge vectors.
     
     Parameters
     ----------
-    x : nxdim torch tensor
-    edge_index : 2xE torch tensor
+    nvec : (nxnxdim) Matrix of neighbourhood vectors.
     local_gauge : dimxnxdim torch tensor, if None, global gauge is generated
 
     Returns
@@ -290,29 +326,32 @@ def project_gauge_to_neighbours(x, edge_index, local_gauge=None):
     F : list of nxn torch tensors of projected components
     
     """
-    
-    nvec = neighbour_vectors(x, edge_index) #(nxnxdim)
-    
-    n = x.shape[0]
-    dim = x.shape[1]
-    
-    if local_gauge is None:
-        local_gauge = torch.eye(dim)
-        local_gauge = local_gauge.repeat(n,1,1)
-    else:
-        assert local_gauge.shape==(n,dim,dim), 'Incorrect dimensions for local_gauge.'
-    
-    local_gauge = local_gauge.swapaxes(0,1) #(nxdimxdim) -> (dimxnxdim)
-    F = [(nvec*g).sum(-1) for g in local_gauge] #dot product in last dimension
+            
+    gauges = gauges.swapaxes(0,1) #(nxdimxdim) -> (dimxnxdim)
+    F = [(nvec*g).sum(-1) for g in gauges] #dot product in last dimension
         
     return F
 
 
 def adjacency_matrix(edge_index, size=None, value=None):
-    """Adjacency matrix as torch_sparse tensor"""
-    
+    """
+    Adjacency matrix as torch_sparse tensor
+
+    Parameters
+    ----------
+    edge_index : (2x|E|) Matrix of edge indices
+    size : pair (rows,cols) giving the size of the matrix. 
+        The default is the largest node of the edge_index.
+    value : list of weights. The default is unit values.
+
+    Returns
+    -------
+    adj : TYPE
+        DESCRIPTION.
+
+    """    
     if value is not None:
-        value=value[edge_index[0], edge_index[1]]
+        value = value[edge_index[0], edge_index[1]]
     if size is None:
         size = (edge_index.max()+1, edge_index.max()+1)
         
@@ -387,9 +426,8 @@ def compute_eigendecomposition(A, k=2, eps=1e-8):
     
     Returns
     -------
-    evals : (k) list of eigenvalues of the Laplacian
-    evecs : (V,k) list of eigenvectors of the Laplacian 
-    grad_mat : (VxVxdim) sparse matrix which gives the gradient in the local basis at the vertex
+    evals : (k) eigenvalues of the Laplacian
+    evecs : (V,k) matrix of eigenvectors of the Laplacian 
     
     """
     

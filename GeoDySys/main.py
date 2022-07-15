@@ -22,31 +22,25 @@ class net(nn.Module):
         
         self.par = utils.parse_parameters(self, data, kwargs)
         self.include_identity = include_identity
-        L = geometry.compute_laplacian(data)
         
-        if local_gauge:
-            local_gauge, R = \
-                geometry.compute_tangent_bundle(
-                    data, 
-                    n_geodesic_nb=self.par['n_geodesic_nb'],
-                    return_predecessors=True
-                    )
-            Lc = geometry.compute_connection_laplacian(L, R)
-        else:
-            local_gauge=None
+        #gauges
+        gauges, R = geometry.compute_gauges(data, local_gauge, n_geodesic_nb=10)
         
         #kernels
-        # self.kernel = geometry.gradient_op(data)
-        self.kernel = geometry.DD(data, local_gauge=local_gauge)
+        self.kernel = geometry.DD(data, gauges) #or gradient_op(data)
             
         #diffusion layer
         nt = self.par['n_scales']
-        init = list(torch.linspace(0,self.par['large_scale'], nt))
-        self.diffusion = layers.Diffusion(L, data.x.shape[1], init=init)
+        scales = list(torch.linspace(0,self.par['large_scale'], nt))
+        L = geometry.compute_laplacian(data)
+        self.diffusion = layers.Diffusion(L, data.x.shape[1], ic=scales[0])
+        if local_gauge:
+            Lc = geometry.compute_connection_laplacian(L, R)
+            self.vector_diffusion = layers.Diffusion(Lc, data.x.shape[1], vector=True, ic=scales[0])
             
         #conv layers
-        self.convs = nn.ModuleList() #could use nn.Sequential because we execute in order
-        in_channels = data.x.shape[1]*nt
+        self.convs = nn.ModuleList()
+        in_channels = data.x.shape[1]#*nt
         cum_channels = 0
         for i in range(self.par['order']):
             in_channels *= len(self.kernel)

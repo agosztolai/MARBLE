@@ -16,8 +16,8 @@ from .utils import np2torch
 from .geometry import adjacency_matrix
 
 
-"""Convolution"""
-class AnisoConv(MessagePassing):    
+class AnisoConv(MessagePassing):
+    """Convolution"""
     def __init__(self, in_channels, out_channels=None, lin_trnsf=True,
                  bias=False, ReLU=True, vec_norm=False, **kwargs):
         super().__init__(aggr='add', **kwargs)
@@ -75,38 +75,40 @@ class AnisoConv(MessagePassing):
     
     
 class Diffusion(nn.Module):
-    """Applies diffusion with learned t."""
+    """Diffusion with learned t."""
 
-    def __init__(self, L, C_inout, method='matrix_exp', init=[0]):
+    def __init__(self, L, C_inout, vector=False, method='matrix_exp', ic=0.0):
         super(Diffusion, self).__init__()
         
         self.C_inout = C_inout
         self.method = method
         self.L = L
-        self.diffusion_time = []
-        for i in init:
-            self.diffusion_time.append(nn.Parameter(torch.Tensor(i)))
+        self.vector = vector
+        self.diffusion_time = nn.Parameter(torch.Tensor(ic))
 
     def forward(self, x):
         
         # making sure diffusion times are positive
         with torch.no_grad():
-            for d in self.diffusion_time:
-                d.data = torch.clamp(d, min=1e-8)
+            self.diffusion_time.data = torch.clamp(self.diffusion_time, min=1e-8)
 
         assert x.shape[-1] == self.C_inout, \
             "x has wrong shape {}. Last dim should be {}".format(x.shape, self.C_inout)
             
         if self.method == 'matrix_exp':
             
-            out = []
-            for t in self.diffusion_time:
-                t = t.detach()
+            t = self.diffusion_time.detach()
+            if self.vector:
+                out =  sla.expm_multiply(-t.numpy() * self.L.numpy(), x.flatten().numpy()) 
+                out = np2torch(out)
+                out = out.reshape(x.shape)
+            else: #diffuse componentwise
+                out = []
                 for i in range(x.shape[-1]):
                     x_diff = sla.expm_multiply(-t.numpy() * self.L.numpy(), x[:,[i]].numpy()) 
                     out.append(np2torch(x_diff))
-                    
-            out = torch.cat(out, axis=1)
+                        
+                out = torch.cat(out, axis=1)
 
         else:
             NotImplementedError
