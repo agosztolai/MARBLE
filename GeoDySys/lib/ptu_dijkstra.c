@@ -1074,7 +1074,7 @@ typedef struct {
 #define __Pyx_FastGilFuncInit()
 
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":690
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":690
  * # in Cython to enable them only on the right systems.
  * 
  * ctypedef npy_int8       int8_t             # <<<<<<<<<<<<<<
@@ -1083,7 +1083,7 @@ typedef struct {
  */
 typedef npy_int8 __pyx_t_5numpy_int8_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":691
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":691
  * 
  * ctypedef npy_int8       int8_t
  * ctypedef npy_int16      int16_t             # <<<<<<<<<<<<<<
@@ -1092,7 +1092,7 @@ typedef npy_int8 __pyx_t_5numpy_int8_t;
  */
 typedef npy_int16 __pyx_t_5numpy_int16_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":692
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":692
  * ctypedef npy_int8       int8_t
  * ctypedef npy_int16      int16_t
  * ctypedef npy_int32      int32_t             # <<<<<<<<<<<<<<
@@ -1101,7 +1101,7 @@ typedef npy_int16 __pyx_t_5numpy_int16_t;
  */
 typedef npy_int32 __pyx_t_5numpy_int32_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":693
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":693
  * ctypedef npy_int16      int16_t
  * ctypedef npy_int32      int32_t
  * ctypedef npy_int64      int64_t             # <<<<<<<<<<<<<<
@@ -1110,7 +1110,7 @@ typedef npy_int32 __pyx_t_5numpy_int32_t;
  */
 typedef npy_int64 __pyx_t_5numpy_int64_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":697
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":697
  * #ctypedef npy_int128     int128_t
  * 
  * ctypedef npy_uint8      uint8_t             # <<<<<<<<<<<<<<
@@ -1119,7 +1119,7 @@ typedef npy_int64 __pyx_t_5numpy_int64_t;
  */
 typedef npy_uint8 __pyx_t_5numpy_uint8_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":698
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":698
  * 
  * ctypedef npy_uint8      uint8_t
  * ctypedef npy_uint16     uint16_t             # <<<<<<<<<<<<<<
@@ -1128,7 +1128,7 @@ typedef npy_uint8 __pyx_t_5numpy_uint8_t;
  */
 typedef npy_uint16 __pyx_t_5numpy_uint16_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":699
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":699
  * ctypedef npy_uint8      uint8_t
  * ctypedef npy_uint16     uint16_t
  * ctypedef npy_uint32     uint32_t             # <<<<<<<<<<<<<<
@@ -1137,7 +1137,7 @@ typedef npy_uint16 __pyx_t_5numpy_uint16_t;
  */
 typedef npy_uint32 __pyx_t_5numpy_uint32_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":700
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":700
  * ctypedef npy_uint16     uint16_t
  * ctypedef npy_uint32     uint32_t
  * ctypedef npy_uint64     uint64_t             # <<<<<<<<<<<<<<
@@ -1146,7 +1146,7 @@ typedef npy_uint32 __pyx_t_5numpy_uint32_t;
  */
 typedef npy_uint64 __pyx_t_5numpy_uint64_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":704
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":704
  * #ctypedef npy_uint128    uint128_t
  * 
  * ctypedef npy_float32    float32_t             # <<<<<<<<<<<<<<
@@ -1155,7 +1155,7 @@ typedef npy_uint64 __pyx_t_5numpy_uint64_t;
  */
 typedef npy_float32 __pyx_t_5numpy_float32_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":705
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":705
  * 
  * ctypedef npy_float32    float32_t
  * ctypedef npy_float64    float64_t             # <<<<<<<<<<<<<<
@@ -1164,7 +1164,7 @@ typedef npy_float32 __pyx_t_5numpy_float32_t;
  */
 typedef npy_float64 __pyx_t_5numpy_float64_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":714
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":714
  * # The int types are mapped a bit surprising --
  * # numpy.int corresponds to 'l' and numpy.long to 'q'
  * ctypedef npy_long       int_t             # <<<<<<<<<<<<<<
@@ -1173,7 +1173,7 @@ typedef npy_float64 __pyx_t_5numpy_float64_t;
  */
 typedef npy_long __pyx_t_5numpy_int_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":715
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":715
  * # numpy.int corresponds to 'l' and numpy.long to 'q'
  * ctypedef npy_long       int_t
  * ctypedef npy_longlong   long_t             # <<<<<<<<<<<<<<
@@ -1182,7 +1182,7 @@ typedef npy_long __pyx_t_5numpy_int_t;
  */
 typedef npy_longlong __pyx_t_5numpy_long_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":716
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":716
  * ctypedef npy_long       int_t
  * ctypedef npy_longlong   long_t
  * ctypedef npy_longlong   longlong_t             # <<<<<<<<<<<<<<
@@ -1191,7 +1191,7 @@ typedef npy_longlong __pyx_t_5numpy_long_t;
  */
 typedef npy_longlong __pyx_t_5numpy_longlong_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":718
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":718
  * ctypedef npy_longlong   longlong_t
  * 
  * ctypedef npy_ulong      uint_t             # <<<<<<<<<<<<<<
@@ -1200,7 +1200,7 @@ typedef npy_longlong __pyx_t_5numpy_longlong_t;
  */
 typedef npy_ulong __pyx_t_5numpy_uint_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":719
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":719
  * 
  * ctypedef npy_ulong      uint_t
  * ctypedef npy_ulonglong  ulong_t             # <<<<<<<<<<<<<<
@@ -1209,7 +1209,7 @@ typedef npy_ulong __pyx_t_5numpy_uint_t;
  */
 typedef npy_ulonglong __pyx_t_5numpy_ulong_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":720
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":720
  * ctypedef npy_ulong      uint_t
  * ctypedef npy_ulonglong  ulong_t
  * ctypedef npy_ulonglong  ulonglong_t             # <<<<<<<<<<<<<<
@@ -1218,7 +1218,7 @@ typedef npy_ulonglong __pyx_t_5numpy_ulong_t;
  */
 typedef npy_ulonglong __pyx_t_5numpy_ulonglong_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":722
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":722
  * ctypedef npy_ulonglong  ulonglong_t
  * 
  * ctypedef npy_intp       intp_t             # <<<<<<<<<<<<<<
@@ -1227,7 +1227,7 @@ typedef npy_ulonglong __pyx_t_5numpy_ulonglong_t;
  */
 typedef npy_intp __pyx_t_5numpy_intp_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":723
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":723
  * 
  * ctypedef npy_intp       intp_t
  * ctypedef npy_uintp      uintp_t             # <<<<<<<<<<<<<<
@@ -1236,7 +1236,7 @@ typedef npy_intp __pyx_t_5numpy_intp_t;
  */
 typedef npy_uintp __pyx_t_5numpy_uintp_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":725
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":725
  * ctypedef npy_uintp      uintp_t
  * 
  * ctypedef npy_double     float_t             # <<<<<<<<<<<<<<
@@ -1245,7 +1245,7 @@ typedef npy_uintp __pyx_t_5numpy_uintp_t;
  */
 typedef npy_double __pyx_t_5numpy_float_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":726
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":726
  * 
  * ctypedef npy_double     float_t
  * ctypedef npy_double     double_t             # <<<<<<<<<<<<<<
@@ -1254,7 +1254,7 @@ typedef npy_double __pyx_t_5numpy_float_t;
  */
 typedef npy_double __pyx_t_5numpy_double_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":727
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":727
  * ctypedef npy_double     float_t
  * ctypedef npy_double     double_t
  * ctypedef npy_longdouble longdouble_t             # <<<<<<<<<<<<<<
@@ -1329,7 +1329,7 @@ struct __pyx_MemviewEnum_obj;
 struct __pyx_memoryview_obj;
 struct __pyx_memoryviewslice_obj;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":729
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":729
  * ctypedef npy_longdouble longdouble_t
  * 
  * ctypedef npy_cfloat      cfloat_t             # <<<<<<<<<<<<<<
@@ -1338,7 +1338,7 @@ struct __pyx_memoryviewslice_obj;
  */
 typedef npy_cfloat __pyx_t_5numpy_cfloat_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":730
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":730
  * 
  * ctypedef npy_cfloat      cfloat_t
  * ctypedef npy_cdouble     cdouble_t             # <<<<<<<<<<<<<<
@@ -1347,7 +1347,7 @@ typedef npy_cfloat __pyx_t_5numpy_cfloat_t;
  */
 typedef npy_cdouble __pyx_t_5numpy_cdouble_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":731
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":731
  * ctypedef npy_cfloat      cfloat_t
  * ctypedef npy_cdouble     cdouble_t
  * ctypedef npy_clongdouble clongdouble_t             # <<<<<<<<<<<<<<
@@ -1356,7 +1356,7 @@ typedef npy_cdouble __pyx_t_5numpy_cdouble_t;
  */
 typedef npy_clongdouble __pyx_t_5numpy_clongdouble_t;
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":733
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":733
  * ctypedef npy_clongdouble clongdouble_t
  * 
  * ctypedef npy_cdouble     complex_t             # <<<<<<<<<<<<<<
@@ -1440,7 +1440,7 @@ struct __pyx_t_12ptu_dijkstra_FibonacciNode;
 struct __pyx_opt_args_12ptu_dijkstra_initialize_node;
 struct __pyx_t_12ptu_dijkstra_FibonacciHeap;
 
-/* "ptu_dijkstra.pyx":556
+/* "ptu_dijkstra.pyx":547
  * #  Fibonacci heap.
  * #
  * cdef enum FibonacciState:             # <<<<<<<<<<<<<<
@@ -1453,7 +1453,7 @@ enum __pyx_t_12ptu_dijkstra_FibonacciState {
   __pyx_e_12ptu_dijkstra_IN_HEAP
 };
 
-/* "ptu_dijkstra.pyx":562
+/* "ptu_dijkstra.pyx":553
  * 
  * 
  * cdef struct FibonacciNode:             # <<<<<<<<<<<<<<
@@ -1472,7 +1472,7 @@ struct __pyx_t_12ptu_dijkstra_FibonacciNode {
   struct __pyx_t_12ptu_dijkstra_FibonacciNode *children;
 };
 
-/* "ptu_dijkstra.pyx":577
+/* "ptu_dijkstra.pyx":568
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef void initialize_node(FibonacciNode* node,             # <<<<<<<<<<<<<<
@@ -1484,7 +1484,7 @@ struct __pyx_opt_args_12ptu_dijkstra_initialize_node {
   __pyx_t_12ptu_dijkstra_DTYPE_t val;
 };
 
-/* "ptu_dijkstra.pyx":680
+/* "ptu_dijkstra.pyx":671
  * #  routines to implement a Fibonacci heap
  * 
  * ctypedef FibonacciNode* pFibonacciNode             # <<<<<<<<<<<<<<
@@ -1493,7 +1493,7 @@ struct __pyx_opt_args_12ptu_dijkstra_initialize_node {
  */
 typedef struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_t_12ptu_dijkstra_pFibonacciNode;
 
-/* "ptu_dijkstra.pyx":683
+/* "ptu_dijkstra.pyx":674
  * 
  * 
  * cdef struct FibonacciHeap:             # <<<<<<<<<<<<<<
@@ -2273,12 +2273,6 @@ static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_int
 /* ObjectToMemviewSlice.proto */
 static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsdsds_double(PyObject *, int writable_flag);
 
-/* ObjectToMemviewSlice.proto */
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsds_int(PyObject *, int writable_flag);
-
-/* ObjectToMemviewSlice.proto */
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsdsdsds_double(PyObject *, int writable_flag);
-
 /* RealImag.proto */
 #if CYTHON_CCOMPLEX
   #ifdef __cplusplus
@@ -2486,7 +2480,6 @@ static PyObject *contiguous = 0;
 static PyObject *indirect_contiguous = 0;
 static int __pyx_memoryview_thread_locks_used;
 static PyThread_type_lock __pyx_memoryview_thread_locks[8];
-static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, int, int, int); /*proto*/
 static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, __Pyx_memviewslice, int, int, int, int); /*proto*/
 static void __pyx_f_12ptu_dijkstra_initialize_node(struct __pyx_t_12ptu_dijkstra_FibonacciNode *, unsigned int, struct __pyx_opt_args_12ptu_dijkstra_initialize_node *__pyx_optional_args); /*proto*/
 static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_rightmost_sibling(struct __pyx_t_12ptu_dijkstra_FibonacciNode *); /*proto*/
@@ -2555,7 +2548,6 @@ static const char __pyx_k_F[] = "F";
 static const char __pyx_k_K[] = "K";
 static const char __pyx_k_N[] = "N";
 static const char __pyx_k_O[] = "O";
-static const char __pyx_k_R[] = "R";
 static const char __pyx_k_T[] = "T";
 static const char __pyx_k_X[] = "X";
 static const char __pyx_k_c[] = "c";
@@ -2734,7 +2726,6 @@ static PyObject *__pyx_n_s_N_t;
 static PyObject *__pyx_n_b_O;
 static PyObject *__pyx_kp_s_Out_of_bounds_on_buffer_access_a;
 static PyObject *__pyx_n_s_PickleError;
-static PyObject *__pyx_n_s_R;
 static PyObject *__pyx_n_s_RuntimeError;
 static PyObject *__pyx_n_s_T;
 static PyObject *__pyx_n_s_TypeError;
@@ -3072,7 +3063,6 @@ static PyObject *__pyx_pf_12ptu_dijkstra_ptu_dijkstra(CYTHON_UNUSED PyObject *__
   PyObject *__pyx_v_ptu_dists = NULL;
   PyObject *__pyx_v_predecessors = NULL;
   PyObject *__pyx_v_tangents = NULL;
-  PyObject *__pyx_v_R = NULL;
   PyObject *__pyx_v_csgraphT = NULL;
   PyObject *__pyx_v_symmetrized_graph = NULL;
   PyObject *__pyx_v_graph_data = NULL;
@@ -3092,9 +3082,6 @@ static PyObject *__pyx_pf_12ptu_dijkstra_ptu_dijkstra(CYTHON_UNUSED PyObject *__
   __Pyx_memviewslice __pyx_t_9 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_t_10 = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_t_11 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_12 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_13 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_t_14 = { 0, 0, { 0 }, { 0 }, { 0 } };
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -3508,7 +3495,7 @@ static PyObject *__pyx_pf_12ptu_dijkstra_ptu_dijkstra(CYTHON_UNUSED PyObject *__
  *     predecessors = np.empty((N, N), dtype=ITYPE)
  *     predecessors.fill(-1)             # <<<<<<<<<<<<<<
  *     tangents = np.empty((N, D, d), dtype=DTYPE)
- *     R = np.empty(shape=[N, N, d, d], dtype=DTYPE)
+ * 
  */
   __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_predecessors, __pyx_n_s_fill); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 108, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
@@ -3533,8 +3520,8 @@ static PyObject *__pyx_pf_12ptu_dijkstra_ptu_dijkstra(CYTHON_UNUSED PyObject *__
  *     predecessors = np.empty((N, N), dtype=ITYPE)
  *     predecessors.fill(-1)
  *     tangents = np.empty((N, D, d), dtype=DTYPE)             # <<<<<<<<<<<<<<
- *     R = np.empty(shape=[N, N, d, d], dtype=DTYPE)
  * 
+ *     # symmetrize the graph
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 109, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -3571,186 +3558,145 @@ static PyObject *__pyx_pf_12ptu_dijkstra_ptu_dijkstra(CYTHON_UNUSED PyObject *__
   __pyx_v_tangents = __pyx_t_6;
   __pyx_t_6 = 0;
 
-  /* "ptu_dijkstra.pyx":110
- *     predecessors.fill(-1)
- *     tangents = np.empty((N, D, d), dtype=DTYPE)
- *     R = np.empty(shape=[N, N, d, d], dtype=DTYPE)             # <<<<<<<<<<<<<<
- * 
- * 
- */
-  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 110, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 110, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 110, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_1 = PyList_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 110, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_INCREF(__pyx_v_N);
-  __Pyx_GIVEREF(__pyx_v_N);
-  PyList_SET_ITEM(__pyx_t_1, 0, __pyx_v_N);
-  __Pyx_INCREF(__pyx_v_N);
-  __Pyx_GIVEREF(__pyx_v_N);
-  PyList_SET_ITEM(__pyx_t_1, 1, __pyx_v_N);
-  __Pyx_INCREF(__pyx_v_d);
-  __Pyx_GIVEREF(__pyx_v_d);
-  PyList_SET_ITEM(__pyx_t_1, 2, __pyx_v_d);
-  __Pyx_INCREF(__pyx_v_d);
-  __Pyx_GIVEREF(__pyx_v_d);
-  PyList_SET_ITEM(__pyx_t_1, 3, __pyx_v_d);
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_1) < 0) __PYX_ERR(0, 110, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 110, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_1) < 0) __PYX_ERR(0, 110, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_empty_tuple, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 110, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_v_R = __pyx_t_1;
-  __pyx_t_1 = 0;
-
-  /* "ptu_dijkstra.pyx":114
+  /* "ptu_dijkstra.pyx":112
  * 
  *     # symmetrize the graph
  *     csgraphT = csgraph.T.tocsr()             # <<<<<<<<<<<<<<
  *     symmetrized_graph = csgraph.maximum(csgraphT)
  *     graph_data = symmetrized_graph.data
  */
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_csgraph, __pyx_n_s_T); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 114, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_tocsr); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 114, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_csgraph, __pyx_n_s_T); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 112, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = NULL;
-  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
-    __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_2);
-    if (likely(__pyx_t_6)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-      __Pyx_INCREF(__pyx_t_6);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_2, function);
-    }
-  }
-  __pyx_t_1 = (__pyx_t_6) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_6) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 114, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_tocsr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 112, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_v_csgraphT = __pyx_t_1;
-  __pyx_t_1 = 0;
+  __pyx_t_2 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_1))) {
+    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_1);
+    if (likely(__pyx_t_2)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+      __Pyx_INCREF(__pyx_t_2);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_1, function);
+    }
+  }
+  __pyx_t_6 = (__pyx_t_2) ? __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_2) : __Pyx_PyObject_CallNoArg(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_csgraphT = __pyx_t_6;
+  __pyx_t_6 = 0;
 
-  /* "ptu_dijkstra.pyx":115
+  /* "ptu_dijkstra.pyx":113
  *     # symmetrize the graph
  *     csgraphT = csgraph.T.tocsr()
  *     symmetrized_graph = csgraph.maximum(csgraphT)             # <<<<<<<<<<<<<<
  *     graph_data = symmetrized_graph.data
  *     graph_indices = symmetrized_graph.indices
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_csgraph, __pyx_n_s_maximum); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 115, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_6 = NULL;
-  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
-    __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_2);
-    if (likely(__pyx_t_6)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-      __Pyx_INCREF(__pyx_t_6);
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_csgraph, __pyx_n_s_maximum); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 113, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_1))) {
+    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_1);
+    if (likely(__pyx_t_2)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+      __Pyx_INCREF(__pyx_t_2);
       __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_2, function);
+      __Pyx_DECREF_SET(__pyx_t_1, function);
     }
   }
-  __pyx_t_1 = (__pyx_t_6) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_6, __pyx_v_csgraphT) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_csgraphT);
-  __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 115, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_v_symmetrized_graph = __pyx_t_1;
-  __pyx_t_1 = 0;
+  __pyx_t_6 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_2, __pyx_v_csgraphT) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_csgraphT);
+  __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 113, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_symmetrized_graph = __pyx_t_6;
+  __pyx_t_6 = 0;
 
-  /* "ptu_dijkstra.pyx":116
+  /* "ptu_dijkstra.pyx":114
  *     csgraphT = csgraph.T.tocsr()
  *     symmetrized_graph = csgraph.maximum(csgraphT)
  *     graph_data = symmetrized_graph.data             # <<<<<<<<<<<<<<
  *     graph_indices = symmetrized_graph.indices
  *     graph_indptr = symmetrized_graph.indptr
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_symmetrized_graph, __pyx_n_s_data); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 116, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_v_graph_data = __pyx_t_1;
-  __pyx_t_1 = 0;
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_symmetrized_graph, __pyx_n_s_data); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 114, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_v_graph_data = __pyx_t_6;
+  __pyx_t_6 = 0;
 
-  /* "ptu_dijkstra.pyx":117
+  /* "ptu_dijkstra.pyx":115
  *     symmetrized_graph = csgraph.maximum(csgraphT)
  *     graph_data = symmetrized_graph.data
  *     graph_indices = symmetrized_graph.indices             # <<<<<<<<<<<<<<
  *     graph_indptr = symmetrized_graph.indptr
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_symmetrized_graph, __pyx_n_s_indices); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 117, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_v_graph_indices = __pyx_t_1;
-  __pyx_t_1 = 0;
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_symmetrized_graph, __pyx_n_s_indices); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 115, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_v_graph_indices = __pyx_t_6;
+  __pyx_t_6 = 0;
 
-  /* "ptu_dijkstra.pyx":118
+  /* "ptu_dijkstra.pyx":116
  *     graph_data = symmetrized_graph.data
  *     graph_indices = symmetrized_graph.indices
  *     graph_indptr = symmetrized_graph.indptr             # <<<<<<<<<<<<<<
  * 
  *     tangents_status = _geodesic_neigborhood_tangents(
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_symmetrized_graph, __pyx_n_s_indptr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 118, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_v_graph_indptr = __pyx_t_1;
-  __pyx_t_1 = 0;
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_symmetrized_graph, __pyx_n_s_indptr); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 116, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_v_graph_indptr = __pyx_t_6;
+  __pyx_t_6 = 0;
 
-  /* "ptu_dijkstra.pyx":121
+  /* "ptu_dijkstra.pyx":119
  * 
  *     tangents_status = _geodesic_neigborhood_tangents(
  *             X,             # <<<<<<<<<<<<<<
  *             graph_data,
  *             graph_indices,
  */
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_v_X, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 121, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_v_X, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 119, __pyx_L1_error)
 
-  /* "ptu_dijkstra.pyx":122
+  /* "ptu_dijkstra.pyx":120
  *     tangents_status = _geodesic_neigborhood_tangents(
  *             X,
  *             graph_data,             # <<<<<<<<<<<<<<
  *             graph_indices,
  *             graph_indptr,
  */
-  __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_graph_data, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 122, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_graph_data, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 120, __pyx_L1_error)
 
-  /* "ptu_dijkstra.pyx":123
+  /* "ptu_dijkstra.pyx":121
  *             X,
  *             graph_data,
  *             graph_indices,             # <<<<<<<<<<<<<<
  *             graph_indptr,
  *             tangents,
  */
-  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_graph_indices, PyBUF_WRITABLE); if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 123, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_graph_indices, PyBUF_WRITABLE); if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 121, __pyx_L1_error)
 
-  /* "ptu_dijkstra.pyx":124
+  /* "ptu_dijkstra.pyx":122
  *             graph_data,
  *             graph_indices,
  *             graph_indptr,             # <<<<<<<<<<<<<<
  *             tangents,
  *             N_t,
  */
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_graph_indptr, PyBUF_WRITABLE); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 124, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_graph_indptr, PyBUF_WRITABLE); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 122, __pyx_L1_error)
 
-  /* "ptu_dijkstra.pyx":125
+  /* "ptu_dijkstra.pyx":123
  *             graph_indices,
  *             graph_indptr,
  *             tangents,             # <<<<<<<<<<<<<<
  *             N_t,
  *             K_t,
  */
-  __pyx_t_11 = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_double(__pyx_v_tangents, PyBUF_WRITABLE); if (unlikely(!__pyx_t_11.memview)) __PYX_ERR(0, 125, __pyx_L1_error)
+  __pyx_t_11 = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_double(__pyx_v_tangents, PyBUF_WRITABLE); if (unlikely(!__pyx_t_11.memview)) __PYX_ERR(0, 123, __pyx_L1_error)
 
-  /* "ptu_dijkstra.pyx":120
+  /* "ptu_dijkstra.pyx":118
  *     graph_indptr = symmetrized_graph.indptr
  * 
  *     tangents_status = _geodesic_neigborhood_tangents(             # <<<<<<<<<<<<<<
@@ -3774,7 +3720,7 @@ static PyObject *__pyx_pf_12ptu_dijkstra_ptu_dijkstra(CYTHON_UNUSED PyObject *__
   __pyx_t_11.memview = NULL;
   __pyx_t_11.data = NULL;
 
-  /* "ptu_dijkstra.pyx":131
+  /* "ptu_dijkstra.pyx":129
  *             d_t
  *     )
  *     if tangents_status == -1:             # <<<<<<<<<<<<<<
@@ -3784,20 +3730,20 @@ static PyObject *__pyx_pf_12ptu_dijkstra_ptu_dijkstra(CYTHON_UNUSED PyObject *__
   switch (__pyx_v_tangents_status) {
     case -1L:
 
-    /* "ptu_dijkstra.pyx":132
+    /* "ptu_dijkstra.pyx":130
  *     )
  *     if tangents_status == -1:
  *         raise RuntimeError(             # <<<<<<<<<<<<<<
  *             'Local tangent space approximation failed, at least one geodesic '
  *             'neighborhood does not span d-dimensional space'
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 132, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_Raise(__pyx_t_1, 0, 0, 0);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 132, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 130, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_Raise(__pyx_t_6, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __PYX_ERR(0, 130, __pyx_L1_error)
 
-    /* "ptu_dijkstra.pyx":131
+    /* "ptu_dijkstra.pyx":129
  *             d_t
  *     )
  *     if tangents_status == -1:             # <<<<<<<<<<<<<<
@@ -3807,155 +3753,40 @@ static PyObject *__pyx_pf_12ptu_dijkstra_ptu_dijkstra(CYTHON_UNUSED PyObject *__
     break;
     case 1:
 
-    /* "ptu_dijkstra.pyx":138
- *     elif tangents_status == 1:
- *         _parallel_transport_dijkstra(
- *             X,             # <<<<<<<<<<<<<<
- *             graph_data,
- *             graph_indices,
- */
-    __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_v_X, PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 138, __pyx_L1_error)
-
-    /* "ptu_dijkstra.pyx":139
- *         _parallel_transport_dijkstra(
- *             X,
- *             graph_data,             # <<<<<<<<<<<<<<
- *             graph_indices,
- *             graph_indptr,
- */
-    __pyx_t_8 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_v_graph_data, PyBUF_WRITABLE); if (unlikely(!__pyx_t_8.memview)) __PYX_ERR(0, 139, __pyx_L1_error)
-
-    /* "ptu_dijkstra.pyx":140
- *             X,
- *             graph_data,
- *             graph_indices,             # <<<<<<<<<<<<<<
- *             graph_indptr,
- *             ptu_dists,
- */
-    __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_graph_indices, PyBUF_WRITABLE); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 140, __pyx_L1_error)
-
-    /* "ptu_dijkstra.pyx":141
- *             graph_data,
- *             graph_indices,
- *             graph_indptr,             # <<<<<<<<<<<<<<
- *             ptu_dists,
- *             tangents,
- */
-    __pyx_t_9 = __Pyx_PyObject_to_MemoryviewSlice_ds_int(__pyx_v_graph_indptr, PyBUF_WRITABLE); if (unlikely(!__pyx_t_9.memview)) __PYX_ERR(0, 141, __pyx_L1_error)
-
-    /* "ptu_dijkstra.pyx":142
- *             graph_indices,
- *             graph_indptr,
- *             ptu_dists,             # <<<<<<<<<<<<<<
- *             tangents,
- *             predecessors,
- */
-    __pyx_t_12 = __Pyx_PyObject_to_MemoryviewSlice_dsds_double(__pyx_v_ptu_dists, PyBUF_WRITABLE); if (unlikely(!__pyx_t_12.memview)) __PYX_ERR(0, 142, __pyx_L1_error)
-
-    /* "ptu_dijkstra.pyx":143
- *             graph_indptr,
- *             ptu_dists,
- *             tangents,             # <<<<<<<<<<<<<<
- *             predecessors,
- *             R,
- */
-    __pyx_t_11 = __Pyx_PyObject_to_MemoryviewSlice_dsdsds_double(__pyx_v_tangents, PyBUF_WRITABLE); if (unlikely(!__pyx_t_11.memview)) __PYX_ERR(0, 143, __pyx_L1_error)
-
-    /* "ptu_dijkstra.pyx":144
- *             ptu_dists,
- *             tangents,
- *             predecessors,             # <<<<<<<<<<<<<<
- *             R,
- *             N_t,
- */
-    __pyx_t_13 = __Pyx_PyObject_to_MemoryviewSlice_dsds_int(__pyx_v_predecessors, PyBUF_WRITABLE); if (unlikely(!__pyx_t_13.memview)) __PYX_ERR(0, 144, __pyx_L1_error)
-
-    /* "ptu_dijkstra.pyx":145
- *             tangents,
- *             predecessors,
- *             R,             # <<<<<<<<<<<<<<
- *             N_t,
- *             D_t,
- */
-    __pyx_t_14 = __Pyx_PyObject_to_MemoryviewSlice_dsdsdsds_double(__pyx_v_R, PyBUF_WRITABLE); if (unlikely(!__pyx_t_14.memview)) __PYX_ERR(0, 145, __pyx_L1_error)
-
-    /* "ptu_dijkstra.pyx":137
- *         )
- *     elif tangents_status == 1:
- *         _parallel_transport_dijkstra(             # <<<<<<<<<<<<<<
- *             X,
- *             graph_data,
- */
-    __pyx_t_1 = __pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__pyx_t_7, __pyx_t_8, __pyx_t_10, __pyx_t_9, __pyx_t_12, __pyx_t_11, __pyx_t_13, __pyx_t_14, __pyx_v_N_t, __pyx_v_D_t, __pyx_v_d_t); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 137, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __PYX_XDEC_MEMVIEW(&__pyx_t_7, 1);
-    __pyx_t_7.memview = NULL;
-    __pyx_t_7.data = NULL;
-    __PYX_XDEC_MEMVIEW(&__pyx_t_8, 1);
-    __pyx_t_8.memview = NULL;
-    __pyx_t_8.data = NULL;
-    __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
-    __pyx_t_10.memview = NULL;
-    __pyx_t_10.data = NULL;
-    __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
-    __pyx_t_9.memview = NULL;
-    __pyx_t_9.data = NULL;
-    __PYX_XDEC_MEMVIEW(&__pyx_t_12, 1);
-    __pyx_t_12.memview = NULL;
-    __pyx_t_12.data = NULL;
-    __PYX_XDEC_MEMVIEW(&__pyx_t_11, 1);
-    __pyx_t_11.memview = NULL;
-    __pyx_t_11.data = NULL;
-    __PYX_XDEC_MEMVIEW(&__pyx_t_13, 1);
-    __pyx_t_13.memview = NULL;
-    __pyx_t_13.data = NULL;
-    __PYX_XDEC_MEMVIEW(&__pyx_t_14, 1);
-    __pyx_t_14.memview = NULL;
-    __pyx_t_14.data = NULL;
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-    /* "ptu_dijkstra.pyx":153
+    /* "ptu_dijkstra.pyx":150
  *         #     return ptu_dists, predecessors
  *         # return ptu_dists
- *         return tangents, R             # <<<<<<<<<<<<<<
+ *         return tangents             # <<<<<<<<<<<<<<
  *     else:
  *         raise RuntimeError(
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 153, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
     __Pyx_INCREF(__pyx_v_tangents);
-    __Pyx_GIVEREF(__pyx_v_tangents);
-    PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_tangents);
-    __Pyx_INCREF(__pyx_v_R);
-    __Pyx_GIVEREF(__pyx_v_R);
-    PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_v_R);
-    __pyx_r = __pyx_t_1;
-    __pyx_t_1 = 0;
+    __pyx_r = __pyx_v_tangents;
     goto __pyx_L0;
 
-    /* "ptu_dijkstra.pyx":136
+    /* "ptu_dijkstra.pyx":134
  *             'neighborhood does not span d-dimensional space'
  *         )
  *     elif tangents_status == 1:             # <<<<<<<<<<<<<<
- *         _parallel_transport_dijkstra(
- *             X,
+ *         # _parallel_transport_dijkstra(
+ *         #     X,
  */
     break;
     default:
 
-    /* "ptu_dijkstra.pyx":155
- *         return tangents, R
+    /* "ptu_dijkstra.pyx":152
+ *         return tangents
  *     else:
  *         raise RuntimeError(             # <<<<<<<<<<<<<<
  *             'Local tangent space approximation failed'
  *         )
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 155, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_Raise(__pyx_t_1, 0, 0, 0);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 155, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_RuntimeError, __pyx_tuple__5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 152, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_Raise(__pyx_t_6, 0, 0, 0);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __PYX_ERR(0, 152, __pyx_L1_error)
     break;
   }
 
@@ -3978,9 +3809,6 @@ static PyObject *__pyx_pf_12ptu_dijkstra_ptu_dijkstra(CYTHON_UNUSED PyObject *__
   __PYX_XDEC_MEMVIEW(&__pyx_t_9, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_10, 1);
   __PYX_XDEC_MEMVIEW(&__pyx_t_11, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_12, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_13, 1);
-  __PYX_XDEC_MEMVIEW(&__pyx_t_14, 1);
   __Pyx_AddTraceback("ptu_dijkstra.ptu_dijkstra", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
@@ -3989,7 +3817,6 @@ static PyObject *__pyx_pf_12ptu_dijkstra_ptu_dijkstra(CYTHON_UNUSED PyObject *__
   __Pyx_XDECREF(__pyx_v_ptu_dists);
   __Pyx_XDECREF(__pyx_v_predecessors);
   __Pyx_XDECREF(__pyx_v_tangents);
-  __Pyx_XDECREF(__pyx_v_R);
   __Pyx_XDECREF(__pyx_v_csgraphT);
   __Pyx_XDECREF(__pyx_v_symmetrized_graph);
   __Pyx_XDECREF(__pyx_v_graph_data);
@@ -4001,7 +3828,7 @@ static PyObject *__pyx_pf_12ptu_dijkstra_ptu_dijkstra(CYTHON_UNUSED PyObject *__
   return __pyx_r;
 }
 
-/* "ptu_dijkstra.pyx":161
+/* "ptu_dijkstra.pyx":158
  * 
  * @cython.boundscheck(False)
  * cdef _dijkstra_scan_heap(FibonacciHeap *heap,             # <<<<<<<<<<<<<<
@@ -4026,7 +3853,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
   size_t __pyx_t_8;
   __Pyx_RefNannySetupContext("_dijkstra_scan_heap", 0);
 
-  /* "ptu_dijkstra.pyx":176
+  /* "ptu_dijkstra.pyx":173
  *         FibonacciNode *current_node
  * 
  *     for j in range(csr_indptr[v.index], csr_indptr[v.index + 1]):             # <<<<<<<<<<<<<<
@@ -4041,7 +3868,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
   for (__pyx_t_5 = (*((int const  *) ( /* dim=0 */ (__pyx_v_csr_indptr.data + __pyx_t_3 * __pyx_v_csr_indptr.strides[0]) ))); __pyx_t_5 < __pyx_t_4; __pyx_t_5+=1) {
     __pyx_v_j = __pyx_t_5;
 
-    /* "ptu_dijkstra.pyx":177
+    /* "ptu_dijkstra.pyx":174
  * 
  *     for j in range(csr_indptr[v.index], csr_indptr[v.index + 1]):
  *         j_current = csr_indices[j]             # <<<<<<<<<<<<<<
@@ -4052,7 +3879,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
     if (__pyx_t_1 < 0) __pyx_t_1 += __pyx_v_csr_indices.shape[0];
     __pyx_v_j_current = (*((int const  *) ( /* dim=0 */ (__pyx_v_csr_indices.data + __pyx_t_1 * __pyx_v_csr_indices.strides[0]) )));
 
-    /* "ptu_dijkstra.pyx":178
+    /* "ptu_dijkstra.pyx":175
  *     for j in range(csr_indptr[v.index], csr_indptr[v.index + 1]):
  *         j_current = csr_indices[j]
  *         current_node = &nodes[j_current]             # <<<<<<<<<<<<<<
@@ -4061,7 +3888,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
  */
     __pyx_v_current_node = (&(__pyx_v_nodes[__pyx_v_j_current]));
 
-    /* "ptu_dijkstra.pyx":179
+    /* "ptu_dijkstra.pyx":176
  *         j_current = csr_indices[j]
  *         current_node = &nodes[j_current]
  *         if current_node.state != SCANNED:             # <<<<<<<<<<<<<<
@@ -4071,7 +3898,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
     __pyx_t_6 = ((__pyx_v_current_node->state != __pyx_e_12ptu_dijkstra_SCANNED) != 0);
     if (__pyx_t_6) {
 
-      /* "ptu_dijkstra.pyx":180
+      /* "ptu_dijkstra.pyx":177
  *         current_node = &nodes[j_current]
  *         if current_node.state != SCANNED:
  *             next_val = v.val + csr_weights[j]             # <<<<<<<<<<<<<<
@@ -4082,7 +3909,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
       if (__pyx_t_1 < 0) __pyx_t_1 += __pyx_v_csr_weights.shape[0];
       __pyx_v_next_val = (__pyx_v_v->val + (*((double const  *) ( /* dim=0 */ (__pyx_v_csr_weights.data + __pyx_t_1 * __pyx_v_csr_weights.strides[0]) ))));
 
-      /* "ptu_dijkstra.pyx":181
+      /* "ptu_dijkstra.pyx":178
  *         if current_node.state != SCANNED:
  *             next_val = v.val + csr_weights[j]
  *             if current_node.state == NOT_IN_HEAP:             # <<<<<<<<<<<<<<
@@ -4092,7 +3919,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
       __pyx_t_6 = ((__pyx_v_current_node->state == __pyx_e_12ptu_dijkstra_NOT_IN_HEAP) != 0);
       if (__pyx_t_6) {
 
-        /* "ptu_dijkstra.pyx":182
+        /* "ptu_dijkstra.pyx":179
  *             next_val = v.val + csr_weights[j]
  *             if current_node.state == NOT_IN_HEAP:
  *                 current_node.state = IN_HEAP             # <<<<<<<<<<<<<<
@@ -4101,7 +3928,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
  */
         __pyx_v_current_node->state = __pyx_e_12ptu_dijkstra_IN_HEAP;
 
-        /* "ptu_dijkstra.pyx":183
+        /* "ptu_dijkstra.pyx":180
  *             if current_node.state == NOT_IN_HEAP:
  *                 current_node.state = IN_HEAP
  *                 current_node.val = next_val             # <<<<<<<<<<<<<<
@@ -4110,7 +3937,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
  */
         __pyx_v_current_node->val = __pyx_v_next_val;
 
-        /* "ptu_dijkstra.pyx":184
+        /* "ptu_dijkstra.pyx":181
  *                 current_node.state = IN_HEAP
  *                 current_node.val = next_val
  *                 insert_node(heap, current_node)             # <<<<<<<<<<<<<<
@@ -4119,7 +3946,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
  */
         __pyx_f_12ptu_dijkstra_insert_node(__pyx_v_heap, __pyx_v_current_node);
 
-        /* "ptu_dijkstra.pyx":185
+        /* "ptu_dijkstra.pyx":182
  *                 current_node.val = next_val
  *                 insert_node(heap, current_node)
  *                 if return_pred:             # <<<<<<<<<<<<<<
@@ -4129,7 +3956,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
         __pyx_t_6 = (__pyx_v_return_pred != 0);
         if (__pyx_t_6) {
 
-          /* "ptu_dijkstra.pyx":186
+          /* "ptu_dijkstra.pyx":183
  *                 insert_node(heap, current_node)
  *                 if return_pred:
  *                     pred[i, j_current] = v.index             # <<<<<<<<<<<<<<
@@ -4142,7 +3969,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
           if (__pyx_t_1 < 0) __pyx_t_1 += __pyx_v_pred.shape[0];
           *((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_pred.data + __pyx_t_1 * __pyx_v_pred.strides[0]) ) + __pyx_t_8 * __pyx_v_pred.strides[1]) )) = __pyx_t_7;
 
-          /* "ptu_dijkstra.pyx":185
+          /* "ptu_dijkstra.pyx":182
  *                 current_node.val = next_val
  *                 insert_node(heap, current_node)
  *                 if return_pred:             # <<<<<<<<<<<<<<
@@ -4151,7 +3978,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
  */
         }
 
-        /* "ptu_dijkstra.pyx":181
+        /* "ptu_dijkstra.pyx":178
  *         if current_node.state != SCANNED:
  *             next_val = v.val + csr_weights[j]
  *             if current_node.state == NOT_IN_HEAP:             # <<<<<<<<<<<<<<
@@ -4161,7 +3988,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
         goto __pyx_L6;
       }
 
-      /* "ptu_dijkstra.pyx":187
+      /* "ptu_dijkstra.pyx":184
  *                 if return_pred:
  *                     pred[i, j_current] = v.index
  *             elif current_node.val > next_val:             # <<<<<<<<<<<<<<
@@ -4171,7 +3998,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
       __pyx_t_6 = ((__pyx_v_current_node->val > __pyx_v_next_val) != 0);
       if (__pyx_t_6) {
 
-        /* "ptu_dijkstra.pyx":188
+        /* "ptu_dijkstra.pyx":185
  *                     pred[i, j_current] = v.index
  *             elif current_node.val > next_val:
  *                 decrease_val(heap, current_node,             # <<<<<<<<<<<<<<
@@ -4180,7 +4007,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
  */
         __pyx_f_12ptu_dijkstra_decrease_val(__pyx_v_heap, __pyx_v_current_node, __pyx_v_next_val);
 
-        /* "ptu_dijkstra.pyx":190
+        /* "ptu_dijkstra.pyx":187
  *                 decrease_val(heap, current_node,
  *                              next_val)
  *                 if return_pred:             # <<<<<<<<<<<<<<
@@ -4190,7 +4017,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
         __pyx_t_6 = (__pyx_v_return_pred != 0);
         if (__pyx_t_6) {
 
-          /* "ptu_dijkstra.pyx":191
+          /* "ptu_dijkstra.pyx":188
  *                              next_val)
  *                 if return_pred:
  *                     pred[i, j_current] = v.index             # <<<<<<<<<<<<<<
@@ -4203,7 +4030,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
           if (__pyx_t_1 < 0) __pyx_t_1 += __pyx_v_pred.shape[0];
           *((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_pred.data + __pyx_t_1 * __pyx_v_pred.strides[0]) ) + __pyx_t_8 * __pyx_v_pred.strides[1]) )) = __pyx_t_7;
 
-          /* "ptu_dijkstra.pyx":190
+          /* "ptu_dijkstra.pyx":187
  *                 decrease_val(heap, current_node,
  *                              next_val)
  *                 if return_pred:             # <<<<<<<<<<<<<<
@@ -4212,7 +4039,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
  */
         }
 
-        /* "ptu_dijkstra.pyx":187
+        /* "ptu_dijkstra.pyx":184
  *                 if return_pred:
  *                     pred[i, j_current] = v.index
  *             elif current_node.val > next_val:             # <<<<<<<<<<<<<<
@@ -4222,7 +4049,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
       }
       __pyx_L6:;
 
-      /* "ptu_dijkstra.pyx":179
+      /* "ptu_dijkstra.pyx":176
  *         j_current = csr_indices[j]
  *         current_node = &nodes[j_current]
  *         if current_node.state != SCANNED:             # <<<<<<<<<<<<<<
@@ -4232,7 +4059,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
     }
   }
 
-  /* "ptu_dijkstra.pyx":161
+  /* "ptu_dijkstra.pyx":158
  * 
  * @cython.boundscheck(False)
  * cdef _dijkstra_scan_heap(FibonacciHeap *heap,             # <<<<<<<<<<<<<<
@@ -4247,7 +4074,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
   return __pyx_r;
 }
 
-/* "ptu_dijkstra.pyx":198
+/* "ptu_dijkstra.pyx":195
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef _parallel_transport_dijkstra(             # <<<<<<<<<<<<<<
@@ -4255,7 +4082,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__dijkstra_scan_heap(struct __pyx_t_12ptu
  *             double[:] csr_weights,
  */
 
-static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memviewslice __pyx_v_X, __Pyx_memviewslice __pyx_v_csr_weights, __Pyx_memviewslice __pyx_v_csr_indices, __Pyx_memviewslice __pyx_v_csr_indptr, __Pyx_memviewslice __pyx_v_ptu_dists, __Pyx_memviewslice __pyx_v_tangents, __Pyx_memviewslice __pyx_v_pred, __Pyx_memviewslice __pyx_v_R, int __pyx_v_N, int __pyx_v_D, int __pyx_v_d) {
+static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memviewslice __pyx_v_X, __Pyx_memviewslice __pyx_v_csr_weights, __Pyx_memviewslice __pyx_v_csr_indices, __Pyx_memviewslice __pyx_v_csr_indptr, __Pyx_memviewslice __pyx_v_ptu_dists, __Pyx_memviewslice __pyx_v_tangents, __Pyx_memviewslice __pyx_v_pred, int __pyx_v_N, int __pyx_v_D, int __pyx_v_d) {
   int __pyx_v_i;
   int __pyx_v_k;
   int __pyx_v_l;
@@ -4402,7 +4229,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
   __pyx_pybuffernd_S.data = NULL;
   __pyx_pybuffernd_S.rcbuffer = &__pyx_pybuffer_S;
 
-  /* "ptu_dijkstra.pyx":241
+  /* "ptu_dijkstra.pyx":237
  *     cdef:
  *         int i, k, l, p, q, j, pred_j, k_current
  *         int info, lwork = 6*d             # <<<<<<<<<<<<<<
@@ -4411,27 +4238,27 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
   __pyx_v_lwork = (6 * __pyx_v_d);
 
-  /* "ptu_dijkstra.pyx":244
+  /* "ptu_dijkstra.pyx":240
  *         double edge_norm, temp, next_val, path_norm, projected_edge_norm
  * 
  *         np.ndarray[DTYPE_t, ndim=3] iTangent = np.empty(shape=[N, D, d], dtype=DTYPE)             # <<<<<<<<<<<<<<
  *         np.ndarray[DTYPE_t, ndim=2] jTangent = np.empty(shape=[D, d], dtype=DTYPE)
  *         np.ndarray[DTYPE_t, ndim=2] iTangentPred = np.empty(shape=[D, d], dtype=DTYPE)
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 244, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 240, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 244, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 240, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 244, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 240, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_N); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 244, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_N); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 240, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_D); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 244, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_D); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 240, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 244, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 240, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = PyList_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 244, __pyx_L1_error)
+  __pyx_t_6 = PyList_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 240, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_GIVEREF(__pyx_t_3);
   PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_3);
@@ -4440,6 +4267,206 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
   __Pyx_GIVEREF(__pyx_t_5);
   PyList_SET_ITEM(__pyx_t_6, 2, __pyx_t_5);
   __pyx_t_3 = 0;
+  __pyx_t_4 = 0;
+  __pyx_t_5 = 0;
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_shape, __pyx_t_6) < 0) __PYX_ERR(0, 240, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 240, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 240, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_empty_tuple, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 240, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 240, __pyx_L1_error)
+  __pyx_t_7 = ((PyArrayObject *)__pyx_t_6);
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_iTangent.rcbuffer->pybuffer, (PyObject*)__pyx_t_7, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 3, 0, __pyx_stack) == -1)) {
+      __pyx_v_iTangent = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_iTangent.rcbuffer->pybuffer.buf = NULL;
+      __PYX_ERR(0, 240, __pyx_L1_error)
+    } else {__pyx_pybuffernd_iTangent.diminfo[0].strides = __pyx_pybuffernd_iTangent.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_iTangent.diminfo[0].shape = __pyx_pybuffernd_iTangent.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_iTangent.diminfo[1].strides = __pyx_pybuffernd_iTangent.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_iTangent.diminfo[1].shape = __pyx_pybuffernd_iTangent.rcbuffer->pybuffer.shape[1]; __pyx_pybuffernd_iTangent.diminfo[2].strides = __pyx_pybuffernd_iTangent.rcbuffer->pybuffer.strides[2]; __pyx_pybuffernd_iTangent.diminfo[2].shape = __pyx_pybuffernd_iTangent.rcbuffer->pybuffer.shape[2];
+    }
+  }
+  __pyx_t_7 = 0;
+  __pyx_v_iTangent = ((PyArrayObject *)__pyx_t_6);
+  __pyx_t_6 = 0;
+
+  /* "ptu_dijkstra.pyx":241
+ * 
+ *         np.ndarray[DTYPE_t, ndim=3] iTangent = np.empty(shape=[N, D, d], dtype=DTYPE)
+ *         np.ndarray[DTYPE_t, ndim=2] jTangent = np.empty(shape=[D, d], dtype=DTYPE)             # <<<<<<<<<<<<<<
+ *         np.ndarray[DTYPE_t, ndim=2] iTangentPred = np.empty(shape=[D, d], dtype=DTYPE)
+ *         np.ndarray[DTYPE_t, ndim=2] graph_dists = np.empty(shape=[N, N], dtype=DTYPE)
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_empty); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __pyx_t_6 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_D); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_4 = PyList_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_GIVEREF(__pyx_t_2);
+  PyList_SET_ITEM(__pyx_t_4, 0, __pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_5);
+  PyList_SET_ITEM(__pyx_t_4, 1, __pyx_t_5);
+  __pyx_t_2 = 0;
+  __pyx_t_5 = 0;
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_4) < 0) __PYX_ERR(0, 241, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 241, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_empty_tuple, __pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 241, __pyx_L1_error)
+  __pyx_t_8 = ((PyArrayObject *)__pyx_t_4);
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_jTangent.rcbuffer->pybuffer, (PyObject*)__pyx_t_8, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) {
+      __pyx_v_jTangent = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_jTangent.rcbuffer->pybuffer.buf = NULL;
+      __PYX_ERR(0, 241, __pyx_L1_error)
+    } else {__pyx_pybuffernd_jTangent.diminfo[0].strides = __pyx_pybuffernd_jTangent.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_jTangent.diminfo[0].shape = __pyx_pybuffernd_jTangent.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_jTangent.diminfo[1].strides = __pyx_pybuffernd_jTangent.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_jTangent.diminfo[1].shape = __pyx_pybuffernd_jTangent.rcbuffer->pybuffer.shape[1];
+    }
+  }
+  __pyx_t_8 = 0;
+  __pyx_v_jTangent = ((PyArrayObject *)__pyx_t_4);
+  __pyx_t_4 = 0;
+
+  /* "ptu_dijkstra.pyx":242
+ *         np.ndarray[DTYPE_t, ndim=3] iTangent = np.empty(shape=[N, D, d], dtype=DTYPE)
+ *         np.ndarray[DTYPE_t, ndim=2] jTangent = np.empty(shape=[D, d], dtype=DTYPE)
+ *         np.ndarray[DTYPE_t, ndim=2] iTangentPred = np.empty(shape=[D, d], dtype=DTYPE)             # <<<<<<<<<<<<<<
+ *         np.ndarray[DTYPE_t, ndim=2] graph_dists = np.empty(shape=[N, N], dtype=DTYPE)
+ *         np.ndarray[DTYPE_t, ndim=2] iUnfolding = np.empty(shape=[N, d], dtype=DTYPE)
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 242, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_empty); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 242, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 242, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_D); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 242, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 242, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_2 = PyList_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 242, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_1);
+  PyList_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_5);
+  PyList_SET_ITEM(__pyx_t_2, 1, __pyx_t_5);
+  __pyx_t_1 = 0;
+  __pyx_t_5 = 0;
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_shape, __pyx_t_2) < 0) __PYX_ERR(0, 242, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 242, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_2) < 0) __PYX_ERR(0, 242, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_empty_tuple, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 242, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 242, __pyx_L1_error)
+  __pyx_t_9 = ((PyArrayObject *)__pyx_t_2);
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_iTangentPred.rcbuffer->pybuffer, (PyObject*)__pyx_t_9, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) {
+      __pyx_v_iTangentPred = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_iTangentPred.rcbuffer->pybuffer.buf = NULL;
+      __PYX_ERR(0, 242, __pyx_L1_error)
+    } else {__pyx_pybuffernd_iTangentPred.diminfo[0].strides = __pyx_pybuffernd_iTangentPred.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_iTangentPred.diminfo[0].shape = __pyx_pybuffernd_iTangentPred.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_iTangentPred.diminfo[1].strides = __pyx_pybuffernd_iTangentPred.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_iTangentPred.diminfo[1].shape = __pyx_pybuffernd_iTangentPred.rcbuffer->pybuffer.shape[1];
+    }
+  }
+  __pyx_t_9 = 0;
+  __pyx_v_iTangentPred = ((PyArrayObject *)__pyx_t_2);
+  __pyx_t_2 = 0;
+
+  /* "ptu_dijkstra.pyx":243
+ *         np.ndarray[DTYPE_t, ndim=2] jTangent = np.empty(shape=[D, d], dtype=DTYPE)
+ *         np.ndarray[DTYPE_t, ndim=2] iTangentPred = np.empty(shape=[D, d], dtype=DTYPE)
+ *         np.ndarray[DTYPE_t, ndim=2] graph_dists = np.empty(shape=[N, N], dtype=DTYPE)             # <<<<<<<<<<<<<<
+ *         np.ndarray[DTYPE_t, ndim=2] iUnfolding = np.empty(shape=[N, d], dtype=DTYPE)
+ *         np.ndarray[DTYPE_t, ndim=1] projected_edge = np.zeros(shape=d, dtype=DTYPE)
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 243, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 243, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 243, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_N); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 243, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_N); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 243, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 243, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_GIVEREF(__pyx_t_6);
+  PyList_SET_ITEM(__pyx_t_1, 0, __pyx_t_6);
+  __Pyx_GIVEREF(__pyx_t_5);
+  PyList_SET_ITEM(__pyx_t_1, 1, __pyx_t_5);
+  __pyx_t_6 = 0;
+  __pyx_t_5 = 0;
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_shape, __pyx_t_1) < 0) __PYX_ERR(0, 243, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 243, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dtype, __pyx_t_1) < 0) __PYX_ERR(0, 243, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 243, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 243, __pyx_L1_error)
+  __pyx_t_10 = ((PyArrayObject *)__pyx_t_1);
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_graph_dists.rcbuffer->pybuffer, (PyObject*)__pyx_t_10, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) {
+      __pyx_v_graph_dists = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_graph_dists.rcbuffer->pybuffer.buf = NULL;
+      __PYX_ERR(0, 243, __pyx_L1_error)
+    } else {__pyx_pybuffernd_graph_dists.diminfo[0].strides = __pyx_pybuffernd_graph_dists.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_graph_dists.diminfo[0].shape = __pyx_pybuffernd_graph_dists.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_graph_dists.diminfo[1].strides = __pyx_pybuffernd_graph_dists.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_graph_dists.diminfo[1].shape = __pyx_pybuffernd_graph_dists.rcbuffer->pybuffer.shape[1];
+    }
+  }
+  __pyx_t_10 = 0;
+  __pyx_v_graph_dists = ((PyArrayObject *)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "ptu_dijkstra.pyx":244
+ *         np.ndarray[DTYPE_t, ndim=2] iTangentPred = np.empty(shape=[D, d], dtype=DTYPE)
+ *         np.ndarray[DTYPE_t, ndim=2] graph_dists = np.empty(shape=[N, N], dtype=DTYPE)
+ *         np.ndarray[DTYPE_t, ndim=2] iUnfolding = np.empty(shape=[N, d], dtype=DTYPE)             # <<<<<<<<<<<<<<
+ *         np.ndarray[DTYPE_t, ndim=1] projected_edge = np.zeros(shape=d, dtype=DTYPE)
+ *         np.ndarray[DTYPE_t, ndim=1] Work = np.empty(shape=[lwork], dtype=DTYPE)
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 244, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 244, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 244, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_N); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 244, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 244, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_6 = PyList_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 244, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_GIVEREF(__pyx_t_4);
+  PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_4);
+  __Pyx_GIVEREF(__pyx_t_5);
+  PyList_SET_ITEM(__pyx_t_6, 1, __pyx_t_5);
   __pyx_t_4 = 0;
   __pyx_t_5 = 0;
   if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_shape, __pyx_t_6) < 0) __PYX_ERR(0, 244, __pyx_L1_error)
@@ -4453,212 +4480,12 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 244, __pyx_L1_error)
-  __pyx_t_7 = ((PyArrayObject *)__pyx_t_6);
-  {
-    __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_iTangent.rcbuffer->pybuffer, (PyObject*)__pyx_t_7, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 3, 0, __pyx_stack) == -1)) {
-      __pyx_v_iTangent = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_iTangent.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 244, __pyx_L1_error)
-    } else {__pyx_pybuffernd_iTangent.diminfo[0].strides = __pyx_pybuffernd_iTangent.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_iTangent.diminfo[0].shape = __pyx_pybuffernd_iTangent.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_iTangent.diminfo[1].strides = __pyx_pybuffernd_iTangent.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_iTangent.diminfo[1].shape = __pyx_pybuffernd_iTangent.rcbuffer->pybuffer.shape[1]; __pyx_pybuffernd_iTangent.diminfo[2].strides = __pyx_pybuffernd_iTangent.rcbuffer->pybuffer.strides[2]; __pyx_pybuffernd_iTangent.diminfo[2].shape = __pyx_pybuffernd_iTangent.rcbuffer->pybuffer.shape[2];
-    }
-  }
-  __pyx_t_7 = 0;
-  __pyx_v_iTangent = ((PyArrayObject *)__pyx_t_6);
-  __pyx_t_6 = 0;
-
-  /* "ptu_dijkstra.pyx":245
- * 
- *         np.ndarray[DTYPE_t, ndim=3] iTangent = np.empty(shape=[N, D, d], dtype=DTYPE)
- *         np.ndarray[DTYPE_t, ndim=2] jTangent = np.empty(shape=[D, d], dtype=DTYPE)             # <<<<<<<<<<<<<<
- *         np.ndarray[DTYPE_t, ndim=2] iTangentPred = np.empty(shape=[D, d], dtype=DTYPE)
- *         np.ndarray[DTYPE_t, ndim=2] graph_dists = np.empty(shape=[N, N], dtype=DTYPE)
- */
-  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 245, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_empty); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 245, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 245, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_D); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 245, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 245, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = PyList_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 245, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyList_SET_ITEM(__pyx_t_4, 0, __pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyList_SET_ITEM(__pyx_t_4, 1, __pyx_t_5);
-  __pyx_t_2 = 0;
-  __pyx_t_5 = 0;
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_4) < 0) __PYX_ERR(0, 245, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 245, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 245, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_empty_tuple, __pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 245, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 245, __pyx_L1_error)
-  __pyx_t_8 = ((PyArrayObject *)__pyx_t_4);
-  {
-    __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_jTangent.rcbuffer->pybuffer, (PyObject*)__pyx_t_8, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) {
-      __pyx_v_jTangent = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_jTangent.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 245, __pyx_L1_error)
-    } else {__pyx_pybuffernd_jTangent.diminfo[0].strides = __pyx_pybuffernd_jTangent.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_jTangent.diminfo[0].shape = __pyx_pybuffernd_jTangent.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_jTangent.diminfo[1].strides = __pyx_pybuffernd_jTangent.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_jTangent.diminfo[1].shape = __pyx_pybuffernd_jTangent.rcbuffer->pybuffer.shape[1];
-    }
-  }
-  __pyx_t_8 = 0;
-  __pyx_v_jTangent = ((PyArrayObject *)__pyx_t_4);
-  __pyx_t_4 = 0;
-
-  /* "ptu_dijkstra.pyx":246
- *         np.ndarray[DTYPE_t, ndim=3] iTangent = np.empty(shape=[N, D, d], dtype=DTYPE)
- *         np.ndarray[DTYPE_t, ndim=2] jTangent = np.empty(shape=[D, d], dtype=DTYPE)
- *         np.ndarray[DTYPE_t, ndim=2] iTangentPred = np.empty(shape=[D, d], dtype=DTYPE)             # <<<<<<<<<<<<<<
- *         np.ndarray[DTYPE_t, ndim=2] graph_dists = np.empty(shape=[N, N], dtype=DTYPE)
- *         np.ndarray[DTYPE_t, ndim=2] iUnfolding = np.empty(shape=[N, d], dtype=DTYPE)
- */
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 246, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_empty); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 246, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 246, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_D); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 246, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 246, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = PyList_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 246, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyList_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyList_SET_ITEM(__pyx_t_2, 1, __pyx_t_5);
-  __pyx_t_1 = 0;
-  __pyx_t_5 = 0;
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_shape, __pyx_t_2) < 0) __PYX_ERR(0, 246, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 246, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_2) < 0) __PYX_ERR(0, 246, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_empty_tuple, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 246, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 246, __pyx_L1_error)
-  __pyx_t_9 = ((PyArrayObject *)__pyx_t_2);
-  {
-    __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_iTangentPred.rcbuffer->pybuffer, (PyObject*)__pyx_t_9, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) {
-      __pyx_v_iTangentPred = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_iTangentPred.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 246, __pyx_L1_error)
-    } else {__pyx_pybuffernd_iTangentPred.diminfo[0].strides = __pyx_pybuffernd_iTangentPred.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_iTangentPred.diminfo[0].shape = __pyx_pybuffernd_iTangentPred.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_iTangentPred.diminfo[1].strides = __pyx_pybuffernd_iTangentPred.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_iTangentPred.diminfo[1].shape = __pyx_pybuffernd_iTangentPred.rcbuffer->pybuffer.shape[1];
-    }
-  }
-  __pyx_t_9 = 0;
-  __pyx_v_iTangentPred = ((PyArrayObject *)__pyx_t_2);
-  __pyx_t_2 = 0;
-
-  /* "ptu_dijkstra.pyx":247
- *         np.ndarray[DTYPE_t, ndim=2] jTangent = np.empty(shape=[D, d], dtype=DTYPE)
- *         np.ndarray[DTYPE_t, ndim=2] iTangentPred = np.empty(shape=[D, d], dtype=DTYPE)
- *         np.ndarray[DTYPE_t, ndim=2] graph_dists = np.empty(shape=[N, N], dtype=DTYPE)             # <<<<<<<<<<<<<<
- *         np.ndarray[DTYPE_t, ndim=2] iUnfolding = np.empty(shape=[N, d], dtype=DTYPE)
- *         np.ndarray[DTYPE_t, ndim=1] projected_edge = np.zeros(shape=d, dtype=DTYPE)
- */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 247, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 247, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 247, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_N); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 247, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_N); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 247, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 247, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_6);
-  PyList_SET_ITEM(__pyx_t_1, 0, __pyx_t_6);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyList_SET_ITEM(__pyx_t_1, 1, __pyx_t_5);
-  __pyx_t_6 = 0;
-  __pyx_t_5 = 0;
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_shape, __pyx_t_1) < 0) __PYX_ERR(0, 247, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 247, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dtype, __pyx_t_1) < 0) __PYX_ERR(0, 247, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 247, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 247, __pyx_L1_error)
-  __pyx_t_10 = ((PyArrayObject *)__pyx_t_1);
-  {
-    __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_graph_dists.rcbuffer->pybuffer, (PyObject*)__pyx_t_10, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) {
-      __pyx_v_graph_dists = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_graph_dists.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 247, __pyx_L1_error)
-    } else {__pyx_pybuffernd_graph_dists.diminfo[0].strides = __pyx_pybuffernd_graph_dists.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_graph_dists.diminfo[0].shape = __pyx_pybuffernd_graph_dists.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_graph_dists.diminfo[1].strides = __pyx_pybuffernd_graph_dists.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_graph_dists.diminfo[1].shape = __pyx_pybuffernd_graph_dists.rcbuffer->pybuffer.shape[1];
-    }
-  }
-  __pyx_t_10 = 0;
-  __pyx_v_graph_dists = ((PyArrayObject *)__pyx_t_1);
-  __pyx_t_1 = 0;
-
-  /* "ptu_dijkstra.pyx":248
- *         np.ndarray[DTYPE_t, ndim=2] iTangentPred = np.empty(shape=[D, d], dtype=DTYPE)
- *         np.ndarray[DTYPE_t, ndim=2] graph_dists = np.empty(shape=[N, N], dtype=DTYPE)
- *         np.ndarray[DTYPE_t, ndim=2] iUnfolding = np.empty(shape=[N, d], dtype=DTYPE)             # <<<<<<<<<<<<<<
- *         np.ndarray[DTYPE_t, ndim=1] projected_edge = np.zeros(shape=d, dtype=DTYPE)
- *         np.ndarray[DTYPE_t, ndim=1] Work = np.empty(shape=[lwork], dtype=DTYPE)
- */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 248, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 248, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 248, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_N); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 248, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 248, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = PyList_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 248, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyList_SET_ITEM(__pyx_t_6, 1, __pyx_t_5);
-  __pyx_t_4 = 0;
-  __pyx_t_5 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_shape, __pyx_t_6) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 248, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_empty_tuple, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 248, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 248, __pyx_L1_error)
   __pyx_t_11 = ((PyArrayObject *)__pyx_t_6);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_iUnfolding.rcbuffer->pybuffer, (PyObject*)__pyx_t_11, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) {
       __pyx_v_iUnfolding = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_iUnfolding.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 248, __pyx_L1_error)
+      __PYX_ERR(0, 244, __pyx_L1_error)
     } else {__pyx_pybuffernd_iUnfolding.diminfo[0].strides = __pyx_pybuffernd_iUnfolding.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_iUnfolding.diminfo[0].shape = __pyx_pybuffernd_iUnfolding.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_iUnfolding.diminfo[1].strides = __pyx_pybuffernd_iUnfolding.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_iUnfolding.diminfo[1].shape = __pyx_pybuffernd_iUnfolding.rcbuffer->pybuffer.shape[1];
     }
   }
@@ -4666,39 +4493,39 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
   __pyx_v_iUnfolding = ((PyArrayObject *)__pyx_t_6);
   __pyx_t_6 = 0;
 
-  /* "ptu_dijkstra.pyx":249
+  /* "ptu_dijkstra.pyx":245
  *         np.ndarray[DTYPE_t, ndim=2] graph_dists = np.empty(shape=[N, N], dtype=DTYPE)
  *         np.ndarray[DTYPE_t, ndim=2] iUnfolding = np.empty(shape=[N, d], dtype=DTYPE)
  *         np.ndarray[DTYPE_t, ndim=1] projected_edge = np.zeros(shape=d, dtype=DTYPE)             # <<<<<<<<<<<<<<
  *         np.ndarray[DTYPE_t, ndim=1] Work = np.empty(shape=[lwork], dtype=DTYPE)
  *         np.ndarray[DTYPE_t, ndim=2] TtT = np.empty(shape=[d, d], dtype=DTYPE, order='F')
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 249, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 245, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_zeros); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 249, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_zeros); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 245, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 249, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 245, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 249, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 245, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_2) < 0) __PYX_ERR(0, 249, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_2) < 0) __PYX_ERR(0, 245, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 249, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 245, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_2) < 0) __PYX_ERR(0, 249, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_2) < 0) __PYX_ERR(0, 245, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_empty_tuple, __pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 249, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_empty_tuple, __pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 245, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 249, __pyx_L1_error)
+  if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 245, __pyx_L1_error)
   __pyx_t_12 = ((PyArrayObject *)__pyx_t_2);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_projected_edge.rcbuffer->pybuffer, (PyObject*)__pyx_t_12, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) {
       __pyx_v_projected_edge = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_projected_edge.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 249, __pyx_L1_error)
+      __PYX_ERR(0, 245, __pyx_L1_error)
     } else {__pyx_pybuffernd_projected_edge.diminfo[0].strides = __pyx_pybuffernd_projected_edge.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_projected_edge.diminfo[0].shape = __pyx_pybuffernd_projected_edge.rcbuffer->pybuffer.shape[0];
     }
   }
@@ -4706,12 +4533,210 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
   __pyx_v_projected_edge = ((PyArrayObject *)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "ptu_dijkstra.pyx":250
+  /* "ptu_dijkstra.pyx":246
  *         np.ndarray[DTYPE_t, ndim=2] iUnfolding = np.empty(shape=[N, d], dtype=DTYPE)
  *         np.ndarray[DTYPE_t, ndim=1] projected_edge = np.zeros(shape=d, dtype=DTYPE)
  *         np.ndarray[DTYPE_t, ndim=1] Work = np.empty(shape=[lwork], dtype=DTYPE)             # <<<<<<<<<<<<<<
  *         np.ndarray[DTYPE_t, ndim=2] TtT = np.empty(shape=[d, d], dtype=DTYPE, order='F')
  *         np.ndarray[DTYPE_t, ndim=2] U = np.empty(shape=[d, d], dtype=DTYPE, order='F')
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 246, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 246, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 246, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_lwork); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 246, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_5 = PyList_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 246, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __Pyx_GIVEREF(__pyx_t_1);
+  PyList_SET_ITEM(__pyx_t_5, 0, __pyx_t_1);
+  __pyx_t_1 = 0;
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_shape, __pyx_t_5) < 0) __PYX_ERR(0, 246, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 246, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 246, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 246, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (!(likely(((__pyx_t_5) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_5, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 246, __pyx_L1_error)
+  __pyx_t_13 = ((PyArrayObject *)__pyx_t_5);
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_Work.rcbuffer->pybuffer, (PyObject*)__pyx_t_13, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) {
+      __pyx_v_Work = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_Work.rcbuffer->pybuffer.buf = NULL;
+      __PYX_ERR(0, 246, __pyx_L1_error)
+    } else {__pyx_pybuffernd_Work.diminfo[0].strides = __pyx_pybuffernd_Work.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_Work.diminfo[0].shape = __pyx_pybuffernd_Work.rcbuffer->pybuffer.shape[0];
+    }
+  }
+  __pyx_t_13 = 0;
+  __pyx_v_Work = ((PyArrayObject *)__pyx_t_5);
+  __pyx_t_5 = 0;
+
+  /* "ptu_dijkstra.pyx":247
+ *         np.ndarray[DTYPE_t, ndim=1] projected_edge = np.zeros(shape=d, dtype=DTYPE)
+ *         np.ndarray[DTYPE_t, ndim=1] Work = np.empty(shape=[lwork], dtype=DTYPE)
+ *         np.ndarray[DTYPE_t, ndim=2] TtT = np.empty(shape=[d, d], dtype=DTYPE, order='F')             # <<<<<<<<<<<<<<
+ *         np.ndarray[DTYPE_t, ndim=2] U = np.empty(shape=[d, d], dtype=DTYPE, order='F')
+ *         np.ndarray[DTYPE_t, ndim=2] VT = np.empty(shape=[d, d], dtype=DTYPE, order='F')
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 247, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 247, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __pyx_t_5 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 247, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 247, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 247, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_4 = PyList_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 247, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_GIVEREF(__pyx_t_6);
+  PyList_SET_ITEM(__pyx_t_4, 0, __pyx_t_6);
+  __Pyx_GIVEREF(__pyx_t_1);
+  PyList_SET_ITEM(__pyx_t_4, 1, __pyx_t_1);
+  __pyx_t_6 = 0;
+  __pyx_t_1 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_shape, __pyx_t_4) < 0) __PYX_ERR(0, 247, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 247, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 247, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_s_F) < 0) __PYX_ERR(0, 247, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_empty_tuple, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 247, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 247, __pyx_L1_error)
+  __pyx_t_14 = ((PyArrayObject *)__pyx_t_4);
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_TtT.rcbuffer->pybuffer, (PyObject*)__pyx_t_14, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) {
+      __pyx_v_TtT = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_TtT.rcbuffer->pybuffer.buf = NULL;
+      __PYX_ERR(0, 247, __pyx_L1_error)
+    } else {__pyx_pybuffernd_TtT.diminfo[0].strides = __pyx_pybuffernd_TtT.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_TtT.diminfo[0].shape = __pyx_pybuffernd_TtT.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_TtT.diminfo[1].strides = __pyx_pybuffernd_TtT.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_TtT.diminfo[1].shape = __pyx_pybuffernd_TtT.rcbuffer->pybuffer.shape[1];
+    }
+  }
+  __pyx_t_14 = 0;
+  __pyx_v_TtT = ((PyArrayObject *)__pyx_t_4);
+  __pyx_t_4 = 0;
+
+  /* "ptu_dijkstra.pyx":248
+ *         np.ndarray[DTYPE_t, ndim=1] Work = np.empty(shape=[lwork], dtype=DTYPE)
+ *         np.ndarray[DTYPE_t, ndim=2] TtT = np.empty(shape=[d, d], dtype=DTYPE, order='F')
+ *         np.ndarray[DTYPE_t, ndim=2] U = np.empty(shape=[d, d], dtype=DTYPE, order='F')             # <<<<<<<<<<<<<<
+ *         np.ndarray[DTYPE_t, ndim=2] VT = np.empty(shape=[d, d], dtype=DTYPE, order='F')
+ *         np.ndarray[DTYPE_t, ndim=1] S = np.empty(shape=d, dtype=DTYPE)
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 248, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_empty); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 248, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 248, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 248, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 248, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_6 = PyList_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 248, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_GIVEREF(__pyx_t_2);
+  PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_1);
+  PyList_SET_ITEM(__pyx_t_6, 1, __pyx_t_1);
+  __pyx_t_2 = 0;
+  __pyx_t_1 = 0;
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_shape, __pyx_t_6) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 248, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_order, __pyx_n_s_F) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_empty_tuple, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 248, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 248, __pyx_L1_error)
+  __pyx_t_15 = ((PyArrayObject *)__pyx_t_6);
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_U.rcbuffer->pybuffer, (PyObject*)__pyx_t_15, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 2, 0, __pyx_stack) == -1)) {
+      __pyx_v_U = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_U.rcbuffer->pybuffer.buf = NULL;
+      __PYX_ERR(0, 248, __pyx_L1_error)
+    } else {__pyx_pybuffernd_U.diminfo[0].strides = __pyx_pybuffernd_U.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_U.diminfo[0].shape = __pyx_pybuffernd_U.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_U.diminfo[1].strides = __pyx_pybuffernd_U.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_U.diminfo[1].shape = __pyx_pybuffernd_U.rcbuffer->pybuffer.shape[1];
+    }
+  }
+  __pyx_t_15 = 0;
+  __pyx_v_U = ((PyArrayObject *)__pyx_t_6);
+  __pyx_t_6 = 0;
+
+  /* "ptu_dijkstra.pyx":249
+ *         np.ndarray[DTYPE_t, ndim=2] TtT = np.empty(shape=[d, d], dtype=DTYPE, order='F')
+ *         np.ndarray[DTYPE_t, ndim=2] U = np.empty(shape=[d, d], dtype=DTYPE, order='F')
+ *         np.ndarray[DTYPE_t, ndim=2] VT = np.empty(shape=[d, d], dtype=DTYPE, order='F')             # <<<<<<<<<<<<<<
+ *         np.ndarray[DTYPE_t, ndim=1] S = np.empty(shape=d, dtype=DTYPE)
+ * 
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 249, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_empty); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 249, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __pyx_t_6 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 249, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 249, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 249, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = PyList_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 249, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_5);
+  PyList_SET_ITEM(__pyx_t_2, 0, __pyx_t_5);
+  __Pyx_GIVEREF(__pyx_t_1);
+  PyList_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
+  __pyx_t_5 = 0;
+  __pyx_t_1 = 0;
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_2) < 0) __PYX_ERR(0, 249, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 249, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_2) < 0) __PYX_ERR(0, 249, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_order, __pyx_n_s_F) < 0) __PYX_ERR(0, 249, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_empty_tuple, __pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 249, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 249, __pyx_L1_error)
+  __pyx_t_16 = ((PyArrayObject *)__pyx_t_2);
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_VT.rcbuffer->pybuffer, (PyObject*)__pyx_t_16, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 2, 0, __pyx_stack) == -1)) {
+      __pyx_v_VT = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_VT.rcbuffer->pybuffer.buf = NULL;
+      __PYX_ERR(0, 249, __pyx_L1_error)
+    } else {__pyx_pybuffernd_VT.diminfo[0].strides = __pyx_pybuffernd_VT.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_VT.diminfo[0].shape = __pyx_pybuffernd_VT.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_VT.diminfo[1].strides = __pyx_pybuffernd_VT.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_VT.diminfo[1].shape = __pyx_pybuffernd_VT.rcbuffer->pybuffer.shape[1];
+    }
+  }
+  __pyx_t_16 = 0;
+  __pyx_v_VT = ((PyArrayObject *)__pyx_t_2);
+  __pyx_t_2 = 0;
+
+  /* "ptu_dijkstra.pyx":250
+ *         np.ndarray[DTYPE_t, ndim=2] U = np.empty(shape=[d, d], dtype=DTYPE, order='F')
+ *         np.ndarray[DTYPE_t, ndim=2] VT = np.empty(shape=[d, d], dtype=DTYPE, order='F')
+ *         np.ndarray[DTYPE_t, ndim=1] S = np.empty(shape=d, dtype=DTYPE)             # <<<<<<<<<<<<<<
+ * 
+ *         FibonacciHeap heap
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 250, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -4720,223 +4745,25 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 250, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_lwork); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 250, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = PyList_New(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 250, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyList_SET_ITEM(__pyx_t_5, 0, __pyx_t_1);
-  __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_shape, __pyx_t_5) < 0) __PYX_ERR(0, 250, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 250, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 250, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 250, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (!(likely(((__pyx_t_5) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_5, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 250, __pyx_L1_error)
-  __pyx_t_13 = ((PyArrayObject *)__pyx_t_5);
-  {
-    __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_Work.rcbuffer->pybuffer, (PyObject*)__pyx_t_13, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) {
-      __pyx_v_Work = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_Work.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 250, __pyx_L1_error)
-    } else {__pyx_pybuffernd_Work.diminfo[0].strides = __pyx_pybuffernd_Work.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_Work.diminfo[0].shape = __pyx_pybuffernd_Work.rcbuffer->pybuffer.shape[0];
-    }
-  }
-  __pyx_t_13 = 0;
-  __pyx_v_Work = ((PyArrayObject *)__pyx_t_5);
-  __pyx_t_5 = 0;
-
-  /* "ptu_dijkstra.pyx":251
- *         np.ndarray[DTYPE_t, ndim=1] projected_edge = np.zeros(shape=d, dtype=DTYPE)
- *         np.ndarray[DTYPE_t, ndim=1] Work = np.empty(shape=[lwork], dtype=DTYPE)
- *         np.ndarray[DTYPE_t, ndim=2] TtT = np.empty(shape=[d, d], dtype=DTYPE, order='F')             # <<<<<<<<<<<<<<
- *         np.ndarray[DTYPE_t, ndim=2] U = np.empty(shape=[d, d], dtype=DTYPE, order='F')
- *         np.ndarray[DTYPE_t, ndim=2] VT = np.empty(shape=[d, d], dtype=DTYPE, order='F')
- */
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 251, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_empty); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 251, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 251, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 251, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 251, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = PyList_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 251, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 250, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_6);
-  PyList_SET_ITEM(__pyx_t_4, 0, __pyx_t_6);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyList_SET_ITEM(__pyx_t_4, 1, __pyx_t_1);
-  __pyx_t_6 = 0;
-  __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_shape, __pyx_t_4) < 0) __PYX_ERR(0, 251, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_shape, __pyx_t_4) < 0) __PYX_ERR(0, 250, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 251, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 250, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 251, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 250, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_order, __pyx_n_s_F) < 0) __PYX_ERR(0, 251, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_empty_tuple, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 251, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 251, __pyx_L1_error)
-  __pyx_t_14 = ((PyArrayObject *)__pyx_t_4);
-  {
-    __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_TtT.rcbuffer->pybuffer, (PyObject*)__pyx_t_14, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) {
-      __pyx_v_TtT = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_TtT.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 251, __pyx_L1_error)
-    } else {__pyx_pybuffernd_TtT.diminfo[0].strides = __pyx_pybuffernd_TtT.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_TtT.diminfo[0].shape = __pyx_pybuffernd_TtT.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_TtT.diminfo[1].strides = __pyx_pybuffernd_TtT.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_TtT.diminfo[1].shape = __pyx_pybuffernd_TtT.rcbuffer->pybuffer.shape[1];
-    }
-  }
-  __pyx_t_14 = 0;
-  __pyx_v_TtT = ((PyArrayObject *)__pyx_t_4);
-  __pyx_t_4 = 0;
-
-  /* "ptu_dijkstra.pyx":252
- *         np.ndarray[DTYPE_t, ndim=1] Work = np.empty(shape=[lwork], dtype=DTYPE)
- *         np.ndarray[DTYPE_t, ndim=2] TtT = np.empty(shape=[d, d], dtype=DTYPE, order='F')
- *         np.ndarray[DTYPE_t, ndim=2] U = np.empty(shape=[d, d], dtype=DTYPE, order='F')             # <<<<<<<<<<<<<<
- *         np.ndarray[DTYPE_t, ndim=2] VT = np.empty(shape=[d, d], dtype=DTYPE, order='F')
- *         np.ndarray[DTYPE_t, ndim=1] S = np.empty(shape=d, dtype=DTYPE)
- */
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 252, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_empty); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 252, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 252, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 252, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 252, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_6 = PyList_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 252, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyList_SET_ITEM(__pyx_t_6, 1, __pyx_t_1);
-  __pyx_t_2 = 0;
-  __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_shape, __pyx_t_6) < 0) __PYX_ERR(0, 252, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 252, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 252, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_order, __pyx_n_s_F) < 0) __PYX_ERR(0, 252, __pyx_L1_error)
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_empty_tuple, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 252, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 252, __pyx_L1_error)
-  __pyx_t_15 = ((PyArrayObject *)__pyx_t_6);
-  {
-    __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_U.rcbuffer->pybuffer, (PyObject*)__pyx_t_15, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 2, 0, __pyx_stack) == -1)) {
-      __pyx_v_U = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_U.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 252, __pyx_L1_error)
-    } else {__pyx_pybuffernd_U.diminfo[0].strides = __pyx_pybuffernd_U.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_U.diminfo[0].shape = __pyx_pybuffernd_U.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_U.diminfo[1].strides = __pyx_pybuffernd_U.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_U.diminfo[1].shape = __pyx_pybuffernd_U.rcbuffer->pybuffer.shape[1];
-    }
-  }
-  __pyx_t_15 = 0;
-  __pyx_v_U = ((PyArrayObject *)__pyx_t_6);
-  __pyx_t_6 = 0;
-
-  /* "ptu_dijkstra.pyx":253
- *         np.ndarray[DTYPE_t, ndim=2] TtT = np.empty(shape=[d, d], dtype=DTYPE, order='F')
- *         np.ndarray[DTYPE_t, ndim=2] U = np.empty(shape=[d, d], dtype=DTYPE, order='F')
- *         np.ndarray[DTYPE_t, ndim=2] VT = np.empty(shape=[d, d], dtype=DTYPE, order='F')             # <<<<<<<<<<<<<<
- *         np.ndarray[DTYPE_t, ndim=1] S = np.empty(shape=d, dtype=DTYPE)
- * 
- */
-  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 253, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_empty); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 253, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 253, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_5 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 253, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 253, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyList_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 253, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_5);
-  PyList_SET_ITEM(__pyx_t_2, 0, __pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyList_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
-  __pyx_t_5 = 0;
-  __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_shape, __pyx_t_2) < 0) __PYX_ERR(0, 253, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 253, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_dtype, __pyx_t_2) < 0) __PYX_ERR(0, 253, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_order, __pyx_n_s_F) < 0) __PYX_ERR(0, 253, __pyx_L1_error)
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_empty_tuple, __pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 253, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 253, __pyx_L1_error)
-  __pyx_t_16 = ((PyArrayObject *)__pyx_t_2);
-  {
-    __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_VT.rcbuffer->pybuffer, (PyObject*)__pyx_t_16, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 2, 0, __pyx_stack) == -1)) {
-      __pyx_v_VT = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_VT.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 253, __pyx_L1_error)
-    } else {__pyx_pybuffernd_VT.diminfo[0].strides = __pyx_pybuffernd_VT.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_VT.diminfo[0].shape = __pyx_pybuffernd_VT.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_VT.diminfo[1].strides = __pyx_pybuffernd_VT.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_VT.diminfo[1].shape = __pyx_pybuffernd_VT.rcbuffer->pybuffer.shape[1];
-    }
-  }
-  __pyx_t_16 = 0;
-  __pyx_v_VT = ((PyArrayObject *)__pyx_t_2);
-  __pyx_t_2 = 0;
-
-  /* "ptu_dijkstra.pyx":254
- *         np.ndarray[DTYPE_t, ndim=2] U = np.empty(shape=[d, d], dtype=DTYPE, order='F')
- *         np.ndarray[DTYPE_t, ndim=2] VT = np.empty(shape=[d, d], dtype=DTYPE, order='F')
- *         np.ndarray[DTYPE_t, ndim=1] S = np.empty(shape=d, dtype=DTYPE)             # <<<<<<<<<<<<<<
- * 
- *         FibonacciHeap heap
- */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 254, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 254, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 254, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_d); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 254, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_shape, __pyx_t_4) < 0) __PYX_ERR(0, 254, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 254, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 254, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 254, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 250, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 254, __pyx_L1_error)
+  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 250, __pyx_L1_error)
   __pyx_t_17 = ((PyArrayObject *)__pyx_t_4);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_S.rcbuffer->pybuffer, (PyObject*)__pyx_t_17, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) {
       __pyx_v_S = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_S.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 254, __pyx_L1_error)
+      __PYX_ERR(0, 250, __pyx_L1_error)
     } else {__pyx_pybuffernd_S.diminfo[0].strides = __pyx_pybuffernd_S.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_S.diminfo[0].shape = __pyx_pybuffernd_S.rcbuffer->pybuffer.shape[0];
     }
   }
@@ -4944,7 +4771,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
   __pyx_v_S = ((PyArrayObject *)__pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "ptu_dijkstra.pyx":258
+  /* "ptu_dijkstra.pyx":254
  *         FibonacciHeap heap
  *         FibonacciNode *v
  *         FibonacciNode *nodes = <FibonacciNode*> malloc(N *             # <<<<<<<<<<<<<<
@@ -4953,7 +4780,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
   __pyx_v_nodes = ((struct __pyx_t_12ptu_dijkstra_FibonacciNode *)malloc((__pyx_v_N * (sizeof(struct __pyx_t_12ptu_dijkstra_FibonacciNode)))));
 
-  /* "ptu_dijkstra.pyx":262
+  /* "ptu_dijkstra.pyx":258
  *         FibonacciNode *current_node
  * 
  *     if nodes == NULL:             # <<<<<<<<<<<<<<
@@ -4963,20 +4790,20 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
   __pyx_t_18 = ((__pyx_v_nodes == NULL) != 0);
   if (unlikely(__pyx_t_18)) {
 
-    /* "ptu_dijkstra.pyx":263
+    /* "ptu_dijkstra.pyx":259
  * 
  *     if nodes == NULL:
  *         raise MemoryError("Failed to allocate memory in _dijkstra_undirected")             # <<<<<<<<<<<<<<
  * 
  *     for i in range(N):
  */
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_MemoryError, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 263, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_MemoryError, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 259, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_Raise(__pyx_t_4, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __PYX_ERR(0, 263, __pyx_L1_error)
+    __PYX_ERR(0, 259, __pyx_L1_error)
 
-    /* "ptu_dijkstra.pyx":262
+    /* "ptu_dijkstra.pyx":258
  *         FibonacciNode *current_node
  * 
  *     if nodes == NULL:             # <<<<<<<<<<<<<<
@@ -4985,7 +4812,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
   }
 
-  /* "ptu_dijkstra.pyx":265
+  /* "ptu_dijkstra.pyx":261
  *         raise MemoryError("Failed to allocate memory in _dijkstra_undirected")
  * 
  *     for i in range(N):             # <<<<<<<<<<<<<<
@@ -4997,7 +4824,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
   for (__pyx_t_21 = 0; __pyx_t_21 < __pyx_t_20; __pyx_t_21+=1) {
     __pyx_v_i = __pyx_t_21;
 
-    /* "ptu_dijkstra.pyx":268
+    /* "ptu_dijkstra.pyx":264
  * 
  *         # initialize nodes
  *         for k in range(N):             # <<<<<<<<<<<<<<
@@ -5009,7 +4836,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
     for (__pyx_t_24 = 0; __pyx_t_24 < __pyx_t_23; __pyx_t_24+=1) {
       __pyx_v_k = __pyx_t_24;
 
-      /* "ptu_dijkstra.pyx":269
+      /* "ptu_dijkstra.pyx":265
  *         # initialize nodes
  *         for k in range(N):
  *             initialize_node(&nodes[k], k)             # <<<<<<<<<<<<<<
@@ -5019,7 +4846,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
       __pyx_f_12ptu_dijkstra_initialize_node((&(__pyx_v_nodes[__pyx_v_k])), __pyx_v_k, NULL);
     }
 
-    /* "ptu_dijkstra.pyx":272
+    /* "ptu_dijkstra.pyx":268
  * 
  *         # initialize tangent at i that every other tangent will be aligned to
  *         for p in range(0, D):             # <<<<<<<<<<<<<<
@@ -5031,7 +4858,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
     for (__pyx_t_24 = 0; __pyx_t_24 < __pyx_t_23; __pyx_t_24+=1) {
       __pyx_v_p = __pyx_t_24;
 
-      /* "ptu_dijkstra.pyx":273
+      /* "ptu_dijkstra.pyx":269
  *         # initialize tangent at i that every other tangent will be aligned to
  *         for p in range(0, D):
  *             for q in range(0, d):             # <<<<<<<<<<<<<<
@@ -5043,7 +4870,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
       for (__pyx_t_27 = 0; __pyx_t_27 < __pyx_t_26; __pyx_t_27+=1) {
         __pyx_v_q = __pyx_t_27;
 
-        /* "ptu_dijkstra.pyx":274
+        /* "ptu_dijkstra.pyx":270
  *         for p in range(0, D):
  *             for q in range(0, d):
  *                 iTangent[i, p, q] = tangents[i, p, q]             # <<<<<<<<<<<<<<
@@ -5060,7 +4887,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
       }
     }
 
-    /* "ptu_dijkstra.pyx":278
+    /* "ptu_dijkstra.pyx":274
  *         # initialize the matrix of geodesics from i to all other points
  *         # unfolded into d-dimensional tangent space centered at i
  *         for p in range(0, N):             # <<<<<<<<<<<<<<
@@ -5072,7 +4899,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
     for (__pyx_t_24 = 0; __pyx_t_24 < __pyx_t_23; __pyx_t_24+=1) {
       __pyx_v_p = __pyx_t_24;
 
-      /* "ptu_dijkstra.pyx":279
+      /* "ptu_dijkstra.pyx":275
  *         # unfolded into d-dimensional tangent space centered at i
  *         for p in range(0, N):
  *             for q in range(0, d):             # <<<<<<<<<<<<<<
@@ -5084,7 +4911,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
       for (__pyx_t_27 = 0; __pyx_t_27 < __pyx_t_26; __pyx_t_27+=1) {
         __pyx_v_q = __pyx_t_27;
 
-        /* "ptu_dijkstra.pyx":280
+        /* "ptu_dijkstra.pyx":276
  *         for p in range(0, N):
  *             for q in range(0, d):
  *                 iUnfolding[p, q] = 0             # <<<<<<<<<<<<<<
@@ -5097,7 +4924,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
       }
     }
 
-    /* "ptu_dijkstra.pyx":283
+    /* "ptu_dijkstra.pyx":279
  * 
  *         # initialize parallel transport distances
  *         ptu_dists[i, i] = 0             # <<<<<<<<<<<<<<
@@ -5108,7 +4935,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
     __pyx_t_30 = __pyx_v_i;
     *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_ptu_dists.data + __pyx_t_29 * __pyx_v_ptu_dists.strides[0]) ) + __pyx_t_30 * __pyx_v_ptu_dists.strides[1]) )) = 0.0;
 
-    /* "ptu_dijkstra.pyx":286
+    /* "ptu_dijkstra.pyx":282
  * 
  *         # initialize Dijkstra graph distances
  *         graph_dists[i, i] = 0             # <<<<<<<<<<<<<<
@@ -5119,7 +4946,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
     __pyx_t_29 = __pyx_v_i;
     *__Pyx_BufPtrStrided2d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_graph_dists.rcbuffer->pybuffer.buf, __pyx_t_30, __pyx_pybuffernd_graph_dists.diminfo[0].strides, __pyx_t_29, __pyx_pybuffernd_graph_dists.diminfo[1].strides) = 0.0;
 
-    /* "ptu_dijkstra.pyx":289
+    /* "ptu_dijkstra.pyx":285
  * 
  *         # initialize predecessors
  *         pred[i, i] = -1             # <<<<<<<<<<<<<<
@@ -5130,7 +4957,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
     __pyx_t_30 = __pyx_v_i;
     *((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_pred.data + __pyx_t_29 * __pyx_v_pred.strides[0]) ) + __pyx_t_30 * __pyx_v_pred.strides[1]) )) = -1;
 
-    /* "ptu_dijkstra.pyx":292
+    /* "ptu_dijkstra.pyx":288
  * 
  *         # initialize Fibonacci heap
  *         heap.min_node = NULL             # <<<<<<<<<<<<<<
@@ -5139,7 +4966,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
     __pyx_v_heap.min_node = NULL;
 
-    /* "ptu_dijkstra.pyx":293
+    /* "ptu_dijkstra.pyx":289
  *         # initialize Fibonacci heap
  *         heap.min_node = NULL
  *         insert_node(&heap, &nodes[i])             # <<<<<<<<<<<<<<
@@ -5148,7 +4975,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
     __pyx_f_12ptu_dijkstra_insert_node((&__pyx_v_heap), (&(__pyx_v_nodes[__pyx_v_i])));
 
-    /* "ptu_dijkstra.pyx":296
+    /* "ptu_dijkstra.pyx":292
  * 
  *         # start Dijkstra algorithm
  *         while heap.min_node:             # <<<<<<<<<<<<<<
@@ -5159,7 +4986,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
       __pyx_t_18 = (__pyx_v_heap.min_node != 0);
       if (!__pyx_t_18) break;
 
-      /* "ptu_dijkstra.pyx":297
+      /* "ptu_dijkstra.pyx":293
  *         # start Dijkstra algorithm
  *         while heap.min_node:
  *             v = remove_min(&heap)             # <<<<<<<<<<<<<<
@@ -5168,7 +4995,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
       __pyx_v_v = __pyx_f_12ptu_dijkstra_remove_min((&__pyx_v_heap));
 
-      /* "ptu_dijkstra.pyx":298
+      /* "ptu_dijkstra.pyx":294
  *         while heap.min_node:
  *             v = remove_min(&heap)
  *             v.state = SCANNED             # <<<<<<<<<<<<<<
@@ -5177,7 +5004,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
       __pyx_v_v->state = __pyx_e_12ptu_dijkstra_SCANNED;
 
-      /* "ptu_dijkstra.pyx":299
+      /* "ptu_dijkstra.pyx":295
  *             v = remove_min(&heap)
  *             v.state = SCANNED
  *             j = v.index             # <<<<<<<<<<<<<<
@@ -5187,7 +5014,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
       __pyx_t_34 = __pyx_v_v->index;
       __pyx_v_j = __pyx_t_34;
 
-      /* "ptu_dijkstra.pyx":300
+      /* "ptu_dijkstra.pyx":296
  *             v.state = SCANNED
  *             j = v.index
  *             pred_j = pred[i, j]             # <<<<<<<<<<<<<<
@@ -5198,7 +5025,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
       __pyx_t_29 = __pyx_v_j;
       __pyx_v_pred_j = (*((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_pred.data + __pyx_t_30 * __pyx_v_pred.strides[0]) ) + __pyx_t_29 * __pyx_v_pred.strides[1]) )));
 
-      /* "ptu_dijkstra.pyx":301
+      /* "ptu_dijkstra.pyx":297
  *             j = v.index
  *             pred_j = pred[i, j]
  *             graph_dists[i, j] = v.val             # <<<<<<<<<<<<<<
@@ -5210,7 +5037,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
       __pyx_t_30 = __pyx_v_j;
       *__Pyx_BufPtrStrided2d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_graph_dists.rcbuffer->pybuffer.buf, __pyx_t_29, __pyx_pybuffernd_graph_dists.diminfo[0].strides, __pyx_t_30, __pyx_pybuffernd_graph_dists.diminfo[1].strides) = __pyx_t_35;
 
-      /* "ptu_dijkstra.pyx":303
+      /* "ptu_dijkstra.pyx":299
  *             graph_dists[i, j] = v.val
  * 
  *             if pred_j != -1:             # <<<<<<<<<<<<<<
@@ -5220,7 +5047,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
       __pyx_t_18 = ((__pyx_v_pred_j != -1L) != 0);
       if (__pyx_t_18) {
 
-        /* "ptu_dijkstra.pyx":307
+        /* "ptu_dijkstra.pyx":303
  *                 # at node i. iTangentPred is tangent space to node preceding j
  *                 # aligned to tangent space at node i.
  *                 for p in range(0, D):             # <<<<<<<<<<<<<<
@@ -5232,7 +5059,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
         for (__pyx_t_24 = 0; __pyx_t_24 < __pyx_t_23; __pyx_t_24+=1) {
           __pyx_v_p = __pyx_t_24;
 
-          /* "ptu_dijkstra.pyx":308
+          /* "ptu_dijkstra.pyx":304
  *                 # aligned to tangent space at node i.
  *                 for p in range(0, D):
  *                     for q in range(0, d):             # <<<<<<<<<<<<<<
@@ -5244,7 +5071,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
           for (__pyx_t_27 = 0; __pyx_t_27 < __pyx_t_26; __pyx_t_27+=1) {
             __pyx_v_q = __pyx_t_27;
 
-            /* "ptu_dijkstra.pyx":309
+            /* "ptu_dijkstra.pyx":305
  *                 for p in range(0, D):
  *                     for q in range(0, d):
  *                         jTangent[p, q] = tangents[j, p, q]             # <<<<<<<<<<<<<<
@@ -5258,7 +5085,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
             __pyx_t_32 = __pyx_v_q;
             *__Pyx_BufPtrStrided2d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_jTangent.rcbuffer->pybuffer.buf, __pyx_t_33, __pyx_pybuffernd_jTangent.diminfo[0].strides, __pyx_t_32, __pyx_pybuffernd_jTangent.diminfo[1].strides) = (*((double *) ( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_tangents.data + __pyx_t_30 * __pyx_v_tangents.strides[0]) ) + __pyx_t_29 * __pyx_v_tangents.strides[1]) ) + __pyx_t_28 * __pyx_v_tangents.strides[2]) )));
 
-            /* "ptu_dijkstra.pyx":310
+            /* "ptu_dijkstra.pyx":306
  *                     for q in range(0, d):
  *                         jTangent[p, q] = tangents[j, p, q]
  *                         iTangentPred[p, q] = iTangent[pred_j, p, q]             # <<<<<<<<<<<<<<
@@ -5274,7 +5101,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
           }
         }
 
-        /* "ptu_dijkstra.pyx":312
+        /* "ptu_dijkstra.pyx":308
  *                         iTangentPred[p, q] = iTangent[pred_j, p, q]
  * 
  *                 for p in range(d):             # <<<<<<<<<<<<<<
@@ -5286,7 +5113,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
         for (__pyx_t_24 = 0; __pyx_t_24 < __pyx_t_23; __pyx_t_24+=1) {
           __pyx_v_p = __pyx_t_24;
 
-          /* "ptu_dijkstra.pyx":313
+          /* "ptu_dijkstra.pyx":309
  * 
  *                 for p in range(d):
  *                     projected_edge[p] = 0             # <<<<<<<<<<<<<<
@@ -5297,7 +5124,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
           *__Pyx_BufPtrStrided1d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_projected_edge.rcbuffer->pybuffer.buf, __pyx_t_30, __pyx_pybuffernd_projected_edge.diminfo[0].strides) = 0.0;
         }
 
-        /* "ptu_dijkstra.pyx":317
+        /* "ptu_dijkstra.pyx":313
  *                 # projected_edge = (X[j] - X[pred_j])^T * iTangentPred
  *                 # edge_norm = ||X[j] - X[pred_j]||_2
  *                 edge_norm = 0             # <<<<<<<<<<<<<<
@@ -5306,7 +5133,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
         __pyx_v_edge_norm = 0.0;
 
-        /* "ptu_dijkstra.pyx":318
+        /* "ptu_dijkstra.pyx":314
  *                 # edge_norm = ||X[j] - X[pred_j]||_2
  *                 edge_norm = 0
  *                 for p in range(D):             # <<<<<<<<<<<<<<
@@ -5318,7 +5145,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
         for (__pyx_t_24 = 0; __pyx_t_24 < __pyx_t_23; __pyx_t_24+=1) {
           __pyx_v_p = __pyx_t_24;
 
-          /* "ptu_dijkstra.pyx":319
+          /* "ptu_dijkstra.pyx":315
  *                 edge_norm = 0
  *                 for p in range(D):
  *                     temp = X[j, p] - X[pred_j, p]             # <<<<<<<<<<<<<<
@@ -5331,7 +5158,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
           __pyx_t_33 = __pyx_v_p;
           __pyx_v_temp = ((*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_X.data + __pyx_t_30 * __pyx_v_X.strides[0]) ) + __pyx_t_29 * __pyx_v_X.strides[1]) ))) - (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_X.data + __pyx_t_28 * __pyx_v_X.strides[0]) ) + __pyx_t_33 * __pyx_v_X.strides[1]) ))));
 
-          /* "ptu_dijkstra.pyx":320
+          /* "ptu_dijkstra.pyx":316
  *                 for p in range(D):
  *                     temp = X[j, p] - X[pred_j, p]
  *                     edge_norm += temp * temp             # <<<<<<<<<<<<<<
@@ -5340,7 +5167,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
           __pyx_v_edge_norm = (__pyx_v_edge_norm + (__pyx_v_temp * __pyx_v_temp));
 
-          /* "ptu_dijkstra.pyx":321
+          /* "ptu_dijkstra.pyx":317
  *                     temp = X[j, p] - X[pred_j, p]
  *                     edge_norm += temp * temp
  *                     for q in range(d):             # <<<<<<<<<<<<<<
@@ -5352,7 +5179,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
           for (__pyx_t_27 = 0; __pyx_t_27 < __pyx_t_26; __pyx_t_27+=1) {
             __pyx_v_q = __pyx_t_27;
 
-            /* "ptu_dijkstra.pyx":322
+            /* "ptu_dijkstra.pyx":318
  *                     edge_norm += temp * temp
  *                     for q in range(d):
  *                         projected_edge[q] += temp * iTangentPred[p, q]             # <<<<<<<<<<<<<<
@@ -5366,7 +5193,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
           }
         }
 
-        /* "ptu_dijkstra.pyx":323
+        /* "ptu_dijkstra.pyx":319
  *                     for q in range(d):
  *                         projected_edge[q] += temp * iTangentPred[p, q]
  *                 edge_norm = sqrt(edge_norm)             # <<<<<<<<<<<<<<
@@ -5375,7 +5202,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
         __pyx_v_edge_norm = sqrt(__pyx_v_edge_norm);
 
-        /* "ptu_dijkstra.pyx":326
+        /* "ptu_dijkstra.pyx":322
  * 
  *                 # projected_edge_norm = ||projected_edge||_2
  *                 projected_edge_norm = 0             # <<<<<<<<<<<<<<
@@ -5384,7 +5211,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
         __pyx_v_projected_edge_norm = 0.0;
 
-        /* "ptu_dijkstra.pyx":327
+        /* "ptu_dijkstra.pyx":323
  *                 # projected_edge_norm = ||projected_edge||_2
  *                 projected_edge_norm = 0
  *                 for q in range(0, d):             # <<<<<<<<<<<<<<
@@ -5396,7 +5223,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
         for (__pyx_t_24 = 0; __pyx_t_24 < __pyx_t_23; __pyx_t_24+=1) {
           __pyx_v_q = __pyx_t_24;
 
-          /* "ptu_dijkstra.pyx":328
+          /* "ptu_dijkstra.pyx":324
  *                 projected_edge_norm = 0
  *                 for q in range(0, d):
  *                     projected_edge_norm += projected_edge[q] * projected_edge[q]             # <<<<<<<<<<<<<<
@@ -5408,7 +5235,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
           __pyx_v_projected_edge_norm = (__pyx_v_projected_edge_norm + ((*__Pyx_BufPtrStrided1d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_projected_edge.rcbuffer->pybuffer.buf, __pyx_t_28, __pyx_pybuffernd_projected_edge.diminfo[0].strides)) * (*__Pyx_BufPtrStrided1d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_projected_edge.rcbuffer->pybuffer.buf, __pyx_t_33, __pyx_pybuffernd_projected_edge.diminfo[0].strides))));
         }
 
-        /* "ptu_dijkstra.pyx":329
+        /* "ptu_dijkstra.pyx":325
  *                 for q in range(0, d):
  *                     projected_edge_norm += projected_edge[q] * projected_edge[q]
  *                 projected_edge_norm = sqrt(projected_edge_norm)             # <<<<<<<<<<<<<<
@@ -5417,7 +5244,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
         __pyx_v_projected_edge_norm = sqrt(__pyx_v_projected_edge_norm);
 
-        /* "ptu_dijkstra.pyx":333
+        /* "ptu_dijkstra.pyx":329
  *                 # tweak the length of projected edge to eliminate shrinking
  *                 # and add it to the unwrapped path from i to predecessor of j.
  *                 path_norm = 0             # <<<<<<<<<<<<<<
@@ -5426,7 +5253,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
         __pyx_v_path_norm = 0.0;
 
-        /* "ptu_dijkstra.pyx":334
+        /* "ptu_dijkstra.pyx":330
  *                 # and add it to the unwrapped path from i to predecessor of j.
  *                 path_norm = 0
  *                 for q in range(0, d):             # <<<<<<<<<<<<<<
@@ -5438,7 +5265,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
         for (__pyx_t_24 = 0; __pyx_t_24 < __pyx_t_23; __pyx_t_24+=1) {
           __pyx_v_q = __pyx_t_24;
 
-          /* "ptu_dijkstra.pyx":336
+          /* "ptu_dijkstra.pyx":332
  *                 for q in range(0, d):
  *                     projected_edge[q] = (
  *                         edge_norm / projected_edge_norm * projected_edge[q]             # <<<<<<<<<<<<<<
@@ -5447,7 +5274,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
           __pyx_t_33 = __pyx_v_q;
 
-          /* "ptu_dijkstra.pyx":335
+          /* "ptu_dijkstra.pyx":331
  *                 path_norm = 0
  *                 for q in range(0, d):
  *                     projected_edge[q] = (             # <<<<<<<<<<<<<<
@@ -5457,7 +5284,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
           __pyx_t_28 = __pyx_v_q;
           *__Pyx_BufPtrStrided1d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_projected_edge.rcbuffer->pybuffer.buf, __pyx_t_28, __pyx_pybuffernd_projected_edge.diminfo[0].strides) = ((__pyx_v_edge_norm / __pyx_v_projected_edge_norm) * (*__Pyx_BufPtrStrided1d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_projected_edge.rcbuffer->pybuffer.buf, __pyx_t_33, __pyx_pybuffernd_projected_edge.diminfo[0].strides)));
 
-          /* "ptu_dijkstra.pyx":338
+          /* "ptu_dijkstra.pyx":334
  *                         edge_norm / projected_edge_norm * projected_edge[q]
  *                     )
  *                     projected_edge[q] += iUnfolding[pred_j, q]             # <<<<<<<<<<<<<<
@@ -5469,7 +5296,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
           __pyx_t_29 = __pyx_v_q;
           *__Pyx_BufPtrStrided1d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_projected_edge.rcbuffer->pybuffer.buf, __pyx_t_29, __pyx_pybuffernd_projected_edge.diminfo[0].strides) += (*__Pyx_BufPtrStrided2d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_iUnfolding.rcbuffer->pybuffer.buf, __pyx_t_33, __pyx_pybuffernd_iUnfolding.diminfo[0].strides, __pyx_t_28, __pyx_pybuffernd_iUnfolding.diminfo[1].strides));
 
-          /* "ptu_dijkstra.pyx":339
+          /* "ptu_dijkstra.pyx":335
  *                     )
  *                     projected_edge[q] += iUnfolding[pred_j, q]
  *                     iUnfolding[j, q] = projected_edge[q]             # <<<<<<<<<<<<<<
@@ -5481,7 +5308,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
           __pyx_t_29 = __pyx_v_q;
           *__Pyx_BufPtrStrided2d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_iUnfolding.rcbuffer->pybuffer.buf, __pyx_t_33, __pyx_pybuffernd_iUnfolding.diminfo[0].strides, __pyx_t_29, __pyx_pybuffernd_iUnfolding.diminfo[1].strides) = (*__Pyx_BufPtrStrided1d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_projected_edge.rcbuffer->pybuffer.buf, __pyx_t_28, __pyx_pybuffernd_projected_edge.diminfo[0].strides));
 
-          /* "ptu_dijkstra.pyx":340
+          /* "ptu_dijkstra.pyx":336
  *                     projected_edge[q] += iUnfolding[pred_j, q]
  *                     iUnfolding[j, q] = projected_edge[q]
  *                     path_norm += projected_edge[q] * projected_edge[q]             # <<<<<<<<<<<<<<
@@ -5493,7 +5320,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
           __pyx_v_path_norm = (__pyx_v_path_norm + ((*__Pyx_BufPtrStrided1d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_projected_edge.rcbuffer->pybuffer.buf, __pyx_t_28, __pyx_pybuffernd_projected_edge.diminfo[0].strides)) * (*__Pyx_BufPtrStrided1d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_projected_edge.rcbuffer->pybuffer.buf, __pyx_t_29, __pyx_pybuffernd_projected_edge.diminfo[0].strides))));
         }
 
-        /* "ptu_dijkstra.pyx":341
+        /* "ptu_dijkstra.pyx":337
  *                     iUnfolding[j, q] = projected_edge[q]
  *                     path_norm += projected_edge[q] * projected_edge[q]
  *                 path_norm = sqrt(path_norm)             # <<<<<<<<<<<<<<
@@ -5502,7 +5329,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
         __pyx_v_path_norm = sqrt(__pyx_v_path_norm);
 
-        /* "ptu_dijkstra.pyx":346
+        /* "ptu_dijkstra.pyx":342
  *                 # parallel transport approximation of geodesic distance between
  *                 # points i and j
  *                 ptu_dists[i, j] = path_norm             # <<<<<<<<<<<<<<
@@ -5513,7 +5340,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
         __pyx_t_28 = __pyx_v_j;
         *((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_ptu_dists.data + __pyx_t_29 * __pyx_v_ptu_dists.strides[0]) ) + __pyx_t_28 * __pyx_v_ptu_dists.strides[1]) )) = __pyx_v_path_norm;
 
-        /* "ptu_dijkstra.pyx":349
+        /* "ptu_dijkstra.pyx":345
  * 
  *                 # TtT = jTangent^T iTangentPred
  *                 for q in range(0, d):             # <<<<<<<<<<<<<<
@@ -5525,7 +5352,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
         for (__pyx_t_24 = 0; __pyx_t_24 < __pyx_t_23; __pyx_t_24+=1) {
           __pyx_v_q = __pyx_t_24;
 
-          /* "ptu_dijkstra.pyx":350
+          /* "ptu_dijkstra.pyx":346
  *                 # TtT = jTangent^T iTangentPred
  *                 for q in range(0, d):
  *                     for k in range(0, d):             # <<<<<<<<<<<<<<
@@ -5537,7 +5364,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
           for (__pyx_t_27 = 0; __pyx_t_27 < __pyx_t_26; __pyx_t_27+=1) {
             __pyx_v_k = __pyx_t_27;
 
-            /* "ptu_dijkstra.pyx":351
+            /* "ptu_dijkstra.pyx":347
  *                 for q in range(0, d):
  *                     for k in range(0, d):
  *                         temp = 0             # <<<<<<<<<<<<<<
@@ -5546,7 +5373,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
             __pyx_v_temp = 0.0;
 
-            /* "ptu_dijkstra.pyx":352
+            /* "ptu_dijkstra.pyx":348
  *                     for k in range(0, d):
  *                         temp = 0
  *                         for p in range(0, D):             # <<<<<<<<<<<<<<
@@ -5558,7 +5385,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
             for (__pyx_t_38 = 0; __pyx_t_38 < __pyx_t_37; __pyx_t_38+=1) {
               __pyx_v_p = __pyx_t_38;
 
-              /* "ptu_dijkstra.pyx":353
+              /* "ptu_dijkstra.pyx":349
  *                         temp = 0
  *                         for p in range(0, D):
  *                             temp += jTangent[p, k] * iTangentPred[p, q]             # <<<<<<<<<<<<<<
@@ -5572,7 +5399,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
               __pyx_v_temp = (__pyx_v_temp + ((*__Pyx_BufPtrStrided2d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_jTangent.rcbuffer->pybuffer.buf, __pyx_t_28, __pyx_pybuffernd_jTangent.diminfo[0].strides, __pyx_t_29, __pyx_pybuffernd_jTangent.diminfo[1].strides)) * (*__Pyx_BufPtrStrided2d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_iTangentPred.rcbuffer->pybuffer.buf, __pyx_t_33, __pyx_pybuffernd_iTangentPred.diminfo[0].strides, __pyx_t_30, __pyx_pybuffernd_iTangentPred.diminfo[1].strides))));
             }
 
-            /* "ptu_dijkstra.pyx":354
+            /* "ptu_dijkstra.pyx":350
  *                         for p in range(0, D):
  *                             temp += jTangent[p, k] * iTangentPred[p, q]
  *                         TtT[k, q] = temp             # <<<<<<<<<<<<<<
@@ -5585,7 +5412,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
           }
         }
 
-        /* "ptu_dijkstra.pyx":363
+        /* "ptu_dijkstra.pyx":359
  *                     &d,
  *                     &d,
  *                     &TtT[0, 0],             # <<<<<<<<<<<<<<
@@ -5595,7 +5422,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
         __pyx_t_33 = 0;
         __pyx_t_30 = 0;
 
-        /* "ptu_dijkstra.pyx":365
+        /* "ptu_dijkstra.pyx":361
  *                     &TtT[0, 0],
  *                     &d,
  *                     &S[0],             # <<<<<<<<<<<<<<
@@ -5604,7 +5431,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
         __pyx_t_29 = 0;
 
-        /* "ptu_dijkstra.pyx":366
+        /* "ptu_dijkstra.pyx":362
  *                     &d,
  *                     &S[0],
  *                     &U[0, 0],             # <<<<<<<<<<<<<<
@@ -5614,7 +5441,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
         __pyx_t_28 = 0;
         __pyx_t_32 = 0;
 
-        /* "ptu_dijkstra.pyx":368
+        /* "ptu_dijkstra.pyx":364
  *                     &U[0, 0],
  *                     &d,
  *                     &VT[0, 0],             # <<<<<<<<<<<<<<
@@ -5624,7 +5451,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
         __pyx_t_31 = 0;
         __pyx_t_39 = 0;
 
-        /* "ptu_dijkstra.pyx":370
+        /* "ptu_dijkstra.pyx":366
  *                     &VT[0, 0],
  *                     &d,
  *                     &Work[0],             # <<<<<<<<<<<<<<
@@ -5633,7 +5460,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
         __pyx_t_40 = 0;
 
-        /* "ptu_dijkstra.pyx":358
+        /* "ptu_dijkstra.pyx":354
  *                 # U, S, VT = SVD(TtT)
  *                 # see LAPACK docs for details
  *                 cython_lapack.dgesvd(             # <<<<<<<<<<<<<<
@@ -5642,7 +5469,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
         __pyx_f_5scipy_6linalg_13cython_lapack_dgesvd(((char *)"A"), ((char *)"A"), (&__pyx_v_d), (&__pyx_v_d), (&(*__Pyx_BufPtrStrided2d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_TtT.rcbuffer->pybuffer.buf, __pyx_t_33, __pyx_pybuffernd_TtT.diminfo[0].strides, __pyx_t_30, __pyx_pybuffernd_TtT.diminfo[1].strides))), (&__pyx_v_d), (&(*__Pyx_BufPtrStrided1d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_S.rcbuffer->pybuffer.buf, __pyx_t_29, __pyx_pybuffernd_S.diminfo[0].strides))), (&(*__Pyx_BufPtrStrided2d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_U.rcbuffer->pybuffer.buf, __pyx_t_28, __pyx_pybuffernd_U.diminfo[0].strides, __pyx_t_32, __pyx_pybuffernd_U.diminfo[1].strides))), (&__pyx_v_d), (&(*__Pyx_BufPtrStrided2d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_VT.rcbuffer->pybuffer.buf, __pyx_t_31, __pyx_pybuffernd_VT.diminfo[0].strides, __pyx_t_39, __pyx_pybuffernd_VT.diminfo[1].strides))), (&__pyx_v_d), (&(*__Pyx_BufPtrStrided1d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_Work.rcbuffer->pybuffer.buf, __pyx_t_40, __pyx_pybuffernd_Work.diminfo[0].strides))), (&__pyx_v_lwork), (&__pyx_v_info));
 
-        /* "ptu_dijkstra.pyx":378
+        /* "ptu_dijkstra.pyx":374
  *                 # this is a tangent space at node j that is aligned to tangent
  *                 # space at node i
  *                 for p in range(D):             # <<<<<<<<<<<<<<
@@ -5654,7 +5481,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
         for (__pyx_t_24 = 0; __pyx_t_24 < __pyx_t_23; __pyx_t_24+=1) {
           __pyx_v_p = __pyx_t_24;
 
-          /* "ptu_dijkstra.pyx":379
+          /* "ptu_dijkstra.pyx":375
  *                 # space at node i
  *                 for p in range(D):
  *                     for q in range(d):             # <<<<<<<<<<<<<<
@@ -5666,7 +5493,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
           for (__pyx_t_27 = 0; __pyx_t_27 < __pyx_t_26; __pyx_t_27+=1) {
             __pyx_v_q = __pyx_t_27;
 
-            /* "ptu_dijkstra.pyx":380
+            /* "ptu_dijkstra.pyx":376
  *                 for p in range(D):
  *                     for q in range(d):
  *                         temp = 0             # <<<<<<<<<<<<<<
@@ -5675,7 +5502,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
             __pyx_v_temp = 0.0;
 
-            /* "ptu_dijkstra.pyx":381
+            /* "ptu_dijkstra.pyx":377
  *                     for q in range(d):
  *                         temp = 0
  *                         for k in range(0, d):             # <<<<<<<<<<<<<<
@@ -5687,7 +5514,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
             for (__pyx_t_38 = 0; __pyx_t_38 < __pyx_t_37; __pyx_t_38+=1) {
               __pyx_v_k = __pyx_t_38;
 
-              /* "ptu_dijkstra.pyx":382
+              /* "ptu_dijkstra.pyx":378
  *                         temp = 0
  *                         for k in range(0, d):
  *                             for l in range(0, d):             # <<<<<<<<<<<<<<
@@ -5699,7 +5526,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
               for (__pyx_t_43 = 0; __pyx_t_43 < __pyx_t_42; __pyx_t_43+=1) {
                 __pyx_v_l = __pyx_t_43;
 
-                /* "ptu_dijkstra.pyx":383
+                /* "ptu_dijkstra.pyx":379
  *                         for k in range(0, d):
  *                             for l in range(0, d):
  *                                 temp += jTangent[p, k] * U[k, l] * VT[l, q]             # <<<<<<<<<<<<<<
@@ -5716,12 +5543,12 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
               }
             }
 
-            /* "ptu_dijkstra.pyx":384
+            /* "ptu_dijkstra.pyx":380
  *                             for l in range(0, d):
  *                                 temp += jTangent[p, k] * U[k, l] * VT[l, q]
  *                         iTangent[j, p, q] = temp             # <<<<<<<<<<<<<<
  * 
- *                 for q in range(d):
+ *             # Standard Dijkstra: process neighbors of j
  */
             __pyx_t_29 = __pyx_v_j;
             __pyx_t_28 = __pyx_v_p;
@@ -5730,63 +5557,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
           }
         }
 
-        /* "ptu_dijkstra.pyx":386
- *                         iTangent[j, p, q] = temp
- * 
- *                 for q in range(d):             # <<<<<<<<<<<<<<
- *                     for k in range(0, d):
- *                         for l in range(0, d):
- */
-        __pyx_t_22 = __pyx_v_d;
-        __pyx_t_23 = __pyx_t_22;
-        for (__pyx_t_24 = 0; __pyx_t_24 < __pyx_t_23; __pyx_t_24+=1) {
-          __pyx_v_q = __pyx_t_24;
-
-          /* "ptu_dijkstra.pyx":387
- * 
- *                 for q in range(d):
- *                     for k in range(0, d):             # <<<<<<<<<<<<<<
- *                         for l in range(0, d):
- *                             R[i,j,k,q] = U[k, l] * VT[l, q]
- */
-          __pyx_t_25 = __pyx_v_d;
-          __pyx_t_26 = __pyx_t_25;
-          for (__pyx_t_27 = 0; __pyx_t_27 < __pyx_t_26; __pyx_t_27+=1) {
-            __pyx_v_k = __pyx_t_27;
-
-            /* "ptu_dijkstra.pyx":388
- *                 for q in range(d):
- *                     for k in range(0, d):
- *                         for l in range(0, d):             # <<<<<<<<<<<<<<
- *                             R[i,j,k,q] = U[k, l] * VT[l, q]
- * 
- */
-            __pyx_t_36 = __pyx_v_d;
-            __pyx_t_37 = __pyx_t_36;
-            for (__pyx_t_38 = 0; __pyx_t_38 < __pyx_t_37; __pyx_t_38+=1) {
-              __pyx_v_l = __pyx_t_38;
-
-              /* "ptu_dijkstra.pyx":389
- *                     for k in range(0, d):
- *                         for l in range(0, d):
- *                             R[i,j,k,q] = U[k, l] * VT[l, q]             # <<<<<<<<<<<<<<
- * 
- *             # Standard Dijkstra: process neighbors of j
- */
-              __pyx_t_32 = __pyx_v_k;
-              __pyx_t_28 = __pyx_v_l;
-              __pyx_t_29 = __pyx_v_l;
-              __pyx_t_31 = __pyx_v_q;
-              __pyx_t_39 = __pyx_v_i;
-              __pyx_t_40 = __pyx_v_j;
-              __pyx_t_30 = __pyx_v_k;
-              __pyx_t_33 = __pyx_v_q;
-              *((double *) ( /* dim=3 */ (( /* dim=2 */ (( /* dim=1 */ (( /* dim=0 */ (__pyx_v_R.data + __pyx_t_39 * __pyx_v_R.strides[0]) ) + __pyx_t_40 * __pyx_v_R.strides[1]) ) + __pyx_t_30 * __pyx_v_R.strides[2]) ) + __pyx_t_33 * __pyx_v_R.strides[3]) )) = ((*__Pyx_BufPtrStrided2d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_U.rcbuffer->pybuffer.buf, __pyx_t_32, __pyx_pybuffernd_U.diminfo[0].strides, __pyx_t_28, __pyx_pybuffernd_U.diminfo[1].strides)) * (*__Pyx_BufPtrStrided2d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_VT.rcbuffer->pybuffer.buf, __pyx_t_29, __pyx_pybuffernd_VT.diminfo[0].strides, __pyx_t_31, __pyx_pybuffernd_VT.diminfo[1].strides)));
-            }
-          }
-        }
-
-        /* "ptu_dijkstra.pyx":303
+        /* "ptu_dijkstra.pyx":299
  *             graph_dists[i, j] = v.val
  * 
  *             if pred_j != -1:             # <<<<<<<<<<<<<<
@@ -5795,31 +5566,31 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
       }
 
-      /* "ptu_dijkstra.pyx":392
+      /* "ptu_dijkstra.pyx":383
  * 
  *             # Standard Dijkstra: process neighbors of j
  *             for k in range(csr_indptr[j], csr_indptr[j + 1]):             # <<<<<<<<<<<<<<
  *                 k_current = csr_indices[k]
  *                 current_node = &nodes[k_current]
  */
-      __pyx_t_31 = (__pyx_v_j + 1);
-      __pyx_t_22 = (*((int *) ( /* dim=0 */ (__pyx_v_csr_indptr.data + __pyx_t_31 * __pyx_v_csr_indptr.strides[0]) )));
-      __pyx_t_31 = __pyx_v_j;
+      __pyx_t_32 = (__pyx_v_j + 1);
+      __pyx_t_22 = (*((int *) ( /* dim=0 */ (__pyx_v_csr_indptr.data + __pyx_t_32 * __pyx_v_csr_indptr.strides[0]) )));
+      __pyx_t_32 = __pyx_v_j;
       __pyx_t_23 = __pyx_t_22;
-      for (__pyx_t_24 = (*((int *) ( /* dim=0 */ (__pyx_v_csr_indptr.data + __pyx_t_31 * __pyx_v_csr_indptr.strides[0]) ))); __pyx_t_24 < __pyx_t_23; __pyx_t_24+=1) {
+      for (__pyx_t_24 = (*((int *) ( /* dim=0 */ (__pyx_v_csr_indptr.data + __pyx_t_32 * __pyx_v_csr_indptr.strides[0]) ))); __pyx_t_24 < __pyx_t_23; __pyx_t_24+=1) {
         __pyx_v_k = __pyx_t_24;
 
-        /* "ptu_dijkstra.pyx":393
+        /* "ptu_dijkstra.pyx":384
  *             # Standard Dijkstra: process neighbors of j
  *             for k in range(csr_indptr[j], csr_indptr[j + 1]):
  *                 k_current = csr_indices[k]             # <<<<<<<<<<<<<<
  *                 current_node = &nodes[k_current]
  *                 if current_node.state != SCANNED:
  */
-        __pyx_t_29 = __pyx_v_k;
-        __pyx_v_k_current = (*((int *) ( /* dim=0 */ (__pyx_v_csr_indices.data + __pyx_t_29 * __pyx_v_csr_indices.strides[0]) )));
+        __pyx_t_28 = __pyx_v_k;
+        __pyx_v_k_current = (*((int *) ( /* dim=0 */ (__pyx_v_csr_indices.data + __pyx_t_28 * __pyx_v_csr_indices.strides[0]) )));
 
-        /* "ptu_dijkstra.pyx":394
+        /* "ptu_dijkstra.pyx":385
  *             for k in range(csr_indptr[j], csr_indptr[j + 1]):
  *                 k_current = csr_indices[k]
  *                 current_node = &nodes[k_current]             # <<<<<<<<<<<<<<
@@ -5828,7 +5599,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
         __pyx_v_current_node = (&(__pyx_v_nodes[__pyx_v_k_current]));
 
-        /* "ptu_dijkstra.pyx":395
+        /* "ptu_dijkstra.pyx":386
  *                 k_current = csr_indices[k]
  *                 current_node = &nodes[k_current]
  *                 if current_node.state != SCANNED:             # <<<<<<<<<<<<<<
@@ -5838,17 +5609,17 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
         __pyx_t_18 = ((__pyx_v_current_node->state != __pyx_e_12ptu_dijkstra_SCANNED) != 0);
         if (__pyx_t_18) {
 
-          /* "ptu_dijkstra.pyx":396
+          /* "ptu_dijkstra.pyx":387
  *                 current_node = &nodes[k_current]
  *                 if current_node.state != SCANNED:
  *                     next_val = v.val + csr_weights[k]             # <<<<<<<<<<<<<<
  *                     if current_node.state == NOT_IN_HEAP:
  *                         current_node.state = IN_HEAP
  */
-          __pyx_t_29 = __pyx_v_k;
-          __pyx_v_next_val = (__pyx_v_v->val + (*((double *) ( /* dim=0 */ (__pyx_v_csr_weights.data + __pyx_t_29 * __pyx_v_csr_weights.strides[0]) ))));
+          __pyx_t_28 = __pyx_v_k;
+          __pyx_v_next_val = (__pyx_v_v->val + (*((double *) ( /* dim=0 */ (__pyx_v_csr_weights.data + __pyx_t_28 * __pyx_v_csr_weights.strides[0]) ))));
 
-          /* "ptu_dijkstra.pyx":397
+          /* "ptu_dijkstra.pyx":388
  *                 if current_node.state != SCANNED:
  *                     next_val = v.val + csr_weights[k]
  *                     if current_node.state == NOT_IN_HEAP:             # <<<<<<<<<<<<<<
@@ -5858,7 +5629,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
           __pyx_t_18 = ((__pyx_v_current_node->state == __pyx_e_12ptu_dijkstra_NOT_IN_HEAP) != 0);
           if (__pyx_t_18) {
 
-            /* "ptu_dijkstra.pyx":398
+            /* "ptu_dijkstra.pyx":389
  *                     next_val = v.val + csr_weights[k]
  *                     if current_node.state == NOT_IN_HEAP:
  *                         current_node.state = IN_HEAP             # <<<<<<<<<<<<<<
@@ -5867,7 +5638,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
             __pyx_v_current_node->state = __pyx_e_12ptu_dijkstra_IN_HEAP;
 
-            /* "ptu_dijkstra.pyx":399
+            /* "ptu_dijkstra.pyx":390
  *                     if current_node.state == NOT_IN_HEAP:
  *                         current_node.state = IN_HEAP
  *                         current_node.val = next_val             # <<<<<<<<<<<<<<
@@ -5876,7 +5647,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
             __pyx_v_current_node->val = __pyx_v_next_val;
 
-            /* "ptu_dijkstra.pyx":400
+            /* "ptu_dijkstra.pyx":391
  *                         current_node.state = IN_HEAP
  *                         current_node.val = next_val
  *                         insert_node(&heap, current_node)             # <<<<<<<<<<<<<<
@@ -5885,7 +5656,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
             __pyx_f_12ptu_dijkstra_insert_node((&__pyx_v_heap), __pyx_v_current_node);
 
-            /* "ptu_dijkstra.pyx":401
+            /* "ptu_dijkstra.pyx":392
  *                         current_node.val = next_val
  *                         insert_node(&heap, current_node)
  *                         pred[i, k_current] = v.index             # <<<<<<<<<<<<<<
@@ -5893,21 +5664,21 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  *                         decrease_val(&heap, current_node,
  */
             __pyx_t_34 = __pyx_v_v->index;
-            __pyx_t_29 = __pyx_v_i;
-            __pyx_t_28 = __pyx_v_k_current;
-            *((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_pred.data + __pyx_t_29 * __pyx_v_pred.strides[0]) ) + __pyx_t_28 * __pyx_v_pred.strides[1]) )) = __pyx_t_34;
+            __pyx_t_28 = __pyx_v_i;
+            __pyx_t_29 = __pyx_v_k_current;
+            *((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_pred.data + __pyx_t_28 * __pyx_v_pred.strides[0]) ) + __pyx_t_29 * __pyx_v_pred.strides[1]) )) = __pyx_t_34;
 
-            /* "ptu_dijkstra.pyx":397
+            /* "ptu_dijkstra.pyx":388
  *                 if current_node.state != SCANNED:
  *                     next_val = v.val + csr_weights[k]
  *                     if current_node.state == NOT_IN_HEAP:             # <<<<<<<<<<<<<<
  *                         current_node.state = IN_HEAP
  *                         current_node.val = next_val
  */
-            goto __pyx_L56;
+            goto __pyx_L50;
           }
 
-          /* "ptu_dijkstra.pyx":402
+          /* "ptu_dijkstra.pyx":393
  *                         insert_node(&heap, current_node)
  *                         pred[i, k_current] = v.index
  *                     elif current_node.val > next_val:             # <<<<<<<<<<<<<<
@@ -5917,7 +5688,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
           __pyx_t_18 = ((__pyx_v_current_node->val > __pyx_v_next_val) != 0);
           if (__pyx_t_18) {
 
-            /* "ptu_dijkstra.pyx":403
+            /* "ptu_dijkstra.pyx":394
  *                         pred[i, k_current] = v.index
  *                     elif current_node.val > next_val:
  *                         decrease_val(&heap, current_node,             # <<<<<<<<<<<<<<
@@ -5926,7 +5697,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
             __pyx_f_12ptu_dijkstra_decrease_val((&__pyx_v_heap), __pyx_v_current_node, __pyx_v_next_val);
 
-            /* "ptu_dijkstra.pyx":405
+            /* "ptu_dijkstra.pyx":396
  *                         decrease_val(&heap, current_node,
  *                                      next_val)
  *                         pred[i, k_current] = v.index             # <<<<<<<<<<<<<<
@@ -5934,11 +5705,11 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  *             # this function can be used instead, but it has slighly worse timing
  */
             __pyx_t_34 = __pyx_v_v->index;
-            __pyx_t_28 = __pyx_v_i;
-            __pyx_t_29 = __pyx_v_k_current;
-            *((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_pred.data + __pyx_t_28 * __pyx_v_pred.strides[0]) ) + __pyx_t_29 * __pyx_v_pred.strides[1]) )) = __pyx_t_34;
+            __pyx_t_29 = __pyx_v_i;
+            __pyx_t_28 = __pyx_v_k_current;
+            *((int *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_pred.data + __pyx_t_29 * __pyx_v_pred.strides[0]) ) + __pyx_t_28 * __pyx_v_pred.strides[1]) )) = __pyx_t_34;
 
-            /* "ptu_dijkstra.pyx":402
+            /* "ptu_dijkstra.pyx":393
  *                         insert_node(&heap, current_node)
  *                         pred[i, k_current] = v.index
  *                     elif current_node.val > next_val:             # <<<<<<<<<<<<<<
@@ -5946,9 +5717,9 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  *                                      next_val)
  */
           }
-          __pyx_L56:;
+          __pyx_L50:;
 
-          /* "ptu_dijkstra.pyx":395
+          /* "ptu_dijkstra.pyx":386
  *                 k_current = csr_indices[k]
  *                 current_node = &nodes[k_current]
  *                 if current_node.state != SCANNED:             # <<<<<<<<<<<<<<
@@ -5960,7 +5731,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
     }
   }
 
-  /* "ptu_dijkstra.pyx":412
+  /* "ptu_dijkstra.pyx":403
  *             #                     pred, return_pred, i)
  * 
  *     free(nodes)             # <<<<<<<<<<<<<<
@@ -5969,7 +5740,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
  */
   free(__pyx_v_nodes);
 
-  /* "ptu_dijkstra.pyx":198
+  /* "ptu_dijkstra.pyx":195
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef _parallel_transport_dijkstra(             # <<<<<<<<<<<<<<
@@ -6035,7 +5806,7 @@ static PyObject *__pyx_f_12ptu_dijkstra__parallel_transport_dijkstra(__Pyx_memvi
   return __pyx_r;
 }
 
-/* "ptu_dijkstra.pyx":419
+/* "ptu_dijkstra.pyx":410
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef int _geodesic_neigborhood_tangents(             # <<<<<<<<<<<<<<
@@ -6149,7 +5920,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
   __pyx_pybuffernd_geoNbh_indices.data = NULL;
   __pyx_pybuffernd_geoNbh_indices.rcbuffer = &__pyx_pybuffer_geoNbh_indices;
 
-  /* "ptu_dijkstra.pyx":457
+  /* "ptu_dijkstra.pyx":448
  *     cdef:
  *         unsigned int i, j, k, l, p, q, scanned_cntr, k_current
  *         int return_pred = 0, Kp1 = K + 1, mn = min(D, Kp1)             # <<<<<<<<<<<<<<
@@ -6167,7 +5938,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
   }
   __pyx_v_mn = __pyx_t_3;
 
-  /* "ptu_dijkstra.pyx":458
+  /* "ptu_dijkstra.pyx":449
  *         unsigned int i, j, k, l, p, q, scanned_cntr, k_current
  *         int return_pred = 0, Kp1 = K + 1, mn = min(D, Kp1)
  *         int info, lwork = max(3*min(D, Kp1) + max(D, Kp1), 5*min(D, Kp1))             # <<<<<<<<<<<<<<
@@ -6204,25 +5975,25 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
   }
   __pyx_v_lwork = __pyx_t_7;
 
-  /* "ptu_dijkstra.pyx":461
+  /* "ptu_dijkstra.pyx":452
  *         double mean, next_val
  * 
  *         np.ndarray[DTYPE_t, ndim=2] geoNbh = np.empty(shape=[D, Kp1], dtype=DTYPE, order='F')             # <<<<<<<<<<<<<<
  *         np.ndarray[DTYPE_t, ndim=2] U = np.empty(shape=(D, mn), dtype=DTYPE, order='F')
  *         np.ndarray[DTYPE_t, ndim=2] VT = np.empty(shape=(mn, Kp1), dtype=DTYPE, order='F')
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_8, __pyx_n_s_np); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 461, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_8, __pyx_n_s_np); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 452, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_empty); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 461, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_empty); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 452, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_8 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 461, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 452, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_D); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 461, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_D); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 452, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_11 = __Pyx_PyInt_From_int(__pyx_v_Kp1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 461, __pyx_L1_error)
+  __pyx_t_11 = __Pyx_PyInt_From_int(__pyx_v_Kp1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 452, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_12 = PyList_New(2); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 461, __pyx_L1_error)
+  __pyx_t_12 = PyList_New(2); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 452, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_12);
   __Pyx_GIVEREF(__pyx_t_10);
   PyList_SET_ITEM(__pyx_t_12, 0, __pyx_t_10);
@@ -6230,24 +6001,24 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
   PyList_SET_ITEM(__pyx_t_12, 1, __pyx_t_11);
   __pyx_t_10 = 0;
   __pyx_t_11 = 0;
-  if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_shape, __pyx_t_12) < 0) __PYX_ERR(0, 461, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_shape, __pyx_t_12) < 0) __PYX_ERR(0, 452, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_12, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 461, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_12, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 452, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_12);
-  if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_dtype, __pyx_t_12) < 0) __PYX_ERR(0, 461, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_dtype, __pyx_t_12) < 0) __PYX_ERR(0, 452, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-  if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_order, __pyx_n_s_F) < 0) __PYX_ERR(0, 461, __pyx_L1_error)
-  __pyx_t_12 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_empty_tuple, __pyx_t_8); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 461, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_8, __pyx_n_s_order, __pyx_n_s_F) < 0) __PYX_ERR(0, 452, __pyx_L1_error)
+  __pyx_t_12 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_empty_tuple, __pyx_t_8); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 452, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_12);
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  if (!(likely(((__pyx_t_12) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_12, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 461, __pyx_L1_error)
+  if (!(likely(((__pyx_t_12) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_12, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 452, __pyx_L1_error)
   __pyx_t_13 = ((PyArrayObject *)__pyx_t_12);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_geoNbh.rcbuffer->pybuffer, (PyObject*)__pyx_t_13, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 2, 0, __pyx_stack) == -1)) {
       __pyx_v_geoNbh = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_geoNbh.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 461, __pyx_L1_error)
+      __PYX_ERR(0, 452, __pyx_L1_error)
     } else {__pyx_pybuffernd_geoNbh.diminfo[0].strides = __pyx_pybuffernd_geoNbh.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_geoNbh.diminfo[0].shape = __pyx_pybuffernd_geoNbh.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_geoNbh.diminfo[1].strides = __pyx_pybuffernd_geoNbh.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_geoNbh.diminfo[1].shape = __pyx_pybuffernd_geoNbh.rcbuffer->pybuffer.shape[1];
     }
   }
@@ -6255,25 +6026,25 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
   __pyx_v_geoNbh = ((PyArrayObject *)__pyx_t_12);
   __pyx_t_12 = 0;
 
-  /* "ptu_dijkstra.pyx":462
+  /* "ptu_dijkstra.pyx":453
  * 
  *         np.ndarray[DTYPE_t, ndim=2] geoNbh = np.empty(shape=[D, Kp1], dtype=DTYPE, order='F')
  *         np.ndarray[DTYPE_t, ndim=2] U = np.empty(shape=(D, mn), dtype=DTYPE, order='F')             # <<<<<<<<<<<<<<
  *         np.ndarray[DTYPE_t, ndim=2] VT = np.empty(shape=(mn, Kp1), dtype=DTYPE, order='F')
  *         np.ndarray[DTYPE_t, ndim=1] S = np.empty(shape=mn, dtype=DTYPE)
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_12, __pyx_n_s_np); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 462, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_12, __pyx_n_s_np); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 453, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_12);
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_empty); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 462, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_empty); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 453, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-  __pyx_t_12 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 462, __pyx_L1_error)
+  __pyx_t_12 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 453, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_12);
-  __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_D); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 462, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_D); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 453, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_11 = __Pyx_PyInt_From_int(__pyx_v_mn); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 462, __pyx_L1_error)
+  __pyx_t_11 = __Pyx_PyInt_From_int(__pyx_v_mn); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 453, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_10 = PyTuple_New(2); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 462, __pyx_L1_error)
+  __pyx_t_10 = PyTuple_New(2); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 453, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_GIVEREF(__pyx_t_9);
   PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_9);
@@ -6281,24 +6052,24 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
   PyTuple_SET_ITEM(__pyx_t_10, 1, __pyx_t_11);
   __pyx_t_9 = 0;
   __pyx_t_11 = 0;
-  if (PyDict_SetItem(__pyx_t_12, __pyx_n_s_shape, __pyx_t_10) < 0) __PYX_ERR(0, 462, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_12, __pyx_n_s_shape, __pyx_t_10) < 0) __PYX_ERR(0, 453, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_10, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 462, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_10, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 453, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
-  if (PyDict_SetItem(__pyx_t_12, __pyx_n_s_dtype, __pyx_t_10) < 0) __PYX_ERR(0, 462, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_12, __pyx_n_s_dtype, __pyx_t_10) < 0) __PYX_ERR(0, 453, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-  if (PyDict_SetItem(__pyx_t_12, __pyx_n_s_order, __pyx_n_s_F) < 0) __PYX_ERR(0, 462, __pyx_L1_error)
-  __pyx_t_10 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_empty_tuple, __pyx_t_12); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 462, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_12, __pyx_n_s_order, __pyx_n_s_F) < 0) __PYX_ERR(0, 453, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyObject_Call(__pyx_t_8, __pyx_empty_tuple, __pyx_t_12); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 453, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-  if (!(likely(((__pyx_t_10) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_10, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 462, __pyx_L1_error)
+  if (!(likely(((__pyx_t_10) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_10, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 453, __pyx_L1_error)
   __pyx_t_14 = ((PyArrayObject *)__pyx_t_10);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_U.rcbuffer->pybuffer, (PyObject*)__pyx_t_14, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 2, 0, __pyx_stack) == -1)) {
       __pyx_v_U = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_U.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 462, __pyx_L1_error)
+      __PYX_ERR(0, 453, __pyx_L1_error)
     } else {__pyx_pybuffernd_U.diminfo[0].strides = __pyx_pybuffernd_U.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_U.diminfo[0].shape = __pyx_pybuffernd_U.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_U.diminfo[1].strides = __pyx_pybuffernd_U.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_U.diminfo[1].shape = __pyx_pybuffernd_U.rcbuffer->pybuffer.shape[1];
     }
   }
@@ -6306,25 +6077,25 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
   __pyx_v_U = ((PyArrayObject *)__pyx_t_10);
   __pyx_t_10 = 0;
 
-  /* "ptu_dijkstra.pyx":463
+  /* "ptu_dijkstra.pyx":454
  *         np.ndarray[DTYPE_t, ndim=2] geoNbh = np.empty(shape=[D, Kp1], dtype=DTYPE, order='F')
  *         np.ndarray[DTYPE_t, ndim=2] U = np.empty(shape=(D, mn), dtype=DTYPE, order='F')
  *         np.ndarray[DTYPE_t, ndim=2] VT = np.empty(shape=(mn, Kp1), dtype=DTYPE, order='F')             # <<<<<<<<<<<<<<
  *         np.ndarray[DTYPE_t, ndim=1] S = np.empty(shape=mn, dtype=DTYPE)
  *         np.ndarray[DTYPE_t, ndim=1] Work = np.empty(shape=[lwork], dtype=DTYPE)
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_10, __pyx_n_s_np); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 463, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_10, __pyx_n_s_np); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 454, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_empty); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 463, __pyx_L1_error)
+  __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_empty); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 454, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_12);
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-  __pyx_t_10 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 463, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 454, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_8 = __Pyx_PyInt_From_int(__pyx_v_mn); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 463, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyInt_From_int(__pyx_v_mn); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 454, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_11 = __Pyx_PyInt_From_int(__pyx_v_Kp1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 463, __pyx_L1_error)
+  __pyx_t_11 = __Pyx_PyInt_From_int(__pyx_v_Kp1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 454, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_9 = PyTuple_New(2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 463, __pyx_L1_error)
+  __pyx_t_9 = PyTuple_New(2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 454, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_GIVEREF(__pyx_t_8);
   PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_8);
@@ -6332,24 +6103,24 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
   PyTuple_SET_ITEM(__pyx_t_9, 1, __pyx_t_11);
   __pyx_t_8 = 0;
   __pyx_t_11 = 0;
-  if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_shape, __pyx_t_9) < 0) __PYX_ERR(0, 463, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_shape, __pyx_t_9) < 0) __PYX_ERR(0, 454, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_9, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 463, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_9, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 454, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_dtype, __pyx_t_9) < 0) __PYX_ERR(0, 463, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_dtype, __pyx_t_9) < 0) __PYX_ERR(0, 454, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_order, __pyx_n_s_F) < 0) __PYX_ERR(0, 463, __pyx_L1_error)
-  __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_12, __pyx_empty_tuple, __pyx_t_10); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 463, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_order, __pyx_n_s_F) < 0) __PYX_ERR(0, 454, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_12, __pyx_empty_tuple, __pyx_t_10); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 454, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-  if (!(likely(((__pyx_t_9) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_9, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 463, __pyx_L1_error)
+  if (!(likely(((__pyx_t_9) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_9, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 454, __pyx_L1_error)
   __pyx_t_15 = ((PyArrayObject *)__pyx_t_9);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_VT.rcbuffer->pybuffer, (PyObject*)__pyx_t_15, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 2, 0, __pyx_stack) == -1)) {
       __pyx_v_VT = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_VT.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 463, __pyx_L1_error)
+      __PYX_ERR(0, 454, __pyx_L1_error)
     } else {__pyx_pybuffernd_VT.diminfo[0].strides = __pyx_pybuffernd_VT.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_VT.diminfo[0].shape = __pyx_pybuffernd_VT.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_VT.diminfo[1].strides = __pyx_pybuffernd_VT.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_VT.diminfo[1].shape = __pyx_pybuffernd_VT.rcbuffer->pybuffer.shape[1];
     }
   }
@@ -6357,39 +6128,39 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
   __pyx_v_VT = ((PyArrayObject *)__pyx_t_9);
   __pyx_t_9 = 0;
 
-  /* "ptu_dijkstra.pyx":464
+  /* "ptu_dijkstra.pyx":455
  *         np.ndarray[DTYPE_t, ndim=2] U = np.empty(shape=(D, mn), dtype=DTYPE, order='F')
  *         np.ndarray[DTYPE_t, ndim=2] VT = np.empty(shape=(mn, Kp1), dtype=DTYPE, order='F')
  *         np.ndarray[DTYPE_t, ndim=1] S = np.empty(shape=mn, dtype=DTYPE)             # <<<<<<<<<<<<<<
  *         np.ndarray[DTYPE_t, ndim=1] Work = np.empty(shape=[lwork], dtype=DTYPE)
  *         np.ndarray[ITYPE_t, ndim=1] geoNbh_indices = np.empty(shape=Kp1, dtype=ITYPE)
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_9, __pyx_n_s_np); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 464, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_9, __pyx_n_s_np); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 455, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_empty); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 464, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_empty); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 455, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_t_9 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 464, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 455, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_12 = __Pyx_PyInt_From_int(__pyx_v_mn); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 464, __pyx_L1_error)
+  __pyx_t_12 = __Pyx_PyInt_From_int(__pyx_v_mn); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 455, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_12);
-  if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_shape, __pyx_t_12) < 0) __PYX_ERR(0, 464, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_shape, __pyx_t_12) < 0) __PYX_ERR(0, 455, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_12, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 464, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_12, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 455, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_12);
-  if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_dtype, __pyx_t_12) < 0) __PYX_ERR(0, 464, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_9, __pyx_n_s_dtype, __pyx_t_12) < 0) __PYX_ERR(0, 455, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-  __pyx_t_12 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_empty_tuple, __pyx_t_9); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 464, __pyx_L1_error)
+  __pyx_t_12 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_empty_tuple, __pyx_t_9); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 455, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_12);
   __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  if (!(likely(((__pyx_t_12) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_12, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 464, __pyx_L1_error)
+  if (!(likely(((__pyx_t_12) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_12, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 455, __pyx_L1_error)
   __pyx_t_16 = ((PyArrayObject *)__pyx_t_12);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_S.rcbuffer->pybuffer, (PyObject*)__pyx_t_16, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) {
       __pyx_v_S = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_S.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 464, __pyx_L1_error)
+      __PYX_ERR(0, 455, __pyx_L1_error)
     } else {__pyx_pybuffernd_S.diminfo[0].strides = __pyx_pybuffernd_S.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_S.diminfo[0].shape = __pyx_pybuffernd_S.rcbuffer->pybuffer.shape[0];
     }
   }
@@ -6397,44 +6168,44 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
   __pyx_v_S = ((PyArrayObject *)__pyx_t_12);
   __pyx_t_12 = 0;
 
-  /* "ptu_dijkstra.pyx":465
+  /* "ptu_dijkstra.pyx":456
  *         np.ndarray[DTYPE_t, ndim=2] VT = np.empty(shape=(mn, Kp1), dtype=DTYPE, order='F')
  *         np.ndarray[DTYPE_t, ndim=1] S = np.empty(shape=mn, dtype=DTYPE)
  *         np.ndarray[DTYPE_t, ndim=1] Work = np.empty(shape=[lwork], dtype=DTYPE)             # <<<<<<<<<<<<<<
  *         np.ndarray[ITYPE_t, ndim=1] geoNbh_indices = np.empty(shape=Kp1, dtype=ITYPE)
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_12, __pyx_n_s_np); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 465, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_12, __pyx_n_s_np); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 456, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_12);
-  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_empty); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 465, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_12, __pyx_n_s_empty); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 456, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-  __pyx_t_12 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 465, __pyx_L1_error)
+  __pyx_t_12 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 456, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_12);
-  __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_lwork); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 465, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyInt_From_int(__pyx_v_lwork); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 456, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_11 = PyList_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 465, __pyx_L1_error)
+  __pyx_t_11 = PyList_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 456, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_11);
   __Pyx_GIVEREF(__pyx_t_10);
   PyList_SET_ITEM(__pyx_t_11, 0, __pyx_t_10);
   __pyx_t_10 = 0;
-  if (PyDict_SetItem(__pyx_t_12, __pyx_n_s_shape, __pyx_t_11) < 0) __PYX_ERR(0, 465, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_12, __pyx_n_s_shape, __pyx_t_11) < 0) __PYX_ERR(0, 456, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_11, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 465, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_11, __pyx_n_s_DTYPE); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 456, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_11);
-  if (PyDict_SetItem(__pyx_t_12, __pyx_n_s_dtype, __pyx_t_11) < 0) __PYX_ERR(0, 465, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_12, __pyx_n_s_dtype, __pyx_t_11) < 0) __PYX_ERR(0, 456, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-  __pyx_t_11 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_empty_tuple, __pyx_t_12); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 465, __pyx_L1_error)
+  __pyx_t_11 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_empty_tuple, __pyx_t_12); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 456, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_11);
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-  if (!(likely(((__pyx_t_11) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_11, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 465, __pyx_L1_error)
+  if (!(likely(((__pyx_t_11) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_11, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 456, __pyx_L1_error)
   __pyx_t_17 = ((PyArrayObject *)__pyx_t_11);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_Work.rcbuffer->pybuffer, (PyObject*)__pyx_t_17, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_DTYPE_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) {
       __pyx_v_Work = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_Work.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 465, __pyx_L1_error)
+      __PYX_ERR(0, 456, __pyx_L1_error)
     } else {__pyx_pybuffernd_Work.diminfo[0].strides = __pyx_pybuffernd_Work.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_Work.diminfo[0].shape = __pyx_pybuffernd_Work.rcbuffer->pybuffer.shape[0];
     }
   }
@@ -6442,39 +6213,39 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
   __pyx_v_Work = ((PyArrayObject *)__pyx_t_11);
   __pyx_t_11 = 0;
 
-  /* "ptu_dijkstra.pyx":466
+  /* "ptu_dijkstra.pyx":457
  *         np.ndarray[DTYPE_t, ndim=1] S = np.empty(shape=mn, dtype=DTYPE)
  *         np.ndarray[DTYPE_t, ndim=1] Work = np.empty(shape=[lwork], dtype=DTYPE)
  *         np.ndarray[ITYPE_t, ndim=1] geoNbh_indices = np.empty(shape=Kp1, dtype=ITYPE)             # <<<<<<<<<<<<<<
  * 
  *         FibonacciHeap heap
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_11, __pyx_n_s_np); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 466, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_11, __pyx_n_s_np); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 457, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_t_11, __pyx_n_s_empty); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 466, __pyx_L1_error)
+  __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_t_11, __pyx_n_s_empty); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 457, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_12);
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-  __pyx_t_11 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 466, __pyx_L1_error)
+  __pyx_t_11 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 457, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_Kp1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 466, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyInt_From_int(__pyx_v_Kp1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 457, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_11, __pyx_n_s_shape, __pyx_t_9) < 0) __PYX_ERR(0, 466, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_11, __pyx_n_s_shape, __pyx_t_9) < 0) __PYX_ERR(0, 457, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_9, __pyx_n_s_ITYPE); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 466, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_9, __pyx_n_s_ITYPE); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 457, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  if (PyDict_SetItem(__pyx_t_11, __pyx_n_s_dtype, __pyx_t_9) < 0) __PYX_ERR(0, 466, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_11, __pyx_n_s_dtype, __pyx_t_9) < 0) __PYX_ERR(0, 457, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_12, __pyx_empty_tuple, __pyx_t_11); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 466, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_Call(__pyx_t_12, __pyx_empty_tuple, __pyx_t_11); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 457, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
   __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-  if (!(likely(((__pyx_t_9) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_9, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 466, __pyx_L1_error)
+  if (!(likely(((__pyx_t_9) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_9, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 457, __pyx_L1_error)
   __pyx_t_18 = ((PyArrayObject *)__pyx_t_9);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
     if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_geoNbh_indices.rcbuffer->pybuffer, (PyObject*)__pyx_t_18, &__Pyx_TypeInfo_nn___pyx_t_12ptu_dijkstra_ITYPE_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) {
       __pyx_v_geoNbh_indices = ((PyArrayObject *)Py_None); __Pyx_INCREF(Py_None); __pyx_pybuffernd_geoNbh_indices.rcbuffer->pybuffer.buf = NULL;
-      __PYX_ERR(0, 466, __pyx_L1_error)
+      __PYX_ERR(0, 457, __pyx_L1_error)
     } else {__pyx_pybuffernd_geoNbh_indices.diminfo[0].strides = __pyx_pybuffernd_geoNbh_indices.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_geoNbh_indices.diminfo[0].shape = __pyx_pybuffernd_geoNbh_indices.rcbuffer->pybuffer.shape[0];
     }
   }
@@ -6482,7 +6253,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
   __pyx_v_geoNbh_indices = ((PyArrayObject *)__pyx_t_9);
   __pyx_t_9 = 0;
 
-  /* "ptu_dijkstra.pyx":470
+  /* "ptu_dijkstra.pyx":461
  *         FibonacciHeap heap
  *         FibonacciNode *v
  *         FibonacciNode *nodes = <FibonacciNode*> malloc(N *             # <<<<<<<<<<<<<<
@@ -6491,7 +6262,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
   __pyx_v_nodes = ((struct __pyx_t_12ptu_dijkstra_FibonacciNode *)malloc((__pyx_v_N * (sizeof(struct __pyx_t_12ptu_dijkstra_FibonacciNode)))));
 
-  /* "ptu_dijkstra.pyx":474
+  /* "ptu_dijkstra.pyx":465
  *         FibonacciNode *current_node
  * 
  *     if nodes == NULL:             # <<<<<<<<<<<<<<
@@ -6501,20 +6272,20 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
   __pyx_t_19 = ((__pyx_v_nodes == NULL) != 0);
   if (unlikely(__pyx_t_19)) {
 
-    /* "ptu_dijkstra.pyx":475
+    /* "ptu_dijkstra.pyx":466
  * 
  *     if nodes == NULL:
  *         raise MemoryError("Failed to allocate memory in _geodesic_neigborhood_tangents")             # <<<<<<<<<<<<<<
  * 
  *     for i in range(N):
  */
-    __pyx_t_9 = __Pyx_PyObject_Call(__pyx_builtin_MemoryError, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 475, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyObject_Call(__pyx_builtin_MemoryError, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 466, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __Pyx_Raise(__pyx_t_9, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    __PYX_ERR(0, 475, __pyx_L1_error)
+    __PYX_ERR(0, 466, __pyx_L1_error)
 
-    /* "ptu_dijkstra.pyx":474
+    /* "ptu_dijkstra.pyx":465
  *         FibonacciNode *current_node
  * 
  *     if nodes == NULL:             # <<<<<<<<<<<<<<
@@ -6523,7 +6294,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
   }
 
-  /* "ptu_dijkstra.pyx":477
+  /* "ptu_dijkstra.pyx":468
  *         raise MemoryError("Failed to allocate memory in _geodesic_neigborhood_tangents")
  * 
  *     for i in range(N):             # <<<<<<<<<<<<<<
@@ -6535,7 +6306,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
   for (__pyx_t_20 = 0; __pyx_t_20 < __pyx_t_1; __pyx_t_20+=1) {
     __pyx_v_i = __pyx_t_20;
 
-    /* "ptu_dijkstra.pyx":480
+    /* "ptu_dijkstra.pyx":471
  * 
  *         # initialize nodes for Dijkstra
  *         for k in range(N):             # <<<<<<<<<<<<<<
@@ -6547,7 +6318,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
     for (__pyx_t_21 = 0; __pyx_t_21 < __pyx_t_3; __pyx_t_21+=1) {
       __pyx_v_k = __pyx_t_21;
 
-      /* "ptu_dijkstra.pyx":481
+      /* "ptu_dijkstra.pyx":472
  *         # initialize nodes for Dijkstra
  *         for k in range(N):
  *             initialize_node(&nodes[k], k)             # <<<<<<<<<<<<<<
@@ -6557,7 +6328,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
       __pyx_f_12ptu_dijkstra_initialize_node((&(__pyx_v_nodes[__pyx_v_k])), __pyx_v_k, NULL);
     }
 
-    /* "ptu_dijkstra.pyx":484
+    /* "ptu_dijkstra.pyx":475
  * 
  *         # insert node i into heap
  *         heap.min_node = NULL             # <<<<<<<<<<<<<<
@@ -6566,7 +6337,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
     __pyx_v_heap.min_node = NULL;
 
-    /* "ptu_dijkstra.pyx":485
+    /* "ptu_dijkstra.pyx":476
  *         # insert node i into heap
  *         heap.min_node = NULL
  *         insert_node(&heap, &nodes[i])             # <<<<<<<<<<<<<<
@@ -6575,7 +6346,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
     __pyx_f_12ptu_dijkstra_insert_node((&__pyx_v_heap), (&(__pyx_v_nodes[__pyx_v_i])));
 
-    /* "ptu_dijkstra.pyx":488
+    /* "ptu_dijkstra.pyx":479
  * 
  *         # counter of processed points closest to i
  *         scanned_cntr = 0             # <<<<<<<<<<<<<<
@@ -6584,7 +6355,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
     __pyx_v_scanned_cntr = 0;
 
-    /* "ptu_dijkstra.pyx":492
+    /* "ptu_dijkstra.pyx":483
  *         # perform standard Dijkstra until K closest points are discovered
  *         # keep track of the indices of these K points
  *         while (heap.min_node) and (scanned_cntr <= K):             # <<<<<<<<<<<<<<
@@ -6603,7 +6374,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
       __pyx_L10_bool_binop_done:;
       if (!__pyx_t_19) break;
 
-      /* "ptu_dijkstra.pyx":493
+      /* "ptu_dijkstra.pyx":484
  *         # keep track of the indices of these K points
  *         while (heap.min_node) and (scanned_cntr <= K):
  *             v = remove_min(&heap)             # <<<<<<<<<<<<<<
@@ -6612,7 +6383,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
       __pyx_v_v = __pyx_f_12ptu_dijkstra_remove_min((&__pyx_v_heap));
 
-      /* "ptu_dijkstra.pyx":494
+      /* "ptu_dijkstra.pyx":485
  *         while (heap.min_node) and (scanned_cntr <= K):
  *             v = remove_min(&heap)
  *             v.state = SCANNED             # <<<<<<<<<<<<<<
@@ -6621,7 +6392,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
       __pyx_v_v->state = __pyx_e_12ptu_dijkstra_SCANNED;
 
-      /* "ptu_dijkstra.pyx":495
+      /* "ptu_dijkstra.pyx":486
  *             v = remove_min(&heap)
  *             v.state = SCANNED
  *             j = v.index             # <<<<<<<<<<<<<<
@@ -6631,7 +6402,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
       __pyx_t_21 = __pyx_v_v->index;
       __pyx_v_j = __pyx_t_21;
 
-      /* "ptu_dijkstra.pyx":496
+      /* "ptu_dijkstra.pyx":487
  *             v.state = SCANNED
  *             j = v.index
  *             geoNbh_indices[scanned_cntr] = j             # <<<<<<<<<<<<<<
@@ -6641,7 +6412,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
       __pyx_t_23 = __pyx_v_scanned_cntr;
       *__Pyx_BufPtrStrided1d(__pyx_t_12ptu_dijkstra_ITYPE_t *, __pyx_pybuffernd_geoNbh_indices.rcbuffer->pybuffer.buf, __pyx_t_23, __pyx_pybuffernd_geoNbh_indices.diminfo[0].strides) = __pyx_v_j;
 
-      /* "ptu_dijkstra.pyx":497
+      /* "ptu_dijkstra.pyx":488
  *             j = v.index
  *             geoNbh_indices[scanned_cntr] = j
  *             scanned_cntr += 1             # <<<<<<<<<<<<<<
@@ -6650,7 +6421,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
       __pyx_v_scanned_cntr = (__pyx_v_scanned_cntr + 1);
 
-      /* "ptu_dijkstra.pyx":498
+      /* "ptu_dijkstra.pyx":489
  *             geoNbh_indices[scanned_cntr] = j
  *             scanned_cntr += 1
  *             if scanned_cntr <= K:             # <<<<<<<<<<<<<<
@@ -6660,7 +6431,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
       __pyx_t_19 = ((__pyx_v_scanned_cntr <= __pyx_v_K) != 0);
       if (__pyx_t_19) {
 
-        /* "ptu_dijkstra.pyx":499
+        /* "ptu_dijkstra.pyx":490
  *             scanned_cntr += 1
  *             if scanned_cntr <= K:
  *                 for k in range(csr_indptr[j], csr_indptr[j + 1]):             # <<<<<<<<<<<<<<
@@ -6674,7 +6445,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
         for (__pyx_t_21 = (*((int *) ( /* dim=0 */ (__pyx_v_csr_indptr.data + __pyx_t_23 * __pyx_v_csr_indptr.strides[0]) ))); __pyx_t_21 < __pyx_t_3; __pyx_t_21+=1) {
           __pyx_v_k = __pyx_t_21;
 
-          /* "ptu_dijkstra.pyx":500
+          /* "ptu_dijkstra.pyx":491
  *             if scanned_cntr <= K:
  *                 for k in range(csr_indptr[j], csr_indptr[j + 1]):
  *                     k_current = csr_indices[k]             # <<<<<<<<<<<<<<
@@ -6684,7 +6455,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
           __pyx_t_25 = __pyx_v_k;
           __pyx_v_k_current = (*((int *) ( /* dim=0 */ (__pyx_v_csr_indices.data + __pyx_t_25 * __pyx_v_csr_indices.strides[0]) )));
 
-          /* "ptu_dijkstra.pyx":501
+          /* "ptu_dijkstra.pyx":492
  *                 for k in range(csr_indptr[j], csr_indptr[j + 1]):
  *                     k_current = csr_indices[k]
  *                     current_node = &nodes[k_current]             # <<<<<<<<<<<<<<
@@ -6693,7 +6464,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
           __pyx_v_current_node = (&(__pyx_v_nodes[__pyx_v_k_current]));
 
-          /* "ptu_dijkstra.pyx":502
+          /* "ptu_dijkstra.pyx":493
  *                     k_current = csr_indices[k]
  *                     current_node = &nodes[k_current]
  *                     if current_node.state != SCANNED:             # <<<<<<<<<<<<<<
@@ -6703,7 +6474,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
           __pyx_t_19 = ((__pyx_v_current_node->state != __pyx_e_12ptu_dijkstra_SCANNED) != 0);
           if (__pyx_t_19) {
 
-            /* "ptu_dijkstra.pyx":503
+            /* "ptu_dijkstra.pyx":494
  *                     current_node = &nodes[k_current]
  *                     if current_node.state != SCANNED:
  *                         next_val = v.val + csr_weights[k]             # <<<<<<<<<<<<<<
@@ -6713,7 +6484,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
             __pyx_t_25 = __pyx_v_k;
             __pyx_v_next_val = (__pyx_v_v->val + (*((double *) ( /* dim=0 */ (__pyx_v_csr_weights.data + __pyx_t_25 * __pyx_v_csr_weights.strides[0]) ))));
 
-            /* "ptu_dijkstra.pyx":504
+            /* "ptu_dijkstra.pyx":495
  *                     if current_node.state != SCANNED:
  *                         next_val = v.val + csr_weights[k]
  *                         if current_node.state == NOT_IN_HEAP:             # <<<<<<<<<<<<<<
@@ -6723,7 +6494,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
             __pyx_t_19 = ((__pyx_v_current_node->state == __pyx_e_12ptu_dijkstra_NOT_IN_HEAP) != 0);
             if (__pyx_t_19) {
 
-              /* "ptu_dijkstra.pyx":505
+              /* "ptu_dijkstra.pyx":496
  *                         next_val = v.val + csr_weights[k]
  *                         if current_node.state == NOT_IN_HEAP:
  *                             current_node.state = IN_HEAP             # <<<<<<<<<<<<<<
@@ -6732,7 +6503,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
               __pyx_v_current_node->state = __pyx_e_12ptu_dijkstra_IN_HEAP;
 
-              /* "ptu_dijkstra.pyx":506
+              /* "ptu_dijkstra.pyx":497
  *                         if current_node.state == NOT_IN_HEAP:
  *                             current_node.state = IN_HEAP
  *                             current_node.val = next_val             # <<<<<<<<<<<<<<
@@ -6741,7 +6512,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
               __pyx_v_current_node->val = __pyx_v_next_val;
 
-              /* "ptu_dijkstra.pyx":507
+              /* "ptu_dijkstra.pyx":498
  *                             current_node.state = IN_HEAP
  *                             current_node.val = next_val
  *                             insert_node(&heap, current_node)             # <<<<<<<<<<<<<<
@@ -6750,7 +6521,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
               __pyx_f_12ptu_dijkstra_insert_node((&__pyx_v_heap), __pyx_v_current_node);
 
-              /* "ptu_dijkstra.pyx":504
+              /* "ptu_dijkstra.pyx":495
  *                     if current_node.state != SCANNED:
  *                         next_val = v.val + csr_weights[k]
  *                         if current_node.state == NOT_IN_HEAP:             # <<<<<<<<<<<<<<
@@ -6760,7 +6531,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
               goto __pyx_L16;
             }
 
-            /* "ptu_dijkstra.pyx":508
+            /* "ptu_dijkstra.pyx":499
  *                             current_node.val = next_val
  *                             insert_node(&heap, current_node)
  *                         elif current_node.val > next_val:             # <<<<<<<<<<<<<<
@@ -6770,7 +6541,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
             __pyx_t_19 = ((__pyx_v_current_node->val > __pyx_v_next_val) != 0);
             if (__pyx_t_19) {
 
-              /* "ptu_dijkstra.pyx":509
+              /* "ptu_dijkstra.pyx":500
  *                             insert_node(&heap, current_node)
  *                         elif current_node.val > next_val:
  *                             decrease_val(&heap, current_node,             # <<<<<<<<<<<<<<
@@ -6779,7 +6550,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
               __pyx_f_12ptu_dijkstra_decrease_val((&__pyx_v_heap), __pyx_v_current_node, __pyx_v_next_val);
 
-              /* "ptu_dijkstra.pyx":508
+              /* "ptu_dijkstra.pyx":499
  *                             current_node.val = next_val
  *                             insert_node(&heap, current_node)
  *                         elif current_node.val > next_val:             # <<<<<<<<<<<<<<
@@ -6789,7 +6560,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
             }
             __pyx_L16:;
 
-            /* "ptu_dijkstra.pyx":502
+            /* "ptu_dijkstra.pyx":493
  *                     k_current = csr_indices[k]
  *                     current_node = &nodes[k_current]
  *                     if current_node.state != SCANNED:             # <<<<<<<<<<<<<<
@@ -6799,7 +6570,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
           }
         }
 
-        /* "ptu_dijkstra.pyx":498
+        /* "ptu_dijkstra.pyx":489
  *             geoNbh_indices[scanned_cntr] = j
  *             scanned_cntr += 1
  *             if scanned_cntr <= K:             # <<<<<<<<<<<<<<
@@ -6809,7 +6580,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
       }
     }
 
-    /* "ptu_dijkstra.pyx":513
+    /* "ptu_dijkstra.pyx":504
  * 
  *         # construct and center geodesic neighborhood from indices
  *         for p in range(D):             # <<<<<<<<<<<<<<
@@ -6821,7 +6592,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
     for (__pyx_t_21 = 0; __pyx_t_21 < __pyx_t_3; __pyx_t_21+=1) {
       __pyx_v_p = __pyx_t_21;
 
-      /* "ptu_dijkstra.pyx":514
+      /* "ptu_dijkstra.pyx":505
  *         # construct and center geodesic neighborhood from indices
  *         for p in range(D):
  *             mean = 0             # <<<<<<<<<<<<<<
@@ -6830,7 +6601,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
       __pyx_v_mean = 0.0;
 
-      /* "ptu_dijkstra.pyx":515
+      /* "ptu_dijkstra.pyx":506
  *         for p in range(D):
  *             mean = 0
  *             for q in range(Kp1):             # <<<<<<<<<<<<<<
@@ -6842,7 +6613,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
       for (__pyx_t_28 = 0; __pyx_t_28 < __pyx_t_27; __pyx_t_28+=1) {
         __pyx_v_q = __pyx_t_28;
 
-        /* "ptu_dijkstra.pyx":516
+        /* "ptu_dijkstra.pyx":507
  *             mean = 0
  *             for q in range(Kp1):
  *                 geoNbh[p, q] = X[geoNbh_indices[q], p]             # <<<<<<<<<<<<<<
@@ -6856,7 +6627,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
         __pyx_t_30 = __pyx_v_q;
         *__Pyx_BufPtrStrided2d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_geoNbh.rcbuffer->pybuffer.buf, __pyx_t_29, __pyx_pybuffernd_geoNbh.diminfo[0].strides, __pyx_t_30, __pyx_pybuffernd_geoNbh.diminfo[1].strides) = (*((double *) ( /* dim=1 */ (( /* dim=0 */ (__pyx_v_X.data + __pyx_t_24 * __pyx_v_X.strides[0]) ) + __pyx_t_25 * __pyx_v_X.strides[1]) )));
 
-        /* "ptu_dijkstra.pyx":517
+        /* "ptu_dijkstra.pyx":508
  *             for q in range(Kp1):
  *                 geoNbh[p, q] = X[geoNbh_indices[q], p]
  *                 mean += geoNbh[p, q]             # <<<<<<<<<<<<<<
@@ -6868,7 +6639,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
         __pyx_v_mean = (__pyx_v_mean + (*__Pyx_BufPtrStrided2d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_geoNbh.rcbuffer->pybuffer.buf, __pyx_t_23, __pyx_pybuffernd_geoNbh.diminfo[0].strides, __pyx_t_25, __pyx_pybuffernd_geoNbh.diminfo[1].strides)));
       }
 
-      /* "ptu_dijkstra.pyx":518
+      /* "ptu_dijkstra.pyx":509
  *                 geoNbh[p, q] = X[geoNbh_indices[q], p]
  *                 mean += geoNbh[p, q]
  *             mean = mean / Kp1             # <<<<<<<<<<<<<<
@@ -6877,7 +6648,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
       __pyx_v_mean = (__pyx_v_mean / __pyx_v_Kp1);
 
-      /* "ptu_dijkstra.pyx":519
+      /* "ptu_dijkstra.pyx":510
  *                 mean += geoNbh[p, q]
  *             mean = mean / Kp1
  *             for q in range(Kp1):             # <<<<<<<<<<<<<<
@@ -6889,7 +6660,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
       for (__pyx_t_28 = 0; __pyx_t_28 < __pyx_t_27; __pyx_t_28+=1) {
         __pyx_v_q = __pyx_t_28;
 
-        /* "ptu_dijkstra.pyx":520
+        /* "ptu_dijkstra.pyx":511
  *             mean = mean / Kp1
  *             for q in range(Kp1):
  *                 geoNbh[p, q] -= mean             # <<<<<<<<<<<<<<
@@ -6902,7 +6673,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
       }
     }
 
-    /* "ptu_dijkstra.pyx":529
+    /* "ptu_dijkstra.pyx":520
  *             &D,
  *             &Kp1,
  *             &geoNbh[0, 0],             # <<<<<<<<<<<<<<
@@ -6912,7 +6683,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
     __pyx_t_24 = 0;
     __pyx_t_31 = 0;
 
-    /* "ptu_dijkstra.pyx":531
+    /* "ptu_dijkstra.pyx":522
  *             &geoNbh[0, 0],
  *             &D,
  *             &S[0],             # <<<<<<<<<<<<<<
@@ -6921,7 +6692,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
     __pyx_t_32 = 0;
 
-    /* "ptu_dijkstra.pyx":532
+    /* "ptu_dijkstra.pyx":523
  *             &D,
  *             &S[0],
  *             &U[0, 0],             # <<<<<<<<<<<<<<
@@ -6931,7 +6702,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
     __pyx_t_33 = 0;
     __pyx_t_34 = 0;
 
-    /* "ptu_dijkstra.pyx":534
+    /* "ptu_dijkstra.pyx":525
  *             &U[0, 0],
  *             &D,
  *             &VT[0, 0],             # <<<<<<<<<<<<<<
@@ -6941,7 +6712,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
     __pyx_t_35 = 0;
     __pyx_t_36 = 0;
 
-    /* "ptu_dijkstra.pyx":536
+    /* "ptu_dijkstra.pyx":527
  *             &VT[0, 0],
  *             &mn,
  *             &Work[0],             # <<<<<<<<<<<<<<
@@ -6950,7 +6721,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
     __pyx_t_37 = 0;
 
-    /* "ptu_dijkstra.pyx":524
+    /* "ptu_dijkstra.pyx":515
  *         # perform SVD of the geodesic neighborhood points
  *         # see LAPACK docs for details
  *         cython_lapack.dgesvd(             # <<<<<<<<<<<<<<
@@ -6959,7 +6730,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
     __pyx_f_5scipy_6linalg_13cython_lapack_dgesvd(((char *)"S"), ((char *)"N"), (&__pyx_v_D), (&__pyx_v_Kp1), (&(*__Pyx_BufPtrStrided2d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_geoNbh.rcbuffer->pybuffer.buf, __pyx_t_24, __pyx_pybuffernd_geoNbh.diminfo[0].strides, __pyx_t_31, __pyx_pybuffernd_geoNbh.diminfo[1].strides))), (&__pyx_v_D), (&(*__Pyx_BufPtrStrided1d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_S.rcbuffer->pybuffer.buf, __pyx_t_32, __pyx_pybuffernd_S.diminfo[0].strides))), (&(*__Pyx_BufPtrStrided2d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_U.rcbuffer->pybuffer.buf, __pyx_t_33, __pyx_pybuffernd_U.diminfo[0].strides, __pyx_t_34, __pyx_pybuffernd_U.diminfo[1].strides))), (&__pyx_v_D), (&(*__Pyx_BufPtrStrided2d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_VT.rcbuffer->pybuffer.buf, __pyx_t_35, __pyx_pybuffernd_VT.diminfo[0].strides, __pyx_t_36, __pyx_pybuffernd_VT.diminfo[1].strides))), (&__pyx_v_mn), (&(*__Pyx_BufPtrStrided1d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_Work.rcbuffer->pybuffer.buf, __pyx_t_37, __pyx_pybuffernd_Work.diminfo[0].strides))), (&__pyx_v_lwork), (&__pyx_v_info));
 
-    /* "ptu_dijkstra.pyx":542
+    /* "ptu_dijkstra.pyx":533
  * 
  *         # d left singular vectors form a basis for tangent space at point i
  *         for q in range(d):             # <<<<<<<<<<<<<<
@@ -6971,7 +6742,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
     for (__pyx_t_21 = 0; __pyx_t_21 < __pyx_t_3; __pyx_t_21+=1) {
       __pyx_v_q = __pyx_t_21;
 
-      /* "ptu_dijkstra.pyx":543
+      /* "ptu_dijkstra.pyx":534
  *         # d left singular vectors form a basis for tangent space at point i
  *         for q in range(d):
  *             if S[q] < 1e-10:             # <<<<<<<<<<<<<<
@@ -6982,7 +6753,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
       __pyx_t_19 = (((*__Pyx_BufPtrStrided1d(__pyx_t_12ptu_dijkstra_DTYPE_t *, __pyx_pybuffernd_S.rcbuffer->pybuffer.buf, __pyx_t_23, __pyx_pybuffernd_S.diminfo[0].strides)) < 1e-10) != 0);
       if (__pyx_t_19) {
 
-        /* "ptu_dijkstra.pyx":544
+        /* "ptu_dijkstra.pyx":535
  *         for q in range(d):
  *             if S[q] < 1e-10:
  *                 return -1             # <<<<<<<<<<<<<<
@@ -6992,7 +6763,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
         __pyx_r = -1;
         goto __pyx_L0;
 
-        /* "ptu_dijkstra.pyx":543
+        /* "ptu_dijkstra.pyx":534
  *         # d left singular vectors form a basis for tangent space at point i
  *         for q in range(d):
  *             if S[q] < 1e-10:             # <<<<<<<<<<<<<<
@@ -7001,7 +6772,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
       }
 
-      /* "ptu_dijkstra.pyx":545
+      /* "ptu_dijkstra.pyx":536
  *             if S[q] < 1e-10:
  *                 return -1
  *             for p in range(D):             # <<<<<<<<<<<<<<
@@ -7013,7 +6784,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
       for (__pyx_t_28 = 0; __pyx_t_28 < __pyx_t_27; __pyx_t_28+=1) {
         __pyx_v_p = __pyx_t_28;
 
-        /* "ptu_dijkstra.pyx":546
+        /* "ptu_dijkstra.pyx":537
  *                 return -1
  *             for p in range(D):
  *                 tangents[i, p, q] = U[p, q]             # <<<<<<<<<<<<<<
@@ -7030,7 +6801,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
     }
   }
 
-  /* "ptu_dijkstra.pyx":548
+  /* "ptu_dijkstra.pyx":539
  *                 tangents[i, p, q] = U[p, q]
  * 
  *     free(nodes)             # <<<<<<<<<<<<<<
@@ -7039,7 +6810,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
  */
   free(__pyx_v_nodes);
 
-  /* "ptu_dijkstra.pyx":549
+  /* "ptu_dijkstra.pyx":540
  * 
  *     free(nodes)
  *     return 1             # <<<<<<<<<<<<<<
@@ -7049,7 +6820,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
   __pyx_r = 1;
   goto __pyx_L0;
 
-  /* "ptu_dijkstra.pyx":419
+  /* "ptu_dijkstra.pyx":410
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef int _geodesic_neigborhood_tangents(             # <<<<<<<<<<<<<<
@@ -7096,7 +6867,7 @@ static int __pyx_f_12ptu_dijkstra__geodesic_neigborhood_tangents(__Pyx_memviewsl
   return __pyx_r;
 }
 
-/* "ptu_dijkstra.pyx":577
+/* "ptu_dijkstra.pyx":568
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef void initialize_node(FibonacciNode* node,             # <<<<<<<<<<<<<<
@@ -7114,7 +6885,7 @@ static void __pyx_f_12ptu_dijkstra_initialize_node(struct __pyx_t_12ptu_dijkstra
     }
   }
 
-  /* "ptu_dijkstra.pyx":582
+  /* "ptu_dijkstra.pyx":573
  *     # Assumptions: - node is a valid pointer
  *     #              - node is not currently part of a heap
  *     node.index = index             # <<<<<<<<<<<<<<
@@ -7123,7 +6894,7 @@ static void __pyx_f_12ptu_dijkstra_initialize_node(struct __pyx_t_12ptu_dijkstra
  */
   __pyx_v_node->index = __pyx_v_index;
 
-  /* "ptu_dijkstra.pyx":583
+  /* "ptu_dijkstra.pyx":574
  *     #              - node is not currently part of a heap
  *     node.index = index
  *     node.source = -9999             # <<<<<<<<<<<<<<
@@ -7132,7 +6903,7 @@ static void __pyx_f_12ptu_dijkstra_initialize_node(struct __pyx_t_12ptu_dijkstra
  */
   __pyx_v_node->source = -9999;
 
-  /* "ptu_dijkstra.pyx":584
+  /* "ptu_dijkstra.pyx":575
  *     node.index = index
  *     node.source = -9999
  *     node.val = val             # <<<<<<<<<<<<<<
@@ -7141,7 +6912,7 @@ static void __pyx_f_12ptu_dijkstra_initialize_node(struct __pyx_t_12ptu_dijkstra
  */
   __pyx_v_node->val = __pyx_v_val;
 
-  /* "ptu_dijkstra.pyx":585
+  /* "ptu_dijkstra.pyx":576
  *     node.source = -9999
  *     node.val = val
  *     node.rank = 0             # <<<<<<<<<<<<<<
@@ -7150,7 +6921,7 @@ static void __pyx_f_12ptu_dijkstra_initialize_node(struct __pyx_t_12ptu_dijkstra
  */
   __pyx_v_node->rank = 0;
 
-  /* "ptu_dijkstra.pyx":586
+  /* "ptu_dijkstra.pyx":577
  *     node.val = val
  *     node.rank = 0
  *     node.state = NOT_IN_HEAP             # <<<<<<<<<<<<<<
@@ -7159,7 +6930,7 @@ static void __pyx_f_12ptu_dijkstra_initialize_node(struct __pyx_t_12ptu_dijkstra
  */
   __pyx_v_node->state = __pyx_e_12ptu_dijkstra_NOT_IN_HEAP;
 
-  /* "ptu_dijkstra.pyx":588
+  /* "ptu_dijkstra.pyx":579
  *     node.state = NOT_IN_HEAP
  * 
  *     node.parent = NULL             # <<<<<<<<<<<<<<
@@ -7168,7 +6939,7 @@ static void __pyx_f_12ptu_dijkstra_initialize_node(struct __pyx_t_12ptu_dijkstra
  */
   __pyx_v_node->parent = NULL;
 
-  /* "ptu_dijkstra.pyx":589
+  /* "ptu_dijkstra.pyx":580
  * 
  *     node.parent = NULL
  *     node.left_sibling = NULL             # <<<<<<<<<<<<<<
@@ -7177,7 +6948,7 @@ static void __pyx_f_12ptu_dijkstra_initialize_node(struct __pyx_t_12ptu_dijkstra
  */
   __pyx_v_node->left_sibling = NULL;
 
-  /* "ptu_dijkstra.pyx":590
+  /* "ptu_dijkstra.pyx":581
  *     node.parent = NULL
  *     node.left_sibling = NULL
  *     node.right_sibling = NULL             # <<<<<<<<<<<<<<
@@ -7186,7 +6957,7 @@ static void __pyx_f_12ptu_dijkstra_initialize_node(struct __pyx_t_12ptu_dijkstra
  */
   __pyx_v_node->right_sibling = NULL;
 
-  /* "ptu_dijkstra.pyx":591
+  /* "ptu_dijkstra.pyx":582
  *     node.left_sibling = NULL
  *     node.right_sibling = NULL
  *     node.children = NULL             # <<<<<<<<<<<<<<
@@ -7195,7 +6966,7 @@ static void __pyx_f_12ptu_dijkstra_initialize_node(struct __pyx_t_12ptu_dijkstra
  */
   __pyx_v_node->children = NULL;
 
-  /* "ptu_dijkstra.pyx":577
+  /* "ptu_dijkstra.pyx":568
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef void initialize_node(FibonacciNode* node,             # <<<<<<<<<<<<<<
@@ -7207,7 +6978,7 @@ static void __pyx_f_12ptu_dijkstra_initialize_node(struct __pyx_t_12ptu_dijkstra
   __Pyx_RefNannyFinishContext();
 }
 
-/* "ptu_dijkstra.pyx":597
+/* "ptu_dijkstra.pyx":588
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef FibonacciNode* rightmost_sibling(FibonacciNode* node):             # <<<<<<<<<<<<<<
@@ -7223,7 +6994,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_right
   struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_t_2;
   __Pyx_RefNannySetupContext("rightmost_sibling", 0);
 
-  /* "ptu_dijkstra.pyx":599
+  /* "ptu_dijkstra.pyx":590
  * cdef FibonacciNode* rightmost_sibling(FibonacciNode* node):
  *     # Assumptions: - node is a valid pointer
  *     cdef FibonacciNode* temp = node             # <<<<<<<<<<<<<<
@@ -7232,7 +7003,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_right
  */
   __pyx_v_temp = __pyx_v_node;
 
-  /* "ptu_dijkstra.pyx":600
+  /* "ptu_dijkstra.pyx":591
  *     # Assumptions: - node is a valid pointer
  *     cdef FibonacciNode* temp = node
  *     while(temp.right_sibling):             # <<<<<<<<<<<<<<
@@ -7243,7 +7014,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_right
     __pyx_t_1 = (__pyx_v_temp->right_sibling != 0);
     if (!__pyx_t_1) break;
 
-    /* "ptu_dijkstra.pyx":601
+    /* "ptu_dijkstra.pyx":592
  *     cdef FibonacciNode* temp = node
  *     while(temp.right_sibling):
  *         temp = temp.right_sibling             # <<<<<<<<<<<<<<
@@ -7254,7 +7025,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_right
     __pyx_v_temp = __pyx_t_2;
   }
 
-  /* "ptu_dijkstra.pyx":602
+  /* "ptu_dijkstra.pyx":593
  *     while(temp.right_sibling):
  *         temp = temp.right_sibling
  *     return temp             # <<<<<<<<<<<<<<
@@ -7264,7 +7035,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_right
   __pyx_r = __pyx_v_temp;
   goto __pyx_L0;
 
-  /* "ptu_dijkstra.pyx":597
+  /* "ptu_dijkstra.pyx":588
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef FibonacciNode* rightmost_sibling(FibonacciNode* node):             # <<<<<<<<<<<<<<
@@ -7278,7 +7049,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_right
   return __pyx_r;
 }
 
-/* "ptu_dijkstra.pyx":608
+/* "ptu_dijkstra.pyx":599
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef FibonacciNode* leftmost_sibling(FibonacciNode* node):             # <<<<<<<<<<<<<<
@@ -7294,7 +7065,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_leftm
   struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_t_2;
   __Pyx_RefNannySetupContext("leftmost_sibling", 0);
 
-  /* "ptu_dijkstra.pyx":610
+  /* "ptu_dijkstra.pyx":601
  * cdef FibonacciNode* leftmost_sibling(FibonacciNode* node):
  *     # Assumptions: - node is a valid pointer
  *     cdef FibonacciNode* temp = node             # <<<<<<<<<<<<<<
@@ -7303,7 +7074,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_leftm
  */
   __pyx_v_temp = __pyx_v_node;
 
-  /* "ptu_dijkstra.pyx":611
+  /* "ptu_dijkstra.pyx":602
  *     # Assumptions: - node is a valid pointer
  *     cdef FibonacciNode* temp = node
  *     while(temp.left_sibling):             # <<<<<<<<<<<<<<
@@ -7314,7 +7085,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_leftm
     __pyx_t_1 = (__pyx_v_temp->left_sibling != 0);
     if (!__pyx_t_1) break;
 
-    /* "ptu_dijkstra.pyx":612
+    /* "ptu_dijkstra.pyx":603
  *     cdef FibonacciNode* temp = node
  *     while(temp.left_sibling):
  *         temp = temp.left_sibling             # <<<<<<<<<<<<<<
@@ -7325,7 +7096,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_leftm
     __pyx_v_temp = __pyx_t_2;
   }
 
-  /* "ptu_dijkstra.pyx":613
+  /* "ptu_dijkstra.pyx":604
  *     while(temp.left_sibling):
  *         temp = temp.left_sibling
  *     return temp             # <<<<<<<<<<<<<<
@@ -7335,7 +7106,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_leftm
   __pyx_r = __pyx_v_temp;
   goto __pyx_L0;
 
-  /* "ptu_dijkstra.pyx":608
+  /* "ptu_dijkstra.pyx":599
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef FibonacciNode* leftmost_sibling(FibonacciNode* node):             # <<<<<<<<<<<<<<
@@ -7349,7 +7120,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_leftm
   return __pyx_r;
 }
 
-/* "ptu_dijkstra.pyx":619
+/* "ptu_dijkstra.pyx":610
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef void add_child(FibonacciNode* node, FibonacciNode* new_child):             # <<<<<<<<<<<<<<
@@ -7362,7 +7133,7 @@ static void __pyx_f_12ptu_dijkstra_add_child(struct __pyx_t_12ptu_dijkstra_Fibon
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("add_child", 0);
 
-  /* "ptu_dijkstra.pyx":623
+  /* "ptu_dijkstra.pyx":614
  *     #              - new_child is a valid pointer
  *     #              - new_child is not the sibling or child of another node
  *     new_child.parent = node             # <<<<<<<<<<<<<<
@@ -7371,7 +7142,7 @@ static void __pyx_f_12ptu_dijkstra_add_child(struct __pyx_t_12ptu_dijkstra_Fibon
  */
   __pyx_v_new_child->parent = __pyx_v_node;
 
-  /* "ptu_dijkstra.pyx":625
+  /* "ptu_dijkstra.pyx":616
  *     new_child.parent = node
  * 
  *     if node.children:             # <<<<<<<<<<<<<<
@@ -7381,7 +7152,7 @@ static void __pyx_f_12ptu_dijkstra_add_child(struct __pyx_t_12ptu_dijkstra_Fibon
   __pyx_t_1 = (__pyx_v_node->children != 0);
   if (__pyx_t_1) {
 
-    /* "ptu_dijkstra.pyx":626
+    /* "ptu_dijkstra.pyx":617
  * 
  *     if node.children:
  *         add_sibling(node.children, new_child)             # <<<<<<<<<<<<<<
@@ -7390,7 +7161,7 @@ static void __pyx_f_12ptu_dijkstra_add_child(struct __pyx_t_12ptu_dijkstra_Fibon
  */
     __pyx_f_12ptu_dijkstra_add_sibling(__pyx_v_node->children, __pyx_v_new_child);
 
-    /* "ptu_dijkstra.pyx":625
+    /* "ptu_dijkstra.pyx":616
  *     new_child.parent = node
  * 
  *     if node.children:             # <<<<<<<<<<<<<<
@@ -7400,7 +7171,7 @@ static void __pyx_f_12ptu_dijkstra_add_child(struct __pyx_t_12ptu_dijkstra_Fibon
     goto __pyx_L3;
   }
 
-  /* "ptu_dijkstra.pyx":629
+  /* "ptu_dijkstra.pyx":620
  *     else:
  * 
  *         node.children = new_child             # <<<<<<<<<<<<<<
@@ -7410,7 +7181,7 @@ static void __pyx_f_12ptu_dijkstra_add_child(struct __pyx_t_12ptu_dijkstra_Fibon
   /*else*/ {
     __pyx_v_node->children = __pyx_v_new_child;
 
-    /* "ptu_dijkstra.pyx":630
+    /* "ptu_dijkstra.pyx":621
  * 
  *         node.children = new_child
  *         new_child.right_sibling = NULL             # <<<<<<<<<<<<<<
@@ -7419,7 +7190,7 @@ static void __pyx_f_12ptu_dijkstra_add_child(struct __pyx_t_12ptu_dijkstra_Fibon
  */
     __pyx_v_new_child->right_sibling = NULL;
 
-    /* "ptu_dijkstra.pyx":631
+    /* "ptu_dijkstra.pyx":622
  *         node.children = new_child
  *         new_child.right_sibling = NULL
  *         new_child.left_sibling = NULL             # <<<<<<<<<<<<<<
@@ -7428,7 +7199,7 @@ static void __pyx_f_12ptu_dijkstra_add_child(struct __pyx_t_12ptu_dijkstra_Fibon
  */
     __pyx_v_new_child->left_sibling = NULL;
 
-    /* "ptu_dijkstra.pyx":632
+    /* "ptu_dijkstra.pyx":623
  *         new_child.right_sibling = NULL
  *         new_child.left_sibling = NULL
  *         node.rank = 1             # <<<<<<<<<<<<<<
@@ -7439,7 +7210,7 @@ static void __pyx_f_12ptu_dijkstra_add_child(struct __pyx_t_12ptu_dijkstra_Fibon
   }
   __pyx_L3:;
 
-  /* "ptu_dijkstra.pyx":619
+  /* "ptu_dijkstra.pyx":610
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef void add_child(FibonacciNode* node, FibonacciNode* new_child):             # <<<<<<<<<<<<<<
@@ -7451,7 +7222,7 @@ static void __pyx_f_12ptu_dijkstra_add_child(struct __pyx_t_12ptu_dijkstra_Fibon
   __Pyx_RefNannyFinishContext();
 }
 
-/* "ptu_dijkstra.pyx":638
+/* "ptu_dijkstra.pyx":629
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef void add_sibling(FibonacciNode* node, FibonacciNode* new_sibling):             # <<<<<<<<<<<<<<
@@ -7466,7 +7237,7 @@ static void __pyx_f_12ptu_dijkstra_add_sibling(struct __pyx_t_12ptu_dijkstra_Fib
   int __pyx_t_2;
   __Pyx_RefNannySetupContext("add_sibling", 0);
 
-  /* "ptu_dijkstra.pyx":642
+  /* "ptu_dijkstra.pyx":633
  *     #              - new_sibling is a valid pointer
  *     #              - new_sibling is not the child or sibling of another node
  *     cdef FibonacciNode* temp = rightmost_sibling(node)             # <<<<<<<<<<<<<<
@@ -7475,7 +7246,7 @@ static void __pyx_f_12ptu_dijkstra_add_sibling(struct __pyx_t_12ptu_dijkstra_Fib
  */
   __pyx_v_temp = __pyx_f_12ptu_dijkstra_rightmost_sibling(__pyx_v_node);
 
-  /* "ptu_dijkstra.pyx":643
+  /* "ptu_dijkstra.pyx":634
  *     #              - new_sibling is not the child or sibling of another node
  *     cdef FibonacciNode* temp = rightmost_sibling(node)
  *     temp.right_sibling = new_sibling             # <<<<<<<<<<<<<<
@@ -7484,7 +7255,7 @@ static void __pyx_f_12ptu_dijkstra_add_sibling(struct __pyx_t_12ptu_dijkstra_Fib
  */
   __pyx_v_temp->right_sibling = __pyx_v_new_sibling;
 
-  /* "ptu_dijkstra.pyx":644
+  /* "ptu_dijkstra.pyx":635
  *     cdef FibonacciNode* temp = rightmost_sibling(node)
  *     temp.right_sibling = new_sibling
  *     new_sibling.left_sibling = temp             # <<<<<<<<<<<<<<
@@ -7493,7 +7264,7 @@ static void __pyx_f_12ptu_dijkstra_add_sibling(struct __pyx_t_12ptu_dijkstra_Fib
  */
   __pyx_v_new_sibling->left_sibling = __pyx_v_temp;
 
-  /* "ptu_dijkstra.pyx":645
+  /* "ptu_dijkstra.pyx":636
  *     temp.right_sibling = new_sibling
  *     new_sibling.left_sibling = temp
  *     new_sibling.right_sibling = NULL             # <<<<<<<<<<<<<<
@@ -7502,7 +7273,7 @@ static void __pyx_f_12ptu_dijkstra_add_sibling(struct __pyx_t_12ptu_dijkstra_Fib
  */
   __pyx_v_new_sibling->right_sibling = NULL;
 
-  /* "ptu_dijkstra.pyx":646
+  /* "ptu_dijkstra.pyx":637
  *     new_sibling.left_sibling = temp
  *     new_sibling.right_sibling = NULL
  *     new_sibling.parent = node.parent             # <<<<<<<<<<<<<<
@@ -7512,7 +7283,7 @@ static void __pyx_f_12ptu_dijkstra_add_sibling(struct __pyx_t_12ptu_dijkstra_Fib
   __pyx_t_1 = __pyx_v_node->parent;
   __pyx_v_new_sibling->parent = __pyx_t_1;
 
-  /* "ptu_dijkstra.pyx":647
+  /* "ptu_dijkstra.pyx":638
  *     new_sibling.right_sibling = NULL
  *     new_sibling.parent = node.parent
  *     if new_sibling.parent:             # <<<<<<<<<<<<<<
@@ -7522,7 +7293,7 @@ static void __pyx_f_12ptu_dijkstra_add_sibling(struct __pyx_t_12ptu_dijkstra_Fib
   __pyx_t_2 = (__pyx_v_new_sibling->parent != 0);
   if (__pyx_t_2) {
 
-    /* "ptu_dijkstra.pyx":648
+    /* "ptu_dijkstra.pyx":639
  *     new_sibling.parent = node.parent
  *     if new_sibling.parent:
  *         new_sibling.parent.rank += 1             # <<<<<<<<<<<<<<
@@ -7531,7 +7302,7 @@ static void __pyx_f_12ptu_dijkstra_add_sibling(struct __pyx_t_12ptu_dijkstra_Fib
  */
     __pyx_v_new_sibling->parent->rank = (__pyx_v_new_sibling->parent->rank + 1);
 
-    /* "ptu_dijkstra.pyx":647
+    /* "ptu_dijkstra.pyx":638
  *     new_sibling.right_sibling = NULL
  *     new_sibling.parent = node.parent
  *     if new_sibling.parent:             # <<<<<<<<<<<<<<
@@ -7540,7 +7311,7 @@ static void __pyx_f_12ptu_dijkstra_add_sibling(struct __pyx_t_12ptu_dijkstra_Fib
  */
   }
 
-  /* "ptu_dijkstra.pyx":638
+  /* "ptu_dijkstra.pyx":629
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef void add_sibling(FibonacciNode* node, FibonacciNode* new_sibling):             # <<<<<<<<<<<<<<
@@ -7552,7 +7323,7 @@ static void __pyx_f_12ptu_dijkstra_add_sibling(struct __pyx_t_12ptu_dijkstra_Fib
   __Pyx_RefNannyFinishContext();
 }
 
-/* "ptu_dijkstra.pyx":654
+/* "ptu_dijkstra.pyx":645
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef void remove(FibonacciNode* node):             # <<<<<<<<<<<<<<
@@ -7566,7 +7337,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
   struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_t_2;
   __Pyx_RefNannySetupContext("remove", 0);
 
-  /* "ptu_dijkstra.pyx":656
+  /* "ptu_dijkstra.pyx":647
  * cdef void remove(FibonacciNode* node):
  *     # Assumptions: - node is a valid pointer
  *     if node.parent:             # <<<<<<<<<<<<<<
@@ -7576,7 +7347,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
   __pyx_t_1 = (__pyx_v_node->parent != 0);
   if (__pyx_t_1) {
 
-    /* "ptu_dijkstra.pyx":657
+    /* "ptu_dijkstra.pyx":648
  *     # Assumptions: - node is a valid pointer
  *     if node.parent:
  *         node.parent.rank -= 1             # <<<<<<<<<<<<<<
@@ -7585,7 +7356,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
  */
     __pyx_v_node->parent->rank = (__pyx_v_node->parent->rank - 1);
 
-    /* "ptu_dijkstra.pyx":658
+    /* "ptu_dijkstra.pyx":649
  *     if node.parent:
  *         node.parent.rank -= 1
  *         if node.left_sibling:             # <<<<<<<<<<<<<<
@@ -7595,7 +7366,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
     __pyx_t_1 = (__pyx_v_node->left_sibling != 0);
     if (__pyx_t_1) {
 
-      /* "ptu_dijkstra.pyx":659
+      /* "ptu_dijkstra.pyx":650
  *         node.parent.rank -= 1
  *         if node.left_sibling:
  *             node.parent.children = node.left_sibling             # <<<<<<<<<<<<<<
@@ -7605,7 +7376,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
       __pyx_t_2 = __pyx_v_node->left_sibling;
       __pyx_v_node->parent->children = __pyx_t_2;
 
-      /* "ptu_dijkstra.pyx":658
+      /* "ptu_dijkstra.pyx":649
  *     if node.parent:
  *         node.parent.rank -= 1
  *         if node.left_sibling:             # <<<<<<<<<<<<<<
@@ -7615,7 +7386,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
       goto __pyx_L4;
     }
 
-    /* "ptu_dijkstra.pyx":660
+    /* "ptu_dijkstra.pyx":651
  *         if node.left_sibling:
  *             node.parent.children = node.left_sibling
  *         elif node.right_sibling:             # <<<<<<<<<<<<<<
@@ -7625,7 +7396,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
     __pyx_t_1 = (__pyx_v_node->right_sibling != 0);
     if (__pyx_t_1) {
 
-      /* "ptu_dijkstra.pyx":661
+      /* "ptu_dijkstra.pyx":652
  *             node.parent.children = node.left_sibling
  *         elif node.right_sibling:
  *             node.parent.children = node.right_sibling             # <<<<<<<<<<<<<<
@@ -7635,7 +7406,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
       __pyx_t_2 = __pyx_v_node->right_sibling;
       __pyx_v_node->parent->children = __pyx_t_2;
 
-      /* "ptu_dijkstra.pyx":660
+      /* "ptu_dijkstra.pyx":651
  *         if node.left_sibling:
  *             node.parent.children = node.left_sibling
  *         elif node.right_sibling:             # <<<<<<<<<<<<<<
@@ -7645,7 +7416,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
       goto __pyx_L4;
     }
 
-    /* "ptu_dijkstra.pyx":663
+    /* "ptu_dijkstra.pyx":654
  *             node.parent.children = node.right_sibling
  *         else:
  *             node.parent.children = NULL             # <<<<<<<<<<<<<<
@@ -7657,7 +7428,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
     }
     __pyx_L4:;
 
-    /* "ptu_dijkstra.pyx":656
+    /* "ptu_dijkstra.pyx":647
  * cdef void remove(FibonacciNode* node):
  *     # Assumptions: - node is a valid pointer
  *     if node.parent:             # <<<<<<<<<<<<<<
@@ -7666,7 +7437,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
  */
   }
 
-  /* "ptu_dijkstra.pyx":665
+  /* "ptu_dijkstra.pyx":656
  *             node.parent.children = NULL
  * 
  *     if node.left_sibling:             # <<<<<<<<<<<<<<
@@ -7676,7 +7447,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
   __pyx_t_1 = (__pyx_v_node->left_sibling != 0);
   if (__pyx_t_1) {
 
-    /* "ptu_dijkstra.pyx":666
+    /* "ptu_dijkstra.pyx":657
  * 
  *     if node.left_sibling:
  *         node.left_sibling.right_sibling = node.right_sibling             # <<<<<<<<<<<<<<
@@ -7686,7 +7457,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
     __pyx_t_2 = __pyx_v_node->right_sibling;
     __pyx_v_node->left_sibling->right_sibling = __pyx_t_2;
 
-    /* "ptu_dijkstra.pyx":665
+    /* "ptu_dijkstra.pyx":656
  *             node.parent.children = NULL
  * 
  *     if node.left_sibling:             # <<<<<<<<<<<<<<
@@ -7695,7 +7466,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
  */
   }
 
-  /* "ptu_dijkstra.pyx":667
+  /* "ptu_dijkstra.pyx":658
  *     if node.left_sibling:
  *         node.left_sibling.right_sibling = node.right_sibling
  *     if node.right_sibling:             # <<<<<<<<<<<<<<
@@ -7705,7 +7476,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
   __pyx_t_1 = (__pyx_v_node->right_sibling != 0);
   if (__pyx_t_1) {
 
-    /* "ptu_dijkstra.pyx":668
+    /* "ptu_dijkstra.pyx":659
  *         node.left_sibling.right_sibling = node.right_sibling
  *     if node.right_sibling:
  *         node.right_sibling.left_sibling = node.left_sibling             # <<<<<<<<<<<<<<
@@ -7715,7 +7486,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
     __pyx_t_2 = __pyx_v_node->left_sibling;
     __pyx_v_node->right_sibling->left_sibling = __pyx_t_2;
 
-    /* "ptu_dijkstra.pyx":667
+    /* "ptu_dijkstra.pyx":658
  *     if node.left_sibling:
  *         node.left_sibling.right_sibling = node.right_sibling
  *     if node.right_sibling:             # <<<<<<<<<<<<<<
@@ -7724,7 +7495,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
  */
   }
 
-  /* "ptu_dijkstra.pyx":670
+  /* "ptu_dijkstra.pyx":661
  *         node.right_sibling.left_sibling = node.left_sibling
  * 
  *     node.left_sibling = NULL             # <<<<<<<<<<<<<<
@@ -7733,7 +7504,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
  */
   __pyx_v_node->left_sibling = NULL;
 
-  /* "ptu_dijkstra.pyx":671
+  /* "ptu_dijkstra.pyx":662
  * 
  *     node.left_sibling = NULL
  *     node.right_sibling = NULL             # <<<<<<<<<<<<<<
@@ -7742,7 +7513,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
  */
   __pyx_v_node->right_sibling = NULL;
 
-  /* "ptu_dijkstra.pyx":672
+  /* "ptu_dijkstra.pyx":663
  *     node.left_sibling = NULL
  *     node.right_sibling = NULL
  *     node.parent = NULL             # <<<<<<<<<<<<<<
@@ -7751,7 +7522,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
  */
   __pyx_v_node->parent = NULL;
 
-  /* "ptu_dijkstra.pyx":654
+  /* "ptu_dijkstra.pyx":645
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef void remove(FibonacciNode* node):             # <<<<<<<<<<<<<<
@@ -7763,7 +7534,7 @@ static void __pyx_f_12ptu_dijkstra_remove(struct __pyx_t_12ptu_dijkstra_Fibonacc
   __Pyx_RefNannyFinishContext();
 }
 
-/* "ptu_dijkstra.pyx":691
+/* "ptu_dijkstra.pyx":682
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef void insert_node(FibonacciHeap* heap,             # <<<<<<<<<<<<<<
@@ -7776,7 +7547,7 @@ static void __pyx_f_12ptu_dijkstra_insert_node(struct __pyx_t_12ptu_dijkstra_Fib
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("insert_node", 0);
 
-  /* "ptu_dijkstra.pyx":696
+  /* "ptu_dijkstra.pyx":687
  *     #              - node is a valid pointer
  *     #              - node is not the child or sibling of another node
  *     if heap.min_node:             # <<<<<<<<<<<<<<
@@ -7786,7 +7557,7 @@ static void __pyx_f_12ptu_dijkstra_insert_node(struct __pyx_t_12ptu_dijkstra_Fib
   __pyx_t_1 = (__pyx_v_heap->min_node != 0);
   if (__pyx_t_1) {
 
-    /* "ptu_dijkstra.pyx":697
+    /* "ptu_dijkstra.pyx":688
  *     #              - node is not the child or sibling of another node
  *     if heap.min_node:
  *         add_sibling(heap.min_node, node)             # <<<<<<<<<<<<<<
@@ -7795,7 +7566,7 @@ static void __pyx_f_12ptu_dijkstra_insert_node(struct __pyx_t_12ptu_dijkstra_Fib
  */
     __pyx_f_12ptu_dijkstra_add_sibling(__pyx_v_heap->min_node, __pyx_v_node);
 
-    /* "ptu_dijkstra.pyx":698
+    /* "ptu_dijkstra.pyx":689
  *     if heap.min_node:
  *         add_sibling(heap.min_node, node)
  *         if node.val < heap.min_node.val:             # <<<<<<<<<<<<<<
@@ -7805,7 +7576,7 @@ static void __pyx_f_12ptu_dijkstra_insert_node(struct __pyx_t_12ptu_dijkstra_Fib
     __pyx_t_1 = ((__pyx_v_node->val < __pyx_v_heap->min_node->val) != 0);
     if (__pyx_t_1) {
 
-      /* "ptu_dijkstra.pyx":699
+      /* "ptu_dijkstra.pyx":690
  *         add_sibling(heap.min_node, node)
  *         if node.val < heap.min_node.val:
  *             heap.min_node = node             # <<<<<<<<<<<<<<
@@ -7814,7 +7585,7 @@ static void __pyx_f_12ptu_dijkstra_insert_node(struct __pyx_t_12ptu_dijkstra_Fib
  */
       __pyx_v_heap->min_node = __pyx_v_node;
 
-      /* "ptu_dijkstra.pyx":698
+      /* "ptu_dijkstra.pyx":689
  *     if heap.min_node:
  *         add_sibling(heap.min_node, node)
  *         if node.val < heap.min_node.val:             # <<<<<<<<<<<<<<
@@ -7823,7 +7594,7 @@ static void __pyx_f_12ptu_dijkstra_insert_node(struct __pyx_t_12ptu_dijkstra_Fib
  */
     }
 
-    /* "ptu_dijkstra.pyx":696
+    /* "ptu_dijkstra.pyx":687
  *     #              - node is a valid pointer
  *     #              - node is not the child or sibling of another node
  *     if heap.min_node:             # <<<<<<<<<<<<<<
@@ -7833,7 +7604,7 @@ static void __pyx_f_12ptu_dijkstra_insert_node(struct __pyx_t_12ptu_dijkstra_Fib
     goto __pyx_L3;
   }
 
-  /* "ptu_dijkstra.pyx":701
+  /* "ptu_dijkstra.pyx":692
  *             heap.min_node = node
  *     else:
  *         heap.min_node = node             # <<<<<<<<<<<<<<
@@ -7845,7 +7616,7 @@ static void __pyx_f_12ptu_dijkstra_insert_node(struct __pyx_t_12ptu_dijkstra_Fib
   }
   __pyx_L3:;
 
-  /* "ptu_dijkstra.pyx":691
+  /* "ptu_dijkstra.pyx":682
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef void insert_node(FibonacciHeap* heap,             # <<<<<<<<<<<<<<
@@ -7857,7 +7628,7 @@ static void __pyx_f_12ptu_dijkstra_insert_node(struct __pyx_t_12ptu_dijkstra_Fib
   __Pyx_RefNannyFinishContext();
 }
 
-/* "ptu_dijkstra.pyx":707
+/* "ptu_dijkstra.pyx":698
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef void decrease_val(FibonacciHeap* heap,             # <<<<<<<<<<<<<<
@@ -7871,7 +7642,7 @@ static void __pyx_f_12ptu_dijkstra_decrease_val(struct __pyx_t_12ptu_dijkstra_Fi
   int __pyx_t_2;
   __Pyx_RefNannySetupContext("decrease_val", 0);
 
-  /* "ptu_dijkstra.pyx":715
+  /* "ptu_dijkstra.pyx":706
  *     #              - node is not the child or sibling of another node
  *     #              - node is in the heap
  *     node.val = newval             # <<<<<<<<<<<<<<
@@ -7880,7 +7651,7 @@ static void __pyx_f_12ptu_dijkstra_decrease_val(struct __pyx_t_12ptu_dijkstra_Fi
  */
   __pyx_v_node->val = __pyx_v_newval;
 
-  /* "ptu_dijkstra.pyx":716
+  /* "ptu_dijkstra.pyx":707
  *     #              - node is in the heap
  *     node.val = newval
  *     if node.parent and (node.parent.val >= newval):             # <<<<<<<<<<<<<<
@@ -7898,7 +7669,7 @@ static void __pyx_f_12ptu_dijkstra_decrease_val(struct __pyx_t_12ptu_dijkstra_Fi
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "ptu_dijkstra.pyx":717
+    /* "ptu_dijkstra.pyx":708
  *     node.val = newval
  *     if node.parent and (node.parent.val >= newval):
  *         remove(node)             # <<<<<<<<<<<<<<
@@ -7907,7 +7678,7 @@ static void __pyx_f_12ptu_dijkstra_decrease_val(struct __pyx_t_12ptu_dijkstra_Fi
  */
     __pyx_f_12ptu_dijkstra_remove(__pyx_v_node);
 
-    /* "ptu_dijkstra.pyx":718
+    /* "ptu_dijkstra.pyx":709
  *     if node.parent and (node.parent.val >= newval):
  *         remove(node)
  *         insert_node(heap, node)             # <<<<<<<<<<<<<<
@@ -7916,7 +7687,7 @@ static void __pyx_f_12ptu_dijkstra_decrease_val(struct __pyx_t_12ptu_dijkstra_Fi
  */
     __pyx_f_12ptu_dijkstra_insert_node(__pyx_v_heap, __pyx_v_node);
 
-    /* "ptu_dijkstra.pyx":716
+    /* "ptu_dijkstra.pyx":707
  *     #              - node is in the heap
  *     node.val = newval
  *     if node.parent and (node.parent.val >= newval):             # <<<<<<<<<<<<<<
@@ -7926,7 +7697,7 @@ static void __pyx_f_12ptu_dijkstra_decrease_val(struct __pyx_t_12ptu_dijkstra_Fi
     goto __pyx_L3;
   }
 
-  /* "ptu_dijkstra.pyx":719
+  /* "ptu_dijkstra.pyx":710
  *         remove(node)
  *         insert_node(heap, node)
  *     elif heap.min_node.val > node.val:             # <<<<<<<<<<<<<<
@@ -7936,7 +7707,7 @@ static void __pyx_f_12ptu_dijkstra_decrease_val(struct __pyx_t_12ptu_dijkstra_Fi
   __pyx_t_1 = ((__pyx_v_heap->min_node->val > __pyx_v_node->val) != 0);
   if (__pyx_t_1) {
 
-    /* "ptu_dijkstra.pyx":720
+    /* "ptu_dijkstra.pyx":711
  *         insert_node(heap, node)
  *     elif heap.min_node.val > node.val:
  *         heap.min_node = node             # <<<<<<<<<<<<<<
@@ -7945,7 +7716,7 @@ static void __pyx_f_12ptu_dijkstra_decrease_val(struct __pyx_t_12ptu_dijkstra_Fi
  */
     __pyx_v_heap->min_node = __pyx_v_node;
 
-    /* "ptu_dijkstra.pyx":719
+    /* "ptu_dijkstra.pyx":710
  *         remove(node)
  *         insert_node(heap, node)
  *     elif heap.min_node.val > node.val:             # <<<<<<<<<<<<<<
@@ -7955,7 +7726,7 @@ static void __pyx_f_12ptu_dijkstra_decrease_val(struct __pyx_t_12ptu_dijkstra_Fi
   }
   __pyx_L3:;
 
-  /* "ptu_dijkstra.pyx":707
+  /* "ptu_dijkstra.pyx":698
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef void decrease_val(FibonacciHeap* heap,             # <<<<<<<<<<<<<<
@@ -7967,7 +7738,7 @@ static void __pyx_f_12ptu_dijkstra_decrease_val(struct __pyx_t_12ptu_dijkstra_Fi
   __Pyx_RefNannyFinishContext();
 }
 
-/* "ptu_dijkstra.pyx":726
+/* "ptu_dijkstra.pyx":717
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef void link(FibonacciHeap* heap, FibonacciNode* node):             # <<<<<<<<<<<<<<
@@ -7982,7 +7753,7 @@ static void __pyx_f_12ptu_dijkstra_link(struct __pyx_t_12ptu_dijkstra_FibonacciH
   int __pyx_t_2;
   __Pyx_RefNannySetupContext("link", 0);
 
-  /* "ptu_dijkstra.pyx":735
+  /* "ptu_dijkstra.pyx":726
  *     cdef FibonacciNode *child
  * 
  *     if heap.roots_by_rank[node.rank] == NULL:             # <<<<<<<<<<<<<<
@@ -7992,7 +7763,7 @@ static void __pyx_f_12ptu_dijkstra_link(struct __pyx_t_12ptu_dijkstra_FibonacciH
   __pyx_t_1 = (((__pyx_v_heap->roots_by_rank[__pyx_v_node->rank]) == NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "ptu_dijkstra.pyx":736
+    /* "ptu_dijkstra.pyx":727
  * 
  *     if heap.roots_by_rank[node.rank] == NULL:
  *         heap.roots_by_rank[node.rank] = node             # <<<<<<<<<<<<<<
@@ -8001,7 +7772,7 @@ static void __pyx_f_12ptu_dijkstra_link(struct __pyx_t_12ptu_dijkstra_FibonacciH
  */
     (__pyx_v_heap->roots_by_rank[__pyx_v_node->rank]) = __pyx_v_node;
 
-    /* "ptu_dijkstra.pyx":735
+    /* "ptu_dijkstra.pyx":726
  *     cdef FibonacciNode *child
  * 
  *     if heap.roots_by_rank[node.rank] == NULL:             # <<<<<<<<<<<<<<
@@ -8011,7 +7782,7 @@ static void __pyx_f_12ptu_dijkstra_link(struct __pyx_t_12ptu_dijkstra_FibonacciH
     goto __pyx_L3;
   }
 
-  /* "ptu_dijkstra.pyx":738
+  /* "ptu_dijkstra.pyx":729
  *         heap.roots_by_rank[node.rank] = node
  *     else:
  *         linknode = heap.roots_by_rank[node.rank]             # <<<<<<<<<<<<<<
@@ -8021,7 +7792,7 @@ static void __pyx_f_12ptu_dijkstra_link(struct __pyx_t_12ptu_dijkstra_FibonacciH
   /*else*/ {
     __pyx_v_linknode = (__pyx_v_heap->roots_by_rank[__pyx_v_node->rank]);
 
-    /* "ptu_dijkstra.pyx":739
+    /* "ptu_dijkstra.pyx":730
  *     else:
  *         linknode = heap.roots_by_rank[node.rank]
  *         heap.roots_by_rank[node.rank] = NULL             # <<<<<<<<<<<<<<
@@ -8030,7 +7801,7 @@ static void __pyx_f_12ptu_dijkstra_link(struct __pyx_t_12ptu_dijkstra_FibonacciH
  */
     (__pyx_v_heap->roots_by_rank[__pyx_v_node->rank]) = NULL;
 
-    /* "ptu_dijkstra.pyx":741
+    /* "ptu_dijkstra.pyx":732
  *         heap.roots_by_rank[node.rank] = NULL
  * 
  *         if node.val < linknode.val or node == heap.min_node:             # <<<<<<<<<<<<<<
@@ -8048,7 +7819,7 @@ static void __pyx_f_12ptu_dijkstra_link(struct __pyx_t_12ptu_dijkstra_FibonacciH
     __pyx_L5_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "ptu_dijkstra.pyx":742
+      /* "ptu_dijkstra.pyx":733
  * 
  *         if node.val < linknode.val or node == heap.min_node:
  *             remove(linknode)             # <<<<<<<<<<<<<<
@@ -8057,7 +7828,7 @@ static void __pyx_f_12ptu_dijkstra_link(struct __pyx_t_12ptu_dijkstra_FibonacciH
  */
       __pyx_f_12ptu_dijkstra_remove(__pyx_v_linknode);
 
-      /* "ptu_dijkstra.pyx":743
+      /* "ptu_dijkstra.pyx":734
  *         if node.val < linknode.val or node == heap.min_node:
  *             remove(linknode)
  *             add_child(node, linknode)             # <<<<<<<<<<<<<<
@@ -8066,7 +7837,7 @@ static void __pyx_f_12ptu_dijkstra_link(struct __pyx_t_12ptu_dijkstra_FibonacciH
  */
       __pyx_f_12ptu_dijkstra_add_child(__pyx_v_node, __pyx_v_linknode);
 
-      /* "ptu_dijkstra.pyx":744
+      /* "ptu_dijkstra.pyx":735
  *             remove(linknode)
  *             add_child(node, linknode)
  *             link(heap, node)             # <<<<<<<<<<<<<<
@@ -8075,7 +7846,7 @@ static void __pyx_f_12ptu_dijkstra_link(struct __pyx_t_12ptu_dijkstra_FibonacciH
  */
       __pyx_f_12ptu_dijkstra_link(__pyx_v_heap, __pyx_v_node);
 
-      /* "ptu_dijkstra.pyx":741
+      /* "ptu_dijkstra.pyx":732
  *         heap.roots_by_rank[node.rank] = NULL
  * 
  *         if node.val < linknode.val or node == heap.min_node:             # <<<<<<<<<<<<<<
@@ -8085,7 +7856,7 @@ static void __pyx_f_12ptu_dijkstra_link(struct __pyx_t_12ptu_dijkstra_FibonacciH
       goto __pyx_L4;
     }
 
-    /* "ptu_dijkstra.pyx":746
+    /* "ptu_dijkstra.pyx":737
  *             link(heap, node)
  *         else:
  *             remove(node)             # <<<<<<<<<<<<<<
@@ -8095,7 +7866,7 @@ static void __pyx_f_12ptu_dijkstra_link(struct __pyx_t_12ptu_dijkstra_FibonacciH
     /*else*/ {
       __pyx_f_12ptu_dijkstra_remove(__pyx_v_node);
 
-      /* "ptu_dijkstra.pyx":747
+      /* "ptu_dijkstra.pyx":738
  *         else:
  *             remove(node)
  *             add_child(linknode, node)             # <<<<<<<<<<<<<<
@@ -8104,7 +7875,7 @@ static void __pyx_f_12ptu_dijkstra_link(struct __pyx_t_12ptu_dijkstra_FibonacciH
  */
       __pyx_f_12ptu_dijkstra_add_child(__pyx_v_linknode, __pyx_v_node);
 
-      /* "ptu_dijkstra.pyx":748
+      /* "ptu_dijkstra.pyx":739
  *             remove(node)
  *             add_child(linknode, node)
  *             link(heap, linknode)             # <<<<<<<<<<<<<<
@@ -8117,7 +7888,7 @@ static void __pyx_f_12ptu_dijkstra_link(struct __pyx_t_12ptu_dijkstra_FibonacciH
   }
   __pyx_L3:;
 
-  /* "ptu_dijkstra.pyx":726
+  /* "ptu_dijkstra.pyx":717
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef void link(FibonacciHeap* heap, FibonacciNode* node):             # <<<<<<<<<<<<<<
@@ -8129,7 +7900,7 @@ static void __pyx_f_12ptu_dijkstra_link(struct __pyx_t_12ptu_dijkstra_FibonacciH
   __Pyx_RefNannyFinishContext();
 }
 
-/* "ptu_dijkstra.pyx":754
+/* "ptu_dijkstra.pyx":745
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef FibonacciNode* remove_min(FibonacciHeap* heap):             # <<<<<<<<<<<<<<
@@ -8149,7 +7920,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
   unsigned int __pyx_t_3;
   __Pyx_RefNannySetupContext("remove_min", 0);
 
-  /* "ptu_dijkstra.pyx":764
+  /* "ptu_dijkstra.pyx":755
  * 
  *     # make all min_node children into root nodes
  *     if heap.min_node.children:             # <<<<<<<<<<<<<<
@@ -8159,7 +7930,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
   __pyx_t_1 = (__pyx_v_heap->min_node->children != 0);
   if (__pyx_t_1) {
 
-    /* "ptu_dijkstra.pyx":765
+    /* "ptu_dijkstra.pyx":756
  *     # make all min_node children into root nodes
  *     if heap.min_node.children:
  *         temp = leftmost_sibling(heap.min_node.children)             # <<<<<<<<<<<<<<
@@ -8168,7 +7939,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
  */
     __pyx_v_temp = __pyx_f_12ptu_dijkstra_leftmost_sibling(__pyx_v_heap->min_node->children);
 
-    /* "ptu_dijkstra.pyx":766
+    /* "ptu_dijkstra.pyx":757
  *     if heap.min_node.children:
  *         temp = leftmost_sibling(heap.min_node.children)
  *         temp_right = NULL             # <<<<<<<<<<<<<<
@@ -8177,7 +7948,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
  */
     __pyx_v_temp_right = NULL;
 
-    /* "ptu_dijkstra.pyx":768
+    /* "ptu_dijkstra.pyx":759
  *         temp_right = NULL
  * 
  *         while temp:             # <<<<<<<<<<<<<<
@@ -8188,7 +7959,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
       __pyx_t_1 = (__pyx_v_temp != 0);
       if (!__pyx_t_1) break;
 
-      /* "ptu_dijkstra.pyx":769
+      /* "ptu_dijkstra.pyx":760
  * 
  *         while temp:
  *             temp_right = temp.right_sibling             # <<<<<<<<<<<<<<
@@ -8198,7 +7969,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
       __pyx_t_2 = __pyx_v_temp->right_sibling;
       __pyx_v_temp_right = __pyx_t_2;
 
-      /* "ptu_dijkstra.pyx":770
+      /* "ptu_dijkstra.pyx":761
  *         while temp:
  *             temp_right = temp.right_sibling
  *             remove(temp)             # <<<<<<<<<<<<<<
@@ -8207,7 +7978,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
  */
       __pyx_f_12ptu_dijkstra_remove(__pyx_v_temp);
 
-      /* "ptu_dijkstra.pyx":771
+      /* "ptu_dijkstra.pyx":762
  *             temp_right = temp.right_sibling
  *             remove(temp)
  *             add_sibling(heap.min_node, temp)             # <<<<<<<<<<<<<<
@@ -8216,7 +7987,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
  */
       __pyx_f_12ptu_dijkstra_add_sibling(__pyx_v_heap->min_node, __pyx_v_temp);
 
-      /* "ptu_dijkstra.pyx":772
+      /* "ptu_dijkstra.pyx":763
  *             remove(temp)
  *             add_sibling(heap.min_node, temp)
  *             temp = temp_right             # <<<<<<<<<<<<<<
@@ -8226,7 +7997,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
       __pyx_v_temp = __pyx_v_temp_right;
     }
 
-    /* "ptu_dijkstra.pyx":774
+    /* "ptu_dijkstra.pyx":765
  *             temp = temp_right
  * 
  *         heap.min_node.children = NULL             # <<<<<<<<<<<<<<
@@ -8235,7 +8006,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
  */
     __pyx_v_heap->min_node->children = NULL;
 
-    /* "ptu_dijkstra.pyx":764
+    /* "ptu_dijkstra.pyx":755
  * 
  *     # make all min_node children into root nodes
  *     if heap.min_node.children:             # <<<<<<<<<<<<<<
@@ -8244,7 +8015,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
  */
   }
 
-  /* "ptu_dijkstra.pyx":777
+  /* "ptu_dijkstra.pyx":768
  * 
  *     # choose a root node other than min_node
  *     temp = leftmost_sibling(heap.min_node)             # <<<<<<<<<<<<<<
@@ -8253,7 +8024,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
  */
   __pyx_v_temp = __pyx_f_12ptu_dijkstra_leftmost_sibling(__pyx_v_heap->min_node);
 
-  /* "ptu_dijkstra.pyx":778
+  /* "ptu_dijkstra.pyx":769
  *     # choose a root node other than min_node
  *     temp = leftmost_sibling(heap.min_node)
  *     if temp == heap.min_node:             # <<<<<<<<<<<<<<
@@ -8263,7 +8034,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
   __pyx_t_1 = ((__pyx_v_temp == __pyx_v_heap->min_node) != 0);
   if (__pyx_t_1) {
 
-    /* "ptu_dijkstra.pyx":779
+    /* "ptu_dijkstra.pyx":770
  *     temp = leftmost_sibling(heap.min_node)
  *     if temp == heap.min_node:
  *         if heap.min_node.right_sibling:             # <<<<<<<<<<<<<<
@@ -8273,7 +8044,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
     __pyx_t_1 = (__pyx_v_heap->min_node->right_sibling != 0);
     if (__pyx_t_1) {
 
-      /* "ptu_dijkstra.pyx":780
+      /* "ptu_dijkstra.pyx":771
  *     if temp == heap.min_node:
  *         if heap.min_node.right_sibling:
  *             temp = heap.min_node.right_sibling             # <<<<<<<<<<<<<<
@@ -8283,7 +8054,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
       __pyx_t_2 = __pyx_v_heap->min_node->right_sibling;
       __pyx_v_temp = __pyx_t_2;
 
-      /* "ptu_dijkstra.pyx":779
+      /* "ptu_dijkstra.pyx":770
  *     temp = leftmost_sibling(heap.min_node)
  *     if temp == heap.min_node:
  *         if heap.min_node.right_sibling:             # <<<<<<<<<<<<<<
@@ -8293,7 +8064,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
       goto __pyx_L7;
     }
 
-    /* "ptu_dijkstra.pyx":782
+    /* "ptu_dijkstra.pyx":773
  *             temp = heap.min_node.right_sibling
  *         else:
  *             out = heap.min_node             # <<<<<<<<<<<<<<
@@ -8304,7 +8075,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
       __pyx_t_2 = __pyx_v_heap->min_node;
       __pyx_v_out = __pyx_t_2;
 
-      /* "ptu_dijkstra.pyx":783
+      /* "ptu_dijkstra.pyx":774
  *         else:
  *             out = heap.min_node
  *             heap.min_node = NULL             # <<<<<<<<<<<<<<
@@ -8313,7 +8084,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
  */
       __pyx_v_heap->min_node = NULL;
 
-      /* "ptu_dijkstra.pyx":784
+      /* "ptu_dijkstra.pyx":775
  *             out = heap.min_node
  *             heap.min_node = NULL
  *             return out             # <<<<<<<<<<<<<<
@@ -8325,7 +8096,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
     }
     __pyx_L7:;
 
-    /* "ptu_dijkstra.pyx":778
+    /* "ptu_dijkstra.pyx":769
  *     # choose a root node other than min_node
  *     temp = leftmost_sibling(heap.min_node)
  *     if temp == heap.min_node:             # <<<<<<<<<<<<<<
@@ -8334,7 +8105,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
  */
   }
 
-  /* "ptu_dijkstra.pyx":787
+  /* "ptu_dijkstra.pyx":778
  * 
  *     # remove min_node, and point heap to the new min
  *     out = heap.min_node             # <<<<<<<<<<<<<<
@@ -8344,7 +8115,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
   __pyx_t_2 = __pyx_v_heap->min_node;
   __pyx_v_out = __pyx_t_2;
 
-  /* "ptu_dijkstra.pyx":788
+  /* "ptu_dijkstra.pyx":779
  *     # remove min_node, and point heap to the new min
  *     out = heap.min_node
  *     remove(heap.min_node)             # <<<<<<<<<<<<<<
@@ -8353,7 +8124,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
  */
   __pyx_f_12ptu_dijkstra_remove(__pyx_v_heap->min_node);
 
-  /* "ptu_dijkstra.pyx":789
+  /* "ptu_dijkstra.pyx":780
  *     out = heap.min_node
  *     remove(heap.min_node)
  *     heap.min_node = temp             # <<<<<<<<<<<<<<
@@ -8362,7 +8133,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
  */
   __pyx_v_heap->min_node = __pyx_v_temp;
 
-  /* "ptu_dijkstra.pyx":792
+  /* "ptu_dijkstra.pyx":783
  * 
  *     # re-link the heap
  *     for i in range(100):             # <<<<<<<<<<<<<<
@@ -8372,7 +8143,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
   for (__pyx_t_3 = 0; __pyx_t_3 < 0x64; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "ptu_dijkstra.pyx":793
+    /* "ptu_dijkstra.pyx":784
  *     # re-link the heap
  *     for i in range(100):
  *         heap.roots_by_rank[i] = NULL             # <<<<<<<<<<<<<<
@@ -8382,7 +8153,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
     (__pyx_v_heap->roots_by_rank[__pyx_v_i]) = NULL;
   }
 
-  /* "ptu_dijkstra.pyx":795
+  /* "ptu_dijkstra.pyx":786
  *         heap.roots_by_rank[i] = NULL
  * 
  *     while temp:             # <<<<<<<<<<<<<<
@@ -8393,7 +8164,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
     __pyx_t_1 = (__pyx_v_temp != 0);
     if (!__pyx_t_1) break;
 
-    /* "ptu_dijkstra.pyx":796
+    /* "ptu_dijkstra.pyx":787
  * 
  *     while temp:
  *         if temp.val < heap.min_node.val:             # <<<<<<<<<<<<<<
@@ -8403,7 +8174,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
     __pyx_t_1 = ((__pyx_v_temp->val < __pyx_v_heap->min_node->val) != 0);
     if (__pyx_t_1) {
 
-      /* "ptu_dijkstra.pyx":797
+      /* "ptu_dijkstra.pyx":788
  *     while temp:
  *         if temp.val < heap.min_node.val:
  *             heap.min_node = temp             # <<<<<<<<<<<<<<
@@ -8412,7 +8183,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
  */
       __pyx_v_heap->min_node = __pyx_v_temp;
 
-      /* "ptu_dijkstra.pyx":796
+      /* "ptu_dijkstra.pyx":787
  * 
  *     while temp:
  *         if temp.val < heap.min_node.val:             # <<<<<<<<<<<<<<
@@ -8421,7 +8192,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
  */
     }
 
-    /* "ptu_dijkstra.pyx":798
+    /* "ptu_dijkstra.pyx":789
  *         if temp.val < heap.min_node.val:
  *             heap.min_node = temp
  *         temp_right = temp.right_sibling             # <<<<<<<<<<<<<<
@@ -8431,7 +8202,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
     __pyx_t_2 = __pyx_v_temp->right_sibling;
     __pyx_v_temp_right = __pyx_t_2;
 
-    /* "ptu_dijkstra.pyx":799
+    /* "ptu_dijkstra.pyx":790
  *             heap.min_node = temp
  *         temp_right = temp.right_sibling
  *         link(heap, temp)             # <<<<<<<<<<<<<<
@@ -8440,7 +8211,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
  */
     __pyx_f_12ptu_dijkstra_link(__pyx_v_heap, __pyx_v_temp);
 
-    /* "ptu_dijkstra.pyx":800
+    /* "ptu_dijkstra.pyx":791
  *         temp_right = temp.right_sibling
  *         link(heap, temp)
  *         temp = temp_right             # <<<<<<<<<<<<<<
@@ -8450,7 +8221,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
     __pyx_v_temp = __pyx_v_temp_right;
   }
 
-  /* "ptu_dijkstra.pyx":802
+  /* "ptu_dijkstra.pyx":793
  *         temp = temp_right
  * 
  *     return out             # <<<<<<<<<<<<<<
@@ -8460,7 +8231,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
   __pyx_r = __pyx_v_out;
   goto __pyx_L0;
 
-  /* "ptu_dijkstra.pyx":754
+  /* "ptu_dijkstra.pyx":745
  * @cython.nonecheck(False)
  * @cython.cdivision(True)
  * cdef FibonacciNode* remove_min(FibonacciHeap* heap):             # <<<<<<<<<<<<<<
@@ -8474,7 +8245,7 @@ static struct __pyx_t_12ptu_dijkstra_FibonacciNode *__pyx_f_12ptu_dijkstra_remov
   return __pyx_r;
 }
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":735
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":735
  * ctypedef npy_cdouble     complex_t
  * 
  * cdef inline object PyArray_MultiIterNew1(a):             # <<<<<<<<<<<<<<
@@ -8491,7 +8262,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew1(PyObject *__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew1", 0);
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":736
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":736
  * 
  * cdef inline object PyArray_MultiIterNew1(a):
  *     return PyArray_MultiIterNew(1, <void*>a)             # <<<<<<<<<<<<<<
@@ -8505,7 +8276,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew1(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":735
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":735
  * ctypedef npy_cdouble     complex_t
  * 
  * cdef inline object PyArray_MultiIterNew1(a):             # <<<<<<<<<<<<<<
@@ -8524,7 +8295,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew1(PyObject *__
   return __pyx_r;
 }
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":738
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":738
  *     return PyArray_MultiIterNew(1, <void*>a)
  * 
  * cdef inline object PyArray_MultiIterNew2(a, b):             # <<<<<<<<<<<<<<
@@ -8541,7 +8312,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew2(PyObject *__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew2", 0);
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":739
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":739
  * 
  * cdef inline object PyArray_MultiIterNew2(a, b):
  *     return PyArray_MultiIterNew(2, <void*>a, <void*>b)             # <<<<<<<<<<<<<<
@@ -8555,7 +8326,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew2(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":738
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":738
  *     return PyArray_MultiIterNew(1, <void*>a)
  * 
  * cdef inline object PyArray_MultiIterNew2(a, b):             # <<<<<<<<<<<<<<
@@ -8574,7 +8345,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew2(PyObject *__
   return __pyx_r;
 }
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":741
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":741
  *     return PyArray_MultiIterNew(2, <void*>a, <void*>b)
  * 
  * cdef inline object PyArray_MultiIterNew3(a, b, c):             # <<<<<<<<<<<<<<
@@ -8591,7 +8362,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew3(PyObject *__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew3", 0);
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":742
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":742
  * 
  * cdef inline object PyArray_MultiIterNew3(a, b, c):
  *     return PyArray_MultiIterNew(3, <void*>a, <void*>b, <void*> c)             # <<<<<<<<<<<<<<
@@ -8605,7 +8376,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew3(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":741
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":741
  *     return PyArray_MultiIterNew(2, <void*>a, <void*>b)
  * 
  * cdef inline object PyArray_MultiIterNew3(a, b, c):             # <<<<<<<<<<<<<<
@@ -8624,7 +8395,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew3(PyObject *__
   return __pyx_r;
 }
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":744
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":744
  *     return PyArray_MultiIterNew(3, <void*>a, <void*>b, <void*> c)
  * 
  * cdef inline object PyArray_MultiIterNew4(a, b, c, d):             # <<<<<<<<<<<<<<
@@ -8641,7 +8412,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew4(PyObject *__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew4", 0);
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":745
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":745
  * 
  * cdef inline object PyArray_MultiIterNew4(a, b, c, d):
  *     return PyArray_MultiIterNew(4, <void*>a, <void*>b, <void*>c, <void*> d)             # <<<<<<<<<<<<<<
@@ -8655,7 +8426,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew4(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":744
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":744
  *     return PyArray_MultiIterNew(3, <void*>a, <void*>b, <void*> c)
  * 
  * cdef inline object PyArray_MultiIterNew4(a, b, c, d):             # <<<<<<<<<<<<<<
@@ -8674,7 +8445,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew4(PyObject *__
   return __pyx_r;
 }
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":747
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":747
  *     return PyArray_MultiIterNew(4, <void*>a, <void*>b, <void*>c, <void*> d)
  * 
  * cdef inline object PyArray_MultiIterNew5(a, b, c, d, e):             # <<<<<<<<<<<<<<
@@ -8691,7 +8462,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew5(PyObject *__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("PyArray_MultiIterNew5", 0);
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":748
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":748
  * 
  * cdef inline object PyArray_MultiIterNew5(a, b, c, d, e):
  *     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)             # <<<<<<<<<<<<<<
@@ -8705,7 +8476,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew5(PyObject *__
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":747
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":747
  *     return PyArray_MultiIterNew(4, <void*>a, <void*>b, <void*>c, <void*> d)
  * 
  * cdef inline object PyArray_MultiIterNew5(a, b, c, d, e):             # <<<<<<<<<<<<<<
@@ -8724,7 +8495,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyArray_MultiIterNew5(PyObject *__
   return __pyx_r;
 }
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":750
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":750
  *     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)
  * 
  * cdef inline tuple PyDataType_SHAPE(dtype d):             # <<<<<<<<<<<<<<
@@ -8738,7 +8509,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyDataType_SHAPE(PyArray_Descr *__
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("PyDataType_SHAPE", 0);
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":751
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":751
  * 
  * cdef inline tuple PyDataType_SHAPE(dtype d):
  *     if PyDataType_HASSUBARRAY(d):             # <<<<<<<<<<<<<<
@@ -8748,7 +8519,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyDataType_SHAPE(PyArray_Descr *__
   __pyx_t_1 = (PyDataType_HASSUBARRAY(__pyx_v_d) != 0);
   if (__pyx_t_1) {
 
-    /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":752
+    /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":752
  * cdef inline tuple PyDataType_SHAPE(dtype d):
  *     if PyDataType_HASSUBARRAY(d):
  *         return <tuple>d.subarray.shape             # <<<<<<<<<<<<<<
@@ -8760,7 +8531,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyDataType_SHAPE(PyArray_Descr *__
     __pyx_r = ((PyObject*)__pyx_v_d->subarray->shape);
     goto __pyx_L0;
 
-    /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":751
+    /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":751
  * 
  * cdef inline tuple PyDataType_SHAPE(dtype d):
  *     if PyDataType_HASSUBARRAY(d):             # <<<<<<<<<<<<<<
@@ -8769,7 +8540,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyDataType_SHAPE(PyArray_Descr *__
  */
   }
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":754
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":754
  *         return <tuple>d.subarray.shape
  *     else:
  *         return ()             # <<<<<<<<<<<<<<
@@ -8783,7 +8554,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyDataType_SHAPE(PyArray_Descr *__
     goto __pyx_L0;
   }
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":750
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":750
  *     return PyArray_MultiIterNew(5, <void*>a, <void*>b, <void*>c, <void*> d, <void*> e)
  * 
  * cdef inline tuple PyDataType_SHAPE(dtype d):             # <<<<<<<<<<<<<<
@@ -8798,7 +8569,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_PyDataType_SHAPE(PyArray_Descr *__
   return __pyx_r;
 }
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":929
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":929
  *     int _import_umath() except -1
  * 
  * cdef inline void set_array_base(ndarray arr, object base):             # <<<<<<<<<<<<<<
@@ -8810,7 +8581,7 @@ static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_a
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("set_array_base", 0);
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":930
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":930
  * 
  * cdef inline void set_array_base(ndarray arr, object base):
  *     Py_INCREF(base) # important to do this before stealing the reference below!             # <<<<<<<<<<<<<<
@@ -8819,7 +8590,7 @@ static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_a
  */
   Py_INCREF(__pyx_v_base);
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":931
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":931
  * cdef inline void set_array_base(ndarray arr, object base):
  *     Py_INCREF(base) # important to do this before stealing the reference below!
  *     PyArray_SetBaseObject(arr, base)             # <<<<<<<<<<<<<<
@@ -8828,7 +8599,7 @@ static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_a
  */
   (void)(PyArray_SetBaseObject(__pyx_v_arr, __pyx_v_base));
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":929
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":929
  *     int _import_umath() except -1
  * 
  * cdef inline void set_array_base(ndarray arr, object base):             # <<<<<<<<<<<<<<
@@ -8840,7 +8611,7 @@ static CYTHON_INLINE void __pyx_f_5numpy_set_array_base(PyArrayObject *__pyx_v_a
   __Pyx_RefNannyFinishContext();
 }
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":933
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":933
  *     PyArray_SetBaseObject(arr, base)
  * 
  * cdef inline object get_array_base(ndarray arr):             # <<<<<<<<<<<<<<
@@ -8855,7 +8626,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
   int __pyx_t_1;
   __Pyx_RefNannySetupContext("get_array_base", 0);
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":934
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":934
  * 
  * cdef inline object get_array_base(ndarray arr):
  *     base = PyArray_BASE(arr)             # <<<<<<<<<<<<<<
@@ -8864,7 +8635,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
  */
   __pyx_v_base = PyArray_BASE(__pyx_v_arr);
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":935
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":935
  * cdef inline object get_array_base(ndarray arr):
  *     base = PyArray_BASE(arr)
  *     if base is NULL:             # <<<<<<<<<<<<<<
@@ -8874,7 +8645,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
   __pyx_t_1 = ((__pyx_v_base == NULL) != 0);
   if (__pyx_t_1) {
 
-    /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":936
+    /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":936
  *     base = PyArray_BASE(arr)
  *     if base is NULL:
  *         return None             # <<<<<<<<<<<<<<
@@ -8885,7 +8656,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
     goto __pyx_L0;
 
-    /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":935
+    /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":935
  * cdef inline object get_array_base(ndarray arr):
  *     base = PyArray_BASE(arr)
  *     if base is NULL:             # <<<<<<<<<<<<<<
@@ -8894,7 +8665,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
  */
   }
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":937
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":937
  *     if base is NULL:
  *         return None
  *     return <object>base             # <<<<<<<<<<<<<<
@@ -8906,7 +8677,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
   __pyx_r = ((PyObject *)__pyx_v_base);
   goto __pyx_L0;
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":933
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":933
  *     PyArray_SetBaseObject(arr, base)
  * 
  * cdef inline object get_array_base(ndarray arr):             # <<<<<<<<<<<<<<
@@ -8921,7 +8692,7 @@ static CYTHON_INLINE PyObject *__pyx_f_5numpy_get_array_base(PyArrayObject *__py
   return __pyx_r;
 }
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":941
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":941
  * # Versions of the import_* functions which are more suitable for
  * # Cython code.
  * cdef inline int import_array() except -1:             # <<<<<<<<<<<<<<
@@ -8945,7 +8716,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("import_array", 0);
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":942
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":942
  * # Cython code.
  * cdef inline int import_array() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -8961,7 +8732,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
     __Pyx_XGOTREF(__pyx_t_3);
     /*try:*/ {
 
-      /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":943
+      /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":943
  * cdef inline int import_array() except -1:
  *     try:
  *         __pyx_import_array()             # <<<<<<<<<<<<<<
@@ -8970,7 +8741,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
  */
       __pyx_t_4 = _import_array(); if (unlikely(__pyx_t_4 == ((int)-1))) __PYX_ERR(1, 943, __pyx_L3_error)
 
-      /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":942
+      /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":942
  * # Cython code.
  * cdef inline int import_array() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -8984,7 +8755,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
     goto __pyx_L8_try_end;
     __pyx_L3_error:;
 
-    /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":944
+    /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":944
  *     try:
  *         __pyx_import_array()
  *     except Exception:             # <<<<<<<<<<<<<<
@@ -8999,7 +8770,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_GOTREF(__pyx_t_7);
 
-      /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":945
+      /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":945
  *         __pyx_import_array()
  *     except Exception:
  *         raise ImportError("numpy.core.multiarray failed to import")             # <<<<<<<<<<<<<<
@@ -9015,7 +8786,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
     goto __pyx_L5_except_error;
     __pyx_L5_except_error:;
 
-    /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":942
+    /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":942
  * # Cython code.
  * cdef inline int import_array() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -9030,7 +8801,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
     __pyx_L8_try_end:;
   }
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":941
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":941
  * # Versions of the import_* functions which are more suitable for
  * # Cython code.
  * cdef inline int import_array() except -1:             # <<<<<<<<<<<<<<
@@ -9053,7 +8824,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
   return __pyx_r;
 }
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":947
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":947
  *         raise ImportError("numpy.core.multiarray failed to import")
  * 
  * cdef inline int import_umath() except -1:             # <<<<<<<<<<<<<<
@@ -9077,7 +8848,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("import_umath", 0);
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":948
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":948
  * 
  * cdef inline int import_umath() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -9093,7 +8864,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
     __Pyx_XGOTREF(__pyx_t_3);
     /*try:*/ {
 
-      /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":949
+      /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":949
  * cdef inline int import_umath() except -1:
  *     try:
  *         _import_umath()             # <<<<<<<<<<<<<<
@@ -9102,7 +8873,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
  */
       __pyx_t_4 = _import_umath(); if (unlikely(__pyx_t_4 == ((int)-1))) __PYX_ERR(1, 949, __pyx_L3_error)
 
-      /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":948
+      /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":948
  * 
  * cdef inline int import_umath() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -9116,7 +8887,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
     goto __pyx_L8_try_end;
     __pyx_L3_error:;
 
-    /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":950
+    /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":950
  *     try:
  *         _import_umath()
  *     except Exception:             # <<<<<<<<<<<<<<
@@ -9131,7 +8902,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_GOTREF(__pyx_t_7);
 
-      /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":951
+      /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":951
  *         _import_umath()
  *     except Exception:
  *         raise ImportError("numpy.core.umath failed to import")             # <<<<<<<<<<<<<<
@@ -9147,7 +8918,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
     goto __pyx_L5_except_error;
     __pyx_L5_except_error:;
 
-    /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":948
+    /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":948
  * 
  * cdef inline int import_umath() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -9162,7 +8933,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
     __pyx_L8_try_end:;
   }
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":947
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":947
  *         raise ImportError("numpy.core.multiarray failed to import")
  * 
  * cdef inline int import_umath() except -1:             # <<<<<<<<<<<<<<
@@ -9185,7 +8956,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
   return __pyx_r;
 }
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":953
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":953
  *         raise ImportError("numpy.core.umath failed to import")
  * 
  * cdef inline int import_ufunc() except -1:             # <<<<<<<<<<<<<<
@@ -9209,7 +8980,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("import_ufunc", 0);
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":954
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":954
  * 
  * cdef inline int import_ufunc() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -9225,7 +8996,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
     __Pyx_XGOTREF(__pyx_t_3);
     /*try:*/ {
 
-      /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":955
+      /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":955
  * cdef inline int import_ufunc() except -1:
  *     try:
  *         _import_umath()             # <<<<<<<<<<<<<<
@@ -9234,7 +9005,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
  */
       __pyx_t_4 = _import_umath(); if (unlikely(__pyx_t_4 == ((int)-1))) __PYX_ERR(1, 955, __pyx_L3_error)
 
-      /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":954
+      /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":954
  * 
  * cdef inline int import_ufunc() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -9248,7 +9019,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
     goto __pyx_L8_try_end;
     __pyx_L3_error:;
 
-    /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":956
+    /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":956
  *     try:
  *         _import_umath()
  *     except Exception:             # <<<<<<<<<<<<<<
@@ -9263,7 +9034,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_GOTREF(__pyx_t_7);
 
-      /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":957
+      /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":957
  *         _import_umath()
  *     except Exception:
  *         raise ImportError("numpy.core.umath failed to import")             # <<<<<<<<<<<<<<
@@ -9279,7 +9050,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
     goto __pyx_L5_except_error;
     __pyx_L5_except_error:;
 
-    /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":954
+    /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":954
  * 
  * cdef inline int import_ufunc() except -1:
  *     try:             # <<<<<<<<<<<<<<
@@ -9294,7 +9065,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
     __pyx_L8_try_end:;
   }
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":953
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":953
  *         raise ImportError("numpy.core.umath failed to import")
  * 
  * cdef inline int import_ufunc() except -1:             # <<<<<<<<<<<<<<
@@ -9317,7 +9088,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
   return __pyx_r;
 }
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":967
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":967
  * 
  * 
  * cdef inline bint is_timedelta64_object(object obj):             # <<<<<<<<<<<<<<
@@ -9330,7 +9101,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_is_timedelta64_object(PyObject *__pyx_v_
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("is_timedelta64_object", 0);
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":979
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":979
  *     bool
  *     """
  *     return PyObject_TypeCheck(obj, &PyTimedeltaArrType_Type)             # <<<<<<<<<<<<<<
@@ -9340,7 +9111,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_is_timedelta64_object(PyObject *__pyx_v_
   __pyx_r = PyObject_TypeCheck(__pyx_v_obj, (&PyTimedeltaArrType_Type));
   goto __pyx_L0;
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":967
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":967
  * 
  * 
  * cdef inline bint is_timedelta64_object(object obj):             # <<<<<<<<<<<<<<
@@ -9354,7 +9125,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_is_timedelta64_object(PyObject *__pyx_v_
   return __pyx_r;
 }
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":982
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":982
  * 
  * 
  * cdef inline bint is_datetime64_object(object obj):             # <<<<<<<<<<<<<<
@@ -9367,7 +9138,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_is_datetime64_object(PyObject *__pyx_v_o
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("is_datetime64_object", 0);
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":994
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":994
  *     bool
  *     """
  *     return PyObject_TypeCheck(obj, &PyDatetimeArrType_Type)             # <<<<<<<<<<<<<<
@@ -9377,7 +9148,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_is_datetime64_object(PyObject *__pyx_v_o
   __pyx_r = PyObject_TypeCheck(__pyx_v_obj, (&PyDatetimeArrType_Type));
   goto __pyx_L0;
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":982
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":982
  * 
  * 
  * cdef inline bint is_datetime64_object(object obj):             # <<<<<<<<<<<<<<
@@ -9391,7 +9162,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_is_datetime64_object(PyObject *__pyx_v_o
   return __pyx_r;
 }
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":997
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":997
  * 
  * 
  * cdef inline npy_datetime get_datetime64_value(object obj) nogil:             # <<<<<<<<<<<<<<
@@ -9402,7 +9173,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_is_datetime64_object(PyObject *__pyx_v_o
 static CYTHON_INLINE npy_datetime __pyx_f_5numpy_get_datetime64_value(PyObject *__pyx_v_obj) {
   npy_datetime __pyx_r;
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":1004
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":1004
  *     also needed.  That can be found using `get_datetime64_unit`.
  *     """
  *     return (<PyDatetimeScalarObject*>obj).obval             # <<<<<<<<<<<<<<
@@ -9412,7 +9183,7 @@ static CYTHON_INLINE npy_datetime __pyx_f_5numpy_get_datetime64_value(PyObject *
   __pyx_r = ((PyDatetimeScalarObject *)__pyx_v_obj)->obval;
   goto __pyx_L0;
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":997
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":997
  * 
  * 
  * cdef inline npy_datetime get_datetime64_value(object obj) nogil:             # <<<<<<<<<<<<<<
@@ -9425,7 +9196,7 @@ static CYTHON_INLINE npy_datetime __pyx_f_5numpy_get_datetime64_value(PyObject *
   return __pyx_r;
 }
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":1007
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":1007
  * 
  * 
  * cdef inline npy_timedelta get_timedelta64_value(object obj) nogil:             # <<<<<<<<<<<<<<
@@ -9436,7 +9207,7 @@ static CYTHON_INLINE npy_datetime __pyx_f_5numpy_get_datetime64_value(PyObject *
 static CYTHON_INLINE npy_timedelta __pyx_f_5numpy_get_timedelta64_value(PyObject *__pyx_v_obj) {
   npy_timedelta __pyx_r;
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":1011
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":1011
  *     returns the int64 value underlying scalar numpy timedelta64 object
  *     """
  *     return (<PyTimedeltaScalarObject*>obj).obval             # <<<<<<<<<<<<<<
@@ -9446,7 +9217,7 @@ static CYTHON_INLINE npy_timedelta __pyx_f_5numpy_get_timedelta64_value(PyObject
   __pyx_r = ((PyTimedeltaScalarObject *)__pyx_v_obj)->obval;
   goto __pyx_L0;
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":1007
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":1007
  * 
  * 
  * cdef inline npy_timedelta get_timedelta64_value(object obj) nogil:             # <<<<<<<<<<<<<<
@@ -9459,7 +9230,7 @@ static CYTHON_INLINE npy_timedelta __pyx_f_5numpy_get_timedelta64_value(PyObject
   return __pyx_r;
 }
 
-/* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":1014
+/* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":1014
  * 
  * 
  * cdef inline NPY_DATETIMEUNIT get_datetime64_unit(object obj) nogil:             # <<<<<<<<<<<<<<
@@ -9470,7 +9241,7 @@ static CYTHON_INLINE npy_timedelta __pyx_f_5numpy_get_timedelta64_value(PyObject
 static CYTHON_INLINE NPY_DATETIMEUNIT __pyx_f_5numpy_get_datetime64_unit(PyObject *__pyx_v_obj) {
   NPY_DATETIMEUNIT __pyx_r;
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":1018
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":1018
  *     returns the unit part of the dtype for a numpy datetime64 object.
  *     """
  *     return <NPY_DATETIMEUNIT>(<PyDatetimeScalarObject*>obj).obmeta.base             # <<<<<<<<<<<<<<
@@ -9478,7 +9249,7 @@ static CYTHON_INLINE NPY_DATETIMEUNIT __pyx_f_5numpy_get_datetime64_unit(PyObjec
   __pyx_r = ((NPY_DATETIMEUNIT)((PyDatetimeScalarObject *)__pyx_v_obj)->obmeta.base);
   goto __pyx_L0;
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":1014
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":1014
  * 
  * 
  * cdef inline NPY_DATETIMEUNIT get_datetime64_unit(object obj) nogil:             # <<<<<<<<<<<<<<
@@ -23324,7 +23095,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_b_O, __pyx_k_O, sizeof(__pyx_k_O), 0, 0, 0, 1},
   {&__pyx_kp_s_Out_of_bounds_on_buffer_access_a, __pyx_k_Out_of_bounds_on_buffer_access_a, sizeof(__pyx_k_Out_of_bounds_on_buffer_access_a), 0, 0, 1, 0},
   {&__pyx_n_s_PickleError, __pyx_k_PickleError, sizeof(__pyx_k_PickleError), 0, 0, 1, 1},
-  {&__pyx_n_s_R, __pyx_k_R, sizeof(__pyx_k_R), 0, 0, 1, 1},
   {&__pyx_n_s_RuntimeError, __pyx_k_RuntimeError, sizeof(__pyx_k_RuntimeError), 0, 0, 1, 1},
   {&__pyx_n_s_T, __pyx_k_T, sizeof(__pyx_k_T), 0, 0, 1, 1},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
@@ -23437,9 +23207,9 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 82, __pyx_L1_error)
-  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(0, 132, __pyx_L1_error)
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 176, __pyx_L1_error)
-  __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(0, 263, __pyx_L1_error)
+  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(0, 130, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 173, __pyx_L1_error)
+  __pyx_builtin_MemoryError = __Pyx_GetBuiltinName(__pyx_n_s_MemoryError); if (!__pyx_builtin_MemoryError) __PYX_ERR(0, 259, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(1, 945, __pyx_L1_error)
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(2, 151, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(2, 2, __pyx_L1_error)
@@ -23488,51 +23258,51 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
 
-  /* "ptu_dijkstra.pyx":132
+  /* "ptu_dijkstra.pyx":130
  *     )
  *     if tangents_status == -1:
  *         raise RuntimeError(             # <<<<<<<<<<<<<<
  *             'Local tangent space approximation failed, at least one geodesic '
  *             'neighborhood does not span d-dimensional space'
  */
-  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_Local_tangent_space_approximatio); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 132, __pyx_L1_error)
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_Local_tangent_space_approximatio); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
-  /* "ptu_dijkstra.pyx":155
- *         return tangents, R
+  /* "ptu_dijkstra.pyx":152
+ *         return tangents
  *     else:
  *         raise RuntimeError(             # <<<<<<<<<<<<<<
  *             'Local tangent space approximation failed'
  *         )
  */
-  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_kp_s_Local_tangent_space_approximatio_2); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_tuple__5 = PyTuple_Pack(1, __pyx_kp_s_Local_tangent_space_approximatio_2); if (unlikely(!__pyx_tuple__5)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__5);
   __Pyx_GIVEREF(__pyx_tuple__5);
 
-  /* "ptu_dijkstra.pyx":263
+  /* "ptu_dijkstra.pyx":259
  * 
  *     if nodes == NULL:
  *         raise MemoryError("Failed to allocate memory in _dijkstra_undirected")             # <<<<<<<<<<<<<<
  * 
  *     for i in range(N):
  */
-  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_kp_s_Failed_to_allocate_memory_in__di); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 263, __pyx_L1_error)
+  __pyx_tuple__6 = PyTuple_Pack(1, __pyx_kp_s_Failed_to_allocate_memory_in__di); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 259, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
 
-  /* "ptu_dijkstra.pyx":475
+  /* "ptu_dijkstra.pyx":466
  * 
  *     if nodes == NULL:
  *         raise MemoryError("Failed to allocate memory in _geodesic_neigborhood_tangents")             # <<<<<<<<<<<<<<
  * 
  *     for i in range(N):
  */
-  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s_Failed_to_allocate_memory_in__ge); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 475, __pyx_L1_error)
+  __pyx_tuple__7 = PyTuple_Pack(1, __pyx_kp_s_Failed_to_allocate_memory_in__ge); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 466, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":945
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":945
  *         __pyx_import_array()
  *     except Exception:
  *         raise ImportError("numpy.core.multiarray failed to import")             # <<<<<<<<<<<<<<
@@ -23543,7 +23313,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__8);
   __Pyx_GIVEREF(__pyx_tuple__8);
 
-  /* "../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":951
+  /* "../../../opt/anaconda3/envs/state_space_embedding/lib/python3.8/site-packages/numpy/__init__.pxd":951
  *         _import_umath()
  *     except Exception:
  *         raise ImportError("numpy.core.umath failed to import")             # <<<<<<<<<<<<<<
@@ -23756,10 +23526,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *                  csgraph,
  *                  d,
  */
-  __pyx_tuple__29 = PyTuple_Pack(21, __pyx_n_s_X, __pyx_n_s_csgraph, __pyx_n_s_d, __pyx_n_s_K, __pyx_n_s_return_predecessors, __pyx_n_s_N, __pyx_n_s_D, __pyx_n_s_N_t, __pyx_n_s_K_t, __pyx_n_s_D_t, __pyx_n_s_d_t, __pyx_n_s_ptu_dists, __pyx_n_s_predecessors, __pyx_n_s_tangents, __pyx_n_s_R, __pyx_n_s_csgraphT, __pyx_n_s_symmetrized_graph, __pyx_n_s_graph_data, __pyx_n_s_graph_indices, __pyx_n_s_graph_indptr, __pyx_n_s_tangents_status); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 28, __pyx_L1_error)
+  __pyx_tuple__29 = PyTuple_Pack(20, __pyx_n_s_X, __pyx_n_s_csgraph, __pyx_n_s_d, __pyx_n_s_K, __pyx_n_s_return_predecessors, __pyx_n_s_N, __pyx_n_s_D, __pyx_n_s_N_t, __pyx_n_s_K_t, __pyx_n_s_D_t, __pyx_n_s_d_t, __pyx_n_s_ptu_dists, __pyx_n_s_predecessors, __pyx_n_s_tangents, __pyx_n_s_csgraphT, __pyx_n_s_symmetrized_graph, __pyx_n_s_graph_data, __pyx_n_s_graph_indices, __pyx_n_s_graph_indptr, __pyx_n_s_tangents_status); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 28, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__29);
   __Pyx_GIVEREF(__pyx_tuple__29);
-  __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(5, 0, 21, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_GeoDySys_lib_ptu_dijkstra_pyx, __pyx_n_s_ptu_dijkstra, 28, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) __PYX_ERR(0, 28, __pyx_L1_error)
+  __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(5, 0, 20, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_GeoDySys_lib_ptu_dijkstra_pyx, __pyx_n_s_ptu_dijkstra, 28, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) __PYX_ERR(0, 28, __pyx_L1_error)
 
   /* "View.MemoryView":286
  *         return self.name
@@ -27763,52 +27533,6 @@ __pyx_fail:
     }
     retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
                                                  PyBUF_RECORDS_RO | writable_flag, 3,
-                                                 &__Pyx_TypeInfo_double, stack,
-                                                 &result, obj);
-    if (unlikely(retcode == -1))
-        goto __pyx_fail;
-    return result;
-__pyx_fail:
-    result.memview = NULL;
-    result.data = NULL;
-    return result;
-}
-
-/* ObjectToMemviewSlice */
-  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsds_int(PyObject *obj, int writable_flag) {
-    __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
-    __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED), (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
-    int retcode;
-    if (obj == Py_None) {
-        result.memview = (struct __pyx_memoryview_obj *) Py_None;
-        return result;
-    }
-    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
-                                                 PyBUF_RECORDS_RO | writable_flag, 2,
-                                                 &__Pyx_TypeInfo_int, stack,
-                                                 &result, obj);
-    if (unlikely(retcode == -1))
-        goto __pyx_fail;
-    return result;
-__pyx_fail:
-    result.memview = NULL;
-    result.data = NULL;
-    return result;
-}
-
-/* ObjectToMemviewSlice */
-  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_dsdsdsds_double(PyObject *obj, int writable_flag) {
-    __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
-    __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED), (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED), (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED), (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
-    int retcode;
-    if (obj == Py_None) {
-        result.memview = (struct __pyx_memoryview_obj *) Py_None;
-        return result;
-    }
-    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
-                                                 PyBUF_RECORDS_RO | writable_flag, 4,
                                                  &__Pyx_TypeInfo_double, stack,
                                                  &result, obj);
     if (unlikely(retcode == -1))

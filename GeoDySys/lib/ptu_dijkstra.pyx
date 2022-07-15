@@ -107,8 +107,6 @@ def ptu_dijkstra(X,
     predecessors = np.empty((N, N), dtype=ITYPE)
     predecessors.fill(-1)
     tangents = np.empty((N, D, d), dtype=DTYPE)
-    R = np.empty(shape=[N, N, d, d], dtype=DTYPE)
-
 
     # symmetrize the graph
     csgraphT = csgraph.T.tocsr()
@@ -134,23 +132,22 @@ def ptu_dijkstra(X,
             'neighborhood does not span d-dimensional space'
         )
     elif tangents_status == 1:
-        _parallel_transport_dijkstra(
-            X,
-            graph_data,
-            graph_indices,
-            graph_indptr,
-            ptu_dists,
-            tangents,
-            predecessors,
-            R,
-            N_t,
-            D_t,
-            d_t
-        )
+        # _parallel_transport_dijkstra(
+        #     X,
+        #     graph_data,
+        #     graph_indices,
+        #     graph_indptr,
+        #     ptu_dists,
+        #     tangents,
+        #     predecessors,
+        #     N_t,
+        #     D_t,
+        #     d_t
+        # )
         # if return_predecessors:
         #     return ptu_dists, predecessors
         # return ptu_dists
-        return tangents, R
+        return tangents
     else:
         raise RuntimeError(
             'Local tangent space approximation failed'
@@ -203,7 +200,6 @@ cdef _parallel_transport_dijkstra(
             double[:, :] ptu_dists,
             double[:, :, :] tangents,
             int[:, :] pred,
-            double[:, :, :, :] R,
             int N,
             int D,
             int d
@@ -382,11 +378,6 @@ cdef _parallel_transport_dijkstra(
                             for l in range(0, d):
                                 temp += jTangent[p, k] * U[k, l] * VT[l, q]
                         iTangent[j, p, q] = temp
-                      
-                for q in range(d):
-                    for k in range(0, d):
-                        for l in range(0, d):
-                            R[i,j,k,q] = U[k, l] * VT[l, q]
 
             # Standard Dijkstra: process neighbors of j
             for k in range(csr_indptr[j], csr_indptr[j + 1]):

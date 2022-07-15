@@ -203,7 +203,7 @@ def neighbourhoods(data,
             x = np.array(list(nx.get_node_attributes(subgraph,name='pos').values()))
             if vector:
                 ax.quiver(x[:,0],x[:,1],vx,vy, 
-                          color=c, scale=5, scale_units='x', width=0.02)  
+                          color=c, scale=10, scale_units='x', width=0.02)  
             else:
                 ax.scatter(x[:,0],x[:,1],c=c)
             

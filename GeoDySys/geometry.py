@@ -82,76 +82,137 @@ def furthest_point_sampling(X, N=None, return_clusters=False):
 # =============================================================================
 # Clustering
 # =============================================================================
-def cluster(emb, typ='kmeans', n_clusters=15, reorder=True, tsne_embed=True, seed=0):
-    """Cluster embedding"""
+def cluster_and_embed(x, cluster_typ='kmeans', embed_typ='tsne', n_clusters=15, proximity_order=True, seed=0):
+    """Cluster & embed"""
     
-    emb = emb.detach().numpy()
+    x = x.detach().numpy()
+
+    clusters = cluster(x, cluster_typ, n_clusters, seed)
+        
+    #reorder to give close clusters similar labels
+    if proximity_order:
+        clusters = relabel_by_proximity(clusters)
+        
+    emb = np.vstack([x, clusters['centroids']])
+    emb = embed(emb, embed_typ)
+    clusters['centroids'] = emb[-n_clusters:]
+    emb = emb[:-n_clusters]       
+        
+    return emb, clusters
+
+
+def cluster(x, cluster_typ='kmeans', n_clusters=15, seed=0):
     
     clusters = dict()
-    if typ=='kmeans':
-        kmeans = KMeans(n_clusters=n_clusters, random_state=seed).fit(emb)
+    if cluster_typ=='kmeans':
+        kmeans = KMeans(n_clusters=n_clusters, random_state=seed).fit(x)
         clusters['n_clusters'] = n_clusters
         clusters['labels'] = kmeans.labels_
         clusters['centroids'] = kmeans.cluster_centers_
     else:
         NotImplementedError
         
-    #reorder to give close clusters similar labels
-    if reorder:
-        pd = pairwise_distances(clusters['centroids'], metric='euclidean')
-        pd += np.max(pd)*np.eye(n_clusters)
-        mapping = {}
-        id_old = 0
-        for i in range(n_clusters):
-            id_new = np.argmin(pd[id_old,:])
-            while id_new in mapping.keys():
-                pd[id_old,id_new] += np.max(pd)
-                id_new = np.argmin(pd[id_old,:])
-            mapping[id_new] = i
-            id_old = id_new
-            
-        l = clusters['labels']
-        clusters['labels'] = np.array([mapping[l[i]] for i,_ in enumerate(l)])
-        clusters['centroids'] = clusters['centroids'][list(mapping.keys())]
-        
-    if tsne_embed:
-        n_emb = emb.shape[0]
-        emb = np.vstack([emb, clusters['centroids']])
-        if emb.shape[1]>2:
+    return clusters
+
+
+def embed(x, embed_typ='tsne'):
+    
+    if embed_typ=='tsne': 
+        if x.shape[1]>2:
             print('Performed t-SNE embedding on embedded results.')
-            emb = TSNE(init='random',learning_rate='auto').fit_transform(emb)
-            
-        clusters['centroids'] = emb[n_emb:]
-        emb = emb[:n_emb]       
+            emb = TSNE(init='random',learning_rate='auto').fit_transform(x)
+    elif embed_typ=='umap':
+        NotImplementedError
+    else:
+        NotImplementedError
+    
+    return emb
+
+
+def relabel_by_proximity(clusters):
+    
+    pd = pairwise_distances(clusters['centroids'], metric='euclidean')
+    pd += np.max(pd)*np.eye(clusters['n_clusters'])
+    
+    mapping = dict()
+    id_old = 0
+    for i in range(clusters['n_clusters']):
+        id_new = np.argmin(pd[id_old,:])
+        while id_new in mapping.keys():
+            pd[id_old,id_new] += np.max(pd)
+            id_new = np.argmin(pd[id_old,:])
+        mapping[id_new] = i
+        id_old = id_new
         
-        
-    return emb, clusters
+    l = clusters['labels']
+    clusters['labels'] = np.array([mapping[l[i]] for i,_ in enumerate(l)])
+    clusters['centroids'] = clusters['centroids'][list(mapping.keys())]
+    
+    return clusters
 
 
 # =============================================================================
 # Discrete differential operators
 # =============================================================================
-def compute_laplacian(data, k_eig=2, eps=1e-8):
-    """
-    Builds spectral operators for a mesh/point cloud. Constructs mass matrix, eigenvalues/vectors for Laplacian, and gradient matrix.
-    Arguments:
-      - k_eig: number of eigenvectors to use
-    Returns:
-      - L: (VxV) real sparse matrix of (weak) Laplacian
-      - evals: (k) list of eigenvalues of the Laplacian
-      - evecs: (V,k) list of eigenvectors of the Laplacian 
-      - grad_mat: (VxVxdim) sparse matrix which gives the gradient in the local basis at the vertex
-    """
-
-    L = get_laplacian(data.edge_index, normalization="rw")
+def compute_laplacian(data, normalization="rw"):
+    
+    L = get_laplacian(data.edge_index, normalization=normalization)
     L = to_scipy_sparse_matrix(L[0], edge_attr=L[1])
     
+    return np2torch(L.toarray())
+
+
+def compute_connection_laplacian(L, R):
+    """
+    Connection Laplacian
+
+    Parameters
+    ----------
+    L : nxn torch tensor
+        Laplacian matrix.
+    R : nxnxdimxdim torch tensor
+        Connection matrices between all pairs of nodes.
+
+    Returns
+    -------
+    n*dimxn*dim torch tensor
+        Connection Laplacian.
+
+    """    
+    n = L.shape[0]
+    dim = R.shape[2]
+    
+    #rearrange into block form
+    L = L.repeat_interleave(dim, dim=0).repeat_interleave(dim, dim=1)
+    R = R.swapaxes(1,2).reshape(n*dim, n*dim)
+    
+    return L*R
+
+
+def compute_eigendecomposition(A, k=2, eps=1e-8):
+    """
+    Eigendecomposition of a square matrix A
+    
+    Parameters
+    ----------
+    A : square matrix A
+    k : number of eigenvectors
+    eps : small error term
+    
+    Returns
+    -------
+    evals : (k) list of eigenvalues of the Laplacian
+    evecs : (V,k) list of eigenvectors of the Laplacian 
+    grad_mat : (VxVxdim) sparse matrix which gives the gradient in the local basis at the vertex
+    
+    """
+    
     # Compute the eigenbasis
-    L_eigsh = (L + scipy.sparse.identity(L.shape[0])*eps).tocsc()
+    A_eigsh = (A + scipy.sparse.identity(A.shape[0])*eps).tocsc()
     failcount = 0
     while True:
         try:
-            evals, evecs = sla.eigsh(L_eigsh, k=k_eig)
+            evals, evecs = sla.eigsh(A_eigsh, k=k)
             
             # Clip off any eigenvalues that end up slightly negative due to numerical weirdness
             evals = np.clip(evals, a_min=0., a_max=float('inf'))
@@ -163,17 +224,17 @@ def compute_laplacian(data, k_eig=2, eps=1e-8):
                 raise ValueError("failed to compute eigendecomp")
             failcount += 1
             print("--- decomp failed; adding eps ===> count: " + str(failcount))
-            L_eigsh = L_eigsh + scipy.sparse.identity(L.shape[0]) * (eps * 10**failcount)
+            A_eigsh = A_eigsh + scipy.sparse.identity(A.shape[0]) * (eps * 10**failcount)
     
-    return [np2torch(L.toarray()), None, np2torch(evals), np2torch(evecs)]
+    return np2torch(evals), np2torch(evecs)
 
 
-def compute_tangent_frames(data, n_geodesic_nb=10):
+def compute_tangent_frames(data, n_geodesic_nb=10, return_predecessors=False):
 
     X = data.pos.numpy().astype(np.float64)
     A = to_scipy_sparse_matrix(data.edge_index).tocsr()
 
-    tangents, R = ptu_dijkstra(X, A, 2, n_geodesic_nb, return_predecessors=False)
+    _, _, tangents, R = ptu_dijkstra(X, A, 2, n_geodesic_nb, return_predecessors)
     
     return tangents, R
 

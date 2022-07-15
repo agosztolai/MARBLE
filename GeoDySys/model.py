@@ -14,14 +14,14 @@ from datetime import datetime
 from .layers import AnisoConv, Diffusion
 from .kernels import DD, gradient_op
 from .dataloader import loaders
-from .geometry import compute_laplacian, compute_tangent_frames
+from .geometry import compute_laplacian, compute_tangent_frames, compute_connection_laplacian
 from .utils import parse_parameters, print_settings, check_parameters
 
 """Main network"""
 class net(nn.Module):
     def __init__(self, 
                  data,
-                 local_gauge=True, 
+                 local_gauge=False, 
                  include_identity=False,
                  **kwargs):
         super(net, self).__init__()
@@ -29,21 +29,27 @@ class net(nn.Module):
         self.par = parse_parameters(self, data, kwargs)
         self.par = check_parameters(self.par, data)
         self.include_identity = include_identity
-        self.L = compute_laplacian(data, k_eig=128, eps=1e-8)
+        L = compute_laplacian(data)
         
-        if local_gauge is not None:
-            local_gauge, R = compute_tangent_frames(
+        if local_gauge:
+            local_gauge, R = \
+                compute_tangent_frames(
                     data, 
-                    n_geodesic_nb=self.par['n_geodesic_nb'])
+                    n_geodesic_nb=self.par['n_geodesic_nb'],
+                    return_predecessors=True
+                    )
+            Lc = compute_connection_laplacian(L, R)
+        else:
+            local_gauge=None
         
         #kernels
-        self.kernel = gradient_op(data)
+        # self.kernel = gradient_op(data)
         self.kernel = DD(data, local_gauge=local_gauge)
             
         #diffusion layer
         nt = self.par['n_scales']
         init = list(torch.linspace(0,self.par['large_scale'], nt))
-        self.diffusion = Diffusion(data.x.shape[1], init=init)
+        self.diffusion = Diffusion(L, data.x.shape[1], init=init)
             
         #conv layers
         self.convs = nn.ModuleList() #could use nn.Sequential because we execute in order
@@ -58,7 +64,7 @@ class net(nn.Module):
                                         )
                               )
             cum_channels += in_channels
-                        
+            
         #multilayer perceptron
         self.MLP = MLP(in_channels=cum_channels,
                        hidden_channels=self.par['hidden_channels'], 
@@ -79,14 +85,14 @@ class net(nn.Module):
             if hasattr(layer, 'reset_parameters'):
                 layer.reset_parameters()
         
-    def forward(self, x, n_id=None, adjs=None, L=None, K=None):
+    def forward(self, x, n_id=None, adjs=None, K=None):
         """Forward pass. 
         Messages are passed to a set target nodes (batch variable in 
         NeighborSampler) from sources nodes. By convention, the variable x
         is constructed such that the target nodes are placed first, i.e,
         x = concat[x_target, x_other]."""
         
-        x = self.diffusion(x, L)
+        x = self.diffusion(x)
         
         x = x[n_id] if n_id is not None else x  
         out = [x] if self.include_identity else []
@@ -108,7 +114,7 @@ class net(nn.Module):
         with torch.no_grad():
             adjs = [[data.edge_index, None, (data.x.shape[0], data.x.shape[0])]]
             adjs *= self.par['order']
-            return self(data.x, None, adjs, self.L, self.kernel)
+            return self(data.x, None, adjs, self.kernel)
     
     def batch_evaluate(self, x, adjs, n_id, device):
         """Evaluate network in batches"""
@@ -121,7 +127,7 @@ class net(nn.Module):
         #take submatrix corresponding to current batch  
         K_DD = [K_[n_id,:][:,n_id] for K_ in self.kernel]
         
-        return self(x, n_id, adjs, self.L, K_DD)
+        return self(x, n_id, adjs, K_DD)
     
     def train_model(self, data):
         """Network training"""
