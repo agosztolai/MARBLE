@@ -22,25 +22,27 @@ class net(nn.Module):
         
         self.par = utils.parse_parameters(self, data, kwargs)
         self.include_identity = include_identity
+        L = geometry.compute_laplacian(data)
         
-        #gauges
-        gauges, R = geometry.compute_gauges(data, local_gauge, n_geodesic_nb=10)
+        gauges, R = geometry.compute_gauges(data, local_gauge, self.par['n_geodesic_nb'])
+        if local_gauge: #get connection Laplacian
+            Lc = geometry.compute_connection_laplacian(L, R)
         
         #kernels
-        self.kernel = geometry.DD(data, gauges) #or gradient_op(data)
+        # self.kernel = geometry.gradient_op(data)
+        self.kernel = geometry.DD(data, gauges)
             
         #diffusion layer
         nt = self.par['n_scales']
-        scales = list(torch.linspace(0,self.par['large_scale'], nt))
-        L = geometry.compute_laplacian(data)
-        self.diffusion = layers.Diffusion(L, data.x.shape[1], ic=scales[0])
-        if local_gauge:
-            Lc = geometry.compute_connection_laplacian(L, R)
-            self.vector_diffusion = layers.Diffusion(Lc, data.x.shape[1], vector=True, ic=scales[0])
+        dim = data.x.shape[1]
+        scales = torch.linspace(0,self.par['large_scale'], nt)
+        self.diffusion = nn.ModuleList() 
+        for tau in scales:
+            self.diffusion.append(layers.Diffusion(L, dim, ic=tau))
             
         #conv layers
         self.convs = nn.ModuleList()
-        in_channels = data.x.shape[1]#*nt
+        in_channels = dim*nt
         cum_channels = 0
         for i in range(self.par['order']):
             in_channels *= len(self.kernel)
@@ -79,7 +81,10 @@ class net(nn.Module):
         is constructed such that the target nodes are placed first, i.e,
         x = concat[x_target, x_other]."""
         
-        x = self.diffusion(x)
+        out = []
+        for d in self.diffusion:
+            out.append(d(x))
+        x = torch.cat(out, axis=1)
         
         x = x[n_id] if n_id is not None else x  
         out = [x] if self.include_identity else []

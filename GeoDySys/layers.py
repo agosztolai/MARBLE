@@ -100,8 +100,8 @@ class Diffusion(nn.Module):
             t = self.diffusion_time.detach()
             if self.vector:
                 out =  sla.expm_multiply(-t.numpy() * self.L.numpy(), x.flatten().numpy()) 
-                out = np2torch(out)
                 out = out.reshape(x.shape)
+                out = np2torch(out)
             else: #diffuse componentwise
                 out = []
                 for i in range(x.shape[-1]):

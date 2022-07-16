@@ -228,7 +228,7 @@ def DD(data, gauges, order=1, include_identity=False):
 
     """
     
-    nvec = neighbour_vectors(data.x, data.edge_index) #(nxnxdim)
+    nvec = neighbour_vectors(data.pos, data.edge_index) #(nxnxdim)
     
     F = project_gauge_to_neighbours(nvec, gauges)
 
@@ -267,7 +267,7 @@ def DA(data, gauges):
 
     """
     
-    nvec = neighbour_vectors(data.x, data.edge_index) #(nxnxdim)
+    nvec = neighbour_vectors(data.pos, data.edge_index) #(nxnxdim)
     
     F = project_gauge_to_neighbours(nvec, gauges)
 
@@ -296,8 +296,8 @@ def compute_gauges(data, local=False, n_geodesic_nb=10):
 
     """
     
-    n = data.x.shape[0]
-    dim = data.x.shape[-1]
+    n = data.pos.shape[0]
+    dim = data.pos.shape[-1]
     
     if local:
         gauges, R = compute_tangent_bundle(
@@ -323,7 +323,7 @@ def project_gauge_to_neighbours(nvec, gauges):
 
     Returns
     -------
-    F : list of nxn torch tensors of projected components
+    F : list of (nxn) torch tensors of projected components
     
     """
             
