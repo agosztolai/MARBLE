@@ -74,19 +74,26 @@ class net(nn.Module):
             if hasattr(layer, 'reset_parameters'):
                 layer.reset_parameters()
         
-    def forward(self, x, n_id=None, adjs=None, K=None):
+    def forward(self, x, n_id=None, adjs=None):
         """Forward pass. 
-        Messages are passed to a set target nodes (batch variable in 
-        NeighborSampler) from sources nodes. By convention, the variable x
-        is constructed such that the target nodes are placed first, i.e,
-        x = concat[x_target, x_other]."""
+        Messages are passed to a set target nodes (current batch) from sources 
+        nodes. The source nodes are sampled randomly as one-step random walks 
+        starting from target nodes. Thus the source nodes and target nodes form 
+        a bipartite graph to simplify message passing. By convention, the target n
+        odes are placed first in variable x, i.e, x = concat[x_target, x_other]."""
         
         out = []
-        for d in self.diffusion:
-            out.append(d(x))
+        for d in self.diffusion: 
+            out.append(d(x)) #diffusion is global to cannot minibatch
         x = torch.cat(out, axis=1)
         
-        x = x[n_id] if n_id is not None else x  
+        #current batch
+        if n_id is not None:
+            x = x[n_id] #n_id are the node ids in the batch
+            K = [K_[n_id,:][:,n_id] for K_ in self.kernel]
+        else:
+            K = self.kernel
+        
         out = [x] if self.include_identity else []
             
         #taking derivatives (directional difference filters)
@@ -104,22 +111,29 @@ class net(nn.Module):
     def evaluate(self, data):
         """Forward pass @ evaluation (no minibatches)"""            
         with torch.no_grad():
-            adjs = [[data.edge_index, None, (data.x.shape[0], data.x.shape[0])]]
+            size = (data.x.shape[0], data.x.shape[0])
+            adjs = [[data.edge_index, None, size]]
             adjs *= self.par['order']
-            return self(data.x, None, adjs, self.kernel)
+            
+            return self(data.x, None, adjs)
     
     def batch_evaluate(self, x, adjs, n_id, device):
-        """Evaluate network in batches"""
-        # `adjs` holds a list of `(edge_index, e_id, size)` tuples.
-        if (device is not None) and (adjs is not None):
-            if not isinstance(adjs, list):
-                adjs = [adjs]
-            adjs = [adj.to(device) for adj in adjs]
+        """
+        Evaluate network in batches. Launch forward(.)
+
+        Parameters
+        ----------
+        x : (nxdim) feature matrix
+        adjs : holds a list of `(edge_index, e_id, size)` tuples.
+        n_id : list of node ids for current batch
+        device : device, default is 'cpu'
+
+        """
+        if not isinstance(adjs, list):
+            adjs = [adjs]
+        adjs = [adj.to(device) for adj in adjs]
         
-        #take submatrix corresponding to current batch  
-        K_DD = [K_[n_id,:][:,n_id] for K_ in self.kernel]
-        
-        return self(x, n_id, adjs, K_DD)
+        return self(x, n_id, adjs)
     
     def train_model(self, data):
         """Network training"""
@@ -133,7 +147,7 @@ class net(nn.Module):
         
         print('\n---- Starting training ... \n')
         
-        for epoch in range(1, self.par['epochs']): #loop over epochs
+        for epoch in range(self.par['epochs']): #loop over epochs
             
             self.train() #switch to training mode
             train_loss = 0
@@ -155,7 +169,7 @@ class net(nn.Module):
             writer.add_scalar('Loss/train', train_loss, epoch)
             writer.add_scalar('Loss/validation', val_loss, epoch)
             print("Epoch: {},  Training loss: {:.4f}, Validation loss: {:.4f}"\
-                  .format(epoch, train_loss, val_loss))
+                  .format(epoch+1, train_loss, val_loss))
         
         test_loss = 0
         for _, n_id, adjs in test_loader: #loop over batches                
