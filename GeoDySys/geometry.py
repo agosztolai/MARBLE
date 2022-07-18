@@ -390,7 +390,7 @@ def compute_laplacian(data, normalization="rw"):
     return utils.np2torch(L.toarray())
 
 
-def compute_connection_laplacian(L, R):
+def compute_connection_laplacian(data, R=None, normalization='rw'):
     """
     Connection Laplacian
 
@@ -398,18 +398,26 @@ def compute_connection_laplacian(L, R):
     ----------
     L : (nxn) Laplacian matrix.
     R : (nxnxdimxdim) Connection matrices between all pairs of nodes.
+        Default is None, in case of a global coordinate system.
 
     Returns
     -------
     (n*dimxn*dim) Connection Laplacian matrox.
 
-    """    
+    """
+    
+    L = compute_laplacian(data, normalization)
+    
     n = L.shape[0]
-    dim = R.shape[2]
+    dim = data.pos.shape[-1]
     
     #rearrange into block form
     L = L.repeat_interleave(dim, dim=0).repeat_interleave(dim, dim=1)
-    R = R.swapaxes(1,2).reshape(n*dim, n*dim)
+    
+    if R is None:
+        R = torch.ones([n*dim, n*dim])
+    else:
+        R = R.swapaxes(1,2).reshape(n*dim, n*dim)
     
     return L*R
 

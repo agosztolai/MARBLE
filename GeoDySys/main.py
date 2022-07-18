@@ -22,23 +22,23 @@ class net(nn.Module):
         
         self.par = utils.parse_parameters(self, data, kwargs)
         self.include_identity = include_identity
-        L = geometry.compute_laplacian(data)
         
         gauges, R = geometry.compute_gauges(data, local_gauge, self.par['n_geodesic_nb'])
-        if local_gauge: #get connection Laplacian
-            Lc = geometry.compute_connection_laplacian(L, R)
         
         #kernels
         # self.kernel = geometry.gradient_op(data)
         self.kernel = geometry.DD(data, gauges)
             
-        #diffusion layer
+        #diffusion
+        L = geometry.compute_laplacian(data)
+        Lc = geometry.compute_connection_laplacian(data, R)
+        
         nt = self.par['n_scales']
         dim = data.x.shape[1]
         scales = torch.linspace(0,self.par['large_scale'], nt)
         self.diffusion = nn.ModuleList() 
         for tau in scales:
-            self.diffusion.append(layers.Diffusion(L, dim, ic=tau))
+            self.diffusion.append(layers.Diffusion(L, Lc, ic=tau))
             
         #conv layers
         self.convs = nn.ModuleList()
