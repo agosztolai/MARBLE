@@ -8,6 +8,7 @@ import scipy.sparse as sp
 import torch_geometric.utils as PyGu
 from torch_geometric.nn import knn_graph, radius_graph
 from torch_sparse import SparseTensor
+from torch_scatter import scatter_add
 from cknn import cknneighbors_graph
 
 from torch.nn.functional import normalize
@@ -181,7 +182,7 @@ def neighbour_vectors(x, edge_index):
     mask = mask.unsqueeze(2).repeat(1,1,dim)
     
     nvec = x.repeat(n,1,1)
-    nvec = nvec - nvec.swapaxes(0,1) #Gij = xj - xi 
+    nvec = nvec - nvec.swapaxes(0,1) #nvec[i,j] = xj - xi 
     nvec[~mask] = 0
     
     return nvec
@@ -229,7 +230,6 @@ def DD(data, gauges, order=1, include_identity=False):
     """
     
     nvec = neighbour_vectors(data.pos, data.edge_index) #(nxnxdim)
-    
     F = project_gauge_to_neighbours(nvec, gauges)
 
     if include_identity:
@@ -268,7 +268,6 @@ def DA(data, gauges):
     """
     
     nvec = neighbour_vectors(data.pos, data.edge_index) #(nxnxdim)
-    
     F = project_gauge_to_neighbours(nvec, gauges)
 
     K = []
@@ -303,7 +302,6 @@ def compute_gauges(data, local=False, n_geodesic_nb=10):
         gauges, R = compute_tangent_bundle(
             data, 
             n_geodesic_nb=n_geodesic_nb,
-            return_predecessors=True
             )
         return gauges, R
     else:      
@@ -378,16 +376,20 @@ def fit_graph(x, graph_type='cknn', par=1):
         NotImplementedError
     
     edge_index = PyGu.to_undirected(edge_index)
+    pdist = torch.nn.PairwiseDistance(p=2)
+    edge_weight = pdist(x[edge_index[0]], x[edge_index[1]])
     
-    return edge_index
+    return edge_index, edge_weight
 
 
 def compute_laplacian(data, normalization="rw"):
     
-    L = PyGu.get_laplacian(data.edge_index, normalization=normalization)
+    L = PyGu.get_laplacian(data.edge_index,
+                           edge_weight = data.edge_weight,
+                           normalization = normalization)
     L = PyGu.to_scipy_sparse_matrix(L[0], edge_attr=L[1])
     
-    return utils.np2torch(L.toarray())
+    return L
 
 
 def compute_connection_laplacian(data, R=None, normalization='rw'):
@@ -399,6 +401,16 @@ def compute_connection_laplacian(data, R=None, normalization='rw'):
     L : (nxn) Laplacian matrix.
     R : (nxnxdimxdim) Connection matrices between all pairs of nodes.
         Default is None, in case of a global coordinate system.
+    normalization: None, 'sym', 'rw'
+                 1. None: No normalization
+                 :math:`\mathbf{L} = \mathbf{D} - \mathbf{A}`
+
+                 2. "sym"`: Symmetric normalization
+                 :math:`\mathbf{L} = \mathbf{I} - \mathbf{D}^{-1/2} \mathbf{A}
+                 \mathbf{D}^{-1/2}`
+
+                 3. "rw"`: Random-walk normalization
+                 :math:`\mathbf{L} = \mathbf{I} - \mathbf{D}^{-1} \mathbf{A}`
 
     Returns
     -------
@@ -406,20 +418,41 @@ def compute_connection_laplacian(data, R=None, normalization='rw'):
 
     """
     
-    L = compute_laplacian(data, normalization)
+    L = compute_laplacian(data, normalization=None)
     
     n = L.shape[0]
     dim = data.pos.shape[-1]
     
     #rearrange into block form
-    L = L.repeat_interleave(dim, dim=0).repeat_interleave(dim, dim=1)
+    L = sp.kron(L, sp.csr_matrix(torch.ones([dim,dim])))
+    L = utils.np2torch(L.toarray())
     
     if R is None:
         R = torch.ones([n*dim, n*dim])
     else:
         R = R.swapaxes(1,2).reshape(n*dim, n*dim)
+        R += torch.eye(n).kron(torch.ones(dim,dim))
+        
+    #multiply off-diagonal terms
+    Lc = L*R
+       
+    #normalize
+    edge_index, edge_weight = PyGu.remove_self_loops(data.edge_index, data.edge_weight)
+    if edge_weight is None:
+        edge_weight = torch.ones(edge_index.size(1), device=edge_index.device)
+    row, _ = edge_index[0], edge_index[1]
+    deg = scatter_add(edge_weight, row, dim=0, dim_size=data.num_nodes)
     
-    return L*R
+    if normalization == 'rw':
+        deg_inv = 1.0 / deg
+        deg_inv.masked_fill_(deg_inv == float('inf'), 0)
+        deg_inv = deg_inv.repeat_interleave(dim, dim=0)
+        Lc *= deg_inv
+
+    elif normalization == 'sym':
+        NotImplementedError
+        
+    return sp.csr_matrix(Lc)
 
 
 def compute_eigendecomposition(A, k=2, eps=1e-8):
@@ -461,7 +494,7 @@ def compute_eigendecomposition(A, k=2, eps=1e-8):
     return utils.np2torch(evals), utils.np2torch(evecs)
 
 
-def compute_tangent_bundle(data, n_geodesic_nb=10, return_predecessors=False):
+def compute_tangent_bundle(data, n_geodesic_nb=10, return_predecessors=True):
     """
     Orthonormal gauges for the tangent space at each node, and connection 
     matrices between each pair of adjacent nodes.
@@ -470,7 +503,7 @@ def compute_tangent_bundle(data, n_geodesic_nb=10, return_predecessors=False):
     ----------
     data : Pytorch geometric data object.
     n_geodesic_nb : number of geodesic neighbours. The default is 10.
-    return_predecessors : bool. The default is False.
+    return_predecessors : bool. The default is True.
 
     Returns
     -------
@@ -483,7 +516,7 @@ def compute_tangent_bundle(data, n_geodesic_nb=10, return_predecessors=False):
 
     _, _, tangents, R = ptu_dijkstra(X, A, 2, n_geodesic_nb, return_predecessors)
     
-    return tangents, R
+    return utils.np2torch(tangents), utils.np2torch(R)
 
 
 # def vertex_normals(verts, n_nb=30):

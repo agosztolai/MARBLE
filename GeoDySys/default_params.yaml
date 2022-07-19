@@ -6,6 +6,7 @@ edge_dropout: 0. #dropout in the convolution graph
 n_sampled_nb: 30 #parameter of neighbourhood sampling
 n_geodesic_nb: 50 #number of geodesic neighbours to map to tangent space
 order: 1 #order to which to compute the directional derivatives
+depth: 2 #how many hops to aggregate
 n_lin_layers: 2 #number of layers if MLP
 vec_norm: False #vector normalisation of embedded features
 b_norm: True #batch normalisation

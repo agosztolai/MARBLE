@@ -15,7 +15,7 @@ from GeoDySys import geometry, utils, layers, dataloader
 class net(nn.Module):
     def __init__(self, 
                  data,
-                 local_gauge=True, 
+                 local_gauge=False, 
                  include_identity=False,
                  **kwargs):
         super(net, self).__init__()
@@ -23,16 +23,18 @@ class net(nn.Module):
         self.par = utils.parse_parameters(self, data, kwargs)
         self.include_identity = include_identity
         
+        #gauges
         gauges, R = geometry.compute_gauges(data, local_gauge, self.par['n_geodesic_nb'])
         
         #kernels
         # self.kernel = geometry.gradient_op(data)
         self.kernel = geometry.DD(data, gauges)
             
-        #diffusion
+        #Laplacians
         L = geometry.compute_laplacian(data)
         Lc = geometry.compute_connection_laplacian(data, R)
         
+        #diffusion
         nt = self.par['n_scales']
         dim = data.x.shape[1]
         scales = torch.linspace(0,self.par['large_scale'], nt)
@@ -44,14 +46,22 @@ class net(nn.Module):
         self.convs = nn.ModuleList()
         in_channels = dim*nt
         cum_channels = 0
-        for i in range(self.par['order']):
-            in_channels *= len(self.kernel)
+        for i in range(self.par['order'] + self.par['depth']):
+            # in_channels *= len(self.kernel)
             if include_identity:
                 in_channels += 1
-            self.convs.append(layers.AnisoConv(in_channels, 
-                                        vec_norm=self.par['vec_norm']
+            if i < self.par['order']:
+                conv = layers.AnisoConv(in_channels, 
+                                        convert_to_energy=True,
                                         )
-                              )
+            else:
+                conv = layers.AnisoConv(in_channels, 
+                                        vanilla_GCN=True,
+                                        lin_trnsf=True,
+                                        ReLU=True,
+                                        vec_norm=self.par['vec_norm'],
+                                        )
+            self.convs.append(conv)
             cum_channels += in_channels
             
         #multilayer perceptron
@@ -82,44 +92,42 @@ class net(nn.Module):
         a bipartite graph to simplify message passing. By convention, the target n
         odes are placed first in variable x, i.e, x = concat[x_target, x_other]."""
         
-        out = []
-        for d in self.diffusion: 
-            out.append(d(x)) #diffusion is global to cannot minibatch
-        x = torch.cat(out, axis=1)
+        #diffusion
+        vector = True if x.shape[-1] > 1 else False
+        x = [d(x, vector) for  d in self.diffusion]
+        x = torch.cat(x, axis=1)
         
-        #current batch
+        #restrict to current batch
+        K = self.kernel
         if n_id is not None:
             x = x[n_id] #n_id are the node ids in the batch
-            K = [K_[n_id,:][:,n_id] for K_ in self.kernel]
-        else:
-            K = self.kernel
-        
-        out = [x] if self.include_identity else []
+            if K is not None:
+                K = [K_[n_id,:][:,n_id] for K_ in K]
             
-        #taking derivatives (directional difference filters)
+        #convolutions
+        out = [x] if self.include_identity else []
         for i, (edge_index, _, size) in enumerate(adjs):
-            x_source = x #all nodes
-            x_target = x[:size[1]]
-            x = self.convs[i]((x_source, x_target), edge_index, K=K)
+            #by convention, the first size[1] nodes are the targets
+            x = self.convs[i]((x, x[:size[1]]), edge_index, K=K)
             out.append(x)
             
         out = [o[:size[1]] for o in out] #only take target nodes
-        x = torch.cat(out, axis=1)
+        out = torch.cat(out, axis=1)
         
-        return self.MLP(x)
+        return self.MLP(out)
     
     def evaluate(self, data):
         """Forward pass @ evaluation (no minibatches)"""            
         with torch.no_grad():
             size = (data.x.shape[0], data.x.shape[0])
             adjs = [[data.edge_index, None, size]]
-            adjs *= self.par['order']
+            adjs *= (self.par['order'] + self.par['depth'])
             
             return self(data.x, None, adjs)
     
     def batch_evaluate(self, x, adjs, n_id, device):
         """
-        Evaluate network in batches. Launch forward(.)
+        Evaluate network in batches. Launch forward()
 
         Parameters
         ----------

@@ -14,7 +14,7 @@ def main():
     #parameters
     n = 512
     k = 30
-    tau = 1000
+    tau = 5
     
     # f1: constant, f2: linear, f3: parabola, f4: saddle
     x3 = geometry.sample_2d(n, [[-1,-1],[1,1]], 'random')
@@ -25,6 +25,7 @@ def main():
     data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
     
     gauges, R = geometry.compute_gauges(data, False, 50)
+    # print(R[:2,:2,...])
     L = geometry.compute_laplacian(data)
     Lc = geometry.compute_connection_laplacian(data, R)
     
@@ -34,7 +35,7 @@ def main():
  
     #plot
     titles=['Vortex left']
-    plot_functions(data, titles=titles) #sampled functions
+    plot_functions(data, titles=titles, gauges=gauges) #sampled functions
 
 
 def f3(x):
@@ -45,7 +46,7 @@ def f3(x):
     return np.hstack([u,v])
 
 
-def plot_functions(data, titles=None):
+def plot_functions(data, titles=None, gauges=None):
     import matplotlib.gridspec as gridspec
     import networkx as nx
     from torch_geometric.utils.convert import to_networkx
@@ -66,6 +67,9 @@ def plot_functions(data, titles=None):
         c = np.array(np.sqrt(d.x[:,0]**2 + d.x[:,1]**2))
         c = plotting.set_colors(c, cbar=False)
         ax.quiver(x[:,0],x[:,1],d.x[:,0],d.x[:,1], color=c, scale=10, scale_units='x',width=0.005)
+        
+        ax.quiver(x[:,0],x[:,1],gauges[:,0,0], gauges[:,0,1], scale=20, color='k',width=0.002, headwidth=2)
+        ax.quiver(x[:,0],x[:,1],gauges[:,1,0], gauges[:,1,1], scale=20, color='k',width=0.002, headwidth=2)
         
         if titles is not None:
             ax.set_title(titles[i])

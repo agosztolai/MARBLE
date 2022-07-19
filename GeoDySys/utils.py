@@ -36,6 +36,7 @@ def parse_parameters(model, data, kwargs):
 
 
 def check_parameters(par, data):
+    """Check parameter validity"""
     if data.degree >= par['n_geodesic_nb']:
         par['n_geodesic_nb'] = data.degree
         warnings.warn('Number of geodesic neighbours (n_geodesic_nb) should \
@@ -50,6 +51,7 @@ def check_parameters(par, data):
 
 
 def print_settings(model, out_channels):
+    """Print parameters to screen"""
     
     print('---- Settings: \n')
     
@@ -85,7 +87,7 @@ def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
 # =============================================================================
 # Conversions
 # =============================================================================
-def construct_dataset(positions, features=None, graph_type='cknn', k=10, connect_datasets=False):
+def construct_dataset(positions, features=None, graph_type='cknn', k=10):
     """Construct PyG dataset from node positions and features"""
         
     positions = tolist(positions)
@@ -96,25 +98,20 @@ def construct_dataset(positions, features=None, graph_type='cknn', k=10, connect
         
     data_list = []
     for i, x in enumerate(features):
-        edge_index = geometry.fit_graph(positions[i], graph_type=graph_type, par=k)
-        n = len(positions[i])
-        
-        if connect_datasets:
-            if i < len(features)-1:
-                edge_index = torch.hstack([edge_index, 
-                                           torch.tensor([n-1,n]).unsqueeze(-1)])
-            
-        data_ = Data(x=positions[i], edge_index=edge_index)
-        
-        if x is None:
-            A = geometry.adjacency_matrix(edge_index)
-            x = A.sum(1).unsqueeze(-1)
-            
-        data_.pos = positions[i] #positions
-        data_.x = x #features
-        data_.num_nodes = n
-        data_.num_node_features = data_.x.shape[1]
-        data_.y = torch.ones(data_.num_nodes, dtype=int)*i
+        #fit graph to point cloud
+        edge_index, edge_weight = geometry.fit_graph(positions[i], 
+                                                     graph_type=graph_type, 
+                                                     par=k
+                                                     )
+        n = len(positions[i])  
+        data_ = Data(pos=positions[i], #positions
+                     x=x, #features
+                     edge_index=edge_index,
+                     edge_weight=edge_weight,
+                     num_nodes = n,
+                     num_node_features = x.shape[1],
+                     y = torch.ones(n, dtype=int)*i
+                     )
         
         data_list.append(data_)
         

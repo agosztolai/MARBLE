@@ -149,7 +149,7 @@ def ptu_dijkstra(X,
         )
         if return_predecessors:
             return ptu_dists, predecessors, tangents, R
-        return ptu_dists, tangents, R
+        return ptu_dists, None, tangents, R
     else:
         raise RuntimeError(
             'Local tangent space approximation failed'
@@ -224,7 +224,7 @@ cdef _parallel_transport_dijkstra(
     ptu_dists: matrix
         [Output] Matrix of (N, N) pairwise geodesic distances between points of
         pointset X (geodesic with repect to manifold S).
-    tangets: 3 dimensional tensor
+    tangents: 3 dimensional tensor
         Collection of N local tangent space bases of size (D, d).
     pred: matrix
         [Output] [N, N] Matrix of Dijkstra algorithm predecessors.
@@ -254,8 +254,7 @@ cdef _parallel_transport_dijkstra(
 
         FibonacciHeap heap
         FibonacciNode *v
-        FibonacciNode *nodes = <FibonacciNode*> malloc(N *
-                                                       sizeof(FibonacciNode))
+        FibonacciNode *nodes = <FibonacciNode*> malloc(N * sizeof(FibonacciNode))
         FibonacciNode *current_node
 
     if nodes == NULL:
@@ -384,8 +383,10 @@ cdef _parallel_transport_dijkstra(
                       
                 for q in range(d):
                     for k in range(0, d):
+                        temp = 0
                         for l in range(0, d):
-                            R[i,j,k,q] = U[k, l] * VT[l, q]
+                            temp += U[k, l] * VT[l, q]
+                        R[i,j,k,q] = temp
 
             # Standard Dijkstra: process neighbors of j
             for k in range(csr_indptr[j], csr_indptr[j + 1]):
