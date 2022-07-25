@@ -136,7 +136,7 @@ def neighbourhoods(data,
                    plot_graph=False):
     
     nc = clusters['n_clusters']
-    fig = plt.figure(figsize=(10, 20),constrained_layout=True)
+    fig = plt.figure(figsize=(10, 20), constrained_layout=True)
     outer = gridspec.GridSpec(int(np.ceil(nc/3)), 3, wspace=0.2, hspace=0.2)
     
     data_list = data.to_data_list()

@@ -519,6 +519,11 @@ def compute_tangent_bundle(data, n_geodesic_nb=10, return_predecessors=True):
     return utils.np2torch(tangents), utils.np2torch(R)
 
 
+def compute_diffusion(x, t, L, method='matrix_exp'):
+    if method == 'matrix_exp':
+        return sp.linalg.expm_multiply(-t*L, x)
+
+
 # def vertex_normals(verts, n_nb=30):
     
 #     _, neigh_inds = find_knn(verts, verts, n_nb, omit_diagonal=True, method='cpu_kd')

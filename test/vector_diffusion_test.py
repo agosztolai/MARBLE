@@ -24,7 +24,7 @@ def main():
     #construct PyG data object
     data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
     
-    gauges, R = geometry.compute_gauges(data, False, 50)
+    gauges, R = geometry.compute_gauges(data, True, 50)
     # print(R[:2,:2,...])
     L = geometry.compute_laplacian(data)
     Lc = geometry.compute_connection_laplacian(data, R)

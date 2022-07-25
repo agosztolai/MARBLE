@@ -16,15 +16,13 @@ class net(nn.Module):
     def __init__(self, 
                  data,
                  local_gauge=False, 
-                 include_identity=False,
                  **kwargs):
         super(net, self).__init__()
         
         self.par = utils.parse_parameters(self, data, kwargs)
-        self.include_identity = include_identity
         
         #gauges
-        gauges, R = geometry.compute_gauges(data, local_gauge, self.par['n_geodesic_nb'])
+        gauges, self.R = geometry.compute_gauges(data, local_gauge, self.par['n_geodesic_nb'])
         
         #kernels
         # self.kernel = geometry.gradient_op(data)
@@ -32,37 +30,37 @@ class net(nn.Module):
             
         #Laplacians
         L = geometry.compute_laplacian(data)
-        Lc = geometry.compute_connection_laplacian(data, R)
+        Lc = geometry.compute_connection_laplacian(data, self.R)
         
         #diffusion
-        nt = self.par['n_scales']
+        self.diffusion = layers.Diffusion(L, Lc)
+        
         dim = data.x.shape[1]
-        scales = torch.linspace(0,self.par['large_scale'], nt)
-        self.diffusion = nn.ModuleList() 
-        for tau in scales:
-            self.diffusion.append(layers.Diffusion(L, Lc, ic=tau))
+        self.vector = True if dim > 1 else False
             
-        #conv layers
-        self.convs = nn.ModuleList()
-        in_channels = dim*nt
+        #gradient features
         cum_channels = 0
-        for i in range(self.par['order'] + self.par['depth']):
-            # in_channels *= len(self.kernel)
-            if include_identity:
-                in_channels += 1
-            if i < self.par['order']:
-                conv = layers.AnisoConv(in_channels, 
-                                        convert_to_energy=True,
-                                        )
-            else:
-                conv = layers.AnisoConv(in_channels, 
-                                        vanilla_GCN=True,
-                                        lin_trnsf=True,
-                                        ReLU=True,
-                                        vec_norm=self.par['vec_norm'],
-                                        )
+        self.grad = nn.ModuleList()
+        for i in range(self.par['order']):
+            self.grad.append(layers.AnisoConv())
+            cum_channels += dim
+            
+        #message passing
+        self.convs = nn.ModuleList()
+        for i in range(self.par['depth']):
+            conv = layers.AnisoConv(cum_channels, 
+                                    vanilla_GCN=True,
+                                    lin_trnsf=True,
+                                    ReLU=True,
+                                    vec_norm=self.par['vec_norm'],
+                                    )               
             self.convs.append(conv)
-            cum_channels += in_channels
+            
+        #sheaf learning
+        self.sheaf = layers.SheafLearning(dim, data.x)
+            
+        #inner product features
+        self.inner_products = layers.InnerProductFeatures(dim, dim)
             
         #multilayer perceptron
         self.MLP = MLP(in_channels=cum_channels,
@@ -76,8 +74,7 @@ class net(nn.Module):
         
         self.reset_parameters()
         
-        utils.print_settings(self, in_channels)
-        
+        utils.print_settings(self, cum_channels)
         
     def reset_parameters(self):
         for layer in self.children():
@@ -93,9 +90,7 @@ class net(nn.Module):
         odes are placed first in variable x, i.e, x = concat[x_target, x_other]."""
         
         #diffusion
-        vector = True if x.shape[-1] > 1 else False
-        x = [d(x, vector) for  d in self.diffusion]
-        x = torch.cat(x, axis=1)
+        # x = self.diffusion(x, self.vector)
         
         #restrict to current batch
         K = self.kernel
@@ -103,18 +98,27 @@ class net(nn.Module):
             x = x[n_id] #n_id are the node ids in the batch
             if K is not None:
                 K = [K_[n_id,:][:,n_id] for K_ in K]
+
+        #gradients
+        out = []
+        adjs_ = adjs[:self.par['order']]
+        for i, (edge_index, _, size) in enumerate(adjs_):
+            R = self.sheaf(x, edge_index)
             
-        #convolutions
-        out = [x] if self.include_identity else []
-        for i, (edge_index, _, size) in enumerate(adjs):
             #by convention, the first size[1] nodes are the targets
-            x = self.convs[i]((x, x[:size[1]]), edge_index, K=K)
+            x = self.grad[i]((x, x[:size[1]]), edge_index, K=K)          
+            x = self.inner_products(x)
             out.append(x)
             
         out = [o[:size[1]] for o in out] #only take target nodes
         out = torch.cat(out, axis=1)
+            
+        #message passing
+        adjs_ = adjs[self.par['order']:]
+        for i, (edge_index, _, size) in enumerate(adjs_):
+            out = self.convs[i]((out, out[:size[1]]), edge_index)          
         
-        return self.MLP(out)
+        return self.MLP(out), R[:size[1],:size[1],...]
     
     def evaluate(self, data):
         """Forward pass @ evaluation (no minibatches)"""            
@@ -161,8 +165,8 @@ class net(nn.Module):
             train_loss = 0
             for _, n_id, adjs in train_loader: #loop over batches
                 optimizer.zero_grad() #zero gradients, otherwise accumulates gradients
-                out = self.batch_evaluate(x, adjs, n_id, device)
-                loss = loss_comp(out)
+                out, R = self.batch_evaluate(x, adjs, n_id, device)
+                loss = loss_comp(out, R)
                 loss.backward() #backprop
                 optimizer.step()
                 train_loss += float(loss)
@@ -170,8 +174,9 @@ class net(nn.Module):
             self.eval() #switch to testing mode (this disables dropout in MLP)
             val_loss = 0
             for _, n_id, adjs in val_loader: #loop over batches                
-                out = self.batch_evaluate(x, adjs, n_id, device)
-                val_loss += float(loss_comp(out))  
+                out, R = self.batch_evaluate(x, adjs, n_id, device)
+                loss = loss_comp(out, R)
+                val_loss += float(loss)  
             val_loss /= (sum(data.val_mask)/sum(data.train_mask))
             
             writer.add_scalar('Loss/train', train_loss, epoch)
@@ -187,10 +192,13 @@ class net(nn.Module):
         print('Final test error: {:.4f}'.format(test_loss))
     
 
-def loss_comp(out):
+def loss_comp(out, R):
     """Unsupervised loss from GraphSAGE (Hamilton et al. 2018.)"""
     batch, pos_batch, neg_batch = out.split(out.size(0) // 3, dim=0)
     pos_loss = F.logsigmoid((batch * pos_batch).sum(-1)).mean()
     neg_loss = F.logsigmoid(-(batch * neg_batch).sum(-1)).mean()
     
-    return -pos_loss - neg_loss
+    R = R.split(out.size(0) // 3, dim=0)[1]
+    R = R.split(out.size(0) // 3, dim=1)[1]
+    
+    return - pos_loss - neg_loss
