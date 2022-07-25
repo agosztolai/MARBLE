@@ -44,6 +44,7 @@ class net(nn.Module):
         for i in range(self.par['order']):
             self.grad.append(layers.AnisoConv())
             cum_channels += dim
+            cum_channels *= len(self.kernel)
             
         #message passing
         self.convs = nn.ModuleList()
@@ -98,16 +99,19 @@ class net(nn.Module):
             x = x[n_id] #n_id are the node ids in the batch
             if K is not None:
                 K = [K_[n_id,:][:,n_id] for K_ in K]
-
+        else:
+            n_id = ':'
         #gradients
         out = []
         adjs_ = adjs[:self.par['order']]
+        R = None
         for i, (edge_index, _, size) in enumerate(adjs_):
-            R = self.sheaf(x, edge_index)
+            if R is None:
+                R = self.sheaf(x, edge_index)
             
             #by convention, the first size[1] nodes are the targets
             x = self.grad[i]((x, x[:size[1]]), edge_index, K=K)          
-            x = self.inner_products(x)
+            # x = self.inner_products(x)
             out.append(x)
             
         out = [o[:size[1]] for o in out] #only take target nodes
@@ -186,8 +190,9 @@ class net(nn.Module):
         
         test_loss = 0
         for _, n_id, adjs in test_loader: #loop over batches                
-            out = self.batch_evaluate(x, adjs, n_id, device)
-            test_loss += float(loss_comp(out))
+            out, R = self.batch_evaluate(x, adjs, n_id, device)
+            loss = loss_comp(out, R)
+            test_loss += float(loss)
         test_loss /= (sum(data.test_mask)/sum(data.train_mask))
         print('Final test error: {:.4f}'.format(test_loss))
     
