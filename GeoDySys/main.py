@@ -19,7 +19,9 @@ class net(nn.Module):
                  **kwargs):
         super(net, self).__init__()
         
-        self.par = utils.parse_parameters(self, data, kwargs)
+        self = utils.parse_parameters(self, data, kwargs)
+        
+        self.vector = True if self.dim > 1 else False
         
         #gauges
         gauges, self.R = geometry.compute_gauges(data, local_gauge, self.par['n_geodesic_nb'])
@@ -27,24 +29,19 @@ class net(nn.Module):
         #kernels
         # self.kernel = geometry.gradient_op(data)
         self.kernel = geometry.DD(data, gauges)
-            
-        #Laplacians
-        L = geometry.compute_laplacian(data)
-        Lc = geometry.compute_connection_laplacian(data, self.R)
         
         #diffusion
-        self.diffusion = layers.Diffusion(L, Lc)
-        
-        dim = data.x.shape[1]
-        self.vector = True if dim > 1 else False
+        self.diffusion = layers.Diffusion(data)
             
         #gradient features
         cum_channels = 0
         self.grad = nn.ModuleList()
         for i in range(self.par['order']):
             self.grad.append(layers.AnisoConv())
-            cum_channels += dim
+            cum_channels += self.dim
             cum_channels *= len(self.kernel)
+            
+        cum_channels += self.dim
             
         #message passing
         self.convs = nn.ModuleList()
@@ -54,14 +51,14 @@ class net(nn.Module):
                                     lin_trnsf=True,
                                     ReLU=True,
                                     vec_norm=self.par['vec_norm'],
-                                    )               
+                                    )
             self.convs.append(conv)
             
         #sheaf learning
-        self.sheaf = layers.SheafLearning(dim, data.x)
+        self.sheaf = layers.SheafLearning(self.dim, data.x)
             
         #inner product features
-        self.inner_products = layers.InnerProductFeatures(dim, dim)
+        self.inner_products = layers.InnerProductFeatures(self.dim, self.dim)
             
         #multilayer perceptron
         self.MLP = MLP(in_channels=cum_channels,
@@ -84,14 +81,14 @@ class net(nn.Module):
         
     def forward(self, x, n_id=None, adjs=None):
         """Forward pass. 
-        Messages are passed to a set target nodes (current batch) from sources 
-        nodes. The source nodes are sampled randomly as one-step random walks 
+        Messages are passed to a set target nodes (current batch) from source
+        nodes. The source nodes are sampled randomly by one-step random walks 
         starting from target nodes. Thus the source nodes and target nodes form 
         a bipartite graph to simplify message passing. By convention, the target n
         odes are placed first in variable x, i.e, x = concat[x_target, x_other]."""
         
         #diffusion
-        # x = self.diffusion(x, self.vector)
+        x = self.diffusion(x, self.vector)
         
         #restrict to current batch
         K = self.kernel
@@ -99,15 +96,13 @@ class net(nn.Module):
             x = x[n_id] #n_id are the node ids in the batch
             if K is not None:
                 K = [K_[n_id,:][:,n_id] for K_ in K]
-        else:
-            n_id = ':'
+
         #gradients
-        out = []
+        out = [x]
         adjs_ = adjs[:self.par['order']]
-        R = None
         for i, (edge_index, _, size) in enumerate(adjs_):
-            if R is None:
-                R = self.sheaf(x, edge_index)
+            R = self.sheaf(out[0], edge_index)
+                # Lc = geometry.compute_connection_laplacian(data, R)
             
             #by convention, the first size[1] nodes are the targets
             x = self.grad[i]((x, x[:size[1]]), edge_index, K=K)          
@@ -122,7 +117,7 @@ class net(nn.Module):
         for i, (edge_index, _, size) in enumerate(adjs_):
             out = self.convs[i]((out, out[:size[1]]), edge_index)          
         
-        return self.MLP(out), R[:size[1],:size[1],...]
+        return self.MLP(out), R
     
     def evaluate(self, data):
         """Forward pass @ evaluation (no minibatches)"""            
@@ -133,23 +128,29 @@ class net(nn.Module):
             
             return self(data.x, None, adjs)
     
-    def batch_evaluate(self, x, adjs, n_id, device):
+    def evaluate_batch(self, x, batch, device):
         """
-        Evaluate network in batches. Launch forward()
+        Evaluate network in batches.
 
         Parameters
         ----------
         x : (nxdim) feature matrix
-        adjs : holds a list of `(edge_index, e_id, size)` tuples.
-        n_id : list of node ids for current batch
+        batch : triple containing
+            n_id : list of node ids for current batch
+            adjs : list of `(edge_index, e_id, size)` tuples.
         device : device, default is 'cpu'
 
         """
+        
+        _, n_id, adjs = batch
+        
         if not isinstance(adjs, list):
             adjs = [adjs]
         adjs = [adj.to(device) for adj in adjs]
         
-        return self(x, n_id, adjs)
+        out, R = self.forward(x, n_id, adjs)
+
+        return compute_loss(out, x, batch, R)
     
     def train_model(self, data):
         """Network training"""
@@ -167,19 +168,18 @@ class net(nn.Module):
             
             self.train() #switch to training mode
             train_loss = 0
-            for _, n_id, adjs in train_loader: #loop over batches
+            for batch in train_loader: #loop over batches
                 optimizer.zero_grad() #zero gradients, otherwise accumulates gradients
-                out, R = self.batch_evaluate(x, adjs, n_id, device)
-                loss = loss_comp(out, R)
+                loss = self.evaluate_batch(x, batch, device)
+                train_loss += float(loss)
+                
                 loss.backward() #backprop
                 optimizer.step()
-                train_loss += float(loss)
                                 
             self.eval() #switch to testing mode (this disables dropout in MLP)
             val_loss = 0
-            for _, n_id, adjs in val_loader: #loop over batches                
-                out, R = self.batch_evaluate(x, adjs, n_id, device)
-                loss = loss_comp(out, R)
+            for batch in val_loader: #loop over batches    
+                loss = self.evaluate_batch(x, batch, device)
                 val_loss += float(loss)  
             val_loss /= (sum(data.val_mask)/sum(data.train_mask))
             
@@ -190,20 +190,36 @@ class net(nn.Module):
         
         test_loss = 0
         for _, n_id, adjs in test_loader: #loop over batches                
-            out, R = self.batch_evaluate(x, adjs, n_id, device)
-            loss = loss_comp(out, R)
+            loss = self.evaluate_batch(x, batch, device)
             test_loss += float(loss)
         test_loss /= (sum(data.test_mask)/sum(data.train_mask))
-        print('Final test error: {:.4f}'.format(test_loss))
+        print('Final test loss: {:.4f}'.format(test_loss))
     
 
-def loss_comp(out, R):
-    """Unsupervised loss from GraphSAGE (Hamilton et al. 2018.)"""
-    batch, pos_batch, neg_batch = out.split(out.size(0) // 3, dim=0)
-    pos_loss = F.logsigmoid((batch * pos_batch).sum(-1)).mean()
-    neg_loss = F.logsigmoid(-(batch * neg_batch).sum(-1)).mean()
+def compute_loss(out, x, batch, R):
+    """Unsupervised loss modified from from GraphSAGE (Hamilton et al. 2018.)"""
     
-    R = R.split(out.size(0) // 3, dim=0)[1]
-    R = R.split(out.size(0) // 3, dim=1)[1]
+    z, z_pos, z_neg = out.split(out.size(0) // 3, dim=0)
+    pos_loss = F.logsigmoid((z * z_pos).sum(-1)).mean()
+    neg_loss = F.logsigmoid(-(z * z_neg).sum(-1)).mean()
     
-    return - pos_loss - neg_loss
+    if x.shape[1] == 1:
+        return - pos_loss - neg_loss
+    
+    _, n_id, adjs = batch
+    edge_index = adjs[-1].edge_index
+    
+    Rij = R[edge_index[0], edge_index[1], ...]
+    xi = x[n_id][edge_index[1]]
+    xj = x[n_id][edge_index[0]]
+    
+    #compute sum_ij || R_ij * x(j) - x(i) || via broadcasting
+    R_loss = torch.einsum('aij,aj->ai',Rij, xj) - xi
+    R_loss = F.logsigmoid((R_loss).norm(dim=1)).mean()
+    
+    #orthogonality constraint sum_ij || Rij*Rij^T - I ||
+    RRT = torch.matmul(Rij, Rij.swapaxes(1,2)) #batch matrix multiplication
+    eye = torch.eye(2).unsqueeze(0).repeat(len(edge_index.T),1,1)
+    orth_loss = ((RRT-eye).norm(dim=(1,2))).mean()
+    
+    return - pos_loss - neg_loss + orth_loss

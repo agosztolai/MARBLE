@@ -30,9 +30,10 @@ def parse_parameters(model, data, kwargs):
         if key not in kwargs.keys():
             kwargs[key] = par[key]
             
-    par = check_parameters(par, data)
+    model.par = check_parameters(kwargs, data)
+    model.dim = data.x.shape[1]
                   
-    return kwargs
+    return model
 
 
 def check_parameters(par, data):
