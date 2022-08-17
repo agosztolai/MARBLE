@@ -12,6 +12,8 @@ from torch_geometric.typing import OptPairTensor
 from torch_geometric.nn.dense.linear import Linear
 from torch_geometric.nn import MLP
 
+from torch_householder import torch_householder_orgqr
+
 from GeoDySys import geometry
 
 
@@ -116,11 +118,12 @@ class Diffusion(nn.Module):
     
 
 class SheafLearning(nn.Module):
-    def __init__(self, D, x_ic=None, sym=True):
+    def __init__(self, D, x_ic=None, orthogonal=True):
         super(SheafLearning, self).__init__()
         
-        self.D, self.x_ic, self.sym = D, x_ic, sym
-        in_channels = D if sym else 2*D
+        self.orthogonal = orthogonal
+        self.D, self.x_ic = D, x_ic
+        in_channels = 2*D
         hidden_channels = 10
         self.Phi = MLP(in_channels, 
                        hidden_channels=hidden_channels,
@@ -133,15 +136,16 @@ class SheafLearning(nn.Module):
             
     def forward(self, x, edge_index):
         
-        if self.sym:
-            x_in = (x[edge_index[0]] - x[edge_index[1]]).abs()
-        else:
-            x_in = torch.cat((x[edge_index[0]], x[edge_index[1]]), axis=1)
-            
+        x_in = torch.cat((x[edge_index[0]], x[edge_index[1]]), axis=1)
         R_tmp = self.Phi(x_in)
         R_tmp = R_tmp.reshape(-1, self.D, self.D)
         
         n = x.shape[0]
+        if self.orthogonal:
+            hh = R_tmp.tril(diagonal=-1) + torch.eye(self.D).unsqueeze(0).repeat(len(x_in),1,1)
+            R_tmp = torch_householder_orgqr(hh)
+            R_tmp = R_tmp.reshape(-1, self.D, self.D)
+         
         R = torch.empty(n, n, self.D, self.D)
         R[edge_index[0], edge_index[1], :,:] = R_tmp
         

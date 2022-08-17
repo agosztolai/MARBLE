@@ -101,7 +101,10 @@ class net(nn.Module):
         out = [x]
         adjs_ = adjs[:self.par['order']]
         for i, (edge_index, _, size) in enumerate(adjs_):
-            R = self.sheaf(out[0], edge_index)
+            if self.vector:
+                R = self.sheaf(out[0], edge_index)
+            else:
+                R = None
                 # Lc = geometry.compute_connection_laplacian(data, R)
             
             #by convention, the first size[1] nodes are the targets
@@ -196,30 +199,26 @@ class net(nn.Module):
         print('Final test loss: {:.4f}'.format(test_loss))
     
 
-def compute_loss(out, x, batch, R):
+def compute_loss(out, x, batch, R=None):
     """Unsupervised loss modified from from GraphSAGE (Hamilton et al. 2018.)"""
     
     z, z_pos, z_neg = out.split(out.size(0) // 3, dim=0)
     pos_loss = F.logsigmoid((z * z_pos).sum(-1)).mean()
     neg_loss = F.logsigmoid(-(z * z_neg).sum(-1)).mean()
     
-    if x.shape[1] == 1:
+    if x.shape[1] == 1 or R is None:
         return - pos_loss - neg_loss
     
-    _, n_id, adjs = batch
-    edge_index = adjs[-1].edge_index
-    
-    Rij = R[edge_index[0], edge_index[1], ...]
-    xi = x[n_id][edge_index[1]]
-    xj = x[n_id][edge_index[0]]
-    
-    #compute sum_ij || R_ij * x(j) - x(i) || via broadcasting
-    R_loss = torch.einsum('aij,aj->ai',Rij, xj) - xi
-    R_loss = F.logsigmoid((R_loss).norm(dim=1)).mean()
-    
-    #orthogonality constraint sum_ij || Rij*Rij^T - I ||
-    RRT = torch.matmul(Rij, Rij.swapaxes(1,2)) #batch matrix multiplication
-    eye = torch.eye(2).unsqueeze(0).repeat(len(edge_index.T),1,1)
-    orth_loss = ((RRT-eye).norm(dim=(1,2))).mean()
-    
-    return - pos_loss - neg_loss + orth_loss
+    else:
+        _, n_id, adjs = batch
+        edge_index = adjs[-1].edge_index
+        
+        Rij = R[edge_index[0], edge_index[1], ...]
+        xi = x[n_id][edge_index[1]]
+        xj = x[n_id][edge_index[0]]
+        
+        #compute sum_ij || R_ij * x(j) - x(i) || via broadcasting
+        R_loss = torch.einsum('aij,aj->ai', Rij, xj) - xi
+        R_loss = F.logsigmoid((R_loss).norm(dim=1)).mean()
+        
+        return - pos_loss - neg_loss + R_loss
