@@ -4,6 +4,7 @@ import torch
 
 import yaml
 import os
+from pathlib import Path
 import warnings
 
 from torch_geometric.transforms import RandomNodeSplit
@@ -19,7 +20,7 @@ from GeoDySys import geometry
 # =============================================================================
 # Manage parameters
 # =============================================================================
-def parse_parameters(model, data, kwargs):
+def parse_parameters(data, kwargs):
     """Load default parameters and merge with user specified parameters"""
     
     file = os.path.dirname(__file__) + '/default_params.yaml'
@@ -30,10 +31,12 @@ def parse_parameters(model, data, kwargs):
         if key not in kwargs.keys():
             kwargs[key] = par[key]
             
-    model.par = check_parameters(kwargs, data)
-    model.dim = data.x.shape[1]
+    kwargs['signal_dim'] = data.x.shape[1]
+    kwargs['emb_dim'] = data.pos.shape[1]
+            
+    par = check_parameters(kwargs, data)
                   
-    return model
+    return par
 
 
 def check_parameters(par, data):
@@ -51,7 +54,7 @@ def check_parameters(par, data):
     return par
 
 
-def print_settings(model, out_channels):
+def print_settings(model):
     """Print parameters to screen"""
     
     print('---- Settings: \n')
@@ -63,7 +66,7 @@ def print_settings(model, out_channels):
     
     np = sum(p.numel() for p in model.parameters() if p.requires_grad)
     
-    print('---- Number of channels to pass to the MLP: ', out_channels)
+    print('---- Number of features to pass to the MLP: ', model.mlp.in_channels)
     print('---- Total number of parameters: ', np)
 
 
@@ -88,24 +91,24 @@ def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
 # =============================================================================
 # Conversions
 # =============================================================================
-def construct_dataset(positions, features=None, graph_type='cknn', k=10):
+def construct_dataset(pos, features=None, graph_type='cknn', k=10):
     """Construct PyG dataset from node positions and features"""
         
-    positions = tolist(positions)
+    pos = tolist(pos)
     features = tolist(features)
         
-    positions = [torch.tensor(p).float() for p in positions]
+    pos = [torch.tensor(p).float() for p in pos]
     features = [torch.tensor(x).float() for x in features]
         
     data_list = []
     for i, x in enumerate(features):
         #fit graph to point cloud
-        edge_index, edge_weight = geometry.fit_graph(positions[i], 
+        edge_index, edge_weight = geometry.fit_graph(pos[i], 
                                                      graph_type=graph_type, 
                                                      par=k
                                                      )
-        n = len(positions[i])  
-        data_ = Data(pos=positions[i], #positions
+        n = len(pos[i])  
+        data_ = Data(pos=pos[i], #positions
                      x=x, #features
                      edge_index=edge_index,
                      edge_weight=edge_weight,
@@ -144,3 +147,13 @@ def tolist(x):
         x = [x]
         
     return x
+
+# =============================================================================
+# Input/output
+# =============================================================================
+def _savefig(fig, folder, filename, ext):
+    """Save figures in subfolders and with different extensions."""
+    if fig is not None:
+        if not Path(folder).exists():
+            os.mkdir(folder)
+        fig.savefig((Path(folder) / filename).with_suffix(ext), bbox_inches="tight")

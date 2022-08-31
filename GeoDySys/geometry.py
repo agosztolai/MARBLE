@@ -160,13 +160,13 @@ def relabel_by_proximity(clusters):
 # =============================================================================
 # Manifold operations
 # =============================================================================
-def neighbour_vectors(x, edge_index):
+def neighbour_vectors(pos, edge_index):
     """
     Local out-going edge vectors around each node.
 
     Parameters
     ----------
-    x : (nxdim) Matrix of node positions
+    pos : (nxdim) Matrix of node positions
     edge_index : (2x|E|) Matrix of edge indices
 
     Returns
@@ -175,13 +175,13 @@ def neighbour_vectors(x, edge_index):
 
     """
     
-    n, dim = x.shape
+    n, dim = pos.shape
     
     mask = torch.zeros([n,n],dtype=bool)
     mask[edge_index[0], edge_index[1]] = 1
     mask = mask.unsqueeze(2).repeat(1,1,dim)
     
-    nvec = x.repeat(n,1,1)
+    nvec = pos.repeat(n,1,1)
     nvec = nvec - nvec.swapaxes(0,1) #nvec[i,j] = xj - xi 
     nvec[~mask] = 0
     
@@ -214,13 +214,28 @@ def gradient_op(nvec):
     return [G[...,i] for i in range(G.shape[-1])]
 
 
-def DD(data, gauges, order=1, include_identity=False):
+def optimal_rotation(X, Y):
+    """Optimal rotation between orthogonal coordinate frames X and Y"""
+    
+    XtY = X.T@Y
+    n = XtY[0].shape[0]
+    U, S, Vt = np.linalg.svd(XtY)
+    UVt = U @ Vt
+    if abs(1.0 - np.linalg.det(UVt)) < 1e-10:
+        return UVt
+    # UVt is in O(n) but not SO(n), which is easily corrected.
+    J = np.append(np.ones(n - 1), -1)
+    return (U * J) @ Vt
+
+
+def DD(pos, edge_index, gauges, order=1, include_identity=False):
     """
     Directional derivative kernel from Beaini et al. 2021.
 
     Parameters
     ----------
-    data : pytorch geometric data object containing .pos and .edge_index
+    pos : (nxdim) Matrix of node positions
+    edge_index : (2x|E|) Matrix of edge indices
     gauge : List of orthonormal unit vectors
 
     Returns
@@ -229,7 +244,7 @@ def DD(data, gauges, order=1, include_identity=False):
 
     """
     
-    nvec = neighbour_vectors(data.pos, data.edge_index) #(nxnxdim)
+    nvec = neighbour_vectors(pos, edge_index) #(nxnxdim)
     F = project_gauge_to_neighbours(nvec, gauges)
 
     if include_identity:
@@ -252,30 +267,30 @@ def DD(data, gauges, order=1, include_identity=False):
     return K
 
 
-def DA(data, gauges):
-    """
-    Directional average kernel from Beaini et al. 2021.
+# def DA(data, gauges):
+#     """
+#     Directional average kernel from Beaini et al. 2021.
 
-    Parameters
-    ----------
-    data : pytorch geometric data object containing .pos and .edge_index
-    gauges : (n,dim,dim) matric of orthogonal unit vectors for each node
+#     Parameters
+#     ----------
+#     data : pytorch geometric data object containing .pos and .edge_index
+#     gauges : (n,dim,dim) matric of orthogonal unit vectors for each node
 
-    Returns
-    -------
-    K : list of (nxn) Anisotropic kernels.
+#     Returns
+#     -------
+#     K : list of (nxn) Anisotropic kernels.
 
-    """
+#     """
     
-    nvec = neighbour_vectors(data.pos, data.edge_index) #(nxnxdim)
-    F = project_gauge_to_neighbours(nvec, gauges)
+#     nvec = neighbour_vectors(data.pos, data.edge_index) #(nxnxdim)
+#     F = project_gauge_to_neighbours(nvec, gauges)
 
-    K = []
-    for _F in F:
-        Fhat = normalize(_F, dim=-1, p=1)
-        K.append(torch.abs(Fhat))
+#     K = []
+#     for _F in F:
+#         Fhat = normalize(_F, dim=-1, p=1)
+#         K.append(torch.abs(Fhat))
         
-    return K
+#     return K
 
 
 def compute_gauges(data, local=False, n_geodesic_nb=10):
@@ -514,7 +529,7 @@ def compute_tangent_bundle(data, n_geodesic_nb=10, return_predecessors=True):
     X = data.pos.numpy().astype(np.float64)
     A = PyGu.to_scipy_sparse_matrix(data.edge_index).tocsr()
 
-    _, _, tangents, R = ptu_dijkstra(X, A, 2, n_geodesic_nb, return_predecessors)
+    _, _, tangents, R = ptu_dijkstra(X, A, X.shape[1], n_geodesic_nb, return_predecessors)
     
     return utils.np2torch(tangents), utils.np2torch(R)
 

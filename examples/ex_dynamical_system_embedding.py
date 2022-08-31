@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
 import numpy as np
-from GeoDySys.solvers import simulate_ODE
+from GeoDySys.lib.solvers import simulate_ODE
 from GeoDySys.time_series import delay_embed, find_nn
 from GeoDySys import plotting, utils
 from GeoDySys.geometry import furthest_point_sampling

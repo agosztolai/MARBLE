@@ -1,4 +1,5 @@
 #Default training parameters
+local_gauge: False
 seed: 0 #seed for reproducibility
 lr: 0.01 #learning rate 
 dropout: 0. #dropout in the MLP

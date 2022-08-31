@@ -26,10 +26,8 @@ def main():
     
     gauges, R = geometry.compute_gauges(data, True, 50)
     # print(R[:2,:2,...])
-    L = geometry.compute_laplacian(data)
-    Lc = geometry.compute_connection_laplacian(data, R)
     
-    diffusion = Diffusion(L=L, Lc=Lc)
+    diffusion = Diffusion(data)
     diffusion.diffusion_time.data = torch.tensor(tau)
     data.x = diffusion(data.x, vector=True, normalize=True)
  

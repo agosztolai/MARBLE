@@ -4,75 +4,33 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import MLP
 
 from tensorboardX import SummaryWriter
 from datetime import datetime
 
-from GeoDySys import geometry, utils, layers, dataloader
+from GeoDySys import utils, dataloader, preprocessing, setup_layers
+
 
 """Main network"""
 class net(nn.Module):
     def __init__(self, 
                  data,
-                 local_gauge=False, 
                  **kwargs):
         super(net, self).__init__()
         
-        self = utils.parse_parameters(self, data, kwargs)
+        self.par = utils.parse_parameters(data, kwargs)
+        self.vector = True if self.par['signal_dim'] > 1 else False
         
-        self.vector = True if self.dim > 1 else False
+        #preprocessing
+        self.gauges, self.kernel = preprocessing(data, self.par)
         
-        #gauges
-        gauges, self.R = geometry.compute_gauges(data, local_gauge, self.par['n_geodesic_nb'])
-        
-        #kernels
-        # self.kernel = geometry.gradient_op(data)
-        self.kernel = geometry.DD(data, gauges)
-        
-        #diffusion
-        self.diffusion = layers.Diffusion(data)
+        #layers
+        self.diffusion, self.grad, self.convs, self.mlp, self.inner_products = \
+            setup_layers(data, self.par)
             
-        #gradient features
-        cum_channels = 0
-        self.grad = nn.ModuleList()
-        for i in range(self.par['order']):
-            self.grad.append(layers.AnisoConv())
-            cum_channels += self.dim
-            cum_channels *= len(self.kernel)
-            
-        cum_channels += self.dim
-            
-        #message passing
-        self.convs = nn.ModuleList()
-        for i in range(self.par['depth']):
-            conv = layers.AnisoConv(cum_channels, 
-                                    vanilla_GCN=True,
-                                    lin_trnsf=True,
-                                    ReLU=True,
-                                    vec_norm=self.par['vec_norm'],
-                                    )
-            self.convs.append(conv)
-            
-        #sheaf learning
-        self.sheaf = layers.SheafLearning(self.dim, data.x)
-            
-        #inner product features
-        self.inner_products = layers.InnerProductFeatures(self.dim, self.dim)
-            
-        #multilayer perceptron
-        self.MLP = MLP(in_channels=cum_channels,
-                       hidden_channels=self.par['hidden_channels'], 
-                       out_channels=self.par['out_channels'],
-                       num_layers=self.par['n_lin_layers'],
-                       dropout=self.par['dropout'],
-                       batch_norm=self.par['b_norm'],
-                       bias=self.par['bias']
-                       )
-        
         self.reset_parameters()
         
-        utils.print_settings(self, cum_channels)
+        utils.print_settings(self)
         
     def reset_parameters(self):
         for layer in self.children():
@@ -88,27 +46,29 @@ class net(nn.Module):
         odes are placed first in variable x, i.e, x = concat[x_target, x_other]."""
         
         #diffusion
-        x = self.diffusion(x, self.vector)
+        # x = self.diffusion(x, self.vector)
         
         #restrict to current batch
-        K = self.kernel
-        if n_id is not None:
-            x = x[n_id] #n_id are the node ids in the batch
-            if K is not None:
-                K = [K_[n_id,:][:,n_id] for K_ in K]
+        kernels = self.kernel
+        if n_id is not None: #n_id are the node ids in the batch
+            x = x[n_id] 
+            if kernels is not None:
+                kernels = [K[n_id,:][:,n_id] for K in kernels]
 
         #gradients
         out = [x]
         adjs_ = adjs[:self.par['order']]
         for i, (edge_index, _, size) in enumerate(adjs_):
-            if self.vector:
-                R = self.sheaf(out[0], edge_index)
-            else:
-                R = None
-                # Lc = geometry.compute_connection_laplacian(data, R)
+            R = None
+            # if self.vector:
+            #     R = self.sheaf(out[0], edge_index)
+            # else:
+            #     R = None
             
+            # self.diffusion.Lc = geometry.compute_connection_laplacian(data, R)
+                        
             #by convention, the first size[1] nodes are the targets
-            x = self.grad[i]((x, x[:size[1]]), edge_index, K=K)          
+            x = self.grad[i]((x, x[:size[1]]), edge_index, kernels)          
             # x = self.inner_products(x)
             out.append(x)
             
@@ -120,7 +80,7 @@ class net(nn.Module):
         for i, (edge_index, _, size) in enumerate(adjs_):
             out = self.convs[i]((out, out[:size[1]]), edge_index)          
         
-        return self.MLP(out), R
+        return self.mlp(out), R
     
     def evaluate(self, data):
         """Forward pass @ evaluation (no minibatches)"""            
@@ -131,7 +91,7 @@ class net(nn.Module):
             
             return self(data.x, None, adjs)
     
-    def evaluate_batch(self, x, batch, device):
+    def evaluate_batch(self, x, batch, device='cpu'):
         """
         Evaluate network in batches.
 
@@ -219,6 +179,6 @@ def compute_loss(out, x, batch, R=None):
         
         #compute sum_ij || R_ij * x(j) - x(i) || via broadcasting
         R_loss = torch.einsum('aij,aj->ai', Rij, xj) - xi
-        R_loss = F.logsigmoid((R_loss).norm(dim=1)).mean()
+        R_loss = F.logsigmoid(R_loss.norm(dim=1)).mean()
         
         return - pos_loss - neg_loss + R_loss

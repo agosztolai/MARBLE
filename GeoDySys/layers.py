@@ -46,26 +46,26 @@ class AnisoConv(MessagePassing):
     def reset_parameters(self):
         self.lin.reset_parameters()
         
-    def forward(self, x, edge_index, K=None):
+    def forward(self, x, edge_index, kernels=None):
         if isinstance(x, torch.Tensor):
             x: OptPairTensor = (x, x) #message from all nodes to all nodes
             
         if self.vanilla_GCN:
              K = None
             
-        if not isinstance(K, list):
-            K = [K]
+        if not isinstance(kernels, list):
+            kernels = [kernels]
             
         #evaluate all directional kernels and concatenate results columnwise
         size = (len(x[0]), len(x[1]))
         out = []
-        for K_ in K:
-            if K_ is not None: #anisotropic kernel
-                K_ = geometry.adjacency_matrix(edge_index, size, value=K_.t())
+        for K in kernels:
+            if K is not None: #anisotropic kernel
+                K = geometry.adjacency_matrix(edge_index, size, value=K.t())
             else: #adjacency matrix
-                K_ = geometry.adjacency_matrix(edge_index, size, value=None)
+                K = geometry.adjacency_matrix(edge_index, size, value=None)
                 
-            out_ = self.propagate(K_.t(), x=x[0])
+            out_ = self.propagate(K.t(), x=x[0])
             out.append(out_)
             
         out = torch.cat(out, axis=1)
@@ -116,40 +116,82 @@ class Diffusion(nn.Module):
             
         return out
     
-
-class SheafLearning(nn.Module):
-    def __init__(self, D, x_ic=None, orthogonal=True):
-        super(SheafLearning, self).__init__()
+    
+class GaugeLearning():
+    def __init__(self, data, X0):
         
-        self.orthogonal = orthogonal
-        self.D, self.x_ic = D, x_ic
-        in_channels = 2*D
-        hidden_channels = 10
-        self.Phi = MLP(in_channels, 
-                       hidden_channels=hidden_channels,
-                       out_channels=D*D,
-                       num_layers=1,
-                       bias=False)
-        
-    def reset_parameters(self):
-        self.Phi.reset_parameters()
+        self.L = geometry.compute_laplacian(data).todense()
+        self.X0 = X0
             
-    def forward(self, x, edge_index):
+    def forward(self, id_source=None, id_target=None):
         
-        x_in = torch.cat((x[edge_index[0]], x[edge_index[1]]), axis=1)
-        R_tmp = self.Phi(x_in)
-        R_tmp = R_tmp.reshape(-1, self.D, self.D)
+        L, X0 = self.L, self.X0
+        if id_source is not None and id_target is not None:
+            k = len(id_target)
+            L = torch.tensor(self.L[:,id_source][id_target,:], dtype=torch.float64)
+            X0 = torch.tensor(self.X0[id_source], dtype=torch.float64)
+            
+        n, p = X0[0].shape
         
-        n = x.shape[0]
-        if self.orthogonal:
-            hh = R_tmp.tril(diagonal=-1) + torch.eye(self.D).unsqueeze(0).repeat(len(x_in),1,1)
-            R_tmp = torch_householder_orgqr(hh)
-            R_tmp = R_tmp.reshape(-1, self.D, self.D)
+        self.manifold = Stiefel(n, p=p, k=k)
+        cost, euclidean_gradient = self.cost_and_derivates(L, X0)
+        problem = pymanopt.Problem(
+            self.manifold, cost, euclidean_gradient=euclidean_gradient
+        )
+
+        optimizer = SteepestDescent(verbosity=0)
+        X = optimizer.run(problem).point
+        
+        # R = compute_optimal_solution(X[0].T@X[1])
+        
+        return X
+    
+    def cost_and_derivates(self, L, X0):
+        euclidean_gradient = None
+
+        @pymanopt.function.pytorch(self.manifold)
+        def cost(Xi):
+            return - torch.einsum('ij,jkl',L,Xi).norm() - (Xi - X0).norm()
+
+        return cost, euclidean_gradient
+    
+    
+
+    
+
+# class SheafLearning(nn.Module):
+#     def __init__(self, D, x_ic=None, orthogonal=True):
+#         super(SheafLearning, self).__init__()
+        
+#         self.orthogonal = orthogonal
+#         self.D, self.x_ic = D, x_ic
+#         in_channels = 2*D
+#         hidden_channels = 10
+#         self.Phi = MLP(in_channels, 
+#                        hidden_channels=hidden_channels,
+#                        out_channels=D*D,
+#                        num_layers=1,
+#                        bias=False)
+        
+#     def reset_parameters(self):
+#         self.Phi.reset_parameters()
+            
+#     def forward(self, x, edge_index):
+        
+#         x_in = torch.cat((x[edge_index[0]], x[edge_index[1]]), axis=1)
+#         R_tmp = self.Phi(x_in)
+#         R_tmp = R_tmp.reshape(-1, self.D, self.D)
+        
+#         n = x.shape[0]
+#         if self.orthogonal:
+#             hh = R_tmp.tril(diagonal=-1) + torch.eye(self.D).unsqueeze(0).repeat(len(x_in),1,1)
+#             R_tmp = torch_householder_orgqr(hh)
+#             R_tmp = R_tmp.reshape(-1, self.D, self.D)
          
-        R = torch.empty(n, n, self.D, self.D)
-        R[edge_index[0], edge_index[1], :,:] = R_tmp
+#         R = torch.empty(n, n, self.D, self.D)
+#         R[edge_index[0], edge_index[1], :,:] = R_tmp
         
-        return R
+#         return R
 
     
 class InnerProductFeatures(nn.Module):
