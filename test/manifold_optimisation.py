@@ -74,7 +74,7 @@ def cost_and_derivates(manifold, L, gauges):
         # cost = torch.abs(torch.einsum('ij,jkl',L,X))
         # cost = cost.norm(dim=(1,2))
         # cost = cost.sum(axis=(1,2))**2
-        
+        # cost = - torch.einsum('ij,jkl',L,Xi).norm() - (Xi - X0).norm()
         return cost.sum()
         
     return cost, None

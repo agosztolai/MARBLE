@@ -52,19 +52,15 @@ class net(nn.Module):
         kernels = self.kernel
         if n_id is not None: #n_id are the node ids in the batch
             x = x[n_id] 
-            if kernels is not None:
-                kernels = [K[n_id,:][:,n_id] for K in kernels]
+            kernels = [K[n_id,:][:,n_id] for K in kernels]
 
         #gradients
         out = [x]
         adjs_ = adjs[:self.par['order']]
         for i, (edge_index, _, size) in enumerate(adjs_):
             R = None
-            # if self.par['vector']:
-            #     R = self.sheaf(out[0], edge_index)
-            # else:
-            #     R = None
             
+            # R = self.sheaf(out[0], edge_index)
             # self.diffusion.Lc = geometry.compute_connection_laplacian(data, R)
                         
             #by convention, the first size[1] nodes are the targets
@@ -169,16 +165,16 @@ def compute_loss(out, x, batch, R=None):
     if x.shape[1] == 1 or R is None:
         return - pos_loss - neg_loss
     
-    else:
-        _, n_id, adjs = batch
-        edge_index = adjs[-1].edge_index
+    # else:
+    #     _, n_id, adjs = batch
+    #     edge_index = adjs[-1].edge_index
         
-        Rij = R[edge_index[0], edge_index[1], ...]
-        xi = x[n_id][edge_index[1]]
-        xj = x[n_id][edge_index[0]]
+    #     Rij = R[edge_index[0], edge_index[1], ...]
+    #     xi = x[n_id][edge_index[1]]
+    #     xj = x[n_id][edge_index[0]]
         
-        #compute sum_ij || R_ij * x(j) - x(i) || via broadcasting
-        R_loss = torch.einsum('aij,aj->ai', Rij, xj) - xi
-        R_loss = F.logsigmoid(R_loss.norm(dim=1)).mean()
+    #     #compute sum_ij || R_ij * x(j) - x(i) || via broadcasting
+    #     R_loss = torch.einsum('aij,aj->ai', Rij, xj) - xi
+    #     R_loss = F.logsigmoid(R_loss.norm(dim=1)).mean()
         
-        return - pos_loss - neg_loss + R_loss
+    #     return - pos_loss - neg_loss + R_loss

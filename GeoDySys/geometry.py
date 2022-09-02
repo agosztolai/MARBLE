@@ -600,4 +600,3 @@ def procrustes(X, Y):
         T = np.dot(V, U.T)
        
     return T
-    

@@ -116,48 +116,6 @@ class Diffusion(nn.Module):
             
         return out
     
-    
-class GaugeLearning():
-    def __init__(self, data, X0):
-        
-        self.L = geometry.compute_laplacian(data).todense()
-        self.X0 = X0
-            
-    def forward(self, id_source=None, id_target=None):
-        
-        L, X0 = self.L, self.X0
-        if id_source is not None and id_target is not None:
-            k = len(id_target)
-            L = torch.tensor(self.L[:,id_source][id_target,:], dtype=torch.float64)
-            X0 = torch.tensor(self.X0[id_source], dtype=torch.float64)
-            
-        n, p = X0[0].shape
-        
-        self.manifold = Stiefel(n, p=p, k=k)
-        cost, euclidean_gradient = self.cost_and_derivates(L, X0)
-        problem = pymanopt.Problem(
-            self.manifold, cost, euclidean_gradient=euclidean_gradient
-        )
-
-        optimizer = SteepestDescent(verbosity=0)
-        X = optimizer.run(problem).point
-        
-        # R = compute_optimal_solution(X[0].T@X[1])
-        
-        return X
-    
-    def cost_and_derivates(self, L, X0):
-        euclidean_gradient = None
-
-        @pymanopt.function.pytorch(self.manifold)
-        def cost(Xi):
-            return - torch.einsum('ij,jkl',L,Xi).norm() - (Xi - X0).norm()
-
-        return cost, euclidean_gradient
-    
-    
-
-    
 
 # class SheafLearning(nn.Module):
 #     def __init__(self, D, x_ic=None, orthogonal=True):
