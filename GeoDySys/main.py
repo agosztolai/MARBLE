@@ -18,11 +18,11 @@ class net(nn.Module):
                  **kwargs):
         super(net, self).__init__()
         
+        #parameters
         self.par = utils.parse_parameters(data, kwargs)
-        self.vector = True if self.par['signal_dim'] > 1 else False
         
         #preprocessing
-        self.gauges, self.kernel = preprocessing(data, self.par)
+        self.gauges, self.R, self.kernel = preprocessing(data, self.par)
         
         #layers
         self.diffusion, self.grad, self.convs, self.mlp, self.inner_products = \
@@ -46,7 +46,7 @@ class net(nn.Module):
         odes are placed first in variable x, i.e, x = concat[x_target, x_other]."""
         
         #diffusion
-        # x = self.diffusion(x, self.vector)
+        x = self.diffusion(x)
         
         #restrict to current batch
         kernels = self.kernel
@@ -60,7 +60,7 @@ class net(nn.Module):
         adjs_ = adjs[:self.par['order']]
         for i, (edge_index, _, size) in enumerate(adjs_):
             R = None
-            # if self.vector:
+            # if self.par['vector']:
             #     R = self.sheaf(out[0], edge_index)
             # else:
             #     R = None

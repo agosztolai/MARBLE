@@ -92,7 +92,7 @@ class Diffusion(nn.Module):
         self.diffusion_time = nn.Parameter(torch.tensor(ic))
         self.method = method
         
-    def forward(self, x, vector=False, normalize=False):
+    def forward(self, x, normalize=False):
         
         # making sure diffusion times are positive
         with torch.no_grad():
@@ -100,7 +100,7 @@ class Diffusion(nn.Module):
             
         t = self.diffusion_time.detach().numpy()
         
-        if vector:
+        if self.par['vector']:
             out = geometry.compute_diffusion(x.flatten(), t, self.Lc, self.method)
             out = out.reshape(x.shape)
             if normalize:

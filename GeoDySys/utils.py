@@ -33,6 +33,7 @@ def parse_parameters(data, kwargs):
             
     kwargs['signal_dim'] = data.x.shape[1]
     kwargs['emb_dim'] = data.pos.shape[1]
+    kwargs['vector'] = True if data.x.shape[1] > 1 else False
             
     par = check_parameters(kwargs, data)
                   

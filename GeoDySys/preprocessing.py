@@ -14,8 +14,12 @@ def preprocessing(data, par):
                                         par['local_gauge'], 
                                         par['n_geodesic_nb'])
     
+    dim_man = 2
+    L = geometry.compute_laplacian(data)
+    R = geometry.compute_connections(gauges, L, dim_man)
+    
     #kernels
     # kernel = geometry.gradient_op(data)
     kernel = geometry.DD(data.pos, data.edge_index, gauges)
     
-    return gauges, kernel
+    return gauges, R, kernel

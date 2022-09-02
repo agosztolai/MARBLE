@@ -88,7 +88,11 @@ def furthest_point_sampling(X, N=None, return_clusters=False):
 # =============================================================================
 # Clustering
 # =============================================================================
-def cluster_and_embed(x, cluster_typ='kmeans', embed_typ='tsne', n_clusters=15, proximity_order=True, seed=0):
+def cluster_and_embed(x, cluster_typ='kmeans', 
+                      embed_typ='tsne', 
+                      n_clusters=15, 
+                      proximity_order=True, 
+                      seed=0):
     """Cluster & embed"""
     
     x = x.detach().numpy()
@@ -532,51 +536,68 @@ def compute_tangent_bundle(data, n_geodesic_nb=10, return_predecessors=True):
     _, _, tangents, R = ptu_dijkstra(X, A, X.shape[1], n_geodesic_nb, return_predecessors)
     
     return utils.np2torch(tangents), utils.np2torch(R)
+    
+    
+def compute_connections(gauges, A, dim_man=None):
+    
+    assert len(gauges.shape)==3, 'Gauges need to be a nxdxk matrix.'
+    
+    n, d, k = gauges.shape
+    
+    assert dim_man <= d, 'Manifold dimension should be no more than that of \
+                          the embedding space!'
+    
+    if dim_man is not None:
+        if dim_man == d: #the manifold is the whole space
+            return None
+        else:
+            gauges = gauges[:,:,dim_man:]    
+    
+    R = np.zeros([n,n,d,d])
+    for i in range(n):
+        for j in range(n):
+            if A[i,j] != 0:
+                R[i,j,...] = procrustes(gauges[i,:], gauges[j,:])
+
+    return R
+
 
 
 def compute_diffusion(x, t, L, method='matrix_exp'):
     if method == 'matrix_exp':
         return sp.linalg.expm_multiply(-t*L, x)
-
-
-# def vertex_normals(verts, n_nb=30):
     
-#     _, neigh_inds = find_knn(verts, verts, n_nb, omit_diagonal=True, method='cpu_kd')
-#     neigh_points = verts[neigh_inds,:]
-#     neigh_vecs = neigh_points - verts[:,np.newaxis,:]
     
-#     (u, s, vh) = np.linalg.svd(neigh_vecs, full_matrices=False)
-#     normal = vh[:,2,:]
-#     normal /= np.linalg.norm(normal,axis=-1, keepdims=True)
-        
-#     if torch.any(torch.isnan(normal)): raise ValueError("NaN normals :(")
+def procrustes(X, Y):
+    """
 
-#     return normal
+    Inputs:
+    ------------
+    X, Y    
+        matrices of target and input coordinates. they must have equal
+        numbers of  points (rows), but Y may have fewer dimensions
+        (columns) than X.
 
+    Outputs
+    ------------
+    T
 
-# def build_grad_point_cloud(verts, frames, n_nb=30):
+    """
 
-#     _, neigh_inds = find_knn(verts, verts, n_nb, omit_diagonal=True, method='cpu_kd')
+    # optimum rotation matrix of Y
+    A = np.dot(X.T, Y)
+    U,s,Vt = np.linalg.svd(A,full_matrices=False)
+    V = Vt.T
+    T = np.dot(V, U.T)
 
-#     edge_inds_from = np.repeat(np.arange(verts.shape[0]), n_nb)
-#     edges = np.stack((edge_inds_from, neigh_inds.flatten()))
-#     edge_tangent_vecs = edge_tangent_vectors(verts, frames, edges)#this is the F in Beaini (?)
+    # does the current solution use a reflection?
+    have_reflection = np.linalg.det(T) < 0
+
+    # if that's not what was specified, force another reflection
+    if have_reflection:
+        V[:,-1] *= -1
+        s[-1] *= -1
+        T = np.dot(V, U.T)
+       
+    return T
     
-#     return build_grad(verts, torch.tensor(edges), edge_tangent_vecs)
-
-
-# def edge_tangent_vectors(verts, frames, edges):
-#     edge_vecs = verts[edges[1, :], :] - verts[edges[0, :], :]
-#     basisX = frames[edges[0, :], 0, :]
-#     basisY = frames[edges[0, :], 1, :]
-
-#     compX = edge_vecs.dot(basisX)
-#     compY = edge_vecs.dot(basisY)
-#     edge_tangent = torch.stack((compX, compY), dim=-1)
-
-#     return edge_tangent
-
-
-# def project_to_tangent(vecs, unit_normals):
-#     dots = vecs.dot(unit_normals)
-#     return vecs - unit_normals * dots.unsqueeze(-1)

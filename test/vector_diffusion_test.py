@@ -14,18 +14,17 @@ def main():
     #parameters
     n = 512
     k = 30
-    tau = 5
+    tau = 100
     
     # f1: constant, f2: linear, f3: parabola, f4: saddle
     x3 = geometry.sample_2d(n, [[-1,-1],[1,1]], 'random')
     x = [x3]
     y = [f3(x3)] #evaluated functions
-        
+    
     #construct PyG data object
     data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
     
-    gauges, R = geometry.compute_gauges(data, True, 50)
-    # print(R[:2,:2,...])
+    gauges, _ = geometry.compute_gauges(data, True, 50)
     
     diffusion = Diffusion(data)
     diffusion.diffusion_time.data = torch.tensor(tau)
