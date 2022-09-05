@@ -39,7 +39,7 @@ def main():
     #train model
     model = net(data, gauge='global', **par)
     model.train_model(data)
-    emb, _ = model.evaluate(data)
+    emb = model.evaluate(data)
     emb, clusters = geometry.cluster_and_embed(emb, n_clusters=n_clusters)
     
     #plot

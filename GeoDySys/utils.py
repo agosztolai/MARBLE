@@ -9,6 +9,7 @@ import warnings
 
 from torch_geometric.transforms import RandomNodeSplit
 from torch_geometric.data import Data, Batch
+from torch_sparse import SparseTensor
 
 import multiprocessing
 from functools import partial
@@ -95,8 +96,8 @@ def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
 def construct_dataset(pos, features=None, graph_type='cknn', k=10):
     """Construct PyG dataset from node positions and features"""
         
-    pos = tolist(pos)
-    features = tolist(features)
+    pos = to_list(pos)
+    features = to_list(features)
         
     pos = [torch.tensor(p).float() for p in pos]
     features = [torch.tensor(x).float() for x in features]
@@ -130,11 +131,42 @@ def construct_dataset(pos, features=None, graph_type='cknn', k=10):
     return split(batch)
 
 
+def to_SparseTensor(edge_index, size=None, value=None):
+    """
+    Adjacency matrix as torch_sparse tensor
+
+    Parameters
+    ----------
+    edge_index : (2x|E|) Matrix of edge indices
+    size : pair (rows,cols) giving the size of the matrix. 
+        The default is the largest node of the edge_index.
+    value : list of weights. The default is unit values.
+
+    Returns
+    -------
+    adj : adjacency matrix in SparseTensor format
+
+    """    
+    if value is not None:
+        value = value[edge_index[0], edge_index[1]]
+    if size is None:
+        size = (edge_index.max()+1, edge_index.max()+1)
+            
+    adj = SparseTensor(row=edge_index[0], 
+                       col=edge_index[1], 
+                       value=value,
+                       sparse_sizes=(size[0], size[1]))
+    
+    return adj
+
+
 def torch2np(x):
+    """Convert torch to numpy"""
     return x.detach().to(torch.device('cpu')).numpy()
 
 
 def np2torch(x, dtype=None):
+    """Convert numpy to torch"""
     if dtype is None:
         return torch.from_numpy(x).float()
     elif dtype=='double':
@@ -143,7 +175,8 @@ def np2torch(x, dtype=None):
         NotImplementedError
 
 
-def tolist(x):
+def to_list(x):
+    """Convert to list"""
     if not isinstance(x, (list,tuple)):
         x = [x]
         

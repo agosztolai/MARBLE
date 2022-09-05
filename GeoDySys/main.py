@@ -8,7 +8,7 @@ import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from datetime import datetime
 
-from GeoDySys import utils, dataloader, preprocessing, setup_layers
+from GeoDySys import utils, dataloader, preprocessing, layers
 
 
 """Main network"""
@@ -26,7 +26,7 @@ class net(nn.Module):
         
         #layers
         self.diffusion, self.grad, self.convs, self.mlp, self.inner_products = \
-            setup_layers(data, self.par)
+            layers.setup_layers(data, self.R, self.par)
             
         self.reset_parameters()
         
@@ -50,21 +50,19 @@ class net(nn.Module):
         
         #restrict to current batch
         kernels = self.kernel
+        R = self.R
         if n_id is not None: #n_id are the node ids in the batch
             x = x[n_id] 
             kernels = [K[n_id,:][:,n_id] for K in kernels]
+            R = self.R[n_id,:][:,n_id] if R is not None else None
 
         #gradients
         out = [x]
         adjs_ = adjs[:self.par['order']]
-        for i, (edge_index, _, size) in enumerate(adjs_):
-            R = None
-            
+        for i, (edge_index, _, size) in enumerate(adjs_):            
             # R = self.sheaf(out[0], edge_index)
-            # self.diffusion.Lc = geometry.compute_connection_laplacian(data, R)
                         
-            #by convention, the first size[1] nodes are the targets
-            x = self.grad[i]((x, x[:size[1]]), edge_index, kernels)          
+            x = self.grad[i](x, edge_index, size, kernels, R)          
             # x = self.inner_products(x)
             out.append(x)
             
@@ -76,7 +74,7 @@ class net(nn.Module):
         for i, (edge_index, _, size) in enumerate(adjs_):
             out = self.convs[i]((out, out[:size[1]]), edge_index)          
         
-        return self.mlp(out), R
+        return self.mlp(out)#, R
     
     def evaluate(self, data):
         """Forward pass @ evaluation (no minibatches)"""            
@@ -107,9 +105,10 @@ class net(nn.Module):
             adjs = [adjs]
         adjs = [adj.to(device) for adj in adjs]
         
-        out, R = self.forward(x, n_id, adjs)
+        # out, R = self.forward(x, n_id, adjs)
+        out = self.forward(x, n_id, adjs)
 
-        return compute_loss(out, x, batch, R)
+        return compute_loss(out, x)#, batch, R)
     
     def train_model(self, data):
         """Network training"""
@@ -123,21 +122,21 @@ class net(nn.Module):
         
         print('\n---- Starting training ... \n')
         
-        for epoch in range(self.par['epochs']): #loop over epochs
+        for epoch in range(self.par['epochs']):
             
-            self.train() #switch to training mode
+            self.train() #training mode
             train_loss = 0
-            for batch in train_loader: #loop over batches
-                optimizer.zero_grad() #zero gradients, otherwise accumulates gradients
+            for batch in train_loader:
+                optimizer.zero_grad() #zero gradients, otherwise accumulates
                 loss = self.evaluate_batch(x, batch, device)
                 train_loss += float(loss)
                 
                 loss.backward() #backprop
                 optimizer.step()
                                 
-            self.eval() #switch to testing mode (this disables dropout in MLP)
+            self.eval() #testing mode (disables dropout in MLP)
             val_loss = 0
-            for batch in val_loader: #loop over batches    
+            for batch in val_loader:  
                 loss = self.evaluate_batch(x, batch, device)
                 val_loss += float(loss)  
             val_loss /= (sum(data.val_mask)/sum(data.train_mask))
@@ -148,22 +147,22 @@ class net(nn.Module):
                   .format(epoch+1, train_loss, val_loss))
         
         test_loss = 0
-        for _, n_id, adjs in test_loader: #loop over batches                
+        for batch in test_loader:               
             loss = self.evaluate_batch(x, batch, device)
             test_loss += float(loss)
         test_loss /= (sum(data.test_mask)/sum(data.train_mask))
         print('Final test loss: {:.4f}'.format(test_loss))
     
 
-def compute_loss(out, x, batch, R=None):
+def compute_loss(out, x):#, batch, R=None):
     """Unsupervised loss modified from from GraphSAGE (Hamilton et al. 2018.)"""
     
     z, z_pos, z_neg = out.split(out.size(0) // 3, dim=0)
     pos_loss = F.logsigmoid((z * z_pos).sum(-1)).mean()
     neg_loss = F.logsigmoid(-(z * z_neg).sum(-1)).mean()
     
-    if x.shape[1] == 1 or R is None:
-        return - pos_loss - neg_loss
+    # if x.shape[1] == 1 or R is None:
+    return - pos_loss - neg_loss
     
     # else:
     #     _, n_id, adjs = batch

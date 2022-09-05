@@ -6,69 +6,108 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.parametrizations import orthogonal
 
-from torch_sparse import matmul
 from torch_geometric.nn.conv import MessagePassing
-from torch_geometric.typing import OptPairTensor
 from torch_geometric.nn.dense.linear import Linear
 from torch_geometric.nn import MLP
+import torch_geometric.utils as tgu
 
-from torch_householder import torch_householder_orgqr
+from GeoDySys import geometry as g
+from GeoDySys import utils
 
-from GeoDySys import geometry
+# from torch_geometric.nn import MLP
+# from torch_householder import torch_householder_orgqr
+
+
+def setup_layers(data, R, par):
+    
+    #diffusion
+    diffusion = Diffusion(data, R)
+    
+    #gradient features
+    cum_channels = 0
+    grad = nn.ModuleList()
+    for i in range(par['order']):
+        grad.append(AnisoConv())
+        cum_channels += par['signal_dim']
+        cum_channels *= par['emb_dim']
+        
+    cum_channels += par['signal_dim']
+    
+    #message passing
+    convs = nn.ModuleList()
+    for i in range(par['depth']):
+        conv = AnisoConv(cum_channels, 
+                         lin_trnsf=True,
+                         ReLU=True,
+                         vec_norm=par['vec_norm'],
+                         )
+        convs.append(conv)
+        
+    #multilayer perceptron
+    mlp = MLP(in_channels=cum_channels,
+              hidden_channels=par['hidden_channels'], 
+              out_channels=par['out_channels'],
+              num_layers=par['n_lin_layers'],
+              dropout=par['dropout'],
+              batch_norm=par['b_norm'],
+              bias=par['bias']
+              )
+    
+    #inner product features
+    inner_products = InnerProductFeatures(par['signal_dim'], par['signal_dim'])
+    
+    #sheaf learning
+    # self.sheaf = layers.SheafLearning(self.signal_dim, data.x)
+    
+    return diffusion, grad, convs, mlp, inner_products
 
 
 class AnisoConv(MessagePassing):
     """Convolution"""
     def __init__(self, in_channels=None, out_channels=None, lin_trnsf=False,
-                 bias=False, ReLU=False, vec_norm=False, 
-                 vanilla_GCN=False, **kwargs):
+                 bias=False, ReLU=False, vec_norm=False, **kwargs):
         super().__init__(aggr='add', **kwargs)
-        
-        self.vanilla_GCN = vanilla_GCN
-    
+            
+        self.lin = self.vec_norm = self.ReLU = nn.Identity()
         if lin_trnsf:
-            if out_channels is None:
-                out_channels = in_channels
             self.lin = Linear(in_channels, out_channels, bias=bias)   
-        else:
-            self.lin = nn.Identity()
         
         if vec_norm:
             self.vec_norm = lambda x: F.normalize(x, p=2., dim=-1)
-        else:
-            self.vec_norm = nn.Identity()
         
         if ReLU:
             self.ReLU = nn.ReLU()
-        else:
-            self.ReLU = nn.Identity()
-                
+                            
     def reset_parameters(self):
         self.lin.reset_parameters()
         
-    def forward(self, x, edge_index, kernels=None):
-        if isinstance(x, torch.Tensor):
-            x: OptPairTensor = (x, x) #message from all nodes to all nodes
+    def forward(self, x, edge_index, size, kernels=None, R=None):
+           
+        dim = x.shape[1]
+        kernels = utils.to_list(kernels)
+        
+        #when using rotations, we need a n*dimxn*dim matrices, so adapt indexing
+        if R is not None:
+            size = (size[0]*dim, size[1]*dim)
+            adj = tgu.to_dense_adj(edge_index)[0]
+            adj = adj.repeat_interleave(dim,dim=1).repeat_interleave(dim,dim=0)
+            edge_index = tgu.sparse.dense_to_sparse(adj)[0]
+            R = R.swapaxes(1,2).reshape(size[0], size[0]) #make block matrix
             
-        if self.vanilla_GCN:
-             K = None
-            
-        if not isinstance(kernels, list):
-            kernels = [kernels]
-            
-        #evaluate all directional kernels and concatenate results columnwise
-        size = (len(x[0]), len(x[1]))
+        #apply kernels
         out = []
         for K in kernels:
-            if K is not None: #anisotropic kernel
-                K = geometry.adjacency_matrix(edge_index, size, value=K.t())
-            else: #adjacency matrix
-                K = geometry.adjacency_matrix(edge_index, size, value=None)
+            if R is not None:
+                K = torch.kron(K, torch.ones(dim, dim))
+                K *= R
                 
-            out_ = self.propagate(K.t(), x=x[0])
+            #transpose to change from source to target
+            K = utils.to_SparseTensor(edge_index, size, value=K.t())
+            
+            out_ = self.propagate(K.t(), x=x)
             out.append(out_)
             
-        out = torch.cat(out, axis=1)
+        out = torch.cat(out, axis=1) #concatenate columnwise
         
         out = self.lin(out)
         out = self.ReLU(out)
@@ -77,20 +116,29 @@ class AnisoConv(MessagePassing):
         return out
 
     def message_and_aggregate(self, K_t, x):
-        #K_t is the transpose of K because of PyG convention
-        return matmul(K_t, x, reduce=self.aggr)
+        n, dim = x.shape
+                
+        if K_t.size(dim=1) == n*dim:
+            x = x.view(-1, 1)
+            
+        x = K_t.matmul(x, reduce=self.aggr)
+            
+        return x.view(-1, dim)
     
     
 class Diffusion(nn.Module):
     """Diffusion with learned t."""
 
-    def __init__(self, data, R=None, ic=0.0, method='matrix_exp'):
+    def __init__(self, data, R=None, ic=0.0):
         super(Diffusion, self).__init__()
         
-        self.L = geometry.compute_laplacian(data)
-        self.Lc = geometry.compute_connection_laplacian(data, R)
+        self.L = g.compute_laplacian(data)
+        if R is not None:
+            self.Lc = g.compute_connection_laplacian(data, R)
+            self.vector = True
+        else:
+            self.vector = False
         self.diffusion_time = nn.Parameter(torch.tensor(ic))
-        self.method = method
         
     def forward(self, x, normalize=False):
         
@@ -100,56 +148,21 @@ class Diffusion(nn.Module):
             
         t = self.diffusion_time.detach().numpy()
         
-        if self.par['vector']:
-            out = geometry.compute_diffusion(x.flatten(), t, self.Lc, self.method)
+        if self.vector:
+            out = g.compute_diffusion(x.flatten(), t, self.Lc)
             out = out.reshape(x.shape)
             if normalize:
                 x_abs = x.norm(dim=-1,p=2,keepdim=True)
-                out_abs = geometry.compute_diffusion(x_abs, t, self.L, self.method)
-                ind = geometry.compute_diffusion(torch.ones(x.shape[0],1), t, self.L, self.method)
+                out_abs = g.compute_diffusion(x_abs, t, self.L)
+                ind = g.compute_diffusion(torch.ones(x.shape[0],1), t, self.L)
                 out = out*out_abs/(ind*out.norm(dim=-1,p=2,keepdim=True))
         else: #diffuse componentwise
             out = []
             for i in range(x.shape[-1]):
-                out.append(geometry.compute_diffusion(x[:,[i]], t, self.L, self.method))
+                out.append(g.compute_diffusion(x[:,[i]], t, self.L))
             out = torch.cat(out, axis=1)
             
         return out
-    
-
-# class SheafLearning(nn.Module):
-#     def __init__(self, D, x_ic=None, orthogonal=True):
-#         super(SheafLearning, self).__init__()
-        
-#         self.orthogonal = orthogonal
-#         self.D, self.x_ic = D, x_ic
-#         in_channels = 2*D
-#         hidden_channels = 10
-#         self.Phi = MLP(in_channels, 
-#                        hidden_channels=hidden_channels,
-#                        out_channels=D*D,
-#                        num_layers=1,
-#                        bias=False)
-        
-#     def reset_parameters(self):
-#         self.Phi.reset_parameters()
-            
-#     def forward(self, x, edge_index):
-        
-#         x_in = torch.cat((x[edge_index[0]], x[edge_index[1]]), axis=1)
-#         R_tmp = self.Phi(x_in)
-#         R_tmp = R_tmp.reshape(-1, self.D, self.D)
-        
-#         n = x.shape[0]
-#         if self.orthogonal:
-#             hh = R_tmp.tril(diagonal=-1) + torch.eye(self.D).unsqueeze(0).repeat(len(x_in),1,1)
-#             R_tmp = torch_householder_orgqr(hh)
-#             R_tmp = R_tmp.reshape(-1, self.D, self.D)
-         
-#         R = torch.empty(n, n, self.D, self.D)
-#         R[edge_index[0], edge_index[1], :,:] = R_tmp
-        
-#         return R
 
     
 class InnerProductFeatures(nn.Module):
@@ -203,3 +216,38 @@ class InnerProductFeatures(nn.Module):
         x = x.swapaxes(1,2) #transpose 
 
         return (x*Ox).sum(2).sum(-1)#torch.tanh(dots)
+    
+    
+# class SheafLearning(nn.Module):
+#     def __init__(self, D, x_ic=None, orthogonal=True):
+#         super(SheafLearning, self).__init__()
+        
+#         self.orthogonal = orthogonal
+#         self.D, self.x_ic = D, x_ic
+#         in_channels = 2*D
+#         hidden_channels = 10
+#         self.Phi = MLP(in_channels, 
+#                        hidden_channels=hidden_channels,
+#                        out_channels=D*D,
+#                        num_layers=1,
+#                        bias=False)
+        
+#     def reset_parameters(self):
+#         self.Phi.reset_parameters()
+            
+#     def forward(self, x, edge_index):
+        
+#         x_in = torch.cat((x[edge_index[0]], x[edge_index[1]]), axis=1)
+#         R_tmp = self.Phi(x_in)
+#         R_tmp = R_tmp.reshape(-1, self.D, self.D)
+        
+#         n = x.shape[0]
+#         if self.orthogonal:
+#             hh = R_tmp.tril(diagonal=-1) + torch.eye(self.D).unsqueeze(0).repeat(len(x_in),1,1)
+#             R_tmp = torch_householder_orgqr(hh)
+#             R_tmp = R_tmp.reshape(-1, self.D, self.D)
+         
+#         R = torch.empty(n, n, self.D, self.D)
+#         R[edge_index[0], edge_index[1], :,:] = R_tmp
+        
+#         return R

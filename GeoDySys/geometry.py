@@ -4,10 +4,10 @@
 import torch
 import numpy as np
 import scipy.sparse as sp
+from scipy.linalg import orthogonal_procrustes
 
 import torch_geometric.utils as PyGu
 from torch_geometric.nn import knn_graph, radius_graph
-from torch_sparse import SparseTensor
 from torch_scatter import scatter_add
 from cknn import cknneighbors_graph
 
@@ -26,7 +26,7 @@ from GeoDySys import utils
 # Sampling
 # =============================================================================
 def sample_2d(N=100, interval=[[-1,-1],[1,1]], method='uniform', seed=0):
-    
+    """Sample N points in a 2D area."""
     if method=='uniform':
         x = np.linspace(interval[0][0], interval[1][0], int(np.sqrt(N)))
         y = np.linspace(interval[0][1], interval[1][1], int(np.sqrt(N)))
@@ -112,6 +112,21 @@ def cluster_and_embed(x, cluster_typ='kmeans',
 
 
 def cluster(x, cluster_typ='kmeans', n_clusters=15, seed=0):
+    """
+    Cluster data
+
+    Parameters
+    ----------
+    x : nxdim matrix of data
+    cluster_typ : Clustering method.
+    n_clusters : Number of clusters.
+    seed
+
+    Returns
+    -------
+    clusters : sklearn cluster object
+
+    """
     
     clusters = dict()
     if cluster_typ=='kmeans':
@@ -126,6 +141,19 @@ def cluster(x, cluster_typ='kmeans', n_clusters=15, seed=0):
 
 
 def embed(x, embed_typ='tsne'):
+    """
+    Embed data to Euclidean space
+
+    Parameters
+    ----------
+    x : nxdim matrix of data
+    embed_typ : embedding method. The default is 'tsne'.
+
+    Returns
+    -------
+    emb : nx2 matrix of embedded data
+
+    """
     
     if embed_typ=='tsne': 
         if x.shape[1]>2:
@@ -140,6 +168,19 @@ def embed(x, embed_typ='tsne'):
 
 
 def relabel_by_proximity(clusters):
+    """
+    Update clusters labels such that nearby clusters in the embedding get similar 
+    labels.
+
+    Parameters
+    ----------
+    clusters : sklearn object containing 'centroids', 'n_clusters', 'labels'
+
+    Returns
+    -------
+    clusters : sklearn object with updated labels
+
+    """
     
     pd = pairwise_distances(clusters['centroids'], metric='euclidean')
     pd += np.max(pd)*np.eye(clusters['n_clusters'])
@@ -350,35 +391,6 @@ def project_gauge_to_neighbours(nvec, gauges):
     return F
 
 
-def adjacency_matrix(edge_index, size=None, value=None):
-    """
-    Adjacency matrix as torch_sparse tensor
-
-    Parameters
-    ----------
-    edge_index : (2x|E|) Matrix of edge indices
-    size : pair (rows,cols) giving the size of the matrix. 
-        The default is the largest node of the edge_index.
-    value : list of weights. The default is unit values.
-
-    Returns
-    -------
-    adj : TYPE
-        DESCRIPTION.
-
-    """    
-    if value is not None:
-        value = value[edge_index[0], edge_index[1]]
-    if size is None:
-        size = (edge_index.max()+1, edge_index.max()+1)
-        
-    adj = SparseTensor(row=edge_index[0], col=edge_index[1], 
-                       value=value,
-                       sparse_sizes=(size[0], size[1]))
-    
-    return adj
-
-
 def fit_graph(x, graph_type='cknn', par=1):
     """Fit graph to node positions"""
     
@@ -411,7 +423,7 @@ def compute_laplacian(data, normalization="rw"):
     return L
 
 
-def compute_connection_laplacian(data, R=None, normalization='rw'):
+def compute_connection_laplacian(data, R, normalization='rw'):
     """
     Connection Laplacian
 
@@ -446,11 +458,8 @@ def compute_connection_laplacian(data, R=None, normalization='rw'):
     L = sp.kron(L, sp.csr_matrix(torch.ones([dim,dim])))
     L = utils.np2torch(L.toarray())
     
-    if R is None:
-        R = torch.ones([n*dim, n*dim])
-    else:
-        R = R.swapaxes(1,2).reshape(n*dim, n*dim)
-        R += torch.eye(n).kron(torch.ones(dim,dim))
+    R = R.swapaxes(1,2).reshape(n*dim, n*dim)
+    R += torch.eye(n).kron(torch.ones(dim,dim))
         
     #multiply off-diagonal terms
     Lc = L*R
@@ -472,45 +481,6 @@ def compute_connection_laplacian(data, R=None, normalization='rw'):
         NotImplementedError
         
     return sp.csr_matrix(Lc)
-
-
-def compute_eigendecomposition(A, k=2, eps=1e-8):
-    """
-    Eigendecomposition of a square matrix A
-    
-    Parameters
-    ----------
-    A : square matrix A
-    k : number of eigenvectors
-    eps : small error term
-    
-    Returns
-    -------
-    evals : (k) eigenvalues of the Laplacian
-    evecs : (V,k) matrix of eigenvectors of the Laplacian 
-    
-    """
-    
-    # Compute the eigenbasis
-    A_eigsh = (A + sp.identity(A.shape[0])*eps).tocsc()
-    failcount = 0
-    while True:
-        try:
-            evals, evecs = sp.linalg.eigsh(A_eigsh, k=k)
-            
-            # Clip off any eigenvalues that end up slightly negative due to numerical weirdness
-            evals = np.clip(evals, a_min=0., a_max=float('inf'))
-
-            break
-        except Exception as e:
-            print(e)
-            if(failcount > 3):
-                raise ValueError("failed to compute eigendecomp")
-            failcount += 1
-            print("--- decomp failed; adding eps ===> count: " + str(failcount))
-            A_eigsh = A_eigsh + sp.identity(A.shape[0]) * (eps * 10**failcount)
-    
-    return utils.np2torch(evals), utils.np2torch(evecs)
 
 
 def compute_tangent_bundle(data, n_geodesic_nb=10, return_predecessors=True):
@@ -538,65 +508,99 @@ def compute_tangent_bundle(data, n_geodesic_nb=10, return_predecessors=True):
     return utils.np2torch(tangents), utils.np2torch(R)
     
     
-def compute_connections(gauges, A, dim_man=None):
+def compute_connections(gauges, edge_index, dim_man=None):
+    """
+    Find smallest rotations R between gauges pairs. It is assumed that the first 
+    row of edge_index is what we want to align to, i.e., 
+    gauges(edge_index[1]) = R*gauges(edge_index[1]).
+
+    Parameters
+    ----------
+    gauges : (n,dim,dim) matrix of orthogonal unit vectors for each node
+    edge_index : (2x|E|) Matrix of edge indices
+    dim_man : integer, manifold dimension
+
+    Returns
+    -------
+    R : (n,n,dim,dim) matrix of rotation matrices
+
+    """
+    n, dim, k = gauges.shape
     
-    assert len(gauges.shape)==3, 'Gauges need to be a nxdxk matrix.'
-    
-    n, d, k = gauges.shape
-    
-    assert dim_man <= d, 'Manifold dimension should be no more than that of \
-                          the embedding space!'
+    R = torch.eye(dim)[None,None,:,:]
+    R = R.repeat(n,n,1,1)
     
     if dim_man is not None:
-        if dim_man == d: #the manifold is the whole space
-            return None
+        if dim_man == dim: #the manifold is the whole space
+            return R
+        elif dim_man <= dim:
+            gauges = gauges[:,:,dim_man:]
         else:
-            gauges = gauges[:,:,dim_man:]    
+            raise Exception('Manifold dim must be <= embedding dim!') 
+                
+    for (i,j) in edge_index.T:
+        R[i,j,...] = procrustes(gauges[i,:].T, gauges[j,:].T)
+
+    return utils.np2torch(R)
+
+
+def procrustes(X, Y, reflection_allowed=False):
+    """Solve for rotation that minimises ||X - RY||_F """
+
+    # optimum rotation matrix of Y
+    R = orthogonal_procrustes(X, Y)[0]
+
+    # does the current solution use a reflection?
+    reflection = np.linalg.det(R) < 0
     
-    R = np.zeros([n,n,d,d])
-    for i in range(n):
-        for j in range(n):
-            if A[i,j] != 0:
-                R[i,j,...] = procrustes(gauges[i,:], gauges[j,:])
-
-    return R
+    if reflection_allowed and reflection:
+        R = np.zeros_like(R)
+       
+    return utils.np2torch(R)
 
 
-
+# =============================================================================
+# Diffusion
+# =============================================================================
 def compute_diffusion(x, t, L, method='matrix_exp'):
     if method == 'matrix_exp':
         return sp.linalg.expm_multiply(-t*L, x)
     
     
-def procrustes(X, Y):
-    """
+# def compute_eigendecomposition(A, k=2, eps=1e-8):
+#     """
+#     Eigendecomposition of a square matrix A
+    
+#     Parameters
+#     ----------
+#     A : square matrix A
+#     k : number of eigenvectors
+#     eps : small error term
+    
+#     Returns
+#     -------
+#     evals : (k) eigenvalues of the Laplacian
+#     evecs : (V,k) matrix of eigenvectors of the Laplacian 
+    
+#     """
+    
+#     # Compute the eigenbasis
+#     A_eigsh = (A + sp.identity(A.shape[0])*eps).tocsc()
+#     failcount = 0
+#     while True:
+#         try:
+#             evals, evecs = sp.linalg.eigsh(A_eigsh, k=k)
+            
+#             # Clip off any eigenvalues that end up slightly negative due to numerical weirdness
+#             evals = np.clip(evals, a_min=0., a_max=float('inf'))
 
-    Inputs:
-    ------------
-    X, Y    
-        matrices of target and input coordinates. they must have equal
-        numbers of  points (rows), but Y may have fewer dimensions
-        (columns) than X.
-
-    Outputs
-    ------------
-    T
-
-    """
-
-    # optimum rotation matrix of Y
-    A = np.dot(X.T, Y)
-    U,s,Vt = np.linalg.svd(A,full_matrices=False)
-    V = Vt.T
-    T = np.dot(V, U.T)
-
-    # does the current solution use a reflection?
-    have_reflection = np.linalg.det(T) < 0
-
-    # if that's not what was specified, force another reflection
-    if have_reflection:
-        V[:,-1] *= -1
-        s[-1] *= -1
-        T = np.dot(V, U.T)
-       
-    return T
+#             break
+#         except Exception as e:
+#             print(e)
+#             if(failcount > 3):
+#                 raise ValueError("failed to compute eigendecomp")
+#             failcount += 1
+#             print("--- decomp failed; adding eps ===> count: " + str(failcount))
+#             A_eigsh = A_eigsh + sp.identity(A.shape[0]) * (eps * 10**failcount)
+    
+#     return utils.np2torch(evals), utils.np2torch(evecs)

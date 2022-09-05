@@ -36,10 +36,10 @@ def run():
     
     # L = geometry.compute_laplacian(data).todense()
     
-    X = compute_smooth_gauges(gauges, 2)
+    # X = compute_smooth_gauges(gauges, 2)
     
     #find best rotations based on least dominant coordinate
-    # R = geometry.compute_connections(gauges[:,:,[-1]], L)
+    R = geometry.compute_connections(gauges, data.edge_index, dim_man=2)
     
 
     # X = geometry.compute_smooth_gauges(data, gauges, p=2,
