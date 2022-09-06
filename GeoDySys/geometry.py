@@ -15,9 +15,12 @@ from torch.nn.functional import normalize
 
 from sklearn.cluster import KMeans
 from sklearn.metrics import pairwise_distances
-from sklearn.manifold import TSNE
+from sklearn.manifold import TSNE, MDS
+from sklearn.preprocessing import StandardScaler
+import umap
 
 from ptu_dijkstra import ptu_dijkstra
+import ot
 
 from GeoDySys import utils
 
@@ -56,7 +59,7 @@ def furthest_point_sampling(X, N=None, return_clusters=False):
         lambdas (N-length array of insertion radii))
     """
     
-    D = pairwise_distances(X, metric='euclidean')
+    D = pairwise_distances(X)
     N = D.shape[0] if N is None else N
     
     #By default, takes the first point in the list to be the
@@ -88,28 +91,6 @@ def furthest_point_sampling(X, N=None, return_clusters=False):
 # =============================================================================
 # Clustering
 # =============================================================================
-def cluster_and_embed(x, cluster_typ='kmeans', 
-                      embed_typ='tsne', 
-                      n_clusters=15, 
-                      proximity_order=True, 
-                      seed=0):
-    """Cluster & embed"""
-    
-    x = x.detach().numpy()
-
-    clusters = cluster(x, cluster_typ, n_clusters, seed)
-        
-    #reorder to give close clusters similar labels
-    if proximity_order:
-        clusters = relabel_by_proximity(clusters)
-        
-    emb = np.vstack([x, clusters['centroids']])
-    emb = embed(emb, embed_typ)
-    clusters['centroids'] = emb[-n_clusters:]
-    emb = emb[:-n_clusters]       
-        
-    return emb, clusters
-
 
 def cluster(x, cluster_typ='kmeans', n_clusters=15, seed=0):
     """
@@ -140,7 +121,7 @@ def cluster(x, cluster_typ='kmeans', n_clusters=15, seed=0):
     return clusters
 
 
-def embed(x, embed_typ='tsne'):
+def embed(x, embed_typ='tnse'):
     """
     Embed data to Euclidean space
 
@@ -155,12 +136,19 @@ def embed(x, embed_typ='tsne'):
 
     """
     
-    if embed_typ=='tsne': 
+    if embed_typ == 'tsne': 
         if x.shape[1]>2:
             print('Performed t-SNE embedding on embedded results.')
+            x = StandardScaler().fit_transform(x)
             emb = TSNE(init='random',learning_rate='auto').fit_transform(x)
-    elif embed_typ=='umap':
-        NotImplementedError
+            
+    elif embed_typ == 'umap':
+        print('Performed UMAP embedding on embedded results.')
+        x = StandardScaler().fit_transform(x)
+        emb = umap.UMAP().fit_transform(x)
+        
+    elif embed_typ == 'MDS':
+        emb = MDS(n_components=2, dissimilarity='precomputed').fit_transform(x)
     else:
         NotImplementedError
     
@@ -200,6 +188,36 @@ def relabel_by_proximity(clusters):
     clusters['centroids'] = clusters['centroids'][list(mapping.keys())]
     
     return clusters
+
+
+def compute_distr_distances(clusters, dist_typ='Wasserstein'):
+    
+    l, s = clusters['labels'], clusters['slices']
+    l = [l[s[i]:s[i+1]]+1 for i in range(len(s)-1)]
+    nc = clusters['n_clusters']
+    bins = []
+    for l_ in l:
+        bins_i = []
+        for i in range(nc):
+            bins_i.append((l_ == i).sum())
+        bins_i = np.array(bins_i)
+        bins.append(bins_i/bins_i.sum())
+    
+    dist = np.zeros([nc, nc])
+    if dist_typ == 'Wasserstein':
+        centroid_distances = pairwise_distances(clusters['centroids'])
+        for i in range(len(l)):
+            for j in range(i+1,len(l)):
+                dist[i,j] = ot.emd2(bins[i], bins[j], centroid_distances)
+                
+        dist += dist.T
+        
+    elif dist_typ == 'KL_divergence':
+        NotImplementedError
+    else:
+        NotImplementedError
+    
+    return dist
 
 
 # =============================================================================

@@ -35,6 +35,7 @@ def parse_parameters(data, kwargs):
     kwargs['signal_dim'] = data.x.shape[1]
     kwargs['emb_dim'] = data.pos.shape[1]
     kwargs['vector'] = True if data.x.shape[1] > 1 else False
+    kwargs['slices'] = data._slice_dict['x']
             
     par = check_parameters(kwargs, data)
                   
@@ -160,11 +161,6 @@ def to_SparseTensor(edge_index, size=None, value=None):
     return adj
 
 
-def torch2np(x):
-    """Convert torch to numpy"""
-    return x.detach().to(torch.device('cpu')).numpy()
-
-
 def np2torch(x, dtype=None):
     """Convert numpy to torch"""
     if dtype is None:
@@ -177,7 +173,7 @@ def np2torch(x, dtype=None):
 
 def to_list(x):
     """Convert to list"""
-    if not isinstance(x, (list,tuple)):
+    if not isinstance(x, list):
         x = [x]
         
     return x

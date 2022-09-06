@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -8,7 +9,7 @@ import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from datetime import datetime
 
-from GeoDySys import utils, dataloader, preprocessing, layers
+from GeoDySys import utils, dataloader, preprocessing, layers, geometry
 
 
 """Main network"""
@@ -83,8 +84,8 @@ class net(nn.Module):
             adjs = [[data.edge_index, None, size]]
             adjs *= (self.par['order'] + self.par['depth'])
             
-            return self(data.x, None, adjs)
-    
+            self.emb = self(data.x, None, adjs)
+                
     def evaluate_batch(self, x, batch, device='cpu'):
         """
         Evaluate network in batches.
@@ -101,16 +102,15 @@ class net(nn.Module):
         
         _, n_id, adjs = batch
         
-        if not isinstance(adjs, list):
-            adjs = [adjs]
-        adjs = [adj.to(device) for adj in adjs]
+        adjs = utils.to_list(adjs)
+        adjs = [adj.to(device) for adj in list(adjs)]
         
         # out, R = self.forward(x, n_id, adjs)
         out = self.forward(x, n_id, adjs)
 
         return compute_loss(out, x)#, batch, R)
     
-    def train_model(self, data):
+    def run_training(self, data):
         """Network training"""
         
         writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
@@ -143,7 +143,7 @@ class net(nn.Module):
             
             writer.add_scalar('Loss/train', train_loss, epoch)
             writer.add_scalar('Loss/validation', val_loss, epoch)
-            print("Epoch: {},  Training loss: {:.4f}, Validation loss: {:.4f}"\
+            print("Epoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}" \
                   .format(epoch+1, train_loss, val_loss))
         
         test_loss = 0
@@ -152,6 +152,35 @@ class net(nn.Module):
             test_loss += float(loss)
         test_loss /= (sum(data.test_mask)/sum(data.train_mask))
         print('Final test loss: {:.4f}'.format(test_loss))
+        
+        
+    def cluster_and_embed(self,
+                          cluster_typ='kmeans', 
+                          embed_typ='tsne', 
+                          n_clusters=15, 
+                          seed=0):
+        """
+        Cluster & embed
+        
+        Returns
+        -------
+        emb : nx2 matrix of embedded data
+        clusters : sklearn cluster object
+        dist : cxc matrix of pairwise distances where c is the number of clusters
+        
+        """
+
+        clusters = geometry.cluster(self.emb, cluster_typ, n_clusters, seed)
+        clusters = geometry.relabel_by_proximity(clusters)
+        clusters['slices'] = self.par['slices']
+        
+        emb = np.vstack([self.emb, clusters['centroids']])
+        emb = geometry.embed(emb, embed_typ)  
+        emb, clusters['centroids'] = emb[:-n_clusters], emb[-n_clusters:]
+        
+        dist = geometry.compute_distr_distances(clusters)
+            
+        return emb, clusters, dist
     
 
 def compute_loss(out, x):#, batch, R=None):

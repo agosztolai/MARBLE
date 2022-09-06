@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import matplotlib
 from matplotlib.patches import FancyArrowPatch
@@ -11,8 +14,324 @@ import networkx as nx
 import matplotlib.gridspec as gridspec
 from torch_geometric.utils.convert import to_networkx
 
-from scipy.spatial import Voronoi, voronoi_plot_2d 
+from scipy.spatial import Voronoi, voronoi_plot_2d
 
+
+def fields(data, titles=None, col=2, figsize=(10,10), save=None):
+    """
+    Plot scalar or vector fields
+
+    Parameters
+    ----------
+    data : PyG Batch data object class created with utils.construct_dataset
+    titles : list of titles
+    col : int for number of columns to plot
+    figsize : tuple of figure dimensions
+    save : filename
+
+    """
+    vector = True if data.x.shape[1] > 1 else False
+    data_list = data.to_data_list() #split data batch 
+        
+    fig = plt.figure(figsize=figsize, constrained_layout=True)
+    row = int(np.ceil(len(data_list)/col))
+    grid = gridspec.GridSpec(row, col, wspace=0.2, hspace=0.2)
+    
+    for i, d in enumerate(data_list):
+        ax = plt.Subplot(fig, grid[i])
+        
+        G = to_networkx(d, node_attrs=['pos'], edge_attrs=None, to_undirected=True,
+                remove_self_loops=True)
+        
+        c = np.linalg.norm(d.x, axis=1) if vector else d.x.numpy()
+        c, _ = set_colors(c.squeeze())
+        
+        graph(G,
+              node_values=None if vector else c,
+              show_colorbar=False,
+              ax=ax,
+              node_size=30,
+              edge_width=0.5)
+        
+        if vector:
+            pos = d.pos.numpy()
+            ax.quiver(pos[:,0], pos[:,1], 
+                      d.x[:,0], d.x[:,1], 
+                      color=c, 
+                      scale=10, 
+                      scale_units='x',
+                      width=0.005)
+        
+        if titles is not None:
+            ax.set_title(titles[i])
+            
+        fig.add_subplot(ax)
+        
+    if save is not None:
+        savefig(fig, save)
+        
+        
+def embedding(emb, labels=None, clusters=None, titles=None, save=None):
+    """
+    Plot embeddings.
+
+    Parameters
+    ----------
+    emb : nx2 matrix of embedded points
+    labels : list of increasing integer node labels
+    clusters : sklearn cluster object
+    titles : list of titles
+    save : filename
+
+    """
+    fig, ax = plt.subplots()
+    
+    assert emb.shape[0]==len(labels)
+    
+    if len(labels) > 1000:
+        idx = np.random.choice(np.arange(len(labels)), size=1000)
+        emb, labels = emb[idx], labels[idx]
+     
+    if labels is not None: 
+        if isinstance(labels[0], int):
+            colors = [f"C{i}" for i in np.arange(1, labels.max()+1)]
+            cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, labels.max()+2), 
+                                                              colors)
+        elif isinstance(labels[0], float):
+            labels, cbar = set_colors(labels)
+            plt.colorbar(cbar)
+            
+    scatter = ax.scatter(emb[:,0], emb[:,1], c=labels, alpha=0.3)
+    
+    if clusters is not None:
+        vor = Voronoi(clusters['centroids']) 
+        voronoi_plot_2d(vor, ax=ax, show_vertices=False) 
+        for k in range(clusters['n_clusters']):
+            ax.annotate(k+1,clusters['centroids'][k,:])
+    
+    if titles is not None:
+        handles,_ = scatter.legend_elements()
+        ax.legend(handles,titles)
+        
+    ax.set_axis_off()
+    
+    if save is not None:
+        savefig(fig, save)
+    
+
+def histograms(clusters, titles=None, col=2, figsize=(10,10), save=None):
+    """
+    Plot histograms of cluster distribution across datasets.
+
+    Parameters
+    ----------
+    data : PyG Batch data object class created with utils.construct_dataset
+    clusters : sklearn cluster object
+    titles : list of titles
+    col : int for number of columns to plot
+    figsize : tuple of figure dimensions
+    save : filename
+
+    """
+        
+    l, s = clusters['labels'], clusters['slices']
+    n_slices = len(s)-1
+    l = [l[s[i]:s[i+1]]+1 for i in range(n_slices)]
+    nc = clusters['n_clusters']
+    
+    fig = plt.figure(figsize=figsize,constrained_layout=True)
+    row = int(np.ceil(n_slices/col))
+    grid = gridspec.GridSpec(row, col, wspace=0.5, hspace=0.5)  
+    
+    for i in range(n_slices):
+        ax = plt.Subplot(fig, grid[i])
+        
+        ax.hist(l[i], 
+                bins=np.arange(nc+1)+0.5, 
+                rwidth=0.85, 
+                density=True)
+        ax.set_xticks(np.arange(nc)+1)
+        ax.set_xlim([0, nc+1])
+        ax.set_xlabel('Feature number')
+        ax.set_ylabel('Probability density')
+        
+        if titles is not None:
+            ax.set_title(titles[i])
+            
+        fig.add_subplot(ax)
+        
+    if save is not None:
+        savefig(fig, save)
+        
+        
+def neighbourhoods(data,
+                   clusters, 
+                   hops=1,
+                   norm=False, 
+                   plot_graph=False,
+                   save=None):
+    """
+    For each clustered neighbourhood type, draw one sample neighbourhood 
+    from each dataset and plot.
+
+    Parameters
+    ----------
+    data : PyG Batch data object class created with utils.construct_dataset
+    clusters : sklearn cluster object
+    hops : size of neighbourhood in number of hops
+    norm : if True, then normalise values to zero mean within clusters
+    plot_graph : if True, then plot the underlying graph.
+    save : filename
+
+    """
+    
+    vector = True if data.x.shape[1] > 1 else False
+    nc = clusters['n_clusters']
+    fig = plt.figure(figsize=(10, 20), constrained_layout=True)
+    outer = gridspec.GridSpec(int(np.ceil(nc/3)), 3, wspace=0.2, hspace=0.2)
+    
+    data_list = data.to_data_list()
+    graphs = [to_networkx(d, node_attrs=['pos'], edge_attrs=None, to_undirected=True,
+            remove_self_loops=True) for d in data_list]
+    
+    node_values = [d.x for d in data_list]
+    
+    for i in range(nc):
+        col = 2
+        row = int(np.ceil(len(data_list)/col))
+        inner = gridspec.GridSpecFromSubplotSpec(row, col,
+                    subplot_spec=outer[i], wspace=0.1, hspace=0.1)
+
+        ax = plt.Subplot(fig, outer[i])
+        ax.set_title("Type {}".format(i+1))
+        ax.axis('off')
+        fig.add_subplot(ax)
+        
+        n_nodes = [0] + [nx.number_of_nodes(g) for g in graphs]
+        n_nodes = np.cumsum(n_nodes)
+
+        for j, G in enumerate(graphs):
+            
+            label_i = clusters['labels'][n_nodes[j]:n_nodes[j+1]]==i
+            label_i = np.where(label_i)[0]
+            if not list(label_i):
+                continue
+            else:
+                random_node = np.random.choice(label_i)
+            
+            nv = node_values[j].numpy()
+            node_ids = nx.ego_graph(G,random_node,radius=hops).nodes
+            node_ids = np.sort(node_ids) #sort nodes
+            
+            #if vector take magnitude
+            if vector:
+                vx = [nv[i,0] for i in node_ids]
+                vy = [nv[i,1] for i in node_ids]
+                nv = np.sqrt(nv[:,0]**2 + nv[:,1]**2)
+                
+            #convert node values to colors
+            if not norm: #set colors based on global values
+                c, _ = set_colors(nv)
+                c = [c[i] for i in node_ids] if isinstance(c,list) else c
+            else: #first extract subgraph, then compute normalized colors
+                nv = nv[node_ids]
+                nv -= nv.mean()
+                c, _ = set_colors(nv.squeeze())
+                  
+            ax = plt.Subplot(fig, inner[j])
+            
+            #extract subgraph with nodes sorted
+            subgraph = nx.Graph()
+            subgraph.add_nodes_from(sorted(G.subgraph(node_ids).nodes(data=True)))
+            subgraph.add_edges_from(G.subgraph(node_ids).edges(data=True))
+            
+            ax.set_aspect('equal', 'box')
+            if plot_graph:
+                graph(subgraph,
+                      node_values=None,
+                      ax=ax,
+                      node_size=30,
+                      edge_width=0.5)
+            
+            x = np.array(list(nx.get_node_attributes(subgraph,name='pos').values()))
+            if vector:
+                ax.quiver(x[:,0], x[:,1],
+                          vx, vy, 
+                          color=c, 
+                          scale=10, 
+                          scale_units='x', 
+                          width=0.02)  
+            else:
+                ax.scatter(x[:,0],x[:,1],c=c)
+            
+            ax.set_frame_on(False)
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
+            fig.add_subplot(ax)
+            
+    if save is not None:
+        savefig(fig, save)
+        
+        
+def graph(
+    G,
+    node_values='b',
+    edge_width=1,
+    edge_alpha=0.2,
+    node_size=20,
+    show_colorbar=False,
+    layout=None,
+    ax=None,
+    node_attr="pos"
+):
+    """Plot scalar values on graph nodes embedded in 2D or 3D."""
+        
+    G = nx.convert_node_labels_to_integers(G)
+    pos = list(nx.get_node_attributes(G, node_attr).values())
+    
+    if pos==[]:
+        if layout=='spectral':
+            pos = nx.spectral_layout(G)
+        else:   
+            pos = nx.spring_layout(G)
+            
+    dim = len(pos[0])
+    assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
+    
+    if ax is None:
+        _, ax = create_axis(dim)
+    
+    if len(pos[0])==2:
+    
+        if node_values is not None:
+            nx.draw_networkx_nodes(
+                G,
+                pos=pos,
+                node_size=node_size,
+                node_color=node_values,
+                alpha=0.8,
+                ax=ax
+            )
+
+        nx.draw_networkx_edges(
+            G,
+            pos=pos,
+            width=edge_width,
+            alpha=edge_alpha,
+            ax=ax
+        )
+    
+    elif len(pos[0])==3:
+        node_xyz = np.array([pos[v] for v in sorted(G)])
+        edge_xyz = np.array([(pos[u], pos[v]) for u, v in G.edges()])
+    
+        if node_values is not None:
+            ax.scatter(*node_xyz.T, s=node_size, ec="w")
+        
+        for vizedge in edge_xyz:
+            ax.plot(*vizedge.T, color="tab:gray", alpha=edge_alpha, linewidth=edge_width)      
+            
+    return ax
 
 
 def time_series(T,X, ax=None, style='o', node_feature=None, lw=1, ms=5):
@@ -124,92 +443,6 @@ def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, arrowhead
     return ax
 
 
-def neighbourhoods(data,
-                   clusters, 
-                   n_samples=4,
-                   radius=1,
-                   norm=False, 
-                   vector=False, 
-                   plot_graph=False):
-    
-    nc = clusters['n_clusters']
-    fig = plt.figure(figsize=(10, 20), constrained_layout=True)
-    outer = gridspec.GridSpec(int(np.ceil(nc/3)), 3, wspace=0.2, hspace=0.2)
-    
-    data_list = data.to_data_list()
-    graphs = [to_networkx(d, node_attrs=['pos'], edge_attrs=None, to_undirected=True,
-            remove_self_loops=True) for d in data_list]
-    
-    node_values = [d.x for d in data_list]
-    
-    for i in range(nc):
-        inner = gridspec.GridSpecFromSubplotSpec(int(np.ceil(n_samples/2)), 2,
-                    subplot_spec=outer[i], wspace=0.1, hspace=0.1)
-
-        ax = plt.Subplot(fig, outer[i])
-        ax.set_title("Type {}".format(i+1))
-        ax.axis('off')
-        fig.add_subplot(ax)
-        
-        n_nodes = [0] + [nx.number_of_nodes(g) for g in graphs]
-        n_nodes = np.cumsum(n_nodes)
-
-        for j, G in enumerate(graphs):
-            
-            label_i = clusters['labels'][n_nodes[j]:n_nodes[j+1]]==i
-            label_i = np.where(label_i)[0]
-            if not list(label_i):
-                continue
-            else:
-                random_node = np.random.choice(label_i)
-            
-            nv = node_values[j].numpy()
-            node_ids = nx.ego_graph(G,random_node,radius=radius).nodes
-            node_ids = np.sort(node_ids) #sort nodes
-            
-            #if vector take magnitude
-            if vector:
-                vx = [nv[i,0] for i in node_ids]
-                vy = [nv[i,1] for i in node_ids]
-                nv = np.sqrt(nv[:,0]**2 + nv[:,1]**2)
-                
-            #convert node values to colors
-            if not norm: #set colors based on global values
-                c=set_colors(nv, cbar=False)
-                c=[c[i] for i in node_ids] if isinstance(c,list) else c
-            else: #first extract subgraph, then compute normalized colors
-                nv=nv[node_ids]
-                nv-=nv.mean()
-                c=set_colors(nv, cbar=False)
-                  
-            ax = plt.Subplot(fig, inner[j])
-            
-            #extract subgraph with nodes sorted
-            subgraph = nx.Graph()
-            subgraph.add_nodes_from(sorted(G.subgraph(node_ids).nodes(data=True)))
-            subgraph.add_edges_from(G.subgraph(node_ids).edges(data=True))
-            
-            ax.set_aspect('equal', 'box')
-            if plot_graph:
-                graph(subgraph,
-                      node_values=None,
-                      ax=ax,
-                      node_size=30,
-                      edge_width=0.5)
-            
-            x = np.array(list(nx.get_node_attributes(subgraph,name='pos').values()))
-            if vector:
-                ax.quiver(x[:,0],x[:,1],vx,vy, 
-                          color=c, scale=10, scale_units='x', width=0.02)  
-            else:
-                ax.scatter(x[:,0],x[:,1],c=c)
-            
-            ax.set_frame_on(False)
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
-            fig.add_subplot(ax)
-
-
 class Arrow3D(FancyArrowPatch):
     def __init__(self, xs, ys, zs, *args, **kwargs):
         FancyArrowPatch.__init__(self, (0,0), (0,0), *args, **kwargs)
@@ -228,7 +461,9 @@ class Arrow3D(FancyArrowPatch):
 
         return np.min(zs)
 
-
+# =============================================================================
+# Helper functions
+# =============================================================================
 def create_axis(dim):
     
     fig = plt.figure()
@@ -261,135 +496,36 @@ def set_axes(ax,data=None, padding=0.1, off=True):
     return ax
 
 
-def set_colors(color, cbar=True):
+def set_colors(color, cmap=plt.cm.coolwarm):
     
     if color is None:
-        colors = 'C0'
+        return 'C0', None
     else:
-        if isinstance(color, (list, tuple, np.ndarray)):
-            cmap = plt.cm.coolwarm
-            if (color>=0).all():
-                norm = plt.cm.colors.Normalize(0, np.max(np.abs(color)))
-            else:    
-                norm = plt.cm.colors.Normalize(-np.max(np.abs(color)), np.max(np.abs(color)))
-            if cbar:
-                cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
-                plt.colorbar(cbar)
-            colors = []
-            for i, c in enumerate(color):
-                colors.append(cmap(norm(np.array(c).flatten())))
-        else:
-            colors = color
+        assert isinstance(color, (list, tuple, np.ndarray))
+        
+    if isinstance(color[0], (float, np.floating)):
+        if (color>=0).all():
+            norm = plt.cm.colors.Normalize(0, np.max(np.abs(color)))
+        else:    
+            norm = plt.cm.colors.Normalize(-np.max(np.abs(color)), np.max(np.abs(color)))
+        
+        colors = []
+        for i, c in enumerate(color):
+            colors.append(cmap(norm(np.array(c).flatten())))
+   
+    elif isinstance(color[0], int):
+        colors = [f"C{i}" for i in np.arange(1, color.max()+1)]
+        cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, color.max()+2), 
+                                                              colors)
+        
+    cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
             
-    return colors
+    return colors, cbar
 
 
-def graph(
-    G,
-    node_values='b',
-    edge_width=1,
-    edge_alpha=0.2,
-    node_size=20,
-    show_colorbar=False,
-    layout=None,
-    ax=None,
-    node_attr="pos"
-):
-    """Plot scalar values on graph nodes embedded in 2D or 3D."""
-        
-    G = nx.convert_node_labels_to_integers(G)
-    pos = list(nx.get_node_attributes(G, node_attr).values())
-    
-    if pos==[]:
-        if layout=='spectral':
-            pos = nx.spectral_layout(G)
-        else:   
-            pos = nx.spring_layout(G)
-            
-    dim = len(pos[0])
-    assert dim==2 or dim==3, 'Dimension must be 2 or 3.'
-    
-    if ax is None:
-        _, ax = create_axis(dim)
-    
-    if len(pos[0])==2:
-    
-        if node_values is not None:
-            nx.draw_networkx_nodes(
-                G,
-                pos=pos,
-                node_size=node_size,
-                node_color=node_values,
-                alpha=0.8,
-                ax=ax
-            )
-
-        nx.draw_networkx_edges(
-            G,
-            pos=pos,
-            width=edge_width,
-            alpha=edge_alpha,
-            ax=ax
-        )
-    
-    elif len(pos[0])==3:
-        node_xyz = np.array([pos[v] for v in sorted(G)])
-        edge_xyz = np.array([(pos[u], pos[v]) for u, v in G.edges()])
-    
-        if node_values is not None:
-            ax.scatter(*node_xyz.T, s=node_size, ec="w")
-        
-        for vizedge in edge_xyz:
-            ax.plot(*vizedge.T, color="tab:gray", alpha=edge_alpha, linewidth=edge_width)      
-            
-    return ax
-    
-
-def embedding(emb, clusters, node_colors=None, titles=None):
-        
-    fig, ax = plt.subplots()
-    
-    colors = [f"C{i}" for i in np.arange(1, node_colors.max()+1)]
-    cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, node_colors.max()+2), colors)
-        
-    scatter = ax.scatter(emb[:,0], emb[:,1], c=node_colors, alpha=0.3, cmap=cmap, norm=norm)
-    vor = Voronoi(clusters['centroids']) 
-    voronoi_plot_2d(vor, ax=ax, show_vertices=False) 
-    handles,_ = scatter.legend_elements()
-    
-    #annotate clusters
-    for k in range(clusters['n_clusters']):
-        ax.annotate(k+1,clusters['centroids'][k,:])
-    
-    #add legend
-    if titles is not None:
-        ax.legend(handles,titles)
-        
-    ax.set_axis_off() 
-        
-        
-def histograms(data, clusters, titles=None):
-        
-    l = clusters['labels']
-    nc = clusters['n_clusters']
-    slices = data._slice_dict['x']
-    n_slices = len(slices)-1
-    counts = []
-    for i in range(n_slices):
-        counts.append(l[slices[i]:slices[i+1]]+1)
-        
-    bins = [i+1 for i in range(nc)]
-    
-    fig = plt.figure(figsize=(10, 10),constrained_layout=True)
-    grid = gridspec.GridSpec(int(np.ceil(n_slices//2)), 2, wspace=0.2, hspace=0.2)  
-    
-    for i in range(n_slices):
-        ax = plt.Subplot(fig, grid[i])
-        ax.hist(counts[i], bins=np.arange(nc+1)+0.5, rwidth=0.85, density=True)
-        ax.set_xticks(bins)
-        ax.set_xlim([0,nc+1])
-        if titles is not None:
-            ax.set_title(titles[i])
-            ax.set_xlabel('Feature number')
-            ax.set_ylabel('Probability density')
-        fig.add_subplot(ax)
+def savefig(fig, filename, folder='../results'):
+    """Save figures in subfolders and with different extensions."""
+    if fig is not None:
+        if not Path(folder).exists():
+            os.mkdir(folder)
+        fig.savefig((Path(folder) / filename), bbox_inches="tight")
