@@ -24,9 +24,9 @@ def main():
     
     #evaluate functions
     n_steps = 10
-    alpha = np.linspace(-1, 1, n_steps)
+    beta = np.linspace(-1, 1, n_steps)
     x = [geometry.sample_2d(n, [[-1,-1],[1,1]], 'random') for i in range(n_steps)]
-    y = [f(x_, alpha[i]) for i,x_ in enumerate(x)] #evaluated functions
+    y = [f(x_, beta[i]) for i,x_ in enumerate(x)] #evaluated functions
         
     #construct PyG data object
     data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
@@ -39,11 +39,12 @@ def main():
     emb_MDS = geometry.embed(dist, embed_typ='MDS')
     
     #plot
-    plotting.fields(data, col=5, figsize=(10,3), save='scalar_fields.svg')
-    plotting.embedding(emb, data.y.numpy(), clusters, save='scalar_fields_embedding.svg') 
-    plotting.histograms(clusters, col=5, figsize=(13,3), save='scalar_fields_histogram.svg')
+    titles = [r'$\beta$ = ' + str(a) for a in beta]
+    plotting.fields(data, col=5, figsize=(10,3), titles=titles, save='scalar_fields.svg')
+    plotting.embedding(emb, data.y.numpy(), clusters, titles=titles, save='scalar_fields_embedding.svg') 
+    plotting.histograms(clusters, col=5, figsize=(13,3), titles=titles, save='scalar_fields_histogram.svg')
     plotting.neighbourhoods(data, clusters, hops=1, norm=True, save='scalar_fields_nhoods.svg')
-    plotting.embedding(emb_MDS, alpha, save='scalar_fields_MDS.svg') 
+    plotting.embedding(emb_MDS, beta, save='scalar_fields_MDS.svg') 
 
 def f(x, alpha=0):
     return x[:,[0]]**2 - alpha*x[:,[1]]**2 

@@ -8,7 +8,7 @@ from GeoDySys import plotting, utils, geometry, net
 def main():
     
     #parameters
-    k = 30
+    k = 15
     n_clusters = 10
     
     par = {'batch_size': 256, #batch size, this should be as large as possible
@@ -22,17 +22,21 @@ def main():
            }
     
     #evaluate functions
-    n_steps = 5
-    alpha = np.linspace(1, 0, n_steps)
+    n_steps = 3
+    alpha = np.linspace(1, 0.75, n_steps)
     nr = 10
-    ntheta = 20
+    ntheta = 40
     x_ = np.linspace(-np.pi, np.pi, nr)
     y_ = np.linspace(-np.pi, np.pi, ntheta)
     x_, y_ = np.meshgrid(x_, y_)
     X = np.column_stack([x_.flatten(), y_.flatten()])
     
-    y = [f(X) for i in range(n_steps)]
-    x = [sample_cone(a) for a in alpha]
+    y = [f1(X) for i in range(n_steps)] + [f2(X) for i in range(n_steps)]
+    x = 2 * [sample_cone(a, nr, ntheta) for a in alpha]
+    
+    # ind = geometry.furthest_point_sampling(x[0], N=200)[0]
+    # x = [x_[ind] for x_ in x]
+    # y = [y_[ind] for y_ in y]
     
     #construct PyG data object
     data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
@@ -45,17 +49,22 @@ def main():
     emb_MDS = geometry.embed(dist, embed_typ='MDS')
     
     #plot
-    plotting.fields(data, col=3, figsize=(10,5), save='scalar_fields.svg')
-    plotting.embedding(emb, data.y.numpy(), clusters, save='scalar_fields_embedding.svg') 
-    plotting.histograms(clusters, col=5, figsize=(13,3), save='scalar_fields_histogram.svg')
+    titles = [r'$f_1,\alpha$ = ' + str(a) for a in alpha] + \
+        [r'$f_2,\alpha$ = ' + str(a) for a in alpha]
+    plotting.fields(data, titles=titles, col=3, figsize=(8,5), save='scalar_fields.svg')
+    plotting.embedding(emb, data.y.numpy(), clusters, titles=titles, save='scalar_fields_embedding.svg') 
+    plotting.histograms(clusters, col=3, figsize=(13,3), titles=titles, save='scalar_fields_histogram.svg')
     plotting.neighbourhoods(data, clusters, hops=1, norm=True, save='scalar_fields_nhoods.svg')
-    plotting.embedding(emb_MDS, alpha, save='scalar_fields_MDS.svg') 
+    labels = np.array([0]*n_steps + [1]*n_steps)
+    plotting.embedding(emb_MDS, labels, save='scalar_fields_MDS.svg') 
 
-
-def f(x):
+def f1(x):
     return np.cos(x[:,[0]]) + np.sin(x[:,[1]])
 
-def sample_cone(alpha, nr=10, ntheta=20):
+def f2(x):
+    return np.cos(x[:,[0]]) + np.sin(2*x[:,[1]])
+
+def sample_cone(alpha, nr, ntheta):
     r = np.sqrt(np.linspace(0.5, 5, nr))
     theta = np.linspace(0, 2*np.pi, ntheta)
     r, theta = np.meshgrid(r, theta)

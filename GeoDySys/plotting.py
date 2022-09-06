@@ -38,7 +38,7 @@ def fields(data, titles=None, col=2, figsize=(10,10), keeplim=True, save=None):
         
     fig = plt.figure(figsize=figsize, constrained_layout=True)
     row = int(np.ceil(len(data_list)/col))
-    grid = gridspec.GridSpec(row, col, wspace=0.2, hspace=0.2, figure=fig)
+    grid = gridspec.GridSpec(row, col, wspace=0.1, hspace=0.1, figure=fig)
     
     lims = None
     for i, d in enumerate(data_list):
@@ -54,7 +54,8 @@ def fields(data, titles=None, col=2, figsize=(10,10), keeplim=True, save=None):
               labels=None if vector else c,
               ax=ax,
               node_size=30,
-              edge_width=0.5)
+              edge_width=0.5, 
+              edge_alpha=1.)
         
         if vector:
             pos = d.pos.numpy()
@@ -207,7 +208,7 @@ def neighbourhoods(data,
         col = 2
         row = int(np.ceil(len(data_list)/col))
         inner = gridspec.GridSpecFromSubplotSpec(row, col,
-                    subplot_spec=outer[i], wspace=0.1, hspace=0.1)
+                    subplot_spec=outer[i], wspace=0.5, hspace=0.5)
 
         ax = plt.Subplot(fig, outer[i])
         ax.set_title("Type {}".format(i+1))
@@ -280,7 +281,7 @@ def graph(
     G,
     labels='b',
     edge_width=1,
-    edge_alpha=0.2,
+    edge_alpha=1.,
     node_size=20,
     layout=None,
     ax=None

@@ -44,26 +44,28 @@ def sample_2d(N=100, interval=[[-1,-1],[1,1]], method='uniform', seed=0):
     return x
 
 
-def furthest_point_sampling(X, N=None, return_clusters=False):
+def furthest_point_sampling(x, N=None, return_clusters=False):
     """
     A Naive O(N^2) algorithm to do furthest points sampling
-    
+
     Parameters
     ----------
-    D : ndarray (N, N) 
-        An NxN distance matrix for points
-    Return
-    ------
+    x : nxdim matrix of data
+    N : Integer number of sampled points.
+    return_clusters : If True, then
+
+    Returns
+    -------
     tuple (list, list) 
-        (permutation (N-length array of indices), 
+        (permutation (N array of indices), 
         lambdas (N-length array of insertion radii))
+
     """
     
-    D = pairwise_distances(X)
+    D = pairwise_distances(x)
     N = D.shape[0] if N is None else N
     
-    #By default, takes the first point in the list to be the
-    #first point in the permutation, but could be random
+    #Start with first point in the list
     perm = np.zeros(N, dtype=np.int64)
     lambdas = np.zeros(N)
     ds = D[0, :]
@@ -80,7 +82,7 @@ def furthest_point_sampling(X, N=None, return_clusters=False):
         D = D[perm]
         D[D==0] = D.max()
         D[:,perm] = D.max()
-        for i in range(X.shape[0]-N):
+        for i in range(x.shape[0]-N):
             idx = np.unravel_index(D.argmin(), D.shape)
             clusters[idx[0]].append(idx[1])
             D[:,idx[1]] = D.max()

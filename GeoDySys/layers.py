@@ -86,7 +86,8 @@ class AnisoConv(MessagePassing):
         dim = x.shape[1]
         kernels = utils.to_list(kernels)
         
-        #when using rotations, we need a n*dimxn*dim matrices, so adapt indexing
+        #when using rotations, we replace nodes by vector spaces so
+        #need to expand nxn -> n*dimxn*dim matrices
         if R is not None:
             size = (size[0]*dim, size[1]*dim)
             adj = tgu.to_dense_adj(edge_index)[0]
