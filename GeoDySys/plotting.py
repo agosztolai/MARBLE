@@ -16,8 +16,10 @@ from torch_geometric.utils.convert import to_networkx
 
 from scipy.spatial import Voronoi, voronoi_plot_2d
 
-
-def fields(data, titles=None, col=2, figsize=(10,10), save=None):
+# =============================================================================
+# Manifolds
+# =============================================================================
+def fields(data, titles=None, col=2, figsize=(10,10), keeplim=True, save=None):
     """
     Plot scalar or vector fields
 
@@ -30,15 +32,17 @@ def fields(data, titles=None, col=2, figsize=(10,10), save=None):
     save : filename
 
     """
+    dim = data.pos.shape[1]
     vector = True if data.x.shape[1] > 1 else False
     data_list = data.to_data_list() #split data batch 
         
     fig = plt.figure(figsize=figsize, constrained_layout=True)
     row = int(np.ceil(len(data_list)/col))
-    grid = gridspec.GridSpec(row, col, wspace=0.2, hspace=0.2)
+    grid = gridspec.GridSpec(row, col, wspace=0.2, hspace=0.2, figure=fig)
     
+    lims = None
     for i, d in enumerate(data_list):
-        ax = plt.Subplot(fig, grid[i])
+        _, ax = create_axis(dim, grid[i], fig=fig)
         
         G = to_networkx(d, node_attrs=['pos'], edge_attrs=None, to_undirected=True,
                 remove_self_loops=True)
@@ -47,8 +51,7 @@ def fields(data, titles=None, col=2, figsize=(10,10), save=None):
         c, _ = set_colors(c.squeeze())
         
         graph(G,
-              node_values=None if vector else c,
-              show_colorbar=False,
+              labels=None if vector else c,
               ax=ax,
               node_size=30,
               edge_width=0.5)
@@ -66,6 +69,10 @@ def fields(data, titles=None, col=2, figsize=(10,10), save=None):
             ax.set_title(titles[i])
             
         fig.add_subplot(ax)
+        
+        if lims is None:
+            lims = get_limits(ax)
+        set_axes(ax, lims=lims, off=True)
         
     if save is not None:
         savefig(fig, save)
@@ -133,7 +140,7 @@ def histograms(clusters, titles=None, col=2, figsize=(10,10), save=None):
     save : filename
 
     """
-        
+    
     l, s = clusters['labels'], clusters['slices']
     n_slices = len(s)-1
     l = [l[s[i]:s[i+1]]+1 for i in range(n_slices)]
@@ -141,7 +148,7 @@ def histograms(clusters, titles=None, col=2, figsize=(10,10), save=None):
     
     fig = plt.figure(figsize=figsize,constrained_layout=True)
     row = int(np.ceil(n_slices/col))
-    grid = gridspec.GridSpec(row, col, wspace=0.5, hspace=0.5)  
+    grid = gridspec.GridSpec(row, col, wspace=0.5, hspace=0.5, figure=fig)  
     
     for i in range(n_slices):
         ax = plt.Subplot(fig, grid[i])
@@ -188,7 +195,7 @@ def neighbourhoods(data,
     vector = True if data.x.shape[1] > 1 else False
     nc = clusters['n_clusters']
     fig = plt.figure(figsize=(10, 20), constrained_layout=True)
-    outer = gridspec.GridSpec(int(np.ceil(nc/3)), 3, wspace=0.2, hspace=0.2)
+    outer = gridspec.GridSpec(int(np.ceil(nc/3)), 3, wspace=0.2, hspace=0.2, figure=fig)
     
     data_list = data.to_data_list()
     graphs = [to_networkx(d, node_attrs=['pos'], edge_attrs=None, to_undirected=True,
@@ -220,14 +227,11 @@ def neighbourhoods(data,
                 random_node = np.random.choice(label_i)
             
             nv = node_values[j].numpy()
-            node_ids = nx.ego_graph(G,random_node,radius=hops).nodes
+            node_ids = nx.ego_graph(G, random_node, radius=hops).nodes
             node_ids = np.sort(node_ids) #sort nodes
             
-            #if vector take magnitude
             if vector:
-                vx = [nv[i,0] for i in node_ids]
-                vy = [nv[i,1] for i in node_ids]
-                nv = np.sqrt(nv[:,0]**2 + nv[:,1]**2)
+                nv = np.linalg.norm(nv, axis=1)
                 
             #convert node values to colors
             if not norm: #set colors based on global values
@@ -248,25 +252,24 @@ def neighbourhoods(data,
             ax.set_aspect('equal', 'box')
             if plot_graph:
                 graph(subgraph,
-                      node_values=None,
+                      labels=None,
                       ax=ax,
                       node_size=30,
                       edge_width=0.5)
             
-            x = np.array(list(nx.get_node_attributes(subgraph,name='pos').values()))
+            x = np.array(list(nx.get_node_attributes(subgraph, name='pos').values()))
             if vector:
                 ax.quiver(x[:,0], x[:,1],
-                          vx, vy, 
+                          nv[:,0], nv[:,1], 
                           color=c, 
                           scale=10, 
                           scale_units='x', 
                           width=0.02)  
             else:
-                ax.scatter(x[:,0],x[:,1],c=c)
+                ax.scatter(x[:,0], x[:,1], c=c)
             
             ax.set_frame_on(False)
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
+            set_axes(ax, off=True)
             fig.add_subplot(ax)
             
     if save is not None:
@@ -275,21 +278,19 @@ def neighbourhoods(data,
         
 def graph(
     G,
-    node_values='b',
+    labels='b',
     edge_width=1,
     edge_alpha=0.2,
     node_size=20,
-    show_colorbar=False,
     layout=None,
-    ax=None,
-    node_attr="pos"
+    ax=None
 ):
     """Plot scalar values on graph nodes embedded in 2D or 3D."""
         
     G = nx.convert_node_labels_to_integers(G)
-    pos = list(nx.get_node_attributes(G, node_attr).values())
+    pos = list(nx.get_node_attributes(G, 'pos').values())
     
-    if pos==[]:
+    if pos == []:
         if layout=='spectral':
             pos = nx.spectral_layout(G)
         else:   
@@ -301,14 +302,13 @@ def graph(
     if ax is None:
         _, ax = create_axis(dim)
     
-    if len(pos[0])==2:
-    
-        if node_values is not None:
+    if dim == 2:
+        if labels is not None:
             nx.draw_networkx_nodes(
                 G,
                 pos=pos,
                 node_size=node_size,
-                node_color=node_values,
+                node_color=labels,
                 alpha=0.8,
                 ax=ax
             )
@@ -321,20 +321,22 @@ def graph(
             ax=ax
         )
     
-    elif len(pos[0])==3:
+    elif dim == 3:
         node_xyz = np.array([pos[v] for v in sorted(G)])
         edge_xyz = np.array([(pos[u], pos[v]) for u, v in G.edges()])
     
-        if node_values is not None:
-            ax.scatter(*node_xyz.T, s=node_size, ec="w")
+        if labels is not None:
+            ax.scatter(*node_xyz.T, s=node_size, c=labels, ec="w")
         
         for vizedge in edge_xyz:
             ax.plot(*vizedge.T, color="tab:gray", alpha=edge_alpha, linewidth=edge_width)      
             
     return ax
 
-
-def time_series(T,X, ax=None, style='o', node_feature=None, lw=1, ms=5):
+# =============================================================================
+# Time series
+# =============================================================================
+def time_series(T, X, ax=None, style='o', node_feature=None, lw=1, ms=5):
     """
     Plot time series coloured by curvature.
 
@@ -464,28 +466,43 @@ class Arrow3D(FancyArrowPatch):
 # =============================================================================
 # Helper functions
 # =============================================================================
-def create_axis(dim):
+def create_axis(*args, fig=None):
     
-    fig = plt.figure()
+    dim = args[0]
+    if len(args)>1:
+        args = [args[i] for i in range(1,len(args))]
+    
+    if fig is None:
+        fig = plt.figure()
+        
     if dim==2:
-        ax = plt.axes()
-    if dim==3:
-        ax = plt.axes(projection="3d")
+        ax = fig.add_subplot(*args)
+    elif dim==3:
+        ax = fig.add_subplot(*args, projection="3d")
         
     return fig, ax
 
 
-def set_axes(ax,data=None, padding=0.1, off=True):
-    
-    if data is not None:
-        cmin = data.min(0)
-        cmax = data.max(0)
-        pad = padding*(cmax - cmin)
+def get_limits(ax):
+    lims = [ax.get_xlim(), ax.get_ylim()]
+    if ax.name=="3d":
+        lims.append(ax.get_zlim())
         
-        ax.set_xlim([cmin[0]-pad[0],cmax[0]+pad[0]])
-        ax.set_ylim([cmin[1]-pad[1],cmax[1]+pad[1]])
+    return lims
+
+
+def set_axes(ax, lims=None, padding=0.1, off=True):
+    
+    if lims is not None:
+        xlim = lims[0]
+        ylim = lims[1]
+        pad = padding*(xlim[1] - xlim[0])
+        
+        ax.set_xlim([xlim[0]-pad, xlim[1]+pad])
+        ax.set_ylim([ylim[0]-pad, ylim[1]+pad])
         if ax.name=="3d":
-            ax.set_zlim([cmin[2]-pad[2],cmax[2]+pad[2]])
+            zlim = lims[2]
+            ax.set_zlim([zlim[0]-pad, zlim[1]+pad])
         
     if off:
         ax.set_yticklabels([])

@@ -8,7 +8,6 @@ from GeoDySys import plotting, utils, geometry, net
 def main():
     
     #parameters
-    n = 512
     k = 30
     n_clusters = 10
     
@@ -23,11 +22,18 @@ def main():
            }
     
     #evaluate functions
-    n_steps = 10
-    alpha = np.linspace(-1, 1, n_steps)
-    x = [geometry.sample_2d(n, [[-1,-1],[1,1]], 'random') for i in range(n_steps)]
-    y = [f(x_, alpha[i]) for i,x_ in enumerate(x)] #evaluated functions
-        
+    n_steps = 5
+    alpha = np.linspace(1, 0, n_steps)
+    nr = 10
+    ntheta = 20
+    x_ = np.linspace(-np.pi, np.pi, nr)
+    y_ = np.linspace(-np.pi, np.pi, ntheta)
+    x_, y_ = np.meshgrid(x_, y_)
+    X = np.column_stack([x_.flatten(), y_.flatten()])
+    
+    y = [f(X) for i in range(n_steps)]
+    x = [sample_cone(a) for a in alpha]
+    
     #construct PyG data object
     data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
     
@@ -39,14 +45,25 @@ def main():
     emb_MDS = geometry.embed(dist, embed_typ='MDS')
     
     #plot
-    plotting.fields(data, col=5, figsize=(10,3), save='scalar_fields.svg')
+    plotting.fields(data, col=3, figsize=(10,5), save='scalar_fields.svg')
     plotting.embedding(emb, data.y.numpy(), clusters, save='scalar_fields_embedding.svg') 
     plotting.histograms(clusters, col=5, figsize=(13,3), save='scalar_fields_histogram.svg')
     plotting.neighbourhoods(data, clusters, hops=1, norm=True, save='scalar_fields_nhoods.svg')
     plotting.embedding(emb_MDS, alpha, save='scalar_fields_MDS.svg') 
 
-def f(x, alpha=0):
-    return x[:,[0]]**2 - alpha*x[:,[1]]**2 
+
+def f(x):
+    return np.cos(x[:,[0]]) + np.sin(x[:,[1]])
+
+def sample_cone(alpha, nr=10, ntheta=20):
+    r = np.sqrt(np.linspace(0.5, 5, nr))
+    theta = np.linspace(0, 2*np.pi, ntheta)
+    r, theta = np.meshgrid(r, theta)
+    X = r*np.cos(theta)
+    Y = r*np.sin(theta)
+    Z = -(alpha*r)**2
+    
+    return np.column_stack([X.flatten(), Y.flatten(), Z.flatten()])
 
 
 if __name__ == '__main__':

@@ -13,7 +13,6 @@ import matplotlib.pyplot as plt
 
 from GeoDySys import utils, geometry
 
-
 import pymanopt
 from pymanopt.manifolds import Stiefel
 from pymanopt.optimizers import SteepestDescent
@@ -23,7 +22,7 @@ def run():
     nn = 8
 
     r = np.sqrt(np.arange(0.5, 5, 0.4))
-    T = np.arange(0, 2*torch.pi, 0.3)
+    T = np.arange(0, 2*np.pi, 0.3)
     r, T = np.meshgrid(r, T)
     X = r*np.cos(T)
     Y = r*np.sin(T)

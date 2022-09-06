@@ -14,7 +14,7 @@ def main():
     n_clusters = 10
     
     par = {'batch_size': 256, #batch size, this should be as large as possible
-           'epochs': 30, #optimisation epochs
+           'epochs': 3, #optimisation epochs
            'order': 1, #order of derivatives
            'n_lin_layers': 2,
            'hidden_channels': 16, #number of internal dimensions in MLP
@@ -23,13 +23,8 @@ def main():
       
     #evaluate functions
     # f0: linear, f1: point source, f2: point vortex, f3: saddle
-    x0 = geometry.sample_2d(n, [[-1,-1],[1,1]], 'random')
-    x1 = geometry.sample_2d(n, [[-1,-1],[1,1]], 'random')
-    x2 = geometry.sample_2d(n, [[-1,-1],[1,1]], 'random')
-    x3 = geometry.sample_2d(n, [[-1,-1],[1,1]], 'random')
-    x = [x0, x1, x2, x3]
-    # y = [f0(x0)[:,[1]], f1(x1)[:,[1]], f2(x2)[:,[1]], f3(x3)[:,[1]]] #evaluated functions
-    y = [f0(x0), f1(x1), f2(x2), f3(x3)] #evaluated functions
+    x = [geometry.sample_2d(n, [[-1,-1],[1,1]], 'random') for i in range(4)]
+    y = [f0(x[0]), f1(x[1]), f2(x[2]), f3(x[3])] #evaluated functions
         
     #construct PyG data object
     data = utils.construct_dataset(x, y, graph_type='cknn', k=k)

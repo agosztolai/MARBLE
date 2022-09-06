@@ -21,12 +21,8 @@ def main():
     
     #evaluate functions
     # f1: constant, f2: linear, f3: parabola, f4: saddle
-    x0 = geometry.sample_2d(n, [[-1,-1],[1,1]], 'random')
-    x1 = geometry.sample_2d(n, [[-1,-1],[1,1]], 'random')
-    x2 = geometry.sample_2d(n, [[-1,-1],[1,1]], 'random')
-    x3 = geometry.sample_2d(n, [[-1,-1],[1,1]], 'random')
-    x = [x0, x1, x2, x3]
-    y = [f0(x0), f1(x1), f2(x2), f3(x3)] #evaluated functions
+    x = [geometry.sample_2d(n, [[-1,-1],[1,1]], 'random') for i in range(4)]
+    y = [f0(x[0]), f1(x[1]), f2(x[2]), f3(x[3])] #evaluated functions
         
     #construct PyG data object
     data = utils.construct_dataset(x, y, graph_type='cknn', k=k)

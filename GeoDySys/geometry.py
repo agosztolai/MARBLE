@@ -40,7 +40,7 @@ def sample_2d(N=100, interval=[[-1,-1],[1,1]], method='uniform', seed=0):
         x = np.random.uniform((interval[0][0], interval[0][1]), 
                               (interval[1][0], interval[1][1]), 
                               (N,2))
-        
+    
     return x
 
 
@@ -194,7 +194,7 @@ def compute_distr_distances(clusters, dist_typ='Wasserstein'):
     
     l, s = clusters['labels'], clusters['slices']
     l = [l[s[i]:s[i+1]]+1 for i in range(len(s)-1)]
-    nc = clusters['n_clusters']
+    nc, nl = clusters['n_clusters'], len(l)
     bins = []
     for l_ in l:
         bins_i = []
@@ -203,11 +203,11 @@ def compute_distr_distances(clusters, dist_typ='Wasserstein'):
         bins_i = np.array(bins_i)
         bins.append(bins_i/bins_i.sum())
     
-    dist = np.zeros([nc, nc])
+    dist = np.zeros([nl, nl])
     if dist_typ == 'Wasserstein':
         centroid_distances = pairwise_distances(clusters['centroids'])
-        for i in range(len(l)):
-            for j in range(i+1,len(l)):
+        for i in range(nl):
+            for j in range(i+1,nl):
                 dist[i,j] = ot.emd2(bins[i], bins[j], centroid_distances)
                 
         dist += dist.T
