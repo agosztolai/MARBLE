@@ -27,7 +27,7 @@ def main():
     beta = np.linspace(-1, 1, n_steps)
     x = [geometry.sample_2d(n, [[-1,-1],[1,1]], 'random') for i in range(n_steps)]
     y = [f(x_, beta[i]) for i,x_ in enumerate(x)] #evaluated functions
-        
+    
     #construct PyG data object
     data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
     

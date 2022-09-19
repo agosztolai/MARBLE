@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.neighbors import NearestNeighbors
+# from sklearn.neighbors import NearestNeighbors
 from sklearn.neighbors import KDTree
 import numpy.ma as ma
 from .utils import parallel_proc

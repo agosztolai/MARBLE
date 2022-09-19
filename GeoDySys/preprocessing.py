@@ -1,12 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Wed Aug 31 18:13:32 2022
 
-@author: gosztola
-"""
-
-from GeoDySys import geometry as g
+from .lib import geometry as g
 
 def preprocessing(data, par):
     

@@ -2,11 +2,9 @@
 # -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
 import numpy as np
-from GeoDySys.lib.solvers import simulate_ODE
-from GeoDySys.time_series import delay_embed, find_nn
-from GeoDySys import plotting, utils
+from GeoDySys import plotting, solvers, time_series
 from GeoDySys.geometry import furthest_point_sampling
-from torch_geometric.utils.convert import to_networkx
+# from torch_geometric.utils.convert import to_networkx
 from scipy.spatial.transform import Rotation as R
 import sys
           
@@ -16,7 +14,7 @@ def main():
     par = {'sigma': 10.0, 'beta': 8/3.0, 'rho': 28.0, 'tau': 1.0}
     x0 = [-8.0, 7.0, 27.0]
     t = np.linspace(0, 20, 500)
-    X = simulate_ODE('lorenz', t, x0, par)
+    X = solvers.simulate_ODE('lorenz', t, x0, par)
     
     ax = None
     # ax = plotting.trajectories(X, style='->', lw=0.5, arrowhead=5, axis=False)
@@ -37,28 +35,6 @@ def main():
     #     ax = circle(ax, 4, X[[ind[i]] + list(nn_)])
     
     # plt.savefig('../results/Lorenz_cover.svg')
-    
-    tau = -2
-    dim = 3
-    
-    X_emb = delay_embed(X[:,0],dim,tau)
-    
-    ind, _ = furthest_point_sampling(X_emb, N)
-    
-    ax = plotting.trajectories(X_emb, style='->', lw=0.5, arrowhead=5, axis=False)
-    
-    # data = utils.construct_dataset(X_emb, graph_type='cknn', k=20)
-    # G = to_networkx(data, node_attrs=['pos'], edge_attrs=None, to_undirected=True,
-    #         remove_self_loops=True)
-    # ax = plotting.graph(G,node_values=None,show_colorbar=False,ax=ax,edge_alpha=0.3, edge_width=0.5)
-
-    ind = np.array(list(set(ind)))
-    _, nn = find_nn(ind, X_emb, nn=2)
-    
-    for i, nn_ in enumerate(nn):
-        ax = circle(ax, 2, X_emb[[ind[i]] + list(nn_)])
-        
-    plt.savefig('../results/Lorenz_reconstructed_cover.svg')
     
 
 def circle(ax, r, X_p):

@@ -147,9 +147,9 @@ def histograms(clusters, titles=None, col=2, figsize=(10,10), save=None):
     l = [l[s[i]:s[i+1]]+1 for i in range(n_slices)]
     nc = clusters['n_clusters']
     
-    fig = plt.figure(figsize=figsize,constrained_layout=True)
+    fig = plt.figure(figsize=figsize, constrained_layout=True)
     row = int(np.ceil(n_slices/col))
-    grid = gridspec.GridSpec(row, col, wspace=0.5, hspace=0.5, figure=fig)  
+    grid = gridspec.GridSpec(row, col, wspace=0.5, hspace=0.5, figure=fig)
     
     for i in range(n_slices):
         ax = plt.Subplot(fig, grid[i])
@@ -330,16 +330,18 @@ def graph(
             ax.scatter(*node_xyz.T, s=node_size, c=labels, ec="w")
         
         for vizedge in edge_xyz:
-            ax.plot(*vizedge.T, color="tab:gray", alpha=edge_alpha, linewidth=edge_width)      
+            ax.plot(*vizedge.T, color="tab:gray", alpha=edge_alpha, linewidth=edge_width)  
+            
+    set_axes(ax, off=True)
             
     return ax
 
 # =============================================================================
 # Time series
 # =============================================================================
-def time_series(T, X, ax=None, style='o', node_feature=None, lw=1, ms=5):
+def time_series(T, X, ax=None, style='o', node_feature=None, figsize=(10,5), lw=1, ms=5, save=None):
     """
-    Plot time series coloured by curvature.
+    Plot time series.
 
     Parameters
     ----------
@@ -360,18 +362,41 @@ def time_series(T, X, ax=None, style='o', node_feature=None, lw=1, ms=5):
 
     """
             
-    if ax is None:
-        _, ax = create_axis(2)
-    
-    colors = set_colors(node_feature)
-            
-    for i in range(len(X)-2):
-        if X[i] is None:
-            continue
+    if not isinstance(X, list):
+        X = [X]
         
-        c = colors[i] if len(colors)>1 and not isinstance(colors,str) else colors
+    fig = plt.figure(figsize=figsize, constrained_layout=True)
+    grid = gridspec.GridSpec(len(X), 1, wspace=0.5, hspace=0, figure=fig)
+    
+    for sp, X_ in enumerate(X):
+        
+        if sp == 0:
+            ax = plt.Subplot(fig, grid[sp])
+        else:
+            ax = plt.Subplot(fig, grid[sp], sharex=ax)
+            
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+            
+        if sp < len(X)-1:
+            plt.setp(ax.get_xticklabels(), visible=False)
+            ax.spines['bottom'].set_visible(False)
+            ax.xaxis.set_ticks_position('none') 
+        
+        colors = set_colors(node_feature)[0]
                 
-        ax.plot(T[i:i+2], X[i:i+2], style, c=c, linewidth=lw, markersize=ms)
+        for i in range(len(X_)-2):
+            if X_[i] is None:
+                continue
+            
+            c = colors[i] if len(colors)>1 and not isinstance(colors,str) else colors
+                    
+            ax.plot(T[i:i+2], X_[i:i+2], style, c=c, linewidth=lw, markersize=ms)
+            
+            fig.add_subplot(ax)
+        
+    if save is not None:
+        savefig(fig, save)
         
     return ax
 
@@ -406,7 +431,7 @@ def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, arrowhead
     if ax is None:
         _, ax = create_axis(dim)
             
-    c = set_colors(node_feature)
+    c = set_colors(node_feature)[0]
     if alpha is not None:
         al=np.ones(len(X))*alpha
     elif len(c)>1 and not isinstance(c,str):
@@ -430,7 +455,7 @@ def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, arrowhead
         if 'o' in style:
             ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=c, s=ms, alpha=al)
         if '-' in style:
-            ax.plot(X[:, 0], X[:, 1], X[:, 2], c=c, linewidth=lw, markersize=ms,alpha=al[0])
+            ax.plot(X[:, 0], X[:, 1], X[:, 2], c=c, linewidth=lw, markersize=ms,alpha=al)
         if '>' in style:
             arrow_prop_dict = dict(mutation_scale=arrowhead, arrowstyle='-|>', color=c, alpha=al, lw=lw)
             for j in range(X.shape[0]):
@@ -441,7 +466,7 @@ def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, arrowhead
                     ax.add_artist(a)
                 
     if not axis:
-        ax = set_axes(ax, data=None, off=True)
+        ax = set_axes(ax, off=True)
         
     return ax
 
@@ -472,6 +497,8 @@ def create_axis(*args, fig=None):
     dim = args[0]
     if len(args)>1:
         args = [args[i] for i in range(1,len(args))]
+    else:
+        args = (1,1,1)
     
     if fig is None:
         fig = plt.figure()

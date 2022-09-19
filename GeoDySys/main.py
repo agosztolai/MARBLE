@@ -9,7 +9,8 @@ import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from datetime import datetime
 
-from GeoDySys import utils, dataloader, preprocessing, layers, geometry
+from .lib import utils, geometry
+from . import preprocessing, layers, dataloader
 
 
 """Main network"""
@@ -58,10 +59,9 @@ class net(nn.Module):
             R = self.R[n_id,:][:,n_id] if R is not None else None
 
         #gradients
-        out = [x]
+        out = []
         adjs_ = adjs[:self.par['order']]
         for i, (edge_index, _, size) in enumerate(adjs_):            
-            # R = self.sheaf(out[0], edge_index)
                         
             x = self.grad[i](x, edge_index, size, kernels, R)          
             # x = self.inner_products(x)
@@ -75,7 +75,7 @@ class net(nn.Module):
         for i, (edge_index, _, size) in enumerate(adjs_):
             out = self.convs[i]((out, out[:size[1]]), edge_index)          
         
-        return self.mlp(out)#, R
+        return self.mlp(out)
     
     def evaluate(self, data):
         """Forward pass @ evaluation (no minibatches)"""            
@@ -105,10 +105,9 @@ class net(nn.Module):
         adjs = utils.to_list(adjs)
         adjs = [adj.to(device) for adj in list(adjs)]
         
-        # out, R = self.forward(x, n_id, adjs)
         out = self.forward(x, n_id, adjs)
 
-        return compute_loss(out, x)#, batch, R)
+        return compute_loss(out, x)
     
     def run_training(self, data):
         """Network training"""
@@ -183,26 +182,11 @@ class net(nn.Module):
         return emb, clusters, dist
     
 
-def compute_loss(out, x):#, batch, R=None):
+def compute_loss(out, x):
     """Unsupervised loss modified from from GraphSAGE (Hamilton et al. 2018.)"""
     
     z, z_pos, z_neg = out.split(out.size(0) // 3, dim=0)
     pos_loss = F.logsigmoid((z * z_pos).sum(-1)).mean()
     neg_loss = F.logsigmoid(-(z * z_neg).sum(-1)).mean()
     
-    # if x.shape[1] == 1 or R is None:
     return - pos_loss - neg_loss
-    
-    # else:
-    #     _, n_id, adjs = batch
-    #     edge_index = adjs[-1].edge_index
-        
-    #     Rij = R[edge_index[0], edge_index[1], ...]
-    #     xi = x[n_id][edge_index[1]]
-    #     xj = x[n_id][edge_index[0]]
-        
-    #     #compute sum_ij || R_ij * x(j) - x(i) || via broadcasting
-    #     R_loss = torch.einsum('aij,aj->ai', Rij, xj) - xi
-    #     R_loss = F.logsigmoid(R_loss.norm(dim=1)).mean()
-        
-    #     return - pos_loss - neg_loss + R_loss

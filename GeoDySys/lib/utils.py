@@ -15,8 +15,7 @@ import multiprocessing
 from functools import partial
 from tqdm import tqdm
 
-from GeoDySys import geometry
-
+from . import geometry
 
 # =============================================================================
 # Manage parameters
@@ -24,7 +23,7 @@ from GeoDySys import geometry
 def parse_parameters(data, kwargs):
     """Load default parameters and merge with user specified parameters"""
     
-    file = os.path.dirname(__file__) + '/default_params.yaml'
+    file = os.path.dirname(__file__) + '/../default_params.yaml'
     par = yaml.load(open(file,'rb'), Loader=yaml.FullLoader)
     
     #merge dictionaries without duplications
@@ -101,22 +100,27 @@ def construct_dataset(pos, features=None, graph_type='cknn', k=10):
     features = to_list(features)
         
     pos = [torch.tensor(p).float() for p in pos]
-    features = [torch.tensor(x).float() for x in features]
+    
+    if features[0] is not None:
+        features = [torch.tensor(x).float() for x in features]
+        num_node_features = features[0].shape[1]
+    else:
+        num_node_features = None
         
     data_list = []
-    for i, x in enumerate(features):
+    for i, p in enumerate(pos):
         #fit graph to point cloud
-        edge_index, edge_weight = geometry.fit_graph(pos[i], 
+        edge_index, edge_weight = geometry.fit_graph(p, 
                                                      graph_type=graph_type, 
                                                      par=k
                                                      )
-        n = len(pos[i])  
+        n = len(p)  
         data_ = Data(pos=pos[i], #positions
-                     x=x, #features
+                     x=features[i], #features
                      edge_index=edge_index,
                      edge_weight=edge_weight,
                      num_nodes = n,
-                     num_node_features = x.shape[1],
+                     num_node_features = num_node_features,
                      y = torch.ones(n, dtype=int)*i
                      )
         

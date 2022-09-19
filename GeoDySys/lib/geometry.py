@@ -22,8 +22,7 @@ import umap
 from ptu_dijkstra import ptu_dijkstra
 import ot
 
-from GeoDySys import utils
-
+from . import utils
 
 # =============================================================================
 # Sampling
