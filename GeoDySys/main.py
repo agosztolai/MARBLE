@@ -62,9 +62,8 @@ class net(nn.Module):
         out = []
         adjs_ = adjs[:self.par['order']]
         for i, (edge_index, _, size) in enumerate(adjs_):            
-                        
             x = self.grad[i](x, edge_index, size, kernels, R)          
-            # x = self.inner_products(x)
+            x = self.inner_products[i](x)
             out.append(x)
             
         out = [o[:size[1]] for o in out] #only take target nodes

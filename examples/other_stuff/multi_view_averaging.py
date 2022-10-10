@@ -18,14 +18,13 @@ fun = 'lorenz'
 # par['sigma']*((par['sigma']+par['beta']+3)/(par['sigma']-par['beta']-1))
 
 
-#simulate system
 x0 = [-8.0, 7.0, 27.0]
 t = np.linspace(0, 20, 500)
 mu, sigma = 0, 1 # mean and standard deviation
 X = solvers.simulate_ODE(fun, t, x0, par, noise=False, mu=mu, sigma=sigma)
+X = X[20:] #eliminate transient
 
-# X = X[20:]
-# plot.trajectories(X, color=None, style='-', lw=1, ms=1)
+plotting.trajectories(X, color=None, style='-', lw=1, ms=1)
 
 #simulate having short trajectories by sampling from the manifold
 # n=50
@@ -40,13 +39,7 @@ X = solvers.simulate_ODE(fun, t, x0, par, noise=False, mu=mu, sigma=sigma)
 # coordinate system to random angles and then taking the first coordinate)
 # =============================================================================
 n_obs = 5
-
-x = []
-for i in range(n_obs):
-    x_tmp = time_series.random_projection(X, seed=i)
-    x.append(x_tmp)
-
-
+x = [time_series.random_projection(X, seed=i) for i in range(n_obs)]
 plotting.time_series(t, x, style='o', node_feature=None, lw=1, ms=5)
 
 # =============================================================================

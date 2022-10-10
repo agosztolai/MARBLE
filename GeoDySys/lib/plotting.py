@@ -32,16 +32,18 @@ def fields(data, titles=None, col=2, figsize=(10,10), keeplim=True, save=None):
     save : filename
 
     """
-    dim = data.pos.shape[1]
-    vector = True if data.x.shape[1] > 1 else False
-    data_list = data.to_data_list() #split data batch 
+    if not isinstance(data, list):
+        data = data.to_data_list() #split data batch 
         
+    dim = data[0].pos.shape[1]
+    vector = True if data[0].x.shape[1] > 1 else False
+    
     fig = plt.figure(figsize=figsize, constrained_layout=True)
-    row = int(np.ceil(len(data_list)/col))
+    row = int(np.ceil(len(data)/col))
     grid = gridspec.GridSpec(row, col, wspace=0.1, hspace=0.1, figure=fig)
     
     lims = None
-    for i, d in enumerate(data_list):
+    for i, d in enumerate(data):
         _, ax = create_axis(dim, grid[i], fig=fig)
         
         G = to_networkx(d, node_attrs=['pos'], edge_attrs=None, to_undirected=True,
@@ -59,12 +61,24 @@ def fields(data, titles=None, col=2, figsize=(10,10), keeplim=True, save=None):
         
         if vector:
             pos = d.pos.numpy()
-            ax.quiver(pos[:,0], pos[:,1], 
+            if dim==2:
+                ax.quiver(pos[:,0], pos[:,1], 
                       d.x[:,0], d.x[:,1], 
                       color=c, 
                       scale=10, 
                       scale_units='x',
                       width=0.005)
+            elif dim==3:
+                ax.quiver(pos[:,0], pos[:,1], pos[:,2], 
+                      d.x[:,0], d.x[:,1], d.x[:,2], 
+                      color=c, 
+                      length=.5
+                      # scale=10, 
+                      # scale_units='x',
+                      # width=0.005
+                      )
+            else:
+                NotImplementedError
         
         if titles is not None:
             ax.set_title(titles[i])

@@ -22,7 +22,7 @@ def main():
     
     #evaluate functions
     n_steps = 3
-    alpha = np.linspace(1, 0.75, n_steps)
+    alpha = np.linspace(1, 0.750, n_steps)
     nr = 10
     ntheta = 40
     x_ = np.linspace(-np.pi, np.pi, nr)
@@ -33,9 +33,9 @@ def main():
     y = [f1(X) for i in range(n_steps)] + [f2(X) for i in range(n_steps)]
     x = 2 * [sample_cone(a, nr, ntheta) for a in alpha]
     
-    # ind = geometry.furthest_point_sampling(x[0], N=200)[0]
-    # x = [x_[ind] for x_ in x]
-    # y = [y_[ind] for y_ in y]
+    ind, _ = geometry.furthest_point_sampling(x[0], stop_crit=0.1)
+    x = [x_[ind] for x_ in x]
+    y = [y_[ind] for y_ in y]
     
     #construct PyG data object
     data = utils.construct_dataset(x, y, graph_type='cknn', k=k)

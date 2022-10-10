@@ -24,8 +24,7 @@ def setup_layers(data, R, par):
     grad = nn.ModuleList()
     for i in range(par['order']):
         grad.append(AnisoConv())
-        cum_channels += par['signal_dim']
-        cum_channels *= par['emb_dim']
+        cum_channels += par['signal_dim']*par['emb_dim']**(i+1)
             
     #message passing
     convs = nn.ModuleList()
@@ -48,11 +47,17 @@ def setup_layers(data, R, par):
               )
     
     #inner product features
-    inner_products = InnerProductFeatures(par['signal_dim'], par['signal_dim'])
+    inner_products = nn.ModuleList()
+    for i in range(par['order']):
+        inner_products.append(InnerProductFeatures(par['emb_dim']**i*par['emb_dim'], 
+                                                   par['signal_dim']))
     
     return diffusion, grad, convs, mlp, inner_products
 
 
+# =============================================================================
+# Layer definitions
+# =============================================================================
 class AnisoConv(MessagePassing):
     """Convolution"""
     def __init__(self, in_channels=None, out_channels=None, lin_trnsf=False,
@@ -161,50 +166,37 @@ class InnerProductFeatures(nn.Module):
     """
     Compute scaled inner-products between channel vectors.
     
-    Input:
-        - vectors: (V,C*D)
-    Output:
-        - dots: (V,C)
+    Input (V x C*D) vectors
+    Output (VxC) dot products
     """
 
     def __init__(self, C, D):
         super(InnerProductFeatures, self).__init__()
 
         self.C, self.D = C, D
-
-        self.O = []
+        
+        self.O = nn.ModuleList()
         for i in range(C):
             self.O.append(orthogonal(nn.Linear(D, D, bias=False)))
             
         self.warn = False
-            
+        
     def reset_parameters(self):
-        for lin in self.O:
-            lin.reset_parameters()
+        for i in range(len(self.O)):
+            self.O[i].weight.data = torch.eye(self.D)
 
     def forward(self, x):
         
-        if self.C==1:
-            if not self.warn:
-                print('There is only one channel so cannot take inner products! \
-                      Taking magnitude instead!')
-                self.warn = True
-            return x.norm(dim=1, p=2, keepdim=True)
-        
-        with torch.no_grad():
-            for O in self.O:
-                O.weight.data = O.weight.data.clamp(min=1e-8)
-        
         x = x.reshape(x.shape[0], self.D, self.C)
-        x = x.swapaxes(1,2) #make D the last dimension
-
+        
         Ox = []
         for i in range(self.C): #batch over features
-            Ox.append(self.O[i](x[:,i,:])) #broadcast over vertices  
-
-        Ox = torch.stack(Ox, dim=1)
-        Ox = Ox.unsqueeze(1).repeat(1,self.C,1,1)
-        x = x.unsqueeze(1).repeat(1,self.C,1,1)
-        x = x.swapaxes(1,2) #transpose 
-
-        return (x*Ox).sum(2).sum(-1)#torch.tanh(dots)
+            Ox.append(self.O[i](x[:,:,i])) #broadcast over vertices  
+            
+        Ox = torch.stack(Ox, dim=2)
+        Ox = Ox.unsqueeze(1).repeat(1, self.C, 1, 1)
+        x = x.unsqueeze(1).repeat(1, self.C, 1, 1)
+        Ox = Ox.swapaxes(1, 3) #transpose
+        xOx = (x*Ox).sum(3)
+        
+        return xOx.sum(-1)#torch.tanh(xOx.sum(-1))

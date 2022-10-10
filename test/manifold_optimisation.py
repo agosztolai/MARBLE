@@ -3,9 +3,6 @@
 # """
 # Created on Wed Aug 17 14:43:41 2022
 
-# @author: gosztola
-# """
-
 import numpy as np
 import torch
 

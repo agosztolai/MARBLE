@@ -4,6 +4,8 @@ from sklearn.neighbors import KDTree
 import numpy.ma as ma
 from .utils import parallel_proc
 
+from itertools import product, combinations
+
 
 def delay_embed(x, k, tau=1, typ='asy'):
     """
@@ -286,3 +288,84 @@ def random_projection(X, dim_out=1, seed=1):
     x_proj = x_proj[:,:dim_out]
     
     return x_proj
+
+
+def multi_view_embedding(x, dim, tau=-1):
+    
+    assert isinstance(x, list), 'Input must be a list'
+    
+    Y_mv = valid_embeddings(x, dim, tau)    
+    # rank = rank_embeddings(Y_mv)
+            
+    return Y_mv
+
+
+def valid_embeddings(x, dim, tau):
+    
+    #embed all time series individually
+    Y_nodelay, Y_delay = [], []
+    for i in range(len(x)):
+        Y_tmp = delay_embed(x[i], dim, tau)
+        Y_tmp = standardize_data(Y_tmp)
+        
+        #separate coordinate without delay and with delay
+        Y_nodelay += list(Y_tmp[:,0].T)
+        Y_delay += list(Y_tmp[:,1:].T)
+        
+    Y_nodelay = np.vstack(Y_nodelay).T
+    Y_delay = np.vstack(Y_delay).T
+    
+    #all combinations on valid embeddings
+    n1 = Y_nodelay.shape[1]
+    n2 = Y_delay.shape[1]
+    s = []
+    for i in range(dim):
+        s += list(product(comb_(n1,dim-i), comb_(n2,i)))
+    
+    #stack valid embeddings
+    Y_mv = []
+    for a, b in s:
+        if len(b)==0:
+            Y_mv.append(Y_nodelay.T[list(a)].T)
+        else:
+            print(list(a))
+            print(list(b))
+            Y_mv.append(np.hstack([Y_nodelay[:,list(a)],
+                                   Y_delay[:,list(b)]]))
+        
+    return Y_mv
+
+
+def rank_embeddings(Y):
+
+    rank = 0
+    return rank
+
+def multi_view_prediction(Y, n, t):
+    
+    if not isinstance(Y, list):
+        Y = [Y]
+        
+    count = 0
+    ypred = 0
+    for Y_ in Y:
+        dist = np.norm(Y_ - Y_[n], axis=1)
+        ind = np.argmin(dist) + t
+        
+        if len(Y_) < ind-1:
+            ypred += Y_[ind]
+            count += 1
+        
+    return ypred/count
+
+
+def comb_(n,r):
+    return combinations(range(n), r=r)
+
+
+def standardize_data(X):
+    
+    X -= X.mean(axis=0, keepdims=True)
+    X /= X.std(axis=0, keepdims=True)
+    
+    return X

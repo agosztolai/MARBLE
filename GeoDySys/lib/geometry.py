@@ -43,56 +43,49 @@ def sample_2d(N=100, interval=[[-1,-1],[1,1]], method='uniform', seed=0):
     return x
 
 
-def furthest_point_sampling(x, N=None, return_clusters=False):
+def furthest_point_sampling(x, N=None, stop_crit=0.1):
     """
-    A Naive O(N^2) algorithm to do furthest points sampling
+    A greedy O(N^2) algorithm to do furthest points sampling
 
     Parameters
     ----------
     x : nxdim matrix of data
     N : Integer number of sampled points.
-    return_clusters : If True, then
+    stop_crit : when reaching thisfraction of the total manifold diameter,
+                we stop sampling
 
     Returns
     -------
-    tuple (list, list) 
-        (permutation (N array of indices), 
-        lambdas (N-length array of insertion radii))
+    perm : node indices of the N sampled points
+    lambdas : list of furthest points
 
     """
     
     D = pairwise_distances(x)
-    N = D.shape[0] if N is None else N
+    n = D.shape[0] if N is None else N
+    diam = D.max()
     
-    #Start with first point in the list
-    perm = np.zeros(N, dtype=np.int64)
-    lambdas = np.zeros(N)
+    perm = np.zeros(n, dtype=np.int64)
+    lambdas = np.zeros(n)
     ds = D[0, :]
-    for i in range(1, N):
+    for i in range(1, n):
         idx = np.argmax(ds)
         perm[i] = idx
         lambdas[i] = ds[idx]
         ds = np.minimum(ds, D[idx, :])
         
-    if not return_clusters:
-        return perm, lambdas
-    else:
-        clusters = [[] for i in range(N)]
-        D = D[perm]
-        D[D==0] = D.max()
-        D[:,perm] = D.max()
-        for i in range(x.shape[0]-N):
-            idx = np.unravel_index(D.argmin(), D.shape)
-            clusters[idx[0]].append(idx[1])
-            D[:,idx[1]] = D.max()
-            
-        return perm, lambdas, clusters
+        if N is None:
+            if lambdas[i]/diam < stop_crit:
+                perm = perm[:i]
+                lambdas = lambdas[:i]
+                break
         
+    return perm, lambdas
+
 
 # =============================================================================
 # Clustering
 # =============================================================================
-
 def cluster(x, cluster_typ='kmeans', n_clusters=15, seed=0):
     """
     Cluster data
@@ -224,7 +217,7 @@ def compute_distr_distances(clusters, dist_typ='Wasserstein'):
 # =============================================================================
 # Manifold operations
 # =============================================================================
-def neighbour_vectors(pos, edge_index):
+def neighbour_vectors(pos, edge_index, normalise=False):
     """
     Local out-going edge vectors around each node.
 
@@ -232,6 +225,7 @@ def neighbour_vectors(pos, edge_index):
     ----------
     pos : (nxdim) Matrix of node positions
     edge_index : (2x|E|) Matrix of edge indices
+    normalise : If True then normalise neighbour vectors
 
     Returns
     -------
@@ -241,41 +235,44 @@ def neighbour_vectors(pos, edge_index):
     
     n, dim = pos.shape
     
+    nvec = pos.repeat(n,1,1)
+    nvec = nvec - nvec.swapaxes(0,1) #nvec[i,j] = xj - xi
+    
     mask = torch.zeros([n,n],dtype=bool)
     mask[edge_index[0], edge_index[1]] = 1
     mask = mask.unsqueeze(2).repeat(1,1,dim)
-    
-    nvec = pos.repeat(n,1,1)
-    nvec = nvec - nvec.swapaxes(0,1) #nvec[i,j] = xj - xi 
     nvec[~mask] = 0
+    
+    if normalise:
+        nvec = normalize(nvec, dim=-1, p=2)
     
     return nvec
 
 
-def gradient_op(nvec):
-    """Gradient operator
+# def gradient_op(nvec):
+#     """Gradient operator
 
-    Parameters
-    ----------
-    nvec : (nxnxdim) Matrix of neighbourhood vectors.
+#     Parameters
+#     ----------
+#     nvec : (nxnxdim) Matrix of neighbourhood vectors.
 
-    Returns
-    -------
-    G : (nxn) Gradient operator matrix.
+#     Returns
+#     -------
+#     G : (nxn) Gradient operator matrix.
 
-    """
+#     """
     
-    G = torch.zeros_like(nvec)
-    for i, g_ in enumerate(nvec):
-        neigh_ind = torch.where(g_[:,0]!=0)[0]
-        g_ = g_[neigh_ind]
-        b = torch.column_stack([-1.*torch.ones((len(neigh_ind),1)),
-                                torch.eye(len(neigh_ind))])
-        grad = torch.linalg.lstsq(g_, b).solution
-        G[i,i,:] = grad[:,[0]].T
-        G[i,neigh_ind,:] = grad[:,1:].T
+#     G = torch.zeros_like(nvec)
+#     for i, g_ in enumerate(nvec):
+#         neigh_ind = torch.where(g_[:,0]!=0)[0]
+#         g_ = g_[neigh_ind]
+#         b = torch.column_stack([-1.*torch.ones((len(neigh_ind),1)),
+#                                 torch.eye(len(neigh_ind))])
+#         grad = torch.linalg.lstsq(g_, b).solution
+#         G[i,i,:] = grad[:,[0]].T
+#         G[i,neigh_ind,:] = grad[:,1:].T
             
-    return [G[...,i] for i in range(G.shape[-1])]
+#     return [G[...,i] for i in range(G.shape[-1])]
 
 
 def optimal_rotation(X, Y):
@@ -292,10 +289,10 @@ def optimal_rotation(X, Y):
     return (U * J) @ Vt
 
 
-def DD(pos, edge_index, gauges, order=1, include_identity=False):
+def DD(pos, edge_index, gauges, order=1):
     """
     Directional derivative kernel from Beaini et al. 2021.
-
+    
     Parameters
     ----------
     pos : (nxdim) Matrix of node positions
@@ -308,25 +305,13 @@ def DD(pos, edge_index, gauges, order=1, include_identity=False):
 
     """
     
-    nvec = neighbour_vectors(pos, edge_index) #(nxnxdim)
+    nvec = neighbour_vectors(pos, edge_index, normalise=False) #(nxnxdim)
     F = project_gauge_to_neighbours(nvec, gauges)
-
-    if include_identity:
-        K = [torch.eye(F[0].shape[0])]
-    else:
-        K = []
-        
+    
+    K = []
     for _F in F:
         Fhat = normalize(_F, dim=-1, p=1)
         K.append(Fhat - torch.diag(torch.sum(Fhat, dim=1)))
-        
-    #derivative orders
-    if order>1:
-        n = len(K)
-        K0 = K
-        for i in range(order-1):
-            Ki = [K0[j]*K0[k] for j in range(n) for k in range(n)]
-            K += Ki
     
     return K
 
@@ -357,7 +342,7 @@ def DD(pos, edge_index, gauges, order=1, include_identity=False):
 #     return K
 
 
-def compute_gauges(data, local=False, n_geodesic_nb=10):
+def compute_gauges(data, local=True, n_geodesic_nb=10):
     """
     Compute gauges
 
@@ -400,14 +385,13 @@ def project_gauge_to_neighbours(nvec, gauges):
 
     Returns
     -------
-    F : list of (nxn) torch tensors of projected components
+    list of (nxn) torch tensors of projected components
     
     """
             
     gauges = gauges.swapaxes(0,1) #(nxdimxdim) -> (dimxnxdim)
-    F = [(nvec*g).sum(-1) for g in gauges] #dot product in last dimension
         
-    return F
+    return [(nvec*g).sum(-1) for g in gauges] #dot product in last dimension
 
 
 def fit_graph(x, graph_type='cknn', par=1):

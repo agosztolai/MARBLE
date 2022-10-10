@@ -2,8 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from GeoDySys.kernels import gradient_op
-from GeoDySys import utils
+from GeoDySys import utils, geometry
 import matplotlib.pyplot as plt
 
 n = 100
@@ -21,7 +20,8 @@ def f1(x, alpha):
 y = f1(x, alpha)
 
 data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
-K = gradient_op(data)
+nvec = geometry.neighbour_vectors(data.pos, data.edge_index)
+K = geometry.gradient_op(nvec)
 
 der = np.hstack([np.matmul(K[0],y),np.matmul(K[1],y)])
 derder = np.hstack([np.matmul(K[0],der[:,[0]]),np.matmul(K[1],der[:,[0]]),np.matmul(K[0],der[:,[1]]),np.matmul(K[1],der[:,[1]])])
