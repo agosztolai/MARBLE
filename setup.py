@@ -16,6 +16,8 @@ setup(
         "tensorboardX",
         "pyyaml"
         "POT",
+        "pyEDM",
+        "teaspoon"
     ],
     packages=find_packages(),
     ext_modules=cythonize(
