@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from GeoDySys import utils, geometry
+from GeoDySys import geometry
+from GeoDySys import utils
 import matplotlib.pyplot as plt
 
 n = 100
@@ -20,15 +21,11 @@ def f1(x, alpha):
 y = f1(x, alpha)
 
 data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
-nvec = geometry.neighbour_vectors(data.pos, data.edge_index)
-K = geometry.gradient_op(nvec)
+gauges, _ = geometry.compute_gauges(data[0], local=False)
+K = geometry.gradient_op(data.pos, data.edge_index, gauges)
 
 der = np.hstack([np.matmul(K[0],y),np.matmul(K[1],y)])
 derder = np.hstack([np.matmul(K[0],der[:,[0]]),np.matmul(K[1],der[:,[0]]),np.matmul(K[0],der[:,[1]]),np.matmul(K[1],der[:,[1]])])
-
-scale = 1/10
-der *= scale
-derder *= scale
 
 f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(14, 3),
                                 subplot_kw={'aspect': 1})
@@ -66,10 +63,6 @@ y = f2(x, alpha)
 der = np.hstack([np.matmul(K[0],y),np.matmul(K[1],y)])
 derder = np.hstack([np.matmul(K[0],der[:,[0]]),np.matmul(K[1],der[:,[0]]),np.matmul(K[0],der[:,[1]]),np.matmul(K[1],der[:,[1]])])
 
-scale = 1/10
-der *= scale
-derder *= scale
-
 f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(14, 3),
                                 subplot_kw={'aspect': 1})
 ax1.scatter(x[:,0], x[:,1], c=y)
@@ -96,28 +89,9 @@ for ind in range(x.shape[0]):
     
 PCM=ax1.get_children()[0] #get the mappable, the 1st and the 2nd are the x and y axes
 plt.colorbar(PCM, ax=ax1)
-# # plt.savefig('../results/kernel_parabola.svg')
+# plt.savefig('../results/kernel_parabola.svg')
 
-# #linear directional average
-# def f1(x, alpha):
-#     return np.cos(alpha)*x[:,[0]] + np.sin(alpha)*x[:,[1]]
-# y = f1(x, alpha)
-
-# data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
-# K = DA(data, 'global')
-
-# av = np.hstack([np.matmul(K[0],y),np.matmul(K[1],y)])
-
-# f, (ax1) = plt.subplots(1, 1, sharey=True, figsize=(4, 3),
-#                                 subplot_kw={'aspect': 1})
-# ax1.scatter(x[:,0], x[:,1], c=y)
-# ax1.set_title(r'$(f_x,f_y)$')
-# ax1.axis('off')
-
-# for ind in range(x.shape[0]):
-#     ax1.arrow(x[ind,0], x[ind,1], av[ind,0], av[ind,1], width=0.01)
-
-    
-# PCM=ax1.get_children()[0] #get the mappable, the 1st and the 2nd are the x and y axes
-# plt.colorbar(PCM, ax=ax1)
-# # plt.savefig('../results/kernel_linear.svg')
+#linear directional average
+def f1(x, alpha):
+    return np.cos(alpha)*x[:,[0]] + np.sin(alpha)*x[:,[1]]
+y = f1(x, alpha)

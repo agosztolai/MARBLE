@@ -213,16 +213,24 @@ def neighbourhoods(data,
     outer = gridspec.GridSpec(int(np.ceil(nc/3)), 3, wspace=0.2, hspace=0.2, figure=fig)
     
     data_list = data.to_data_list()
-    graphs = [to_networkx(d, node_attrs=['pos'], edge_attrs=None, to_undirected=True,
-            remove_self_loops=True) for d in data_list]
+    graphs = []
+    for d in data_list:
+        graphs.append(to_networkx(d, 
+                                  node_attrs=['pos'], 
+                                  edge_attrs=None, 
+                                  to_undirected=True,
+                                  remove_self_loops=True))
     
     node_values = [d.x for d in data_list]
     
     for i in range(nc):
         col = 2
         row = int(np.ceil(len(data_list)/col))
-        inner = gridspec.GridSpecFromSubplotSpec(row, col,
-                    subplot_spec=outer[i], wspace=0.5, hspace=0.5)
+        inner = gridspec.GridSpecFromSubplotSpec(row, 
+                                                 col,
+                                                 subplot_spec=outer[i], 
+                                                 wspace=0.5, 
+                                                 hspace=0.5)
 
         ax = plt.Subplot(fig, outer[i])
         ax.set_title("Type {}".format(i+1))
@@ -244,14 +252,16 @@ def neighbourhoods(data,
             nv = node_values[j].numpy()
             node_ids = nx.ego_graph(G, random_node, radius=hops).nodes
             node_ids = np.sort(node_ids) #sort nodes
-            
-            if vector:
-                nv = np.linalg.norm(nv, axis=1)
                 
             #convert node values to colors
+            c = nv
+            if vector:
+                c = np.linalg.norm(nv, axis=1)
+                
             if not norm: #set colors based on global values
-                c, _ = set_colors(nv)
+                c, _ = set_colors(c)
                 c = [c[i] for i in node_ids] if isinstance(c,list) else c
+                nv = nv[node_ids]
             else: #first extract subgraph, then compute normalized colors
                 nv = nv[node_ids]
                 nv -= nv.mean()

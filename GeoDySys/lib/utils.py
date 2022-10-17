@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import torch
+import numpy as np
+import pandas as pd
 
 import yaml
 import os
@@ -95,14 +97,11 @@ def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
 # =============================================================================
 def construct_dataset(pos, features=None, graph_type='cknn', k=10):
     """Construct PyG dataset from node positions and features"""
-        
-    pos = to_list(pos)
-    features = to_list(features)
-        
-    pos = [torch.tensor(p).float() for p in pos]
+                
+    pos = [torch.tensor(p).float() for p in to_list(pos)]
     
-    if features[0] is not None:
-        features = [torch.tensor(x).float() for x in features]
+    if features is not None:
+        features = [torch.tensor(x).float() for x in to_list(features)]
         num_node_features = features[0].shape[1]
     else:
         num_node_features = None
@@ -181,6 +180,36 @@ def to_list(x):
         x = [x]
         
     return x
+
+
+def to_pandas(x, augment_time=True):
+    """Convert numpy to pandas"""
+    columns = [str(i) for i in range(x.shape[1])]
+    
+    if augment_time:
+        xaug = np.hstack([np.arange(len(x))[:,None], x])
+        df = pd.DataFrame(xaug, 
+                          columns = ['Time'] + columns, 
+                          index = np.arange(len(x)))
+    else:
+        df = pd.DataFrame(xaug, 
+                          columns = columns, 
+                          index = np.arange(len(x)))
+        
+    return df
+
+
+# =============================================================================
+# Normalise
+# =============================================================================
+def standardise(X):
+    """Standarsise data row-wise"""
+    
+    X -= X.mean(axis=0, keepdims=True)
+    X /= X.std(axis=0, keepdims=True)
+    
+    return X
+
 
 # =============================================================================
 # Input/output

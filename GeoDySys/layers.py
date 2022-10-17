@@ -3,12 +3,9 @@
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.nn.utils.parametrizations import orthogonal
 
 from torch_geometric.nn.conv import MessagePassing
-from torch_geometric.nn.dense.linear import Linear
-from torch_geometric.nn import MLP
+from torch_geometric.nn import MLP, GCNConv
 import torch_geometric.utils as tgu
 
 from .lib import geometry, utils
@@ -16,25 +13,31 @@ from .lib import geometry, utils
 
 def setup_layers(data, R, par):
     
+    s, e, o = par['signal_dim'], par['emb_dim'], par['order']
+    
     #diffusion
     diffusion = Diffusion(data, R)
     
     #gradient features
-    cum_channels = 0
     grad = nn.ModuleList()
-    for i in range(par['order']):
+    for i in range(o):
         grad.append(AnisoConv())
-        cum_channels += par['signal_dim']*par['emb_dim']**(i+1)
+        
+    #cumulated number of channels after gradient features
+    if par['inner_product_features']:
+        cum_channels = s*o
+    else:
+        cum_channels = s*((1-e**(o+1))//(1-e)) - s
             
     #message passing
     convs = nn.ModuleList()
     for i in range(par['depth']):
-        conv = AnisoConv(cum_channels, 
-                         lin_trnsf=True,
-                         ReLU=True,
-                         vec_norm=par['vec_norm'],
-                         )
-        convs.append(conv)
+        convs.append(GCNConv(cum_channels,cum_channels))
+    
+    #inner product features
+    inner_products = nn.ModuleList()
+    for i in range(o):
+        inner_products.append(InnerProductFeatures(s, e**(i+1)))
         
     #multilayer perceptron
     mlp = MLP(in_channels=cum_channels,
@@ -46,12 +49,6 @@ def setup_layers(data, R, par):
               bias=par['bias']
               )
     
-    #inner product features
-    inner_products = nn.ModuleList()
-    for i in range(par['order']):
-        inner_products.append(InnerProductFeatures(par['emb_dim']**i*par['emb_dim'], 
-                                                   par['signal_dim']))
-    
     return diffusion, grad, convs, mlp, inner_products
 
 
@@ -59,68 +56,57 @@ def setup_layers(data, R, par):
 # Layer definitions
 # =============================================================================
 class AnisoConv(MessagePassing):
-    """Convolution"""
-    def __init__(self, in_channels=None, out_channels=None, lin_trnsf=False,
-                 bias=False, ReLU=False, vec_norm=False, **kwargs):
+    """Anisotropic Convolution"""
+    def __init__(self, in_channels=None, out_channels=None, **kwargs):
         super().__init__(aggr='add', **kwargs)
-            
-        self.lin = self.vec_norm = self.ReLU = nn.Identity()
-        if lin_trnsf:
-            self.lin = Linear(in_channels, out_channels, bias=bias)   
-        
-        if vec_norm:
-            self.vec_norm = lambda x: F.normalize(x, p=2., dim=-1)
-        
-        if ReLU:
-            self.ReLU = nn.ReLU()
-                            
-    def reset_parameters(self):
-        self.lin.reset_parameters()
         
     def forward(self, x, edge_index, size, kernels=None, R=None):
-           
-        dim = x.shape[1]
-        kernels = utils.to_list(kernels)
         
-        #when using rotations, we replace nodes by vector spaces so
-        #need to expand nxn -> n*dimxn*dim matrices
         if R is not None:
+            dim = len(kernels)
             size = (size[0]*dim, size[1]*dim)
-            adj = tgu.to_dense_adj(edge_index)[0]
-            adj = adj.repeat_interleave(dim,dim=1).repeat_interleave(dim,dim=0)
-            edge_index = tgu.sparse.dense_to_sparse(adj)[0]
-            R = R.swapaxes(1,2).reshape(size[0], size[0]) #make block matrix
+            edge_index = expand_adjacenecy_matrix(edge_index, dim)
             
         #apply kernels
         out = []
-        for K in kernels:
+        for K in utils.to_list(kernels):
             if R is not None:
-                K = torch.kron(K, torch.ones(dim, dim))
-                K *= R
+                K = R * torch.kron(K, torch.ones(dim, dim))
                 
             #transpose to change from source to target
             K = utils.to_SparseTensor(edge_index, size, value=K.t())
+            out.append(self.propagate(K.t(), x=x))
             
-            out_ = self.propagate(K.t(), x=x)
-            out.append(out_)
-            
-        out = torch.cat(out, axis=1) #concatenate columnwise
-        
-        out = self.lin(out)
-        out = self.ReLU(out)
-        out = self.vec_norm(out)
+        #Concatenate and interleave, i.e. 
+        #out = [[dx1/du, dx2/du], [x1/dv, dx2/dv]] -> [dx1/du, x1/dv, dx2/du, dx2/dv]
+        out = torch.stack(out, axis=2)
+        out = out.reshape(out.shape[0], -1)
             
         return out
 
     def message_and_aggregate(self, K_t, x):
         n, dim = x.shape
-                
-        if K_t.size(dim=1) == n*dim:
-            x = x.view(-1, 1)
+        
+        #Reshape for multiplication by connection Laplacian. Make sure the 
+        #columns of x are ordered as described above!
+        if (K_t.size(dim=1) % n*dim)==0:
+            n_ch = n*dim // K_t.size(dim=1)
+            x = x.view(-1, n_ch)
             
         x = K_t.matmul(x, reduce=self.aggr)
             
         return x.view(-1, dim)
+    
+    
+def expand_adjacenecy_matrix(edge_index, dim):
+    """When using rotations, we replace nodes by vector spaces so
+       need to expand adjacency matrix from nxn -> n*dimxn*dim matrices"""
+       
+    adj = tgu.to_dense_adj(edge_index)[0]
+    adj = adj.repeat_interleave(dim, dim=1).repeat_interleave(dim, dim=0)
+    edge_index = tgu.sparse.dense_to_sparse(adj)[0]
+    
+    return edge_index
     
     
 class Diffusion(nn.Module):
@@ -130,14 +116,15 @@ class Diffusion(nn.Module):
         super(Diffusion, self).__init__()
         
         self.L = geometry.compute_laplacian(data)
+        self.vector = False
+        
         if R is not None:
             self.Lc = geometry.compute_connection_laplacian(data, R)
             self.vector = True
-        else:
-            self.vector = False
+            
         self.diffusion_time = nn.Parameter(torch.tensor(ic))
         
-    def forward(self, x, normalize=False):
+    def forward(self, x, normalise=False):
         
         # making sure diffusion times are positive
         with torch.no_grad():
@@ -146,17 +133,17 @@ class Diffusion(nn.Module):
         t = self.diffusion_time.detach().numpy()
         
         if self.vector:
-            out = geometry.compute_diffusion(x.flatten(), t, self.Lc)
-            out = out.reshape(x.shape)
-            if normalize:
-                x_abs = x.norm(dim=-1,p=2,keepdim=True)
-                out_abs = geometry.compute_diffusion(x_abs, t, self.L)
-                ind = geometry.compute_diffusion(torch.ones(x.shape[0],1), t, self.L)
-                out = out*out_abs/(ind*out.norm(dim=-1,p=2,keepdim=True))
-        else: #diffuse componentwise
+            assert (x.shape[0]*x.shape[1] % self.Lc.shape[0])==0, \
+                'Data dimension must be an integer multiple of the dimensions \
+                 of the connection Laplacian!'
+                 
+            out = geometry.vector_diffusion(x, t, self.Lc, normalise, self.L)
+                
+        else:
             out = []
-            for i in range(x.shape[-1]):
-                out.append(geometry.compute_diffusion(x[:,[i]], t, self.L))
+            for x_ in x.T:
+                out.append(geometry.scalar_diffusion(x_.unsqueeze(1), t, self.L))
+                
             out = torch.cat(out, axis=1)
             
         return out
@@ -177,7 +164,7 @@ class InnerProductFeatures(nn.Module):
         
         self.O = nn.ModuleList()
         for i in range(C):
-            self.O.append(orthogonal(nn.Linear(D, D, bias=False)))
+            self.O.append(nn.Linear(D, D, bias=False))
             
         self.warn = False
         
@@ -189,14 +176,11 @@ class InnerProductFeatures(nn.Module):
         
         x = x.reshape(x.shape[0], self.D, self.C)
         
-        Ox = []
-        for i in range(self.C): #batch over features
-            Ox.append(self.O[i](x[:,:,i])) #broadcast over vertices  
-            
+        #O_ij@x_j
+        Ox = [self.O[j](x[...,j]) for j in range(self.C)]
         Ox = torch.stack(Ox, dim=2)
-        Ox = Ox.unsqueeze(1).repeat(1, self.C, 1, 1)
-        x = x.unsqueeze(1).repeat(1, self.C, 1, 1)
-        Ox = Ox.swapaxes(1, 3) #transpose
-        xOx = (x*Ox).sum(3)
         
-        return xOx.sum(-1)#torch.tanh(xOx.sum(-1))
+        #\sum_j x_i^T@O_ij@x_j
+        xOx = torch.einsum('bki,bkj->bi', x, Ox)
+        
+        return xOx#torch.tanh(xOx)

@@ -24,7 +24,7 @@ class net(nn.Module):
         self.par = utils.parse_parameters(data, kwargs)
         
         #preprocessing
-        self.gauges, self.R, self.kernel = preprocessing(data, self.par)
+        self.gauges, self.R, self.kernels = preprocessing(data, self.par)
         
         #layers
         self.diffusion, self.grad, self.convs, self.mlp, self.inner_products = \
@@ -34,10 +34,12 @@ class net(nn.Module):
         
         utils.print_settings(self)
         
+        
     def reset_parameters(self):
         for layer in self.children():
             if hasattr(layer, 'reset_parameters'):
                 layer.reset_parameters()
+        
         
     def forward(self, x, n_id=None, adjs=None):
         """Forward pass. 
@@ -45,36 +47,43 @@ class net(nn.Module):
         nodes. The source nodes are sampled randomly by one-step random walks 
         starting from target nodes. Thus the source nodes and target nodes form 
         a bipartite graph to simplify message passing. By convention, the target n
-        odes are placed first in variable x, i.e, x = concat[x_target, x_other]."""
-        
-        #diffusion
+        odes are placed first in variable x, i.e, x = concat[x_target, x_other]."""   
+
         x = self.diffusion(x)
         
         #restrict to current batch
-        kernels = self.kernel
-        R = self.R
-        if n_id is not None: #n_id are the node ids in the batch
-            x = x[n_id] 
-            kernels = [K[n_id,:][:,n_id] for K in kernels]
-            R = self.R[n_id,:][:,n_id] if R is not None else None
+        if n_id is None:
+            n_id = np.arange(len(x))
+            
+        x = x[n_id] 
+        kernels = [K[n_id,:][:,n_id] for K in self.kernels]
+        if self.R is not None:
+            R = self.R[n_id,:][:,n_id]
+            n, _, _, dim = R.shape
+            R = R.swapaxes(1,2).reshape(n*dim, n*dim) #make block matrix
+        else:
+            R = None
 
         #gradients
         out = []
-        adjs_ = adjs[:self.par['order']]
-        for i, (edge_index, _, size) in enumerate(adjs_):            
-            x = self.grad[i](x, edge_index, size, kernels, R)          
-            x = self.inner_products[i](x)
-            out.append(x)
+        o = self.par['order']
+        for i, (edge_index, _, size) in enumerate(adjs[:o]):
+            x = self.grad[i](x, edge_index, size, kernels, R)
+            if self.par['inner_product_features']:
+                x_inv = self.inner_products[i](x)
+            else:
+                x_inv = x
+            out.append(x_inv)
             
         out = [o[:size[1]] for o in out] #only take target nodes
         out = torch.cat(out, axis=1)
             
         #message passing
-        adjs_ = adjs[self.par['order']:]
-        for i, (edge_index, _, size) in enumerate(adjs_):
+        for i, (edge_index, _, size) in enumerate(adjs[o:]):
             out = self.convs[i]((out, out[:size[1]]), edge_index)          
         
         return self.mlp(out)
+    
     
     def evaluate(self, data):
         """Forward pass @ evaluation (no minibatches)"""            
@@ -85,6 +94,7 @@ class net(nn.Module):
             
             self.emb = self(data.x, None, adjs)
                 
+            
     def evaluate_batch(self, x, batch, device='cpu'):
         """
         Evaluate network in batches.
@@ -100,13 +110,12 @@ class net(nn.Module):
         """
         
         _, n_id, adjs = batch
-        
-        adjs = utils.to_list(adjs)
-        adjs = [adj.to(device) for adj in list(adjs)]
+        adjs = [adj.to(device) for adj in utils.to_list(adjs)]
         
         out = self.forward(x, n_id, adjs)
 
         return compute_loss(out, x)
+    
     
     def run_training(self, data):
         """Network training"""
@@ -115,6 +124,8 @@ class net(nn.Module):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
         optimizer = torch.optim.Adam(self.parameters(), lr=self.par['lr'])
+        
+        
         self = self.to(device)
         x = data.x.to(device)
         
@@ -188,4 +199,4 @@ def compute_loss(out, x):
     pos_loss = F.logsigmoid((z * z_pos).sum(-1)).mean()
     neg_loss = F.logsigmoid(-(z * z_neg).sum(-1)).mean()
     
-    return - pos_loss - neg_loss
+    return -pos_loss -neg_loss

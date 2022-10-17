@@ -1,13 +1,16 @@
 import numpy as np
 # from sklearn.neighbors import NearestNeighbors
 from sklearn.neighbors import KDTree
-import numpy.ma as ma
+# import numpy.ma as ma
 from .utils import parallel_proc
 
 from itertools import product, combinations
 
 
-def delay_embed(x, k, tau=1, typ='asy'):
+# =============================================================================
+# Embedding
+# =============================================================================
+def delay_embed(x, k, tau=-1, typ='asy'):
     """
     Delay-embedding for multi-dimensional time series x(t)
 
@@ -106,7 +109,9 @@ def delay_embed_scalar(x, k, tau=-1, typ='asy'):
             
     return Y
 
-
+# =============================================================================
+# Neighbour search
+# =============================================================================
 def find_nn(ind_query, X, nn=1, r=None, theiler=10, n_jobs=2):
     """
     Find nearest neighbors of a point on the manifold
@@ -137,12 +142,13 @@ def find_nn(ind_query, X, nn=1, r=None, theiler=10, n_jobs=2):
     if isinstance(ind_query, list):
         ind_query = np.vstack(ind_query)
     
-    #Fit neighbors estimator object
+    #Fit neighbor estimator object
     kdt = KDTree(X, leaf_size=30, metric='euclidean')
     
+    inputs = [kdt, X, ind_query, r, nn, theiler]
     res = parallel_proc(nb_query, 
                         range(len(ind_query)), 
-                        [kdt, X, ind_query, r, nn, theiler], 
+                        inputs, 
                         desc="Computing neighbours...")
     
     dist, ind = zip(*res)
@@ -152,21 +158,17 @@ def find_nn(ind_query, X, nn=1, r=None, theiler=10, n_jobs=2):
 
 def nb_query(inputs, i):
     
-    kdt = inputs[0]
-    X = inputs[1]
-    ind_query = inputs[2]
-    r = inputs[3]
-    nn = inputs[4]
-    theiler = inputs[5]
+    kdt, X, ind_query, r, nn, theiler  = inputs
+    
     x_query = X[ind_query][[i]]
     ind_query = ind_query[i]
     if r is not None:
-        ind, dist  = kdt.query_radius(x_query, r=r, return_distance=True, sort_results=True)
+        ind, dist = kdt.query_radius(x_query, r=r, return_distance=True, sort_results=True)
         ind = ind[0]
         dist = dist[0]
     else:
         # apparently, the outputs are reversed here compared to query_radius()
-        dist, ind  = kdt.query(x_query, k=nn+2*theiler+1)
+        dist, ind = kdt.query(x_query, k=nn+2*theiler+1)
         
     #Theiler exclusion (points immediately before or after are not useful neighbours)
     dist = dist[np.abs(ind-ind_query)>theiler][:nn]
@@ -175,88 +177,9 @@ def nb_query(inputs, i):
     return dist, ind
 
 
-def valid_flows(t_ind, ts, T):
-    """
-    Mask out invalid trajectories.
-
-    Parameters
-    ----------
-    t_ind : list[int]
-        Time indices corresponding to the sampled short trajectories.
-    ts : list[int]
-        Start of trajectory.
-    T : int or list[int]
-        End of trajectory or time horizon.
-
-    Returns
-    -------
-    tt : list[int]
-        Start of trajectory.
-    ts : list[int]
-        End of trajectory.
-
-    """
-    
-    if isinstance(T, int):
-        tt = [ts[i]+T for i in range(len(ts))]
-    else:
-        tt = T
-    assert len(tt)==len(ts), 'Number of source points must equal to the \
-            number of target points.'
-            
-    t_breaks = np.zeros_like(t_ind)
-    t_breaks[np.array(t_ind)==0] = 1
-    t_breaks[0] = 0
-    
-    invalid = np.zeros_like(tt)
-    for i,(s,t) in enumerate(zip(ts,tt)):
-        if t>len(t_ind)-2 or s<0 or t<=s or np.sum(t_breaks[s:t+1])>0:
-            invalid[i] = 1
-        
-    ts = ma.array(ts, mask=invalid)
-    tt = ma.array(tt, mask=invalid)
-        
-    return ts, tt
-
-
-def generate_flow(X, ts, T):
-    """
-    Obtain trajectories of between timepoints.
-
-    Parameters
-    ----------
-    X : np array
-        Trajectories.
-    ts : int or np array or list[int]
-        Source timepoint.
-    T : int or list[int]
-        End of trajectory or time horizon.
-
-    Returns
-    -------
-    X_sample : list[np array].
-        Set of flows of length T.
-
-    """
-    
-    ts = ma.array(ts, dtype=int)
-    
-    if isinstance(T, int):
-        tt = ma.array([ts[i]+T for i in range(len(ts))])
-        tt = ma.array(tt, mask=ts.mask, dtype=int)
-    else:
-        tt = ma.array(T)
-        assert len(tt)==len(ts), 'Number of source points must equal to the \
-            number of target points.'
-    
-    X_sample = []
-    for s,t in zip(ts,tt):
-        if not ma.is_masked(s) and not ma.is_masked(t):
-            X_sample.append(X[s:t+1])
-
-    return X_sample, ts[~ts.mask], tt[~tt.mask]
-
-
+# =============================================================================
+# Projection
+# =============================================================================
 def random_projection(X, dim_out=1, seed=1):
     """
     Randomly project dynamical system to a low dimensional plane
@@ -290,6 +213,73 @@ def random_projection(X, dim_out=1, seed=1):
     return x_proj
 
 
+# =============================================================================
+# Prediction
+# =============================================================================
+def predict(X, t, nn=2, ind=None, n_jobs=2):
+    """
+    Compute the zeroth-order prediction by the simplex projection method.
+    
+    Parameters
+    ----------
+    X : nxdim matrix of attractors points.
+    t : int or array of prediction horizons
+    nn : number of nearest neighbours to use.
+    ind : indices of initial points. If None, then all points are used up to
+        time n-t.
+    n_jobs : Number of CPUs used for the nearest neighbour search.
+    
+    Returns
+    -------
+    X_pred : len(ind)xdim matrix of predicted points
+    error : len(x) array of prediction errors
+
+    """
+    
+    assert nn>1, 'At least two neighbours are needed!'
+    
+    if isinstance(t, int):
+        t = [t]
+    
+    if ind is None:
+        ind = np.arange(X.shape[0]-np.max(t)-1)
+    
+    #find neighbours
+    dist, n_inds = find_nn(ind, X[ind], nn=nn, n_jobs=n_jobs)
+    
+    X_pred, error = [], []
+    for t_ in t:
+        X_pred_, error_ = simplex_projection(X, t_, n_inds, dist)
+        X_pred.append(X_pred_)
+        error.append(error_)
+        
+    X_pred = np.stack(X_pred, axis=1)
+    error = np.stack(error, axis=1)
+        
+    return X_pred, error
+
+
+def simplex_projection(X, t, n_inds, dist=None):
+    """
+    Helper function of predictions(). Implements Lorenz’s “method of analogs.
+    Takes points X[n_ids], pushes them forward by time t and averages them.
+
+    """
+    
+    n = len(n_inds)
+    
+    #average neighbours weighted by the distances
+    error, X_pred = np.zeros(n), np.zeros([n, X.shape[1]])
+    for i, n_ind in enumerate(n_inds):
+        X_pred[i] = np.mean(X[n_ind+t]*dist[i][:, None], axis=0)
+        error[i] = np.linalg.norm(X[i] - X_pred)
+        
+    return X_pred, error
+
+
+# =============================================================================
+# Multi-view embedding
+# =============================================================================
 def multi_view_embedding(x, dim, tau=-1):
     
     assert isinstance(x, list), 'Input must be a list'
@@ -306,7 +296,7 @@ def valid_embeddings(x, dim, tau):
     Y_nodelay, Y_delay = [], []
     for i in range(len(x)):
         Y_tmp = delay_embed(x[i], dim, tau)
-        Y_tmp = standardize_data(Y_tmp)
+        Y_tmp = standardize(Y_tmp)
         
         #separate coordinate without delay and with delay
         Y_nodelay += list(Y_tmp[:,0].T)
@@ -341,6 +331,7 @@ def rank_embeddings(Y):
     rank = 0
     return rank
 
+
 def multi_view_prediction(Y, n, t):
     
     if not isinstance(Y, list):
@@ -363,9 +354,91 @@ def comb_(n,r):
     return combinations(range(n), r=r)
 
 
-def standardize_data(X):
+def standardize(X):
     
     X -= X.mean(axis=0, keepdims=True)
     X /= X.std(axis=0, keepdims=True)
     
     return X
+
+
+# def valid_flows(t_ind, ts, T):
+#     """
+#     Mask out invalid trajectories.
+
+#     Parameters
+#     ----------
+#     t_ind : list[int]
+#         Time indices corresponding to the sampled short trajectories.
+#     ts : list[int]
+#         Start of trajectory.
+#     T : int or list[int]
+#         End of trajectory or time horizon.
+
+#     Returns
+#     -------
+#     tt : list[int]
+#         Start of trajectory.
+#     ts : list[int]
+#         End of trajectory.
+
+#     """
+    
+#     if isinstance(T, int):
+#         tt = [ts[i]+T for i in range(len(ts))]
+#     else:
+#         tt = T
+#     assert len(tt)==len(ts), 'Number of source points must equal to the \
+#             number of target points.'
+            
+#     t_breaks = np.zeros_like(t_ind)
+#     t_breaks[np.array(t_ind)==0] = 1
+#     t_breaks[0] = 0
+    
+#     invalid = np.zeros_like(tt)
+#     for i,(s,t) in enumerate(zip(ts,tt)):
+#         if t>len(t_ind)-2 or s<0 or t<=s or np.sum(t_breaks[s:t+1])>0:
+#             invalid[i] = 1
+        
+#     ts = ma.array(ts, mask=invalid)
+#     tt = ma.array(tt, mask=invalid)
+        
+#     return ts, tt
+
+
+# def generate_flow(X, ts, T):
+#     """
+#     Obtain trajectories of between timepoints.
+
+#     Parameters
+#     ----------
+#     X : np array
+#         Trajectories.
+#     ts : int or np array or list[int]
+#         Source timepoint.
+#     T : int or list[int]
+#         End of trajectory or time horizon.
+
+#     Returns
+#     -------
+#     X_sample : list[np array].
+#         Set of flows of length T.
+
+#     """
+    
+#     ts = ma.array(ts, dtype=int)
+    
+#     if isinstance(T, int):
+#         tt = ma.array([ts[i]+T for i in range(len(ts))])
+#         tt = ma.array(tt, mask=ts.mask, dtype=int)
+#     else:
+#         tt = ma.array(T)
+#         assert len(tt)==len(ts), 'Number of source points must equal to the \
+#             number of target points.'
+    
+#     X_sample = []
+#     for s,t in zip(ts,tt):
+#         if not ma.is_masked(s) and not ma.is_masked(t):
+#             X_sample.append(X[s:t+1])
+
+#     return X_sample, ts[~ts.mask], tt[~tt.mask]

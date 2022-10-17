@@ -249,32 +249,6 @@ def neighbour_vectors(pos, edge_index, normalise=False):
     return nvec
 
 
-# def gradient_op(nvec):
-#     """Gradient operator
-
-#     Parameters
-#     ----------
-#     nvec : (nxnxdim) Matrix of neighbourhood vectors.
-
-#     Returns
-#     -------
-#     G : (nxn) Gradient operator matrix.
-
-#     """
-    
-#     G = torch.zeros_like(nvec)
-#     for i, g_ in enumerate(nvec):
-#         neigh_ind = torch.where(g_[:,0]!=0)[0]
-#         g_ = g_[neigh_ind]
-#         b = torch.column_stack([-1.*torch.ones((len(neigh_ind),1)),
-#                                 torch.eye(len(neigh_ind))])
-#         grad = torch.linalg.lstsq(g_, b).solution
-#         G[i,i,:] = grad[:,[0]].T
-#         G[i,neigh_ind,:] = grad[:,1:].T
-            
-#     return [G[...,i] for i in range(G.shape[-1])]
-
-
 def optimal_rotation(X, Y):
     """Optimal rotation between orthogonal coordinate frames X and Y"""
     
@@ -289,7 +263,35 @@ def optimal_rotation(X, Y):
     return (U * J) @ Vt
 
 
-def DD(pos, edge_index, gauges, order=1):
+# def gradient_op(pos, edge_index, gauges):
+#     """Gradient operator
+
+#     Parameters
+#     ----------
+#     nvec : (nxnxdim) Matrix of neighbourhood vectors.
+
+#     Returns
+#     -------
+#     G : (nxn) Gradient operator matrix.
+
+#     """
+
+#     nvec = -neighbour_vectors(pos, edge_index, normalise=False) #(nxnxdim)
+    
+#     G = torch.zeros_like(nvec)
+#     for i, g_ in enumerate(nvec):
+#         nb_ind = torch.where(g_[:,0]!=0)[0]
+#         A = g_[nb_ind]
+#         B = torch.column_stack([-1.*torch.ones((len(nb_ind),1)),
+#                                 torch.eye(len(nb_ind))])
+#         grad = torch.linalg.lstsq(A, B).solution
+#         G[i,i,:] = grad[:,[0]].T
+#         G[i,nb_ind,:] = grad[:,1:].T
+            
+#     return [G[...,i] for i in range(G.shape[-1])]
+
+
+def DD(pos, edge_index, gauges):
     """
     Directional derivative kernel from Beaini et al. 2021.
     
@@ -312,34 +314,8 @@ def DD(pos, edge_index, gauges, order=1):
     for _F in F:
         Fhat = normalize(_F, dim=-1, p=1)
         K.append(Fhat - torch.diag(torch.sum(Fhat, dim=1)))
-    
+            
     return K
-
-
-# def DA(data, gauges):
-#     """
-#     Directional average kernel from Beaini et al. 2021.
-
-#     Parameters
-#     ----------
-#     data : pytorch geometric data object containing .pos and .edge_index
-#     gauges : (n,dim,dim) matric of orthogonal unit vectors for each node
-
-#     Returns
-#     -------
-#     K : list of (nxn) Anisotropic kernels.
-
-#     """
-    
-#     nvec = neighbour_vectors(data.pos, data.edge_index) #(nxnxdim)
-#     F = project_gauge_to_neighbours(nvec, gauges)
-
-#     K = []
-#     for _F in F:
-#         Fhat = normalize(_F, dim=-1, p=1)
-#         K.append(torch.abs(Fhat))
-        
-#     return K
 
 
 def compute_gauges(data, local=True, n_geodesic_nb=10):
@@ -530,8 +506,8 @@ def compute_connections(gauges, edge_index, dim_man=None):
     """
     n, dim, k = gauges.shape
     
-    R = torch.eye(dim)[None,None,:,:]
-    R = R.repeat(n,n,1,1)
+    R = np.eye(dim)[None,None,:,:]
+    R = np.tile(R, (n,n,1,1))
     
     if dim_man is not None:
         if dim_man == dim: #the manifold is the whole space
@@ -544,7 +520,7 @@ def compute_connections(gauges, edge_index, dim_man=None):
     for (i,j) in edge_index.T:
         R[i,j,...] = procrustes(gauges[i,:].T, gauges[j,:].T)
 
-    return utils.np2torch(R)
+    return R
 
 
 def procrustes(X, Y, reflection_allowed=False):
@@ -559,15 +535,32 @@ def procrustes(X, Y, reflection_allowed=False):
     if reflection_allowed and reflection:
         R = np.zeros_like(R)
        
-    return utils.np2torch(R)
+    return R
 
 
 # =============================================================================
 # Diffusion
 # =============================================================================
-def compute_diffusion(x, t, L, method='matrix_exp'):
+def scalar_diffusion(x, t, L, method='matrix_exp'):
     if method == 'matrix_exp':
         return sp.linalg.expm_multiply(-t*L, x)
+    
+    
+def vector_diffusion(x, t, Lc, normalise=False, L=None):
+        
+    #vector diffusion ith connection Laplacian
+    out = x.reshape(Lc.shape[0], -1)
+    out = scalar_diffusion(out, t, Lc)
+    out = out.reshape(x.shape)
+    
+    if normalise:
+        assert L is not None, 'Need Laplacian for normalised diffusion!'
+        x_abs = x.norm(dim=-1, p=2, keepdim=True)
+        out_abs = scalar_diffusion(x_abs, t, L)
+        ind = scalar_diffusion(torch.ones(x.shape[0],1), t, L)
+        out = out*out_abs/(ind*out.norm(dim=-1,p=2,keepdim=True))
+        
+    return out
     
     
 # def compute_eigendecomposition(A, k=2, eps=1e-8):

@@ -19,7 +19,7 @@ def main():
     x = np.vstack([xv.flatten(),yv.flatten()]).T
     
     #evaluate functions
-    n_steps = 5
+    n_steps = 2
     alpha = np.around(np.linspace(-.5, .5, n_steps), decimals=2)
     nr = 200
     ntheta = 200
@@ -32,7 +32,7 @@ def main():
     y = [f1(X) for i in range(n_steps)]
     x = [sample_cone(a, nr, ntheta) for a in alpha]
     
-    ind, _ = geometry.furthest_point_sampling(x[0], stop_crit=0.025)
+    ind, _ = geometry.furthest_point_sampling(x[0], stop_crit=0.05)
     x = [x_[ind] for x_ in x]
     y = [y_[ind] for y_ in y]
     
@@ -47,13 +47,13 @@ def main():
     
     der = [np.hstack([np.matmul(K[i][0],y[i]),np.matmul(K[i][1],y[i]),np.matmul(K[i][2],y[i])]) for i in range(n_steps)]
     der = [np.linalg.norm(der[i], axis=1, keepdims=True) for i in range(n_steps)]
-        
+    
     for i in range(n_steps):
         data[i].x = torch.tensor(der[i]) 
         
     plotting.fields(data, col=n_steps, figsize=(8,5))
     
-    #plot differences in deformations
+    # plot differences in deformations
     e = [abs(der[i] - der[len(der)//2])/abs(der[len(der)//2]) for i in range(n_steps)]
     
     plt.figure()
@@ -66,6 +66,7 @@ def main():
 def f1(x):
     return np.cos(x[:,[0]]) + np.sin(x[:,[1]])
 
+
 def sample_cone(alpha, nr, ntheta):
     r = np.sqrt(np.linspace(0.5, 5, nr))
     theta = np.linspace(0, 2*np.pi, ntheta)
@@ -75,6 +76,7 @@ def sample_cone(alpha, nr, ntheta):
     Z = -alpha*r**2
     
     return np.column_stack([X.flatten(), Y.flatten(), Z.flatten()])
+
 
 if __name__ == '__main__':
     sys.exit(main())
