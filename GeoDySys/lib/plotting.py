@@ -4,14 +4,14 @@
 import os
 from pathlib import Path
 
-import matplotlib.pyplot as plt
 import matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
 
 import numpy as np
 import networkx as nx
-import matplotlib.gridspec as gridspec
 from torch_geometric.utils.convert import to_networkx
 
 from scipy.spatial import Voronoi, voronoi_plot_2d
@@ -19,7 +19,7 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 # =============================================================================
 # Manifolds
 # =============================================================================
-def fields(data, titles=None, col=2, figsize=(10,10), keeplim=True, save=None):
+def fields(data, titles=None, col=2, figsize=(10,10), keeplim=True, ax=None, save=None):
     """
     Plot scalar or vector fields
 
@@ -37,9 +37,9 @@ def fields(data, titles=None, col=2, figsize=(10,10), keeplim=True, save=None):
         
     dim = data[0].pos.shape[1]
     vector = True if data[0].x.shape[1] > 1 else False
+    row = int(np.ceil(len(data)/col))
     
     fig = plt.figure(figsize=figsize, constrained_layout=True)
-    row = int(np.ceil(len(data)/col))
     grid = gridspec.GridSpec(row, col, wspace=0.1, hspace=0.1, figure=fig)
     
     lims = None
@@ -93,6 +93,52 @@ def fields(data, titles=None, col=2, figsize=(10,10), keeplim=True, save=None):
         savefig(fig, save)
         
         
+def histograms(clusters, titles=None, col=2, figsize=(10,10), save=None):
+    """
+    Plot histograms of cluster distribution across datasets.
+
+    Parameters
+    ----------
+    data : PyG Batch data object class created with utils.construct_dataset
+    clusters : sklearn cluster object
+    titles : list of titles
+    col : int for number of columns to plot
+    figsize : tuple of figure dimensions
+    save : filename
+
+    """
+    
+    l, s = clusters['labels'], clusters['slices']
+    n_slices = len(s)-1
+    l = [l[s[i]:s[i+1]]+1 for i in range(n_slices)]
+    nc = clusters['n_clusters']
+    
+    row = int(np.ceil(n_slices/col))
+    
+    fig = plt.figure(figsize=figsize, constrained_layout=True)
+    grid = gridspec.GridSpec(row, col, wspace=0.5, hspace=0.5, figure=fig)
+    
+    for i in range(n_slices):
+        ax = plt.Subplot(fig, grid[i])
+        
+        ax.hist(l[i], 
+                bins=np.arange(nc+1)+0.5, 
+                rwidth=0.85, 
+                density=True)
+        ax.set_xticks(np.arange(nc)+1)
+        ax.set_xlim([0, nc+1])
+        ax.set_xlabel('Feature number')
+        ax.set_ylabel('Probability density')
+        
+        if titles is not None:
+            ax.set_title(titles[i])
+            
+        fig.add_subplot(ax)
+        
+    if save is not None:
+        savefig(fig, save)
+        
+        
 def embedding(emb, labels=None, clusters=None, titles=None, save=None):
     """
     Plot embeddings.
@@ -137,51 +183,6 @@ def embedding(emb, labels=None, clusters=None, titles=None, save=None):
         
     ax.set_axis_off()
     
-    if save is not None:
-        savefig(fig, save)
-    
-
-def histograms(clusters, titles=None, col=2, figsize=(10,10), save=None):
-    """
-    Plot histograms of cluster distribution across datasets.
-
-    Parameters
-    ----------
-    data : PyG Batch data object class created with utils.construct_dataset
-    clusters : sklearn cluster object
-    titles : list of titles
-    col : int for number of columns to plot
-    figsize : tuple of figure dimensions
-    save : filename
-
-    """
-    
-    l, s = clusters['labels'], clusters['slices']
-    n_slices = len(s)-1
-    l = [l[s[i]:s[i+1]]+1 for i in range(n_slices)]
-    nc = clusters['n_clusters']
-    
-    fig = plt.figure(figsize=figsize, constrained_layout=True)
-    row = int(np.ceil(n_slices/col))
-    grid = gridspec.GridSpec(row, col, wspace=0.5, hspace=0.5, figure=fig)
-    
-    for i in range(n_slices):
-        ax = plt.Subplot(fig, grid[i])
-        
-        ax.hist(l[i], 
-                bins=np.arange(nc+1)+0.5, 
-                rwidth=0.85, 
-                density=True)
-        ax.set_xticks(np.arange(nc)+1)
-        ax.set_xlim([0, nc+1])
-        ax.set_xlabel('Feature number')
-        ax.set_ylabel('Probability density')
-        
-        if titles is not None:
-            ax.set_title(titles[i])
-            
-        fig.add_subplot(ax)
-        
     if save is not None:
         savefig(fig, save)
         
@@ -432,7 +433,15 @@ def time_series(T,
     return ax
 
 
-def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, arrowhead=1, axis=False, alpha=None):
+def trajectories(X, ax=None, 
+                 style='o', 
+                 node_feature=None, 
+                 lw=1, 
+                 ms=5, 
+                 arrowhead=1, 
+                 arrow_spacing=3,
+                 axis=False, 
+                 alpha=None):
     """
     Plot trajectory in phase space. If multiple trajectories
     are given, they are plotted with different colors.
@@ -476,10 +485,13 @@ def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, arrowhead
         if '-' in style:
             ax.plot(X[:, 0], X[:, 1], c=c, linewidth=lw, markersize=ms, alpha=al)
         if '>' in style:
-            arrow_prop_dict = dict(color=c, alpha=al, lw=lw)
+            arrow_prop_dict = dict(head_width=arrowhead, color=c, alpha=al, lw=lw)
+            skip = (slice(None, None, arrow_spacing), slice(None))
+            X = X[skip]
             for j in range(X.shape[0]):
                 if j>0:
-                    a = ax.arrow(X[j,0], X[j,1], X[j,0]-X[j-1,0], X[j,1]-X[j-2,1],
+                    a = ax.arrow(X[j,0], X[j,1], 
+                                 (X[j,0]-X[j-1,0])*0.01, (X[j,1]-X[j-1,1])*0.01,
                                  **arrow_prop_dict)
                     ax.add_artist(a)
     elif dim==3:
@@ -491,7 +503,8 @@ def trajectories(X, ax=None, style='o', node_feature=None, lw=1, ms=5, arrowhead
             arrow_prop_dict = dict(mutation_scale=arrowhead, arrowstyle='-|>', color=c, alpha=al, lw=lw)
             for j in range(X.shape[0]):
                 if j>0:
-                    a = Arrow3D([X[j-1,0], X[j,0]], [X[j-1,1], X[j,1]], 
+                    a = Arrow3D([X[j-1,0], X[j,0]], 
+                                [X[j-1,1], X[j,1]], 
                                 [X[j-1,2], X[j,2]], 
                                  **arrow_prop_dict)
                     ax.add_artist(a)
