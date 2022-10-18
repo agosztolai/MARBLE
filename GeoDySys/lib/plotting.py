@@ -363,7 +363,14 @@ def graph(
 # =============================================================================
 # Time series
 # =============================================================================
-def time_series(T, X, ax=None, style='o', node_feature=None, figsize=(10,5), lw=1, ms=5, save=None):
+def time_series(T, 
+                X, 
+                style='o', 
+                node_feature=None, 
+                figsize=(10,5), 
+                lw=1, 
+                ms=5,
+                save=None):
     """
     Plot time series.
 
@@ -388,8 +395,8 @@ def time_series(T, X, ax=None, style='o', node_feature=None, figsize=(10,5), lw=
             
     if not isinstance(X, list):
         X = [X]
-        
-    fig = plt.figure(figsize=figsize, constrained_layout=True)
+            
+    fig = plt.figure(figsize=figsize, constrained_layout=True)  
     grid = gridspec.GridSpec(len(X), 1, wspace=0.5, hspace=0, figure=fig)
     
     for sp, X_ in enumerate(X):

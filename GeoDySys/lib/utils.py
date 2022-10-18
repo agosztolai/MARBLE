@@ -202,12 +202,19 @@ def to_pandas(x, augment_time=True):
 # =============================================================================
 # Normalise
 # =============================================================================
-def standardise(X):
+def standardise(X, zero_mean=True, norm='std'):
     """Standarsise data row-wise"""
     
-    X -= X.mean(axis=0, keepdims=True)
-    X /= X.std(axis=0, keepdims=True)
+    if zero_mean:
+        X -= X.mean(axis=0, keepdims=True)
     
+    if norm=='std':
+        X /= X.std(axis=0, keepdims=True)
+    elif norm=='max':
+        X /= abs(X).max(axis=0, keepdims=True)
+    else:
+        NotImplementedError
+        
     return X
 
 
