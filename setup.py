@@ -6,6 +6,7 @@ setup(
     name="GeoDySys",
     version="1.0",
     install_requires=[
+        "Cython",
         "numpy",
         "scipy",
         "sklearn",

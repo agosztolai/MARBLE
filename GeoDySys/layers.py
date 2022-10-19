@@ -77,18 +77,21 @@ class AnisoConv(MessagePassing):
             K = utils.to_SparseTensor(edge_index, size, value=K.t())
             out.append(self.propagate(K.t(), x=x))
             
-        #Concatenate and interleave, i.e. 
-        #out = [[dx1/du, dx2/du], [x1/dv, dx2/dv]] -> [dx1/du, x1/dv, dx2/du, dx2/dv]
+        #[[dx1/du, dx2/du], [x1/dv, dx2/dv]] -> [dx1/du, x1/dv, dx2/du, dx2/dv]
         out = torch.stack(out, axis=2)
         out = out.reshape(out.shape[0], -1)
             
         return out
 
     def message_and_aggregate(self, K_t, x):
+        """Message passing step. If K_t is a txs matrix (s source, t target),
+           do matrix multiplication K_t@x, broadcasting over column features. 
+           If K_t is a t*dimxs*dim matrix, in case of manifold computations,
+           then first reshape, assuming that the columns of x are ordered as
+           [dx1/du, x1/dv, ..., dx2/du, dx2/dv, ...].
+           """
         n, dim = x.shape
         
-        #Reshape for multiplication by connection Laplacian. Make sure the 
-        #columns of x are ordered as described above!
         if (K_t.size(dim=1) % n*dim)==0:
             n_ch = n*dim // K_t.size(dim=1)
             x = x.view(-1, n_ch)

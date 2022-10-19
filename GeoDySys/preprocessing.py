@@ -7,12 +7,17 @@ from .lib import utils
 def preprocessing(data, par):
     
     #compute gauges
-    gauges, _ = g.compute_gauges(data, par['local_gauge'], par['n_geodesic_nb'])
+    if par['vector']:
+        local_gauge=True
+    else:
+        local_gauge=False
+        
+    gauges, _ = g.compute_gauges(data, local_gauge, par['n_geodesic_nb'])
     
     #compute connections
-    dim_man = data.pos.shape[1]
     R = None
     if par['vector']:
+        dim_man = data.pos.shape[1]
         R = g.compute_connections(gauges, data.edge_index, dim_man)
         R = utils.np2torch(R)
     

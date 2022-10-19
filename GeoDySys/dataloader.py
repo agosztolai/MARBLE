@@ -9,7 +9,7 @@ from torch_geometric.loader import NeighborSampler as NS
 
 def loaders(data, par):
     
-    nb = [par['n_sampled_nb'] for i in range(par['order'] + par['depth'])]
+    nb = [par['n_sampled_nb'] for i in range(max(par['order'], par['depth']))]
     
     train_loader = NeighborSampler(data.edge_index,
                                    sizes=nb,

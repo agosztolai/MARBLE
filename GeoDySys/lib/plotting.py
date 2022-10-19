@@ -433,7 +433,8 @@ def time_series(T,
     return ax
 
 
-def trajectories(X, ax=None, 
+def trajectories(X, 
+                 ax=None, 
                  style='o', 
                  node_feature=None, 
                  lw=1, 
