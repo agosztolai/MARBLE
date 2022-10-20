@@ -61,12 +61,11 @@ class net(nn.Module):
         kernels = [K[n_id,:][:,n_id] for K in self.kernels]
         if self.par['vector']:
             assert self.R is not None, 'Need connections for vector computations!'
-            print(self.R.is_cuda)
-            print(self.R[n_id,:][:,n_id].is_cuda)
             R = self.R[n_id,:][:,n_id]
-            print(R.is_cuda)
+            print(kernels[0].is_cuda)
             n, _, _, dim = R.shape
             R = R.swapaxes(1,2).reshape(n*dim, n*dim) #make block matrix
+            print(R.is_cuda)
         else:
             R = None
 
