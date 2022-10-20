@@ -6,9 +6,9 @@ setup(
     name="GeoDySys",
     version="1.0",
     install_requires=[
-        "matplotlib==3.5.2",
-        "numpy==1.22.4",
-        "pandas==1.3.2",
+        "matplotlib",
+        "numpy",
+        "pandas",
         "numpy",
         "scipy",
         "sklearn",
