@@ -28,7 +28,7 @@ class net(nn.Module):
         
         #layers
         self.diffusion, self.grad, self.convs, self.mlp, self.inner_products = \
-            layers.setup_layers(data, self.L, self.Lc, self.par)
+            layers.setup_layers(self.par)
             
         self.reset_parameters()
         
@@ -54,7 +54,7 @@ class net(nn.Module):
             n_id = np.arange(len(x))
 
         #diffusion
-        x = self.diffusion(x)
+        x = self.diffusion(x, self.L, self.Lc)
         
         #restrict to current batch n_id
         x = x[n_id] 

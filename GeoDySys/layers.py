@@ -11,12 +11,12 @@ import torch_geometric.utils as tgu
 from .lib import geometry, utils
 
 
-def setup_layers(data, L, Lc, par):
+def setup_layers(par):
     
     s, e, o = par['signal_dim'], par['emb_dim'], par['order']
     
     #diffusion
-    diffusion = Diffusion(data, L, Lc)
+    diffusion = Diffusion()
     
     #gradient features
     grad = nn.ModuleList()
@@ -115,32 +115,30 @@ def expand_adjacenecy_matrix(edge_index, dim):
 class Diffusion(nn.Module):
     """Diffusion with learned t."""
 
-    def __init__(self, data, L, Lc=None, ic=0.0):
+    def __init__(self, ic=0.0):
         super(Diffusion, self).__init__()
-        
-        self.L, self.Lc = L, Lc
-            
+                    
         self.diffusion_time = nn.Parameter(torch.tensor(ic))
         
         
-    def forward(self, x, normalise=False):
+    def forward(self, x, L, Lc=None, normalise=False):
         # making sure diffusion times are positive
         with torch.no_grad():
             self.diffusion_time.data = torch.clamp(self.diffusion_time, min=1e-8)
             
         t = self.diffusion_time.detach().cpu().numpy()
         
-        if self.Lc is not None:
-            assert (x.shape[0]*x.shape[1] % self.Lc.shape[0])==0, \
+        if Lc is not None:
+            assert (x.shape[0]*x.shape[1] % Lc.shape[0])==0, \
                 'Data dimension must be an integer multiple of the dimensions \
                  of the connection Laplacian!'
                  
-            out = geometry.vector_diffusion(x, t, self.Lc, normalise, self.L)
+            out = geometry.vector_diffusion(x, t, Lc, normalise, L)
                 
         else:
             out = []
             for x_ in x.T:
-                out.append(geometry.scalar_diffusion(x_.unsqueeze(1), t, self.L))
+                out.append(geometry.scalar_diffusion(x_.unsqueeze(1), t, L))
                 
             out = torch.cat(out, axis=1)
             
