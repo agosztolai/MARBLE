@@ -134,6 +134,7 @@ class net(nn.Module):
         train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
         optimizer = torch.optim.Adam(self.parameters(), lr=self.par['lr'])
         
+        #move to gpu
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self = self.to(device)
         x = data.x.to(device)
