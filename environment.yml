@@ -1,4 +1,4 @@
-name: state_space_embedding
+name: DeepSSE
 channels:
   - nvidia
   - conda-forge
