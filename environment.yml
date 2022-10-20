@@ -158,9 +158,7 @@ dependencies:
   - pip:
     - cknn==0.1.0
     - de-library==1.0
-    - geodysys==1.0
     - pyedm==1.13.1.0
     - sklearn==0.0
     - teaspoon==1.3.1
     - umap==0.1.1
-prefix: /mnt/scratch/lts2/aspert/miniconda3/envs/geodysys
