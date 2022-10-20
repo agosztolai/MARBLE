@@ -394,12 +394,11 @@ def fit_graph(x, graph_type='cknn', par=1):
 
 def compute_laplacian(data, normalization="rw"):
     
-    L = PyGu.get_laplacian(data.edge_index,
+    edge_index, edge_attr = PyGu.get_laplacian(data.edge_index,
                            edge_weight = data.edge_weight,
                            normalization = normalization)
-    L = PyGu.to_scipy_sparse_matrix(L[0], edge_attr=L[1])
     
-    return L
+    return PyGu.to_dense_adj(edge_index, edge_attr=edge_attr).squeeze()
 
 
 def compute_connection_laplacian(data, R, normalization='rw'):
@@ -434,8 +433,7 @@ def compute_connection_laplacian(data, R, normalization='rw'):
     dim = data.pos.shape[-1]
     
     #rearrange into block form
-    L = sp.kron(L, sp.csr_matrix(torch.ones([dim,dim])))
-    L = utils.np2torch(L.toarray())
+    L = torch.kron(L, torch.ones([dim,dim]))
     
     R = R.swapaxes(1,2).reshape(n*dim, n*dim)
     R += torch.eye(n).kron(torch.ones(dim,dim))
@@ -459,7 +457,7 @@ def compute_connection_laplacian(data, R, normalization='rw'):
     elif normalization == 'sym':
         NotImplementedError
         
-    return sp.csr_matrix(Lc)
+    return Lc
 
 
 def compute_tangent_bundle(data, n_geodesic_nb=10, return_predecessors=True):

@@ -24,11 +24,11 @@ class net(nn.Module):
         self.par = utils.parse_parameters(data, kwargs)
         
         #preprocessing
-        self.gauges, self.R, self.kernels = preprocessing(data, self.par)
+        self.gauges, self.R, self.kernels, L, Lc = preprocessing(data, self.par)
         
         #layers
         self.diffusion, self.grad, self.convs, self.mlp, self.inner_products = \
-            layers.setup_layers(data, self.R, self.par)
+            layers.setup_layers(data, L, Lc, self.par)
             
         self.reset_parameters()
         
