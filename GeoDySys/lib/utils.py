@@ -4,6 +4,9 @@ import torch
 import numpy as np
 import pandas as pd
 
+from typing import Callable, List, NamedTuple, Optional, Tuple, Union
+from torch import Tensor
+
 import yaml
 import os
 from pathlib import Path
@@ -197,6 +200,17 @@ def to_pandas(x, augment_time=True):
         
     return df
 
+
+class EdgeIndex(NamedTuple):
+    edge_index: Tensor
+    e_id: Optional[Tensor]
+    size: Tuple[int, int]
+
+    def to(self, *args, **kwargs):
+        edge_index = self.edge_index.to(*args, **kwargs)
+        e_id = self.e_id.to(*args, **kwargs) if self.e_id is not None else None
+        return EdgeIndex(edge_index, e_id, self.size)
+    
 
 # =============================================================================
 # Normalise

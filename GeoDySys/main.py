@@ -89,11 +89,11 @@ class net(nn.Module):
     def evaluate(self, data):
         """Forward pass @ evaluation (no minibatches)"""            
         with torch.no_grad():
-            size = (data.x.shape[0], data.x.shape[0])
-            adjs = [[data.edge_index, None, size]]
-            adjs *= max(self.par['order'], self.par['depth'])
+            adjs = utils.EdgeIndex(data.edge_index, None, (data.x.shape[0], data.x.shape[0]))
+            adjs = utils.to_list(adjs) * max(self.par['order'], self.par['depth'])
+            adjs = [adj.to(data.x.device) for adj in adjs]
             
-            self.emb = self(data.x, None, adjs)
+            self.emb = self(data.x, None, adjs).detach.cpu()
                 
 
     def batch_loss(self, x, loader, optimizer=None, device='cpu'):
