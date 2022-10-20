@@ -18,7 +18,7 @@ setup(
         'cknn @ git+https://github.com/chlorochrule/cknn',
         'DE_library @ git+https://github.com/agosztolai/DE_library',
         "tensorboardX",
-        "pyyaml"
+        "pyyaml",
         "POT",
         "pyEDM",
         "teaspoon"
