@@ -25,4 +25,4 @@ def preprocessing(data, par):
     L = g.compute_laplacian(data)
     Lc = g.compute_connection_laplacian(data, R) if par['vector'] else None
     
-    return gauges, R, kernels, L, Lc
+    return R, kernels, L, Lc

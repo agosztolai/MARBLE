@@ -24,8 +24,7 @@ class net(nn.Module):
         self.par = utils.parse_parameters(data, kwargs)
         
         #preprocessing
-        self.gauges, self.R, self.kernels, self.L, self.Lc = \
-            preprocessing(data, self.par)
+        self.R, self.kernels, self.L, self.Lc = preprocessing(data, self.par)
         
         #layers
         self.diffusion, self.grad, self.convs, self.mlp, self.inner_products = \
@@ -138,6 +137,8 @@ class net(nn.Module):
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self = self.to(device)
         x = data.x.to(device)
+        print(self.L.is_cuda)
+        print(self.R.is_cuda)
         
         print('\n---- Starting training ... \n')
         
