@@ -136,9 +136,10 @@ class net(nn.Module):
         #move to gpu
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self = self.to(device)
+        self.L = self.L.to(device)
+        self.Lc = self.Lc.to(device)
+        self.R = self.R.to(device)
         x = data.x.to(device)
-        print(self.L.is_cuda)
-        print(self.R.is_cuda)
         
         print('\n---- Starting training ... \n')
         
