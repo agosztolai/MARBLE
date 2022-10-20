@@ -119,7 +119,6 @@ dependencies:
     - certifi==2021.10.8
     - cffi==1.15.1
     - charset-normalizer==2.0.12
-    - cknn==0.1.0
     - clang==5.0
     - colorama==0.4.4
     - commonmark==0.9.1
