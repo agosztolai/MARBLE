@@ -1,18 +1,25 @@
 # Geomatric Dynamical Systems analysis
 
 This package contains a data-driven method to analyse transitions and state-space evolution of dynamical systems.
+The code is built in [PyG (PyTorch Geometric)](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html).
 
 ## Getting started
 
-We recommend you install the code on a fresh Anaconda virtual environment or create a Docker image. The code is built in [PyG (PyTorch Geometric)](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html), which needs to be preinstalled. We recommend you do this via Pip (and not Conda).
+We recommend you install the code on a fresh Anaconda virtual environment, as follows.
 
-Then clone this repository, 
+First, clone this repository, 
 
 ```
 git clone https://github.com/agosztolai/GeoDySys
 ```
 
-Finally, install by running inside the main folder
+Then, create an new anaconda environment using the provided environment.yaml file,
+
+```
+conda env create -f environment.yml
+```
+
+This will install all the requires dependencies. Finally, install by running inside the main folder
 
 ```
 pip install -e . 
