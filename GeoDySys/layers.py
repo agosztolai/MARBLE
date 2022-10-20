@@ -126,7 +126,7 @@ class Diffusion(nn.Module):
         with torch.no_grad():
             self.diffusion_time.data = torch.clamp(self.diffusion_time, min=1e-8)
             
-        t = self.diffusion_time.detach().cpu().numpy()
+        t = self.diffusion_time.detach()
         
         if Lc is not None:
             assert (x.shape[0]*x.shape[1] % Lc.shape[0])==0, \
