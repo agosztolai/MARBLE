@@ -62,10 +62,8 @@ class net(nn.Module):
         if self.par['vector']:
             assert self.R is not None, 'Need connections for vector computations!'
             R = self.R[n_id,:][:,n_id]
-            print(kernels[0].is_cuda)
             n, _, _, dim = R.shape
             R = R.swapaxes(1,2).reshape(n*dim, n*dim) #make block matrix
-            print(R.is_cuda)
         else:
             R = None
 
@@ -141,6 +139,7 @@ class net(nn.Module):
         self.L = self.L.to(device)
         self.Lc = self.Lc.to(device)
         self.R = self.R.to(device)
+        self.kernels = [K.to(device) for K in self.kernels]
         x = data.x.to(device)
         
         print('\n---- Starting training ... \n')
