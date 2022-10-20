@@ -9,7 +9,7 @@ depth: 0 #how many hops to aggregate
 vec_norm: False #vector normalisation of embedded features
 
 inner_product_features: True
-vector: True
+vector: False
 
 dropout: 0. #dropout in the MLP
 n_lin_layers: 2 #number of layers if MLP
