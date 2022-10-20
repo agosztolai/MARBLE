@@ -1,1 +1,1 @@
-conda install -c conda-forge gccCythonnumpy
+cython Cythonnumpy
