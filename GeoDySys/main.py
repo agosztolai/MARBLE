@@ -98,7 +98,7 @@ class net(nn.Module):
             adjs = [adj.to(device) for adj in adjs]
             x = data.x.to(device)
             
-            self.emb = self(x, None, adjs).detach.cpu()
+            self.emb = self(x, None, adjs).detach().cpu()
                 
 
     def batch_loss(self, x, loader, optimizer=None):
