@@ -92,10 +92,13 @@ class net(nn.Module):
             size = (data.x.shape[0], data.x.shape[0])
             adjs = utils.EdgeIndex(data.edge_index, None, size)
             adjs = utils.to_list(adjs) * max(self.par['order'], self.par['depth'])
-            adjs = [adj.to(data.x.device) for adj in adjs]
             
-            print(adjs[0][0].is_cuda)
-            self.emb = self(data.x, None, adjs).detach.cpu()
+            #move to gpu
+            device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+            adjs = [adj.to(device) for adj in adjs]
+            x = data.x.to(device)
+            
+            self.emb = self(x, None, adjs).detach.cpu()
                 
 
     def batch_loss(self, x, loader, optimizer=None):

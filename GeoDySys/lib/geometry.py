@@ -541,9 +541,6 @@ def procrustes(X, Y, reflection_allowed=False):
 # =============================================================================
 def scalar_diffusion(x, t, L, method='matrix_exp'):
     if method == 'matrix_exp':
-        print(t.is_cuda)
-        print(L.is_cuda)
-        print(x.is_cuda)
         return torch.matrix_exp(-t*L).mm(x)
     
     
