@@ -10,7 +10,6 @@ setup(
         "pandas",
         "numpy",
         "scipy",
-        "sklearn",
         "matplotlib",
         "networkx",
 	    "torch",
