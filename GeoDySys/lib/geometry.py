@@ -543,22 +543,22 @@ def procrustes(X, Y, reflection_allowed=False):
 # =============================================================================
 def scalar_diffusion(x, t, L, method='matrix_exp'):
     if method == 'matrix_exp':
-        return sp.linalg.expm_multiply(-t*L, x)
+        return torch.matrix_exp(-t*L).mm(x)
     
     
 def vector_diffusion(x, t, Lc, normalise=False, L=None):
         
-    #vector diffusion ith connection Laplacian
-    out = x.reshape(Lc.shape[0], -1)
+    #vector diffusion with connection Laplacian
+    out = x.view(Lc.shape[0], -1)
     out = scalar_diffusion(out, t, Lc)
-    out = out.reshape(x.shape)
+    out = out.view(x.shape)
     
     if normalise:
         assert L is not None, 'Need Laplacian for normalised diffusion!'
         x_abs = x.norm(dim=-1, p=2, keepdim=True)
         out_abs = scalar_diffusion(x_abs, t, L)
         ind = scalar_diffusion(torch.ones(x.shape[0],1), t, L)
-        out = out*out_abs/(ind*out.norm(dim=-1,p=2,keepdim=True))
+        out = out*out_abs/(ind*out.norm(dim=-1, p=2, keepdim=True))
         
     return out
     
