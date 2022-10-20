@@ -93,10 +93,11 @@ class net(nn.Module):
             adjs = utils.to_list(adjs) * max(self.par['order'], self.par['depth'])
             adjs = [adj.to(data.x.device) for adj in adjs]
             
+            print(adjs[0][0].is_cuda)
             self.emb = self(data.x, None, adjs).detach.cpu()
                 
 
-    def batch_loss(self, x, loader, optimizer=None, device='cpu'):
+    def batch_loss(self, x, loader, optimizer=None):
         """Loop over minibatches provided by loader function.
         
         Parameters
@@ -112,7 +113,9 @@ class net(nn.Module):
         cum_loss = 0
         for batch in loader:
             _, n_id, adjs = batch
-            adjs = [adj.to(device) for adj in utils.to_list(adjs)]
+            adjs = [adj.to(x.device) for adj in utils.to_list(adjs)]
+            
+            print(adjs[0][0].is_cuda)
             
             out = self.forward(x, n_id, adjs)
             loss = loss_function(out, x)
@@ -147,10 +150,10 @@ class net(nn.Module):
         for epoch in range(self.par['epochs']):
                         
             self.train() #training mode
-            train_loss, optimizer = self.batch_loss(x, train_loader, optimizer, device)
+            train_loss, optimizer = self.batch_loss(x, train_loader, optimizer)
                                 
             self.eval() #testing mode (disables dropout in MLP)
-            val_loss, _ = self.batch_loss(x, val_loader, device=device)
+            val_loss, _ = self.batch_loss(x, val_loader)
             val_loss /= (sum(data.val_mask)/sum(data.train_mask))
             
             writer.add_scalar('Loss/train', train_loss, epoch)
@@ -158,7 +161,7 @@ class net(nn.Module):
             print("Epoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}" \
                   .format(epoch+1, train_loss, val_loss))
         
-        test_loss, _ = self.batch_loss(x, test_loader, device=device)
+        test_loss, _ = self.batch_loss(x, test_loader)
         test_loss /= (sum(data.test_mask)/sum(data.train_mask))
         print('Final test loss: {:.4f}'.format(test_loss))
         
