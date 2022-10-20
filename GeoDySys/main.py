@@ -89,7 +89,8 @@ class net(nn.Module):
     def evaluate(self, data):
         """Forward pass @ evaluation (no minibatches)"""            
         with torch.no_grad():
-            adjs = utils.EdgeIndex(data.edge_index, None, (data.x.shape[0], data.x.shape[0]))
+            size = (data.x.shape[0], data.x.shape[0])
+            adjs = utils.EdgeIndex(data.edge_index, None, size)
             adjs = utils.to_list(adjs) * max(self.par['order'], self.par['depth'])
             adjs = [adj.to(data.x.device) for adj in adjs]
             
@@ -106,7 +107,6 @@ class net(nn.Module):
         batch : triple containing
             n_id : list of node ids for current batch
             adjs : list of `(edge_index, e_id, size)` tuples.
-        device : device, default is 'cpu'
         
         """
         
@@ -114,9 +114,7 @@ class net(nn.Module):
         for batch in loader:
             _, n_id, adjs = batch
             adjs = [adj.to(x.device) for adj in utils.to_list(adjs)]
-            
-            print(adjs[0][0].is_cuda)
-            
+                        
             out = self.forward(x, n_id, adjs)
             loss = loss_function(out, x)
             cum_loss += float(loss)
