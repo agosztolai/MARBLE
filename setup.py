@@ -3,7 +3,7 @@ from Cython.Build import cythonize
 import numpy
 
 setup(
-    name="GeoDySys",
+    name="MARBLE",
     version="1.0",
     install_requires=[
         "matplotlib",
@@ -25,7 +25,7 @@ setup(
     ext_modules=cythonize(
         Extension(
             "ptu_dijkstra",
-            ["GeoDySys/lib/ptu_dijkstra.pyx"],
+            ["MARBLA/lib/ptu_dijkstra.pyx"],
             include_dirs=[numpy.get_include()]
         )
     )

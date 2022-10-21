@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 import numpy as np
 
 import torch
@@ -141,8 +142,8 @@ class net(nn.Module):
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self = self.to(device)
         self.L = self.L.to(device)
-        self.Lc = self.Lc.to(device)
-        self.R = self.R.to(device)
+        self.Lc = self.Lc.to(device) if self.Lc is not None else None
+        self.R = self.R.to(device) if self.R is not None else None
         self.kernels = [K.to(device) for K in self.kernels]
         x = data.x.to(device)
         

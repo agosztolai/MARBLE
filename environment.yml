@@ -1,4 +1,4 @@
-name: geodysys
+name: MARBLE
 channels:
   - pyg
   - conda-forge

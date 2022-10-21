@@ -3,7 +3,7 @@
 
 import numpy as np
 import sys
-from GeoDySys import plotting, utils, geometry, net
+from MARBLE import plotting, utils, geometry, net
 
 def main():
     
