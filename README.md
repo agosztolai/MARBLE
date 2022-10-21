@@ -29,3 +29,12 @@ pip install .
 ## Examples
 
 The folder `/examples` contains some example scripts.
+
+## References
+
+The following packages were inspirational during the delopment of this code:
+
+* [DiffusionNet](https://github.com/nmwsharp/diffusion-net)
+* [Directional Graph Networks](https://github.com/Saro00/DGN)
+* [pyEDM](https://github.com/SugiharaLab/pyEDM)
+* [Parallel Transport Unfolting](https://github.com/mbudnins/parallel_transport_unfolding)
