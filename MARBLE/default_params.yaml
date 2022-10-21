@@ -1,19 +1,19 @@
 #Default training parameters
 seed: 0 #seed for reproducibility
-lr: 0.01 #learning rate 
-edge_dropout: 0. #dropout in the convolution graph
-n_sampled_nb: 30 #parameter of neighbourhood sampling
-n_geodesic_nb: 50 #number of geodesic neighbours to map to tangent space
+frac_sampled_nb: 0.9 #fraction of neighbours to consider during nhood sampling
+frax_geodesic_nb: 1.2 #fraction of geodesic neighbours (relative to node degree) to map to tangent space
 order: 2 #order to which to compute the directional derivatives
 depth: 0 #how many hops to aggregate
 vec_norm: False #vector normalisation of embedded features
 
 inner_product_features: True
-vector: False
+vector: True
 
+#network parameters
 dropout: 0. #dropout in the MLP
 n_lin_layers: 2 #number of layers if MLP
 hidden_channels: 16 #number of hidden channels
 out_channels: null #number of output channels (if null, then =hidden_channels)
 bias: False #learn bias parameters in MLP
 b_norm: True #batch normalisation
+lr: 0.01 #learning rate

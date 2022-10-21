@@ -318,7 +318,7 @@ def DD(pos, edge_index, gauges):
     return K
 
 
-def compute_gauges(data, local=True, n_geodesic_nb=10):
+def compute_gauges(data, local=True, n_nb=10):
     """
     Compute gauges
 
@@ -326,7 +326,8 @@ def compute_gauges(data, local=True, n_geodesic_nb=10):
     ----------
     data : pytorch geometric data object containing .pos and .edge_index
     local : bool, The default is False.
-    n_geodesic_nb : int, The default is 10.
+    n_nb : int, Number of neighbours to use to compute gauges. Should be
+    more than the number of neighbours in the knn graph. The default is 10.
 
     Returns
     -------
@@ -339,15 +340,23 @@ def compute_gauges(data, local=True, n_geodesic_nb=10):
     dim = data.pos.shape[-1]
     
     if local:
-        gauges, R = compute_tangent_bundle(
-            data, 
-            n_geodesic_nb=n_geodesic_nb,
-            )
-        return gauges, R
+        gauges, Sigma = compute_tangent_bundle(data, n_geodesic_nb=n_nb)
+        return gauges, Sigma
     else:      
         gauges = torch.eye(dim)
         gauges = gauges.repeat(n,1,1)      
         return gauges, None
+    
+    
+def manifold_dimension(Sigma, fraction_exp=0.9):
+    """Estimate manifold dimension based on singular vectors"""
+    
+    Sigma **= 2
+    Sigma /= Sigma.sum(1, keepdim=True)
+    Sigma = Sigma.cumsum(dim=1)
+    dim_man = (Sigma<fraction_exp).sum(0)
+    dim_man = torch.where(dim_man<Sigma.shape[0]*(1-fraction_exp))[0][0] + 1
+    return dim_man
 
 
 def project_gauge_to_neighbours(nvec, gauges):
@@ -480,9 +489,9 @@ def compute_tangent_bundle(data, n_geodesic_nb=10, return_predecessors=True):
     X = data.pos.numpy().astype(np.float64)
     A = PyGu.to_scipy_sparse_matrix(data.edge_index).tocsr()
 
-    _, _, tangents, R = ptu_dijkstra(X, A, X.shape[1], n_geodesic_nb, return_predecessors)
+    _, _, tangents, Sigma, _ = ptu_dijkstra(X, A, X.shape[1], n_geodesic_nb, return_predecessors)
     
-    return utils.np2torch(tangents), utils.np2torch(R)
+    return utils.np2torch(tangents), utils.np2torch(Sigma)
     
     
 def compute_connections(gauges, edge_index, dim_man=None):
@@ -516,7 +525,7 @@ def compute_connections(gauges, edge_index, dim_man=None):
             raise Exception('Manifold dim must be <= embedding dim!') 
                 
     for (i,j) in edge_index.T:
-        R[i,j,...] = procrustes(gauges[i,:].T, gauges[j,:].T)
+        R[i,j,...] = procrustes(gauges[i].T, gauges[j].T)
 
     return R
 

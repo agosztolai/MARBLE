@@ -8,12 +8,16 @@ def preprocessing(data, par):
     
     #gauges
     local_gauge = True if par['vector'] else False
-    gauges, _ = g.compute_gauges(data, local_gauge, par['n_geodesic_nb'])
+    gauges, Sigma = g.compute_gauges(data, local_gauge, par['n_geodesic_nb'])
     
     #connections
     R = None
     if par['vector']:
-        dim_man = data.pos.shape[1]
+        dim_man = g.manifold_dimension(Sigma, fraction_exp=0.9)
+        
+        # print('\n---- Embedding dimension: {}, manifold dimension: {} \n'\
+        #       .format(data.shape[1], dim_man))
+        
         R = g.compute_connections(gauges, data.edge_index, dim_man)
         R = utils.np2torch(R)
     

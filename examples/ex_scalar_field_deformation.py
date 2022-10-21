@@ -7,11 +7,11 @@ from MARBLE import plotting, utils, geometry, net
 def main():
     
     #parameters
-    k = 15
+    k = 5
     n_clusters = 10
     
     par = {'batch_size': 256, #batch size, this should be as large as possible
-           'epochs': 3, #optimisation epochs
+           'epochs': 30, #optimisation epochs
            'order': 2, #order of derivatives
            'depth': 0, #number of hops in neighbourhood
            'n_lin_layers': 2,

@@ -107,6 +107,7 @@ def ptu_dijkstra(X,
     predecessors = np.empty((N, N), dtype=ITYPE)
     predecessors.fill(-1)
     tangents = np.empty((N, D, d), dtype=DTYPE)
+    Sigma = np.empty((N, d), dtype=DTYPE)
     R = np.empty(shape=[N, N, d, d], dtype=DTYPE)
 
 
@@ -123,6 +124,7 @@ def ptu_dijkstra(X,
             graph_indices,
             graph_indptr,
             tangents,
+            Sigma,
             N_t,
             K_t,
             D_t,
@@ -148,8 +150,8 @@ def ptu_dijkstra(X,
             d_t
         )
         if return_predecessors:
-            return ptu_dists, predecessors, tangents, R
-        return ptu_dists, None, tangents, R
+            return ptu_dists, predecessors, tangents, Sigma, R
+        return ptu_dists, None, tangents, Sigma, R
     else:
         raise RuntimeError(
             'Local tangent space approximation failed'
@@ -422,6 +424,7 @@ cdef int _geodesic_neigborhood_tangents(
             int[:] csr_indices,
             int[:] csr_indptr,
             double[:, :, :] tangents,
+            double[:, :] Sigma,
             int N,
             int K,
             int D,
@@ -443,6 +446,8 @@ cdef int _geodesic_neigborhood_tangents(
         Index pointers of sparce csr proximity graph matrix.
     tangets: 3 dimensional tensor
         [Output] Collection of N local tangent space bases of size (D, d).
+    Sigma: 2 dimensional tensor
+        [Output] Singular values for all vertices
     N: int
         Number of points in dataset X.
     K: int
@@ -544,6 +549,10 @@ cdef int _geodesic_neigborhood_tangents(
                 return -1
             for p in range(D):
                 tangents[i, p, q] = U[p, q]
+                
+        # d left singular vectors form a basis for tangent space at point i
+        for q in range(d):
+            Sigma[i, q] = S[q]
 
     free(nodes)
     return 1

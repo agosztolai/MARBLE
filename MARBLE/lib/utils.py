@@ -39,6 +39,8 @@ def parse_parameters(data, kwargs):
     kwargs['signal_dim'] = data.x.shape[1]
     kwargs['emb_dim'] = data.pos.shape[1]
     kwargs['slices'] = data._slice_dict['x']
+    kwargs['n_sampled_nb'] = int(data.degree*par['frac_sampled_nb'])
+    kwargs['n_geodesic_nb'] = int(data.degree*par['frax_geodesic_nb'])
             
     par = check_parameters(kwargs, data)
                   
@@ -47,15 +49,11 @@ def parse_parameters(data, kwargs):
 
 def check_parameters(par, data):
     """Check parameter validity"""
-    if data.degree >= par['n_geodesic_nb']:
-        par['n_geodesic_nb'] = data.degree
-        warnings.warn('Number of geodesic neighbours (n_geodesic_nb) should \
-                      be (ideally) greater than the number of neighbours!')
-    
-    if data.degree < par['n_sampled_nb']:
-        par['n_sampled_nb'] = data.degree
-        warnings.warn('Sampled points (n_nb_samples) exceeds the degree (k)\
-                      of the graph! Continuing with n_nb_samples=k... ')
+                      
+    if par['vector'] and data.x.shape[1]==1:
+        par['vector'] = False
+        warnings.warn('Vector computation is requested but signal dimension is \
+                     one! Setting vector=False')
                       
     return par
 
@@ -213,7 +211,7 @@ class EdgeIndex(NamedTuple):
     
 
 # =============================================================================
-# Normalise
+# Statistics
 # =============================================================================
 def standardise(X, zero_mean=True, norm='std'):
     """Standarsise data row-wise"""
