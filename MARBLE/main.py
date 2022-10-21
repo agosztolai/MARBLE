@@ -76,8 +76,9 @@ class net(nn.Module):
             if self.par['inner_product_features']:
                 x_t = self.inner_products[i](x)
                 
-            out.append(x_t[:size[1]]) #take target nodes
-                            
+            out.append(x_t)
+                       
+        out = [o[:size[1]] for o in out] #take target nodes
         out = torch.cat(out, axis=1)
             
         # #message passing

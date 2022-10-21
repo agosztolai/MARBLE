@@ -14,11 +14,20 @@ First, clone this repository,
 git clone https://github.com/agosztolai/GeoDySys
 ```
 
-Then, create an new anaconda environment using the provided environment.yaml file,
+Then, create an new anaconda environment using the provided environment file that matches your system.
+
+For Linux machines with CUDA: 
 
 ```
 conda env create -f environment.yml
 ```
+
+For Mac without CUDA:
+
+```
+conda env create -f environment_cpu_osx.yml
+```
+
 
 This will install all the requires dependencies. Finally, install by running inside the main folder
 
