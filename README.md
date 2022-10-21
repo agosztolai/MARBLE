@@ -1,7 +1,8 @@
-# Geomatric Dynamical Systems analysis
+# MARBLE - **Ma**nifold **R**epresentation **B**asis **L**earning
 
-This package contains a data-driven method to analyse transitions and state-space evolution of dynamical systems.
-The code is built in [PyG (PyTorch Geometric)](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html).
+This package contains a geometric deep learning method to intrincally represent vector and scalar fields over manifolds and compare representations obtained from different vector fields. The examples  
+
+The code is built around [PyG (PyTorch Geometric)](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html).
 
 ## Getting started
 
@@ -22,9 +23,18 @@ conda env create -f environment.yml
 This will install all the requires dependencies. Finally, install by running inside the main folder
 
 ```
-pip install -e . 
+pip install . 
 ```
 
 ## Examples
 
 The folder `/examples` contains some example scripts.
+
+## References
+
+The following packages were inspirational during the delopment of this code:
+
+* [DiffusionNet](https://github.com/nmwsharp/diffusion-net)
+* [Directional Graph Networks](https://github.com/Saro00/DGN)
+* [pyEDM](https://github.com/SugiharaLab/pyEDM)
+* [Parallel Transport Unfolding](https://github.com/mbudnins/parallel_transport_unfolding)
