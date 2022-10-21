@@ -1,4 +1,4 @@
-# MARBLE - *Ma*nifold *R*epresentation *B*asis *L*earning
+# MARBLE - **Ma**nifold **R**epresentation **B**asis **L**earning
 
 This package contains a geometric deep learning method to intrincally represent vector and scalar fields over manifolds and compare representations obtained from different vector fields. The examples  
 
