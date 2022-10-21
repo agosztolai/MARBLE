@@ -23,7 +23,7 @@ conda env create -f environment.yml
 This will install all the requires dependencies. Finally, install by running inside the main folder
 
 ```
-pip install -e . 
+pip install . 
 ```
 
 ## Examples
