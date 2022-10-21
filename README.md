@@ -1,7 +1,8 @@
-# Geomatric Dynamical Systems analysis
+# MARBLE - *Ma*nifold *R*epresentation *B*asis *L*earning
 
-This package contains a data-driven method to analyse transitions and state-space evolution of dynamical systems.
-The code is built in [PyG (PyTorch Geometric)](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html).
+This package contains a geometric deep learning method to intrincally represent vector and scalar fields over manifolds and compare representations obtained from different vector fields. The examples  
+
+The code is built around [PyG (PyTorch Geometric)](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html).
 
 ## Getting started
 
