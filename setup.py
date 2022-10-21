@@ -25,7 +25,7 @@ setup(
     ext_modules=cythonize(
         Extension(
             "ptu_dijkstra",
-            ["MARBLA/lib/ptu_dijkstra.pyx"],
+            ["MARBLE/lib/ptu_dijkstra.pyx"],
             include_dirs=[numpy.get_include()]
         )
     )
