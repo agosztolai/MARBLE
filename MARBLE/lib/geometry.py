@@ -571,23 +571,6 @@ def scalar_diffusion(x, t, method='matrix_exp', par=None):
 
         # Transform back to per-vertex 
         return evecs.mm(x_diffuse_spec)
-            
-    # elif method == 'implicit_dense':
-    #     V = x.shape[-2]
-
-    #     # Form the dense matrices (M + tL) with dims (B,C,V,V)
-    #     mat_dense = L.to_dense().unsqueeze(1).expand(-1, self.C_inout, V, V).clone()
-    #     mat_dense *= self.diffusion_time.unsqueeze(0).unsqueeze(-1).unsqueeze(-1)
-    #     mat_dense += torch.diag_embed(mass).unsqueeze(1)
-
-    #     # Factor the system
-    #     cholesky_factors = torch.linalg.cholesky(mat_dense)
-            
-    #     # Solve the system
-    #     rhs = x * mass.unsqueeze(-1)
-    #     rhsT = torch.transpose(rhs, 1, 2).unsqueeze(-1)
-    #     sols = torch.cholesky_solve(rhsT, cholesky_factors)
-    #     x_diffuse = torch.transpose(sols.squeeze(-1), 1, 2)
 
     else:
         NotImplementedError

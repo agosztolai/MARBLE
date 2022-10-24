@@ -3,7 +3,7 @@ depth: 0 #how many hops to aggregate
 vec_norm: False #vector normalisation of embedded features
 
 #manifold/signal parameters
-order: 1 #order to which to compute the directional derivatives
+order: 2 #order to which to compute the directional derivatives
 inner_product_features: False
 vector: True
 frac_geodesic_nb: 2.0 #fraction of geodesic neighbours (relative to node degree) to map to tangent space
