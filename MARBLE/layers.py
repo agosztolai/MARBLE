@@ -8,7 +8,8 @@ from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn import MLP, GCNConv
 import torch_geometric.utils as tgu
 
-from .lib import geometry, utils
+from .lib import geometry as g
+from .lib import utils
 
 
 def setup_layers(par):
@@ -117,8 +118,10 @@ class Diffusion(nn.Module):
                     
         self.diffusion_time = nn.Parameter(torch.tensor(ic))
         
+    def forward(self, x, L, Lc=None, method='spectral', normalise=False):
         
-    def forward(self, x, L, Lc=None, normalise=False):
+        par_L, par_Lc = {'L': L}, {'Lc': Lc}
+        
         # making sure diffusion times are positive
         with torch.no_grad():
             self.diffusion_time.data = torch.clamp(self.diffusion_time, min=1e-8)
@@ -126,14 +129,19 @@ class Diffusion(nn.Module):
         t = self.diffusion_time
         
         if Lc is not None:
+            if method=='spectral' and 'evals' not in par_Lc.keys():
+                par_Lc['evals'], par_Lc['evecs'] = g.compute_eigendecomposition(Lc)
+                
             assert (x.shape[0]*x.shape[1] % Lc.shape[0])==0, \
                 'Data dimension must be an integer multiple of the dimensions \
                  of the connection Laplacian!'
                  
-            out = geometry.vector_diffusion(x, t, Lc, normalise, L)
+            out = g.vector_diffusion(x, t, method, par_Lc)
                 
         else:
-            out = [geometry.scalar_diffusion(x_.unsqueeze(1), t, L) for x_ in x.T]
+            if method=='spectral' and 'evals' not in par_L.keys():
+                par_L['evals'], par_L['evecs'] = g.compute_eigendecomposition(L)
+            out = [g.scalar_diffusion(x_, t, method, par_L) for x_ in x.T]
             out = torch.cat(out, axis=1)
             
         return out

@@ -550,62 +550,97 @@ def procrustes(X, Y, reflection_allowed=False):
 # =============================================================================
 # Diffusion
 # =============================================================================
-def scalar_diffusion(x, t, L, method='matrix_exp'):
+def scalar_diffusion(x, t, method='matrix_exp', par=None):
+    
+    if len(x.shape)==1:
+        x = x.unsqueeze(1)
+    
     if method == 'matrix_exp':
-        return torch.matrix_exp(-t*L).mm(x)
+        return torch.matrix_exp(-t*par['L']).mm(x)
+    
+    if method == 'spectral':
+        
+        evals, evecs = par['evals'], par['evecs'] 
+
+        # Transform to spectral
+        x_spec = torch.mm(evecs.T, x)
+
+        # Diffuse
+        diffusion_coefs = torch.exp(-evals.unsqueeze(-1) * t.unsqueeze(0))
+        x_diffuse_spec = diffusion_coefs * x_spec
+
+        # Transform back to per-vertex 
+        return evecs.mm(x_diffuse_spec)
+            
+    # elif method == 'implicit_dense':
+    #     V = x.shape[-2]
+
+    #     # Form the dense matrices (M + tL) with dims (B,C,V,V)
+    #     mat_dense = L.to_dense().unsqueeze(1).expand(-1, self.C_inout, V, V).clone()
+    #     mat_dense *= self.diffusion_time.unsqueeze(0).unsqueeze(-1).unsqueeze(-1)
+    #     mat_dense += torch.diag_embed(mass).unsqueeze(1)
+
+    #     # Factor the system
+    #     cholesky_factors = torch.linalg.cholesky(mat_dense)
+            
+    #     # Solve the system
+    #     rhs = x * mass.unsqueeze(-1)
+    #     rhsT = torch.transpose(rhs, 1, 2).unsqueeze(-1)
+    #     sols = torch.cholesky_solve(rhsT, cholesky_factors)
+    #     x_diffuse = torch.transpose(sols.squeeze(-1), 1, 2)
+
+    else:
+        NotImplementedError
     
     
-def vector_diffusion(x, t, Lc, normalise=False, L=None):
+def vector_diffusion(x, t, method='spectral', par=None, normalise=False):
         
     #vector diffusion with connection Laplacian
-    out = x.view(Lc.shape[0], -1)
-    out = scalar_diffusion(out, t, Lc)
+    out = x.view(par['Lc'].shape[0], -1)
+    out = scalar_diffusion(out, t, method, {'L': par['Lc']})
     out = out.view(x.shape)
     
     if normalise:
-        assert L is not None, 'Need Laplacian for normalised diffusion!'
+        assert par['L'] is not None, 'Need Laplacian for normalised diffusion!'
         x_abs = x.norm(dim=-1, p=2, keepdim=True)
-        out_abs = scalar_diffusion(x_abs, t, L)
-        ind = scalar_diffusion(torch.ones(x.shape[0],1), t, L)
+        out_abs = scalar_diffusion(x_abs, t, method, {'L': par['L']})
+        ind = scalar_diffusion(torch.ones(x.shape[0],1), t, method, {'L': par['L']})
         out = out*out_abs/(ind*out.norm(dim=-1, p=2, keepdim=True))
         
     return out
     
     
-# def compute_eigendecomposition(A, k=2, eps=1e-8):
-#     """
-#     Eigendecomposition of a square matrix A
+def compute_eigendecomposition(A, k=2, eps=1e-8):
+    """
+    Eigendecomposition of a square matrix A
     
-#     Parameters
-#     ----------
-#     A : square matrix A
-#     k : number of eigenvectors
-#     eps : small error term
+    Parameters
+    ----------
+    A : square matrix A
+    k : number of eigenvectors
+    eps : small error term
     
-#     Returns
-#     -------
-#     evals : (k) eigenvalues of the Laplacian
-#     evecs : (V,k) matrix of eigenvectors of the Laplacian 
+    Returns
+    -------
+    evals : (k) eigenvalues of the Laplacian
+    evecs : (V,k) matrix of eigenvectors of the Laplacian 
     
-#     """
+    """
     
-#     # Compute the eigenbasis
-#     A_eigsh = (A + sp.identity(A.shape[0])*eps).tocsc()
-#     failcount = 0
-#     while True:
-#         try:
-#             evals, evecs = sp.linalg.eigsh(A_eigsh, k=k)
-            
-#             # Clip off any eigenvalues that end up slightly negative due to numerical weirdness
-#             evals = np.clip(evals, a_min=0., a_max=float('inf'))
+    # Compute the eigenbasis
+    failcount = 0
+    while True:
+        try:
+            evals, evecs = torch.linalg.eigh(A)            
+            evals = torch.clamp(evals, min=0.)
 
-#             break
-#         except Exception as e:
-#             print(e)
-#             if(failcount > 3):
-#                 raise ValueError("failed to compute eigendecomp")
-#             failcount += 1
-#             print("--- decomp failed; adding eps ===> count: " + str(failcount))
-#             A_eigsh = A_eigsh + sp.identity(A.shape[0]) * (eps * 10**failcount)
+            break
+        except Exception as e:
+            print(e)
+            if(failcount > 3):
+                raise ValueError("failed to compute eigendecomp")
+            failcount += 1
+            print("--- decomp failed; adding eps ===> count: " + str(failcount))
+            A += torch.eye(A.shape[0]) * (eps * 10**(failcount-1))
     
-#     return utils.np2torch(evals), utils.np2torch(evecs)
+    return evals, evecs

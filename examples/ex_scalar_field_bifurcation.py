@@ -42,8 +42,7 @@ def main():
     titles = [r'$\beta$ = ' + str(a) for a in beta]
     plotting.fields(data, col=5, figsize=(10,3), titles=titles, save='scalar_fields.svg')
     plotting.embedding(emb, data.y.numpy(), clusters, titles=titles, save='scalar_fields_embedding.svg') 
-    plotting.histograms(clusters, col=5, figsize=(13,3), titles=titles, save='scalar_fields_histogram.svg')
-    plotting.neighbourhoods(data, clusters, hops=1, norm=True, save='scalar_fields_nhoods.svg')
+    # plotting.neighbourhoods(data, clusters, hops=1, norm=True, save='scalar_fields_nhoods.svg')
     plotting.embedding(emb_MDS, beta, save='scalar_fields_MDS.svg') 
 
 def f(x, alpha=0):
