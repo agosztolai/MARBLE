@@ -19,25 +19,21 @@ def setup_layers(par):
     diffusion = Diffusion()
     
     #gradient features
-    grad = nn.ModuleList()
-    for i in range(o):
-        grad.append(AnisoConv())
+    grad = nn.ModuleList(AnisoConv() for i in range(o))
         
     #cumulated number of channels after gradient features
     if par['inner_product_features']:
-        cum_channels = s*o
+        cum_channels = o*s**2
     else:
         cum_channels = s*((1-e**(o+1))//(1-e)) - s
             
     #message passing
     convs = nn.ModuleList()
     for i in range(par['depth']):
-        convs.append(GCNConv(cum_channels,cum_channels))
+        convs.append(GCNConv(cum_channels, cum_channels))
     
     #inner product features
-    inner_products = nn.ModuleList()
-    for i in range(o):
-        inner_products.append(InnerProductFeatures(s, e**(i+1)))
+    ip = nn.ModuleList(InnerProductFeatures(s, e**(i+1)) for i in range(o))
         
     #multilayer perceptron
     mlp = MLP(in_channels=cum_channels,
@@ -45,11 +41,11 @@ def setup_layers(par):
               out_channels=par['out_channels'],
               num_layers=par['n_lin_layers'],
               dropout=par['dropout'],
-              batch_norm=par['b_norm'],
+              norm=par['batch_norm'],
               bias=par['bias']
               )
     
-    return diffusion, grad, convs, mlp, inner_products
+    return diffusion, grad, convs, mlp, ip
 
 
 # =============================================================================
@@ -63,7 +59,8 @@ class AnisoConv(MessagePassing):
     def forward(self, x, edge_index, size, kernels=None, R=None):
         
         if R is not None:
-            dim = len(kernels)
+            n, _, _, dim = R.shape
+            R = R.swapaxes(1,2).reshape(n*dim, n*dim) #make block matrix
             size = (size[0]*dim, size[1]*dim)
             edge_index = expand_adjacenecy_matrix(edge_index, dim)
             
@@ -126,7 +123,7 @@ class Diffusion(nn.Module):
         with torch.no_grad():
             self.diffusion_time.data = torch.clamp(self.diffusion_time, min=1e-8)
             
-        t = self.diffusion_time.detach()
+        t = self.diffusion_time
         
         if Lc is not None:
             assert (x.shape[0]*x.shape[1] % Lc.shape[0])==0, \
@@ -136,10 +133,7 @@ class Diffusion(nn.Module):
             out = geometry.vector_diffusion(x, t, Lc, normalise, L)
                 
         else:
-            out = []
-            for x_ in x.T:
-                out.append(geometry.scalar_diffusion(x_.unsqueeze(1), t, L))
-                
+            out = [geometry.scalar_diffusion(x_.unsqueeze(1), t, L) for x_ in x.T]
             out = torch.cat(out, axis=1)
             
         return out
@@ -161,8 +155,8 @@ class InnerProductFeatures(nn.Module):
         self.O = nn.ModuleList()
         for i in range(C):
             self.O.append(nn.Linear(D, D, bias=False))
-            
-        self.warn = False
+        
+        self.reset_parameters()
         
     def reset_parameters(self):
         for i in range(len(self.O)):
@@ -177,6 +171,6 @@ class InnerProductFeatures(nn.Module):
         Ox = torch.stack(Ox, dim=2)
         
         #\sum_j x_i^T@O_ij@x_j
-        xOx = torch.einsum('bki,bkj->bi', x, Ox)
+        xOx = torch.einsum('bki,bkj->bij', x, Ox)
         
-        return xOx#torch.tanh(xOx)
+        return xOx.reshape(x.shape[0], -1)#torch.tanh(xOx)

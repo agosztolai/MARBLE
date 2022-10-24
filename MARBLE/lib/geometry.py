@@ -291,7 +291,7 @@ def optimal_rotation(X, Y):
 #     return [G[...,i] for i in range(G.shape[-1])]
 
 
-def DD(pos, edge_index, gauges):
+def gradient_op(pos, edge_index, gauges):
     """
     Directional derivative kernel from Beaini et al. 2021.
     
@@ -348,14 +348,15 @@ def compute_gauges(data, local=True, n_nb=10):
         return gauges, None
     
     
-def manifold_dimension(Sigma, fraction_exp=0.9):
+def manifold_dimension(Sigma, frac_explained=0.9):
     """Estimate manifold dimension based on singular vectors"""
     
     Sigma **= 2
     Sigma /= Sigma.sum(1, keepdim=True)
     Sigma = Sigma.cumsum(dim=1)
-    dim_man = (Sigma<fraction_exp).sum(0)
-    dim_man = torch.where(dim_man<Sigma.shape[0]*(1-fraction_exp))[0][0] + 1
+    dim_man = (Sigma<frac_explained).sum(0)
+    dim_man = torch.where(dim_man<Sigma.shape[0]*(1-frac_explained))[0][0] + 1
+    
     return dim_man
 
 
@@ -397,6 +398,7 @@ def fit_graph(x, graph_type='cknn', par=1):
     edge_index = PyGu.to_undirected(edge_index)
     pdist = torch.nn.PairwiseDistance(p=2)
     edge_weight = pdist(x[edge_index[0]], x[edge_index[1]])
+    edge_weight = 1/edge_weight
     
     return edge_index, edge_weight
 

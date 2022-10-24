@@ -40,7 +40,10 @@ def parse_parameters(data, kwargs):
     kwargs['emb_dim'] = data.pos.shape[1]
     kwargs['slices'] = data._slice_dict['x']
     kwargs['n_sampled_nb'] = int(data.degree*par['frac_sampled_nb'])
-    kwargs['n_geodesic_nb'] = int(data.degree*par['frax_geodesic_nb'])
+    kwargs['n_geodesic_nb'] = int(data.degree*par['frac_geodesic_nb'])
+    
+    if kwargs['batch_norm']:
+        kwargs['batch_norm'] = 'batch_norm'
             
     par = check_parameters(kwargs, data)
                   
@@ -54,6 +57,13 @@ def check_parameters(par, data):
         par['vector'] = False
         warnings.warn('Vector computation is requested but signal dimension is \
                      one! Setting vector=False')
+                     
+    if par['frac_geodesic_nb'] <= 1.0:
+        par['frac_geodesic_nb'] = 1.0
+        warnings.warn('We need least the nearest neighbours to define the \
+                      tangent space!')
+                      
+    assert par['order'] > 0, "Derivative order must be at least 1!" 
                       
     return par
 

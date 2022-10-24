@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from .lib import geometry as g
-from .lib import utils
+from .lib.utils import np2torch
 
 def preprocessing(data, par):
     
@@ -13,17 +13,18 @@ def preprocessing(data, par):
     #connections
     R = None
     if par['vector']:
-        dim_man = g.manifold_dimension(Sigma, fraction_exp=0.9)
-        
-        # print('\n---- Embedding dimension: {}, manifold dimension: {} \n'\
-        #       .format(data.shape[1], dim_man))
-        
+        dim_man = g.manifold_dimension(Sigma, frac_explained=par['var_explained'])
         R = g.compute_connections(gauges, data.edge_index, dim_man)
-        R = utils.np2torch(R)
+        R = np2torch(R)
+        
+        print('\n---- Embedding dimension: {}'.format(data.x.shape[1]))
+        print('---- Manifold dimension: {} \n'.format(dim_man))
+        
+        if dim_man==data.x.shape[1]:
+            par['vector'] = False
     
     #kernels
-    # kernels = g.gradient_op(data.pos, data.edge_index, gauges)
-    kernels = g.DD(data.pos, data.edge_index, gauges)
+    kernels = g.gradient_op(data.pos, data.edge_index, gauges)
     
     #Laplacians
     L = g.compute_laplacian(data)

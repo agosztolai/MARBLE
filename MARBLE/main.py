@@ -63,8 +63,6 @@ class net(nn.Module):
         if self.par['vector']:
             assert self.R is not None, 'Need connections for vector computations!'
             R = self.R[n_id,:][:,n_id]
-            n, _, _, dim = R.shape
-            R = R.swapaxes(1,2).reshape(n*dim, n*dim) #make block matrix
         else:
             R = None
 
@@ -72,13 +70,16 @@ class net(nn.Module):
         out = []
         for i, (edge_index, _, size) in enumerate(adjs[-o:]):
             x = self.grad[i](x, edge_index, size, kernels, R)
-            x_t = x
-            if self.par['inner_product_features']:
-                x_t = self.inner_products[i](x)
-                
-            out.append(x_t)
-                       
-        out = [o[:size[1]] for o in out] #take target nodes
+            out.append(x)
+            
+        #take target nodes
+        out = [o[:size[1]] for o in out]
+            
+        #inner products
+        if self.par['inner_product_features']:
+            for i, x in enumerate(out):
+                out[i] = self.inner_products[i](x)
+        
         out = torch.cat(out, axis=1)
             
         # #message passing
