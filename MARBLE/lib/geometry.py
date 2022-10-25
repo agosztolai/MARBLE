@@ -245,9 +245,9 @@ def compute_histogram_distances(clusters, dist_typ='Wasserstein'):
     return dist
 
 
-def compute_distribution_distances(emb, data, dist_typ='Wasserstein'):
+def compute_distribution_distances(data, dist_typ='Wasserstein'):
     
-    pdists = pairwise_distances(emb)
+    pdists = pairwise_distances(data.emb)
     s = data._slice_dict['x']
     n = len(s)-1
     
