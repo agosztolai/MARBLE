@@ -440,7 +440,8 @@ def time_series(T,
     return ax
 
 
-def trajectories(X, 
+def trajectories(X,
+                 V,
                  ax=None, 
                  style='o', 
                  node_feature=None, 
@@ -457,7 +458,9 @@ def trajectories(X,
     Parameters
     ----------
     X : np array
-        Trajectories.
+        Positions.
+    V : np array
+        Velocities.
     style : string
         Plotting style. The default is 'o'.
     node_feature: bool
@@ -482,7 +485,7 @@ def trajectories(X,
     c = set_colors(node_feature)[0]
     if alpha is not None:
         al=np.ones(len(X))*alpha
-    elif len(c)>1 and not isinstance(c,str):
+    elif len(c)>1 and not isinstance(c, str):
         al=np.abs(node_feature)/np.max(np.abs(node_feature))
     else:
         al=1
@@ -497,9 +500,7 @@ def trajectories(X,
             skip = (slice(None, None, arrow_spacing), slice(None))
             X = X[skip]
             for j in range(X.shape[0]):
-                if j>0:
-                    a = ax.arrow(X[j,0], X[j,1], 
-                                 (X[j,0]-X[j-1,0])*0.01, (X[j,1]-X[j-1,1])*0.01,
+                    a = ax.arrow(X[j,0], X[j,1], V[j,0]*0.01, [j,1]*0.01,
                                  **arrow_prop_dict)
                     ax.add_artist(a)
     elif dim==3:
@@ -510,7 +511,6 @@ def trajectories(X,
         if '>' in style:
             arrow_prop_dict = dict(mutation_scale=arrowhead, arrowstyle='-|>', color=c, alpha=al, lw=lw)
             for j in range(X.shape[0]):
-                if j>0:
                     a = Arrow3D([X[j-1,0], X[j,0]], 
                                 [X[j-1,1], X[j,1]], 
                                 [X[j-1,2], X[j,2]], 
