@@ -55,7 +55,8 @@ class net(nn.Module):
             n_id = np.arange(len(x))
 
         #diffusion
-        # x = self.diffusion(x, self.L, self.Lc)
+        if self.par['diffusion']:
+            x = self.diffusion(x, self.L, self.Lc)
         
         #restrict to current batch n_id
         x = x[n_id] 
