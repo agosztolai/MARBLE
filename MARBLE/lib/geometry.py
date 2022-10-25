@@ -112,7 +112,7 @@ def cluster_embedding(data,
     emb = embed(emb, embed_typ)  
     emb, clusters['centroids'] = emb[:-n_clusters], emb[-n_clusters:]
     
-    dist = compute_distr_distances(clusters)
+    dist = compute_histogram_distances(clusters)
         
     return emb, clusters, dist
 
@@ -215,7 +215,7 @@ def relabel_by_proximity(clusters):
     return clusters
 
 
-def compute_distr_distances(clusters, dist_typ='Wasserstein'):
+def compute_histogram_distances(clusters, dist_typ='Wasserstein'):
     
     l, s = clusters['labels'], clusters['slices']
     l = [l[s[i]:s[i+1]]+1 for i in range(len(s)-1)]
@@ -241,6 +241,28 @@ def compute_distr_distances(clusters, dist_typ='Wasserstein'):
         NotImplementedError
     else:
         NotImplementedError
+    
+    return dist
+
+
+def compute_distribution_distances(emb, data, dist_typ='Wasserstein'):
+    
+    pdists = pairwise_distances(emb)
+    s = data._slice_dict['x']
+    n = len(s)-1
+    
+    dist = np.zeros([n, n])
+    for i in range(n):
+        for j in range(i+1, n):
+            mu = np.ones(s[i+1]-s[i])
+            nu = np.ones(s[j+1]-s[j])
+            dist[i,j] = ot.emd2(mu/len(mu), 
+                                nu/len(nu), 
+                                pdists[s[i]:s[i+1], s[j]:s[j+1]])
+            
+    dist += dist.T
+    
+    data._slice_dict['x']
     
     return dist
 

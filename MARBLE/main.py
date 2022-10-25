@@ -10,7 +10,7 @@ import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from datetime import datetime
 
-from .lib import utils, geometry
+from .lib import utils
 from . import preprocessing, layers, dataloader
 
 
