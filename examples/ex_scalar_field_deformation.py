@@ -42,8 +42,10 @@ def main():
     #train model
     model = net(data, gauge='global', **par)
     model.run_training(data)
-    model.evaluate(data)
-    emb, clusters, dist = model.cluster_and_embed(n_clusters=n_clusters)
+    
+    #evaluate model on data
+    data = model.evaluate(data)
+    emb, clusters, dist = geometry.cluster_embedding(data, n_clusters=n_clusters)
     emb_MDS = geometry.embed(dist, embed_typ='MDS')
     
     #plot

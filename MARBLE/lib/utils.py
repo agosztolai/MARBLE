@@ -38,7 +38,6 @@ def parse_parameters(data, kwargs):
             
     kwargs['signal_dim'] = data.x.shape[1]
     kwargs['emb_dim'] = data.pos.shape[1]
-    kwargs['slices'] = data._slice_dict['x']
     kwargs['n_sampled_nb'] = int(data.degree*par['frac_sampled_nb'])
     kwargs['n_geodesic_nb'] = int(data.degree*par['frac_geodesic_nb'])
     

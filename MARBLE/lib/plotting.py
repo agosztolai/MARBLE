@@ -19,7 +19,14 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 # =============================================================================
 # Manifolds
 # =============================================================================
-def fields(data, titles=None, col=2, figsize=(10,10), keeplim=True, ax=None, save=None):
+def fields(data, 
+           titles=None, 
+           col=2, 
+           figsize=(10,10), 
+           keeplim=True, 
+           ax=None, 
+           save=None,
+           node_size=10):
     """
     Plot scalar or vector fields
 
@@ -55,8 +62,8 @@ def fields(data, titles=None, col=2, figsize=(10,10), keeplim=True, ax=None, sav
         graph(G,
               labels=None if vector else c,
               ax=ax,
-              node_size=30,
-              edge_width=0.5, 
+              node_size=node_size,
+              edge_width=0.5,
               edge_alpha=1.)
         
         if vector:

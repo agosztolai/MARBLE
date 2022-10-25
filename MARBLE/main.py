@@ -55,7 +55,7 @@ class net(nn.Module):
             n_id = np.arange(len(x))
 
         #diffusion
-        x = self.diffusion(x, self.L, self.Lc)
+        # x = self.diffusion(x, self.L, self.Lc)
         
         #restrict to current batch n_id
         x = x[n_id] 
@@ -67,7 +67,7 @@ class net(nn.Module):
             R = None
 
         #gradients
-        out = []
+        out = [x]
         for i, (edge_index, _, size) in enumerate(adjs[-o:]):
             x = self.grad[i](x, edge_index, size, kernels, R)
             out.append(x)
@@ -77,10 +77,9 @@ class net(nn.Module):
             
         #inner products
         if self.par['inner_product_features']:
-            for i, x in enumerate(out):
-                out[i] = self.inner_products[i](x)
-        
-        out = torch.cat(out, axis=1)
+            out = self.inner_products(out)
+        else:
+            out = torch.cat(out, axis=1)
             
         # #message passing
         # for i, (edge_index, _, size) in enumerate(adjs[-d:]):
@@ -101,7 +100,9 @@ class net(nn.Module):
             adjs = [adj.to(device) for adj in adjs]
             x = data.x.to(device)
             
-            self.emb = self(x, None, adjs).detach().cpu()
+            data.emb = self(x, None, adjs).detach().cpu()
+            
+            return data
                 
 
     def batch_loss(self, x, loader, optimizer=None):
@@ -168,35 +169,6 @@ class net(nn.Module):
         test_loss, _ = self.batch_loss(x, test_loader)
         test_loss /= (sum(data.test_mask)/sum(data.train_mask))
         print('Final test loss: {:.4f}'.format(test_loss))
-        
-        
-    def cluster_and_embed(self,
-                          cluster_typ='kmeans', 
-                          embed_typ='tsne', 
-                          n_clusters=15, 
-                          seed=0):
-        """
-        Cluster & embed
-        
-        Returns
-        -------
-        emb : nx2 matrix of embedded data
-        clusters : sklearn cluster object
-        dist : cxc matrix of pairwise distances where c is the number of clusters
-        
-        """
-
-        clusters = geometry.cluster(self.emb, cluster_typ, n_clusters, seed)
-        clusters = geometry.relabel_by_proximity(clusters)
-        clusters['slices'] = self.par['slices']
-        
-        emb = np.vstack([self.emb, clusters['centroids']])
-        emb = geometry.embed(emb, embed_typ)  
-        emb, clusters['centroids'] = emb[:-n_clusters], emb[-n_clusters:]
-        
-        dist = geometry.compute_distr_distances(clusters)
-            
-        return emb, clusters, dist
     
 
 def loss_function(out, x):

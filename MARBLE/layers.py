@@ -23,10 +23,11 @@ def setup_layers(par):
     grad = nn.ModuleList(AnisoConv() for i in range(o))
         
     #cumulated number of channels after gradient features
+    cum_channels = s*((1-e**(o+1))//(1-e))
     if par['inner_product_features']:
-        cum_channels = o*s**2
-    else:
-        cum_channels = s*((1-e**(o+1))//(1-e)) - s
+        cum_channels //= s
+        if s==1:
+            cum_channels = o+1
             
     #message passing
     convs = nn.ModuleList()
@@ -34,7 +35,7 @@ def setup_layers(par):
         convs.append(GCNConv(cum_channels, cum_channels))
     
     #inner product features
-    ip = nn.ModuleList(InnerProductFeatures(s, e**(i+1)) for i in range(o))
+    ip = InnerProductFeatures(cum_channels, s)
         
     #multilayer perceptron
     mlp = MLP(in_channels=cum_channels,
@@ -75,9 +76,9 @@ class AnisoConv(MessagePassing):
             K = utils.to_SparseTensor(edge_index, size, value=K.t())
             out.append(self.propagate(K.t(), x=x))
             
-        #[[dx1/du, dx2/du], [x1/dv, dx2/dv]] -> [dx1/du, x1/dv, dx2/du, dx2/dv]
+        #[[dx1/du, dx2/du], [dx1/dv, dx2/dv]] -> [dx1/du, dx1/dv, dx2/du, dx2/dv]
         out = torch.stack(out, axis=2)
-        out = out.reshape(out.shape[0], -1)
+        out = out.view(out.shape[0], -1)
             
         return out
 
@@ -151,8 +152,8 @@ class InnerProductFeatures(nn.Module):
     """
     Compute scaled inner-products between channel vectors.
     
-    Input (V x C*D) vectors
-    Output (VxC) dot products
+    Input: (V x C*D) vector of (V x n_i) list of vectors with \sum_in_i = C*D
+    Output: (VxC) dot products
     """
 
     def __init__(self, C, D):
@@ -172,13 +173,30 @@ class InnerProductFeatures(nn.Module):
 
     def forward(self, x):
         
-        x = x.reshape(x.shape[0], self.D, self.C)
+        if not isinstance(x, list):
+            x = [x]
+            
+        for i, x_ in enumerate(x):
+            x[i] = x_.reshape(x_.shape[0], self.D, -1)
+            
+        #for scalar signals take magnitude
+        if self.D==1:
+            for i, x_ in enumerate(x):
+                x[i] = x_.norm(dim=2)
+            
+            return torch.cat(x, axis=1)
         
-        #O_ij@x_j
-        Ox = [self.O[j](x[...,j]) for j in range(self.C)]
-        Ox = torch.stack(Ox, dim=2)
-        
-        #\sum_j x_i^T@O_ij@x_j
-        xOx = torch.einsum('bki,bkj->bij', x, Ox)
-        
-        return xOx.reshape(x.shape[0], -1)#torch.tanh(xOx)
+        #for vector signals take inner products
+        else:  
+            x = torch.cat(x, axis=2)
+            
+            assert x.shape[2]==self.C, 'Number of channels is incorrect!'
+            
+            #O_ij@x_j
+            Ox = [self.O[j](x[...,j]) for j in range(self.C)]
+            Ox = torch.stack(Ox, dim=2)
+            
+            #\sum_j x_i^T@O_ij@x_j
+            xOx = torch.einsum('bki,bkj->bi', x, Ox)
+            
+            return xOx.reshape(x.shape[0], -1)#torch.tanh(xOx)
