@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.neighbors import KDTree
 from scipy.spatial.transform import Rotation as R
 
-from GeoDySys import utils
+from MARBLE import utils
 
 
 """Some functions that are used for the exampels"""

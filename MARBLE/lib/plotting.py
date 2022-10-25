@@ -441,7 +441,7 @@ def time_series(T,
 
 
 def trajectories(X,
-                 V,
+                 V=None,
                  ax=None, 
                  style='o', 
                  node_feature=None, 
