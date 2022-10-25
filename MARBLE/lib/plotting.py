@@ -500,14 +500,14 @@ def trajectories(X,
             skip = (slice(None, None, arrow_spacing), slice(None))
             X = X[skip]
             for j in range(X.shape[0]):
-                    a = ax.arrow(X[j,0], X[j,1], V[j,0]*0.01, [j,1]*0.01,
+                    a = ax.arrow(X[j,0], X[j,1], V[j,0]*0.01, V[j,1]*0.01,
                                  **arrow_prop_dict)
                     ax.add_artist(a)
     elif dim==3:
         if 'o' in style:
             ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=c, s=ms, alpha=al)
         if '-' in style:
-            ax.plot(X[:, 0], X[:, 1], X[:, 2], c=c, linewidth=lw, markersize=ms,alpha=al)
+            ax.plot(X[:, 0], X[:, 1], X[:, 2], c=c, linewidth=lw, markersize=ms, alpha=al)
         if '>' in style:
             arrow_prop_dict = dict(mutation_scale=arrowhead, arrowstyle='-|>', color=c, alpha=al, lw=lw)
             for j in range(X.shape[0]):
