@@ -609,7 +609,7 @@ def compute_connections(gauges, edge_index, dim_man=None):
     _R = utils.parallel_proc(_procrustes, 
                             edge_index.T, 
                             gauges, 
-                            desc="Computing gauges...")
+                            desc="Compute connections...")
         
     for l, (i,j) in enumerate(edge_index.T):
         R[i,j,...] = _R[l]#procrustes(gauges[i].T, gauges[j].T)
