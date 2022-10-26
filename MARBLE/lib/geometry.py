@@ -547,19 +547,14 @@ def compute_tangent_bundle(data, n_geodesic_nb=10, chunk=512, return_predecessor
     A = PyGu.to_scipy_sparse_matrix(data.edge_index).tocsr()
     
     #make chunks for data processing
-    n_chunks = int(np.ceil(X.shape[0]/chunk))
+    slices = data._slice_dict['x']
+    n_chunks = len(slices)-1
     X_chunks, A_chunks = [], []
     for i in range(n_chunks):
-        if i<n_chunks-1:
-            X_ = X[i*chunk:(i+1)*chunk]
-            A_ = A[i*chunk:(i+1)*chunk,:][:,i*chunk:(i+1)*chunk]
+            X_ = X[slices[i]:slices[i+1]]
+            A_ = A[slices[i]:slices[i+1],:][:,slices[i]:slices[i+1]]
             X_chunks.append(X_)
             A_chunks.append(A_)
-        else:
-            X_ = X[i*chunk:]
-            A_ = A[i*chunk:,:][:,i*chunk:]
-            X_chunks[-1] = X_
-            X_chunks[-1] = X_
         
     inputs = [X_chunks, A_chunks, n_geodesic_nb, return_predecessors]
     out = utils.parallel_proc(launch_ptu_dijkstra, 
