@@ -13,9 +13,9 @@ def preprocessing(data, par):
     
     #connections
     R = None
+    par['dim_signal'] = data.x.shape[1]
     if par['vector']:
         par['dim_man'] = g.manifold_dimension(Sigma, frac_explained=par['var_explained'])
-        par['dim_signal'] = data.x.shape[1]
         R = g.compute_connections(gauges, data.edge_index, par['dim_man'])
         R = np2torch(R)
         
