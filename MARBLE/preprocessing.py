@@ -16,11 +16,12 @@ def preprocessing(data, par):
     par['dim_signal'] = data.x.shape[1]
     if par['vector']:
         par['dim_man'] = g.manifold_dimension(Sigma, frac_explained=par['var_explained'])
-        R = g.compute_connections(gauges, data.edge_index, par['dim_man'])
-        R = np2torch(R)
         
         if par['dim_man']==par['dim_signal']:
             par['vector'] = False
+        else:
+            R = g.compute_connections(gauges, data.edge_index, par['dim_man'])
+            R = np2torch(R)
     
     #kernels
     kernels = g.gradient_op(data.pos, data.edge_index, gauges)
