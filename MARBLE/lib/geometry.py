@@ -33,7 +33,7 @@ def sample_2d(N=100, interval=[[-1,-1],[1,1]], method='uniform', seed=0):
         x = np.linspace(interval[0][0], interval[1][0], int(np.sqrt(N)))
         y = np.linspace(interval[0][1], interval[1][1], int(np.sqrt(N)))
         x, y = np.meshgrid(x, y)
-        x = np.hstack((x.flatten(), y.flatten()))
+        x = np.vstack((x.flatten(), y.flatten())).T
         
     elif method=='random':
         np.random.seed(seed)
