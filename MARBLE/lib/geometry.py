@@ -20,6 +20,7 @@ from sklearn.preprocessing import StandardScaler
 import umap
 
 from ptu_dijkstra import ptu_dijkstra
+import multiprocessing
 import ot
 
 from . import utils
@@ -544,11 +545,39 @@ def compute_tangent_bundle(data, n_geodesic_nb=10, return_predecessors=True):
     """
     X = data.pos.numpy().astype(np.float64)
     A = PyGu.to_scipy_sparse_matrix(data.edge_index).tocsr()
-
-    _, _, tangents, Sigma, _ = ptu_dijkstra(X, A, X.shape[1], n_geodesic_nb, return_predecessors)
+    
+    processes = multiprocessing.cpu_count()
+    chunk = len(X)//8
+    X_chunks, A_chunks = [], []
+    for i in range(processes):
+        if i<processes-1:
+            X_ = X[i*chunk:(i+1)*chunk]
+            A_ = A[i*chunk:(i+1)*chunk,:][:,i*chunk:(i+1)*chunk]
+        else:
+            X_ = X[i*chunk:]
+            A_ = A[i*chunk:,:][:,i*chunk:]
+        X_chunks.append(X_)
+        A_chunks.append(A_)
+        
+    inputs = [X_chunks, A_chunks, n_geodesic_nb, return_predecessors]
+    out = utils.parallel_proc(launch_ptu_dijkstra, 
+                              range(processes), 
+                              inputs, 
+                              desc="Computing gauges...")
+        
+    tangents, Sigma = zip(*out)
+    tangents, Sigma = np.vstack(tangents), np.vstack(Sigma)
     
     return utils.np2torch(tangents), utils.np2torch(Sigma)
+
+
+def launch_ptu_dijkstra(inputs, i):
+    X_chunks, A_chunks, n_geodesic_nb, return_predecessors = inputs
     
+    _, _, tangents, Sigma, _ = ptu_dijkstra(X_chunks[i], A_chunks[i], X_chunks[i].shape[1], n_geodesic_nb, return_predecessors)
+    
+    return tangents, Sigma
+
     
 def compute_connections(gauges, edge_index, dim_man=None):
     """

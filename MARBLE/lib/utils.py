@@ -88,6 +88,8 @@ def print_settings(model):
         print('---- Manifold dimension: {}'.format(model.par['dim_man']))
         if model.par['dim_signal']==model.par['dim_man']:
             print('\n Signal dimension = manifold dimension, so manifold computations are disabled!')
+
+
 # =============================================================================
 # Parallel processing
 # =============================================================================
