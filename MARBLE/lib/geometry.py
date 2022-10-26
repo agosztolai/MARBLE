@@ -526,7 +526,7 @@ def compute_connection_laplacian(data, R, normalization='rw'):
     return Lc
 
 
-def compute_tangent_bundle(data, n_geodesic_nb=10, return_predecessors=True):
+def compute_tangent_bundle(data, n_geodesic_nb=10, chunk=512, return_predecessors=True):
     """
     Orthonormal gauges for the tangent space at each node, and connection 
     matrices between each pair of adjacent nodes.
@@ -546,22 +546,24 @@ def compute_tangent_bundle(data, n_geodesic_nb=10, return_predecessors=True):
     X = data.pos.numpy().astype(np.float64)
     A = PyGu.to_scipy_sparse_matrix(data.edge_index).tocsr()
     
-    processes = multiprocessing.cpu_count()
-    chunk = len(X)//8
+    #make chunks for data processing
+    n_chunks = int(np.ceil(X.shape[0]/chunk))
     X_chunks, A_chunks = [], []
-    for i in range(processes):
-        if i<processes-1:
+    for i in range(n_chunks):
+        if i<n_chunks-1:
             X_ = X[i*chunk:(i+1)*chunk]
             A_ = A[i*chunk:(i+1)*chunk,:][:,i*chunk:(i+1)*chunk]
+            X_chunks.append(X_)
+            A_chunks.append(A_)
         else:
             X_ = X[i*chunk:]
             A_ = A[i*chunk:,:][:,i*chunk:]
-        X_chunks.append(X_)
-        A_chunks.append(A_)
+            X_chunks[-1] = X_
+            X_chunks[-1] = X_
         
     inputs = [X_chunks, A_chunks, n_geodesic_nb, return_predecessors]
     out = utils.parallel_proc(launch_ptu_dijkstra, 
-                              range(processes), 
+                              range(n_chunks), 
                               inputs, 
                               desc="Computing gauges...")
         
