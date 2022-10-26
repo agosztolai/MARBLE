@@ -25,7 +25,7 @@ class net(nn.Module):
         self.par = utils.parse_parameters(data, kwargs)
         
         #preprocessing
-        self.R, self.kernels, self.L, self.Lc = preprocessing(data, self.par)
+        self.R, self.kernels, self.L, self.Lc, self.par = preprocessing(data, self.par)
         
         #layers
         self.diffusion, self.grad, self.convs, self.mlp, self.inner_products = \

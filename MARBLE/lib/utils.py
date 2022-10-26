@@ -79,10 +79,11 @@ def print_settings(model):
     
     np = sum(p.numel() for p in model.parameters() if p.requires_grad)
     
+    print('---- Embedding dimension: {}'.format(model.par['dim_signal']))
+    print('---- Manifold dimension: {} \n'.format(model.par['dim_man']))
     print('---- Number of features to pass to the MLP: ', model.mlp.in_channels)
     print('---- Total number of parameters: ', np)
-
-
+    
 # =============================================================================
 # Parallel processing
 # =============================================================================
