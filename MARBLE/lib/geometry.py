@@ -557,7 +557,7 @@ def compute_tangent_bundle(data, n_geodesic_nb=10, chunk=512, return_predecessor
             A_chunks.append(A_)
         
     inputs = [X_chunks, A_chunks, n_geodesic_nb, return_predecessors]
-    out = utils.parallel_proc(launch_ptu_dijkstra, 
+    out = utils.parallel_proc(_compute_tangent_bundle, 
                               range(n_chunks), 
                               inputs, 
                               desc="Computing gauges...")
@@ -568,7 +568,7 @@ def compute_tangent_bundle(data, n_geodesic_nb=10, chunk=512, return_predecessor
     return utils.np2torch(tangents), utils.np2torch(Sigma)
 
 
-def launch_ptu_dijkstra(inputs, i):
+def _compute_tangent_bundle(inputs, i):
     X_chunks, A_chunks, n_geodesic_nb, return_predecessors = inputs
     
     _, _, tangents, Sigma, _ = ptu_dijkstra(X_chunks[i], A_chunks[i], X_chunks[i].shape[1], n_geodesic_nb, return_predecessors)
@@ -604,11 +604,24 @@ def compute_connections(gauges, edge_index, dim_man=None):
         elif dim_man <= dim:
             gauges = gauges[:,:,dim_man:]
         else:
-            raise Exception('Manifold dim must be <= embedding dim!') 
-                
-    for (i,j) in edge_index.T:
-        R[i,j,...] = procrustes(gauges[i].T, gauges[j].T)
+            raise Exception('Manifold dim must be <= embedding dim!')
+            
+    _R = utils.parallel_proc(_procrustes, 
+                            edge_index.T, 
+                            gauges, 
+                            desc="Computing gauges...")
+        
+    for l, (i,j) in enumerate(edge_index.T):
+        R[i,j,...] = _R[l]#procrustes(gauges[i].T, gauges[j].T)
 
+    return R
+
+
+def _procrustes(gauges, edge_index):
+    
+    i, j = edge_index
+    R = procrustes(gauges[i].T, gauges[j].T)
+    
     return R
 
 

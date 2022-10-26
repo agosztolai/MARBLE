@@ -7,7 +7,6 @@ from .lib.utils import np2torch
 def preprocessing(data, par):
     
     #gauges
-    print('\n---- Preprocessing ... \n')
     local_gauge = True if par['vector'] else False
     gauges, Sigma = g.compute_gauges(data, local_gauge, par['n_geodesic_nb'])
     
