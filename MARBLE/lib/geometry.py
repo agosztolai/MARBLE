@@ -20,7 +20,6 @@ from sklearn.preprocessing import StandardScaler
 import umap
 
 from ptu_dijkstra import ptu_dijkstra
-import multiprocessing
 import ot
 
 from . import utils
@@ -151,7 +150,7 @@ def cluster(x, cluster_typ='kmeans', n_clusters=15, seed=0):
     return clusters
 
 
-def embed(x, embed_typ='tnse'):
+def embed(x, embed_typ='umap'):
     """
     Embed data to Euclidean space
 
