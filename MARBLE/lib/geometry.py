@@ -165,20 +165,19 @@ def embed(x, embed_typ='umap'):
 
     """
     
-    if embed_typ == 'tsne':
-        assert x.shape[1]>2, 'Data dimension is less <= 2, perhaps already embedded?'
+    assert x.shape[1]>2, 'Data dimension is less <= 2, perhaps already embedded?'
+    
+    if embed_typ == 'tsne': 
         print('Performed t-SNE embedding on embedded results.')
         x = StandardScaler().fit_transform(x)
         emb = TSNE(init='random',learning_rate='auto').fit_transform(x)
             
     elif embed_typ == 'umap':
-        assert x.shape[1]>2, 'Data dimension is less <= 2, perhaps already embedded?'
         print('Performed UMAP embedding on embedded results.')
         x = StandardScaler().fit_transform(x)
         emb = umap.UMAP().fit_transform(x)
         
     elif embed_typ == 'MDS':
-        assert x.shape[1]>2, 'Data dimension is less <= 2, perhaps already embedded?'
         emb = MDS(n_components=2, dissimilarity='precomputed').fit_transform(x)
     else:
         NotImplementedError
@@ -275,6 +274,7 @@ def compute_distribution_distances(data):
     dist += dist.T
     
     return dist
+
 
 # =============================================================================
 # Manifold operations
