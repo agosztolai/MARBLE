@@ -412,7 +412,7 @@ def manifold_dimension(Sigma, frac_explained=0.9):
     dim_man = (Sigma<frac_explained).sum(0)
     dim_man = torch.where(dim_man<Sigma.shape[0]*(1-frac_explained))[0][0] + 1
     
-    return dim_man
+    return int(dim_man)
 
 
 def project_gauge_to_neighbours(nvec, gauges):

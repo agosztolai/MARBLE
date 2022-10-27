@@ -12,11 +12,11 @@ def preprocessing(data, par):
     
     #connections
     R = None
-    par['dim_signal'] = data.x.shape[1]
+    par['dim_embedding'] = data.pos.shape[1]
     if par['vector']:
         par['dim_man'] = g.manifold_dimension(Sigma, frac_explained=par['var_explained'])
         
-        if par['dim_man']==par['dim_signal']:
+        if par['dim_man']==par['dim_embedding']:
             par['vector'] = False
         else:
             R = g.compute_connections(gauges, data.edge_index, par['dim_man'])

@@ -74,20 +74,22 @@ def print_settings(model):
     
     for x in model.par:
         print (x,':',model.par[x])
-        
-    print('\n')
-    
+            
     np = sum(p.numel() for p in model.parameters() if p.requires_grad)
         
     print('---- Number of features to pass to the MLP: ', model.mlp.in_channels)
     print('---- Total number of parameters: ', np)
-    print('---- Embedding dimension: {}'.format(model.par['dim_signal']))
-    if model.par['dim_signal']==1:
-        print('\n Signal dimension is 1, so manifold computations are disabled!')
+    
+    if model.par['vector']:
+        if model.par['dim_signal']==1:
+            print('\n Signal dimension is 1, so manifold computations are disabled!')
+        else:
+            print('---- Embedding dimension: {}'.format(model.par['dim_embedding']))
+            print('---- Manifold dimension: {}'.format(model.par['dim_man']))
+            if model.par['dim_embedding']==model.par['dim_man']:
+                print('\n Embedding dimension = manifold dimension, so manifold computations are disabled!')
     else:
-        print('---- Manifold dimension: {}'.format(model.par['dim_man']))
-        if model.par['dim_signal']==model.par['dim_man']:
-            print('\n Signal dimension = manifold dimension, so manifold computations are disabled!')
+        print('---- Treating features as scalar channels.')
 
 
 # =============================================================================
