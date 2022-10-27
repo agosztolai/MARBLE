@@ -64,7 +64,7 @@ def fields(data,
               ax=ax,
               node_size=node_size,
               edge_width=0.5,
-              edge_alpha=1.)
+              edge_alpha=0.3)
         
         if vector:
             pos = d.pos.numpy()

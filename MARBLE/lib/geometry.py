@@ -106,15 +106,18 @@ def cluster_embedding(data,
 
     emb = data.emb
     
+    #k-means cluster
     clusters = cluster(emb, cluster_typ, n_clusters, seed)
     clusters = relabel_by_proximity(clusters)
     clusters['slices'] = data._slice_dict['x']
     
+    #compute distances between clusters
+    dist = compute_histogram_distances(clusters)
+    
+    #embed into 2D via t-SNE for visualisation
     emb = np.vstack([emb, clusters['centroids']])
     emb = embed(emb, embed_typ)  
     emb, clusters['centroids'] = emb[:-n_clusters], emb[-n_clusters:]
-    
-    dist = compute_histogram_distances(clusters)
         
     return emb, clusters, dist
 
