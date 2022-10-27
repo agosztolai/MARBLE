@@ -1,5 +1,8 @@
 
 depth: 0 #how many hops to aggregate
+#training parameters
+batch_size : 256, #batch size
+epochs : 20, #optimisation epochs
 
 #manifold/signal parameters
 order: 2 #order to which to compute the directional derivatives

@@ -166,11 +166,12 @@ def embed(x, embed_typ='tnse'):
 
     """
     
+    assert x.shape[1]>2, 'Data dimension is less <= 2, perhaps already embedded?'
+    
     if embed_typ == 'tsne': 
-        if x.shape[1]>2:
-            print('Performed t-SNE embedding on embedded results.')
-            x = StandardScaler().fit_transform(x)
-            emb = TSNE(init='random',learning_rate='auto').fit_transform(x)
+        print('Performed t-SNE embedding on embedded results.')
+        x = StandardScaler().fit_transform(x)
+        emb = TSNE(init='random',learning_rate='auto').fit_transform(x)
             
     elif embed_typ == 'umap':
         print('Performed UMAP embedding on embedded results.')
@@ -220,7 +221,7 @@ def relabel_by_proximity(clusters):
     return clusters
 
 
-def compute_histogram_distances(clusters, dist_typ='Wasserstein'):
+def compute_histogram_distances(clusters, dist_typ='Wasserstein', return_OT_matrix=False):
     
     l, s = clusters['labels'], clusters['slices']
     l = [l[s[i]:s[i+1]]+1 for i in range(len(s)-1)]
@@ -234,13 +235,19 @@ def compute_histogram_distances(clusters, dist_typ='Wasserstein'):
         bins.append(bins_i/bins_i.sum())
     
     dist = np.zeros([nl, nl])
+    gamma = np.zeros([nl, nl, nl, nl])
     if dist_typ == 'Wasserstein':
         centroid_distances = pairwise_distances(clusters['centroids'])
         for i in range(nl):
             for j in range(i+1,nl):
                 dist[i,j] = ot.emd2(bins[i], bins[j], centroid_distances)
+                if return_OT_matrix:
+                    gamma[i,j,...] = ot.emd(bins[i], bins[j], centroid_distances)
                 
         dist += dist.T
+        
+        if return_OT_matrix:
+            return dist, gamma
         
     elif dist_typ == 'KL_divergence':
         NotImplementedError
@@ -250,7 +257,7 @@ def compute_histogram_distances(clusters, dist_typ='Wasserstein'):
     return dist
 
 
-def compute_distribution_distances(data, dist_typ='Wasserstein'):
+def compute_distribution_distances(data):
     
     pdists = pairwise_distances(data.emb)
     s = data._slice_dict['x']
@@ -268,9 +275,6 @@ def compute_distribution_distances(data, dist_typ='Wasserstein'):
     dist += dist.T
     
     data._slice_dict['x']
-    
-    return dist
-
 
 # =============================================================================
 # Manifold operations

@@ -13,7 +13,7 @@ def main():
     k = 30
     n_clusters = 10
     
-    par = {'batch_size': 256, #batch size, this should be as large as possible
+    par = {'batch_size': 256, #batch size
            'epochs': 20, #optimisation epochs
            'order': 2, #order of derivatives
            'n_lin_layers': 2,
