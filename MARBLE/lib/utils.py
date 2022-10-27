@@ -77,7 +77,7 @@ def print_settings(model):
             
     np = sum(p.numel() for p in model.parameters() if p.requires_grad)
         
-    print('---- Number of features to pass to the MLP: ', model.mlp.in_channels)
+    print('\n---- Number of features to pass to the MLP: ', model.mlp.in_channels)
     print('---- Total number of parameters: ', np)
     
     if model.par['vector']:

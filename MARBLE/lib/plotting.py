@@ -448,7 +448,7 @@ def trajectories(X,
                  lw=1, 
                  ms=5, 
                  arrowhead=1, 
-                 arrow_spacing=3,
+                 arrow_spacing=1,
                  axis=False, 
                  alpha=None):
     """
