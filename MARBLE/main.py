@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import copy
 
 import numpy as np
 
@@ -16,7 +17,7 @@ from . import preprocessing, layers, dataloader
 
 """Main network"""
 class net(nn.Module):
-    def __init__(self, 
+    def __init__(self,
                  data,
                  **kwargs):
         super(net, self).__init__()
@@ -28,7 +29,7 @@ class net(nn.Module):
         self.R, self.kernels, self.L, self.Lc, self.par = preprocessing(data, self.par)
         
         #layers
-        self.diffusion, self.grad, self.convs, self.mlp, self.inner_products = \
+        self.diffusion, self.grad, self.enc, self.inner_products = \
             layers.setup_layers(self.par)
             
         self.reset_parameters()
@@ -80,13 +81,9 @@ class net(nn.Module):
         if self.par['inner_product_features']:
             out = self.inner_products(out)
         else:
-            out = torch.cat(out, axis=1)
-            
-        # #message passing
-        # for i, (edge_index, _, size) in enumerate(adjs[-d:]):
-        #     out = self.convs[i]((out, out[:size[1]]), edge_index)          
+            out = torch.cat(out, axis=1)       
         
-        return self.mlp(out)
+        return self.enc(out), out
     
     
     def evaluate(self, data):
@@ -94,27 +91,28 @@ class net(nn.Module):
         with torch.no_grad():
             size = (data.x.shape[0], data.x.shape[0])
             adjs = utils.EdgeIndex(data.edge_index, None, size)
-            adjs = utils.to_list(adjs) * max(self.par['order'], self.par['depth'])
+            adjs = utils.to_list(adjs) * self.par['order']
             
             #move to gpu
             device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
             adjs = [adj.to(device) for adj in adjs]
             x = data.x.to(device)
             
-            data.emb = self(x, None, adjs).detach().cpu()
+            emb, _ = self.forward(x, None, adjs)
+            data.emb = emb.detach().cpu()
             
             return data
                 
 
-    def batch_loss(self, x, loader, optimizer=None):
+    def batch_loss(self, x, loader, loss_function, optimizer=None):
         """Loop over minibatches provided by loader function.
         
         Parameters
         ----------
         x : (nxdim) feature matrix
-        batch : triple containing
-            n_id : list of node ids for current batch
-            adjs : list of `(edge_index, e_id, size)` tuples.
+        loader : dataloader object from dataloader.py
+        loss_function : loss function
+        optimizer : pytorch optimiser
         
         """
         
@@ -123,8 +121,8 @@ class net(nn.Module):
             _, n_id, adjs = batch
             adjs = [adj.to(x.device) for adj in utils.to_list(adjs)]
                         
-            out = self.forward(x, n_id, adjs)
-            loss = loss_function(out, x)
+            enc_out, out = self.forward(x, n_id, adjs)
+            loss = loss_function(enc_out, out)
             cum_loss += float(loss)
             
             if optimizer is not None:
@@ -138,10 +136,6 @@ class net(nn.Module):
     def run_training(self, data):
         """Network training"""
         
-        writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
-        train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.par['lr'])
-        
         #move to gpu
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self = self.to(device)
@@ -151,15 +145,48 @@ class net(nn.Module):
         self.kernels = [K.to(device) for K in self.kernels]
         x = data.x.to(device)
         
-        print('\n---- Starting training ... \n')
+        writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
+        
+        if self.par['pretrained']:
+            print('\n---- Pretraining encoder ... \n')
+            self.train_autoencoder = True
+            
+            loader = dataloader.loaders(data, self.par, split=False)
+            
+            #disable all modules except autoencoder
+            enc = copy.deepcopy(self.enc)
+            for p in self.parameters():
+                p.requires_grad = False
+                
+            self.enc = enc
+                  
+            optimizer = torch.optim.Adam(self.parameters(), lr=self.par['lr'])
+            
+            for epoch in range(self.par['epochs']):
+                self.train() #training mode
+                loss, optimizer = self.batch_loss(x, loader, torch.nn.MSELoss(), optimizer)
+                print("Epoch: {}, reconstruction loss: {:.4f}" \
+                      .format(epoch+1, loss))
+                    
+            self.enc = self.enc.encoder
+                    
+            #enable all modules except autoencoder
+            for p in self.parameters():
+                p.requires_grad = True
+                
+        
+        print('\n---- Training network ... \n')
+        
+        train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.par['lr'])
         
         for epoch in range(self.par['epochs']):
                         
             self.train() #training mode
-            train_loss, optimizer = self.batch_loss(x, train_loader, optimizer)
+            train_loss, optimizer = self.batch_loss(x, train_loader, loss_fun, optimizer)
                                 
             self.eval() #testing mode (disables dropout in MLP)
-            val_loss, _ = self.batch_loss(x, val_loader)
+            val_loss, _ = self.batch_loss(x, val_loader, loss_fun)
             val_loss /= (sum(data.val_mask)/sum(data.train_mask))
             
             writer.add_scalar('Loss/train', train_loss, epoch)
@@ -167,16 +194,16 @@ class net(nn.Module):
             print("Epoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}" \
                   .format(epoch+1, train_loss, val_loss))
         
-        test_loss, _ = self.batch_loss(x, test_loader)
+        test_loss, _ = self.batch_loss(x, test_loader, loss_fun)
         test_loss /= (sum(data.test_mask)/sum(data.train_mask))
         print('Final test loss: {:.4f}'.format(test_loss))
     
 
-def loss_function(out, x):
+def loss_fun(out, *args):
     """Unsupervised loss modified from from GraphSAGE (Hamilton et al. 2018.)"""
     
     z, z_pos, z_neg = out.split(out.size(0) // 3, dim=0)
     pos_loss = F.logsigmoid((z * z_pos).sum(-1)).mean()
     neg_loss = F.logsigmoid(-(z * z_neg).sum(-1)).mean()
     
-    return -pos_loss -neg_loss
+    return -pos_loss -neg_loss    

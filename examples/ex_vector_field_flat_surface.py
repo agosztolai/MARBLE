@@ -14,7 +14,7 @@ def main():
     n_clusters = 10
     
     par = {'batch_size': 256, #batch size
-           'epochs': 20, #optimisation epochs
+           'epochs': 10, #optimisation epochs
            'order': 2, #order of derivatives
            'n_lin_layers': 2,
            'hidden_channels': 16, #number of internal dimensions in MLP

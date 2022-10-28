@@ -6,32 +6,41 @@ from torch_cluster import random_walk
 from torch_geometric.loader import NeighborSampler as NS
 
 
-def loaders(data, par):
+def loaders(data, par, split=True):
     
-    nb = [par['n_sampled_nb'] for i in range(max(par['order'], par['depth']))]
+    nb = [-1] * par['order']
     
-    train_loader = NeighborSampler(data.edge_index,
-                                   sizes=nb,
-                                   batch_size=par['batch_size'],
-                                   shuffle=True,
-                                   num_nodes=data.num_nodes,
-                                   node_idx=data.train_mask)
-    
-    val_loader = NeighborSampler(data.edge_index,
+    if split:
+        train_loader = NeighborSampler(data.edge_index,
+                                       sizes=nb,
+                                       batch_size=par['batch_size'],
+                                       shuffle=True,
+                                       num_nodes=data.num_nodes,
+                                       node_idx=data.train_mask)
+        
+        val_loader = NeighborSampler(data.edge_index,
+                                     sizes=nb,
+                                     batch_size=par['batch_size'],
+                                     shuffle=False,
+                                     num_nodes=data.num_nodes,
+                                     node_idx=data.val_mask)
+        
+        test_loader = NeighborSampler(data.edge_index,
+                                      sizes=nb,
+                                      batch_size=par['batch_size'],
+                                      shuffle=False,
+                                      num_nodes=data.num_nodes,
+                                      node_idx=data.test_mask)
+        
+        return train_loader, val_loader, test_loader
+    else:
+        loader = NeighborSampler(data.edge_index,
                                  sizes=nb,
                                  batch_size=par['batch_size'],
-                                 shuffle=False,
-                                 num_nodes=data.num_nodes,
-                                 node_idx=data.val_mask)
-    
-    test_loader = NeighborSampler(data.edge_index,
-                                  sizes=nb,
-                                  batch_size=par['batch_size'],
-                                  shuffle=False,
-                                  num_nodes=data.num_nodes,
-                                  node_idx=data.test_mask)
-    
-    return train_loader, val_loader, test_loader
+                                 shuffle=True)
+        
+        return loader
+
 
 class NeighborSampler(NS):
     def __init__(self, *args, **kwargs):
@@ -40,7 +49,7 @@ class NeighborSampler(NS):
     def sample(self, batch):
         
         row, col, _ = self.adj_t.coo()
-
+        
         # For each node in `batch`, we sample a direct neighbor (as positive
         # sample) and a random node (as negative sample):
         batch = torch.tensor(batch)

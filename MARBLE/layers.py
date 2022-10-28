@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 
 from torch_geometric.nn.conv import MessagePassing
-from torch_geometric.nn import MLP, GCNConv
+from torch_geometric.nn import MLP
 import torch_geometric.utils as tgu
 
 from .lib import geometry as g
@@ -28,26 +28,24 @@ def setup_layers(par):
         cum_channels //= s
         if s==1:
             cum_channels = o+1
-            
-    #message passing
-    convs = nn.ModuleList()
-    for i in range(par['depth']):
-        convs.append(GCNConv(cum_channels, cum_channels))
     
     #inner product features
     ip = InnerProductFeatures(cum_channels, s)
-        
-    #multilayer perceptron
-    mlp = MLP(in_channels=cum_channels,
-              hidden_channels=par['hidden_channels'], 
-              out_channels=par['out_channels'],
-              num_layers=par['n_lin_layers'],
-              dropout=par['dropout'],
-              norm=par['batch_norm'],
-              bias=par['bias']
-              )
     
-    return diffusion, grad, convs, mlp, ip
+    #encoder
+    channel_list = [cum_channels] + \
+                    (par['n_lin_layers']-1) * [par['hidden_channels']] + \
+                    [par['out_channels']]
+    if par['pretrained']:
+        enc = autoencoder(channel_list)
+    else:
+        enc = MLP(channel_list=channel_list,
+                  dropout=par['dropout'],
+                  norm=par['batch_norm'],
+                  bias=par['bias']
+                  )
+    
+    return diffusion, grad, enc, ip
 
 
 # =============================================================================
@@ -111,11 +109,25 @@ def expand_adjacenecy_matrix(edge_index, dim):
     return edge_index
     
     
+class autoencoder(nn.Module):
+    """Autoencoder to initialise weights"""
+    def __init__(self, channel_list):
+        super().__init__()
+         
+        self.encoder = MLP(channel_list=channel_list)
+        self.decoder = MLP(channel_list=channel_list[::-1])
+ 
+    def forward(self, x):
+        encoded = self.encoder(x)
+        decoded = self.decoder(encoded)
+        return decoded
+    
+    
 class Diffusion(nn.Module):
     """Diffusion with learned t."""
 
     def __init__(self, ic=0.0):
-        super(Diffusion, self).__init__()
+        super().__init__()
                     
         self.diffusion_time = nn.Parameter(torch.tensor(ic))
         
@@ -157,7 +169,7 @@ class InnerProductFeatures(nn.Module):
     """
 
     def __init__(self, C, D):
-        super(InnerProductFeatures, self).__init__()
+        super().__init__()
 
         self.C, self.D = C, D
         

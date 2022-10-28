@@ -38,7 +38,6 @@ def parse_parameters(data, kwargs):
             
     kwargs['signal_dim'] = data.x.shape[1]
     kwargs['emb_dim'] = data.pos.shape[1]
-    kwargs['n_sampled_nb'] = int(data.degree*par['frac_sampled_nb'])
     kwargs['n_geodesic_nb'] = int(data.degree*par['frac_geodesic_nb'])
     
     if kwargs['batch_norm']:
@@ -72,22 +71,28 @@ def print_settings(model):
     
     print('---- Settings: \n')
     
+    par = model.par
+    
     for x in model.par:
         print (x,':',model.par[x])
             
-    np = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        
-    print('\n---- Number of features to pass to the MLP: ', model.mlp.in_channels)
-    print('---- Total number of parameters: ', np)
+    n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    if par['pretrained']:
+        n_features = model.enc.encoder.in_channels
+    else:
+        n_features = model.enc.in_channels
+    print('\n---- Number of features to pass to the MLP: ', n_features)
+    print('---- Total number of parameters: ', n_parameters)
     
-    if model.par['vector']:
-        if model.par['dim_signal']==1:
+    if par['vector']:
+        if par['dim_signal']==1:
             print('\n Signal dimension is 1, so manifold computations are disabled!')
         else:
-            print('---- Embedding dimension: {}'.format(model.par['dim_embedding']))
-            print('---- Manifold dimension: {}'.format(model.par['dim_man']))
-            if model.par['dim_embedding']==model.par['dim_man']:
-                print('\n Embedding dimension = manifold dimension, so manifold computations are disabled!')
+            print('---- Embedding dimension: {}'.format(par['dim_embedding']))
+            print('---- Manifold dimension: {}'.format(par['dim_man']))
+            if par['dim_embedding']==par['dim_man']:
+                print('\n Embedding dimension = manifold dimension, so \
+                      manifold computations are disabled!')
     else:
         print('---- Treating features as scalar channels.')
 
