@@ -68,7 +68,10 @@ class net(nn.Module):
             R = None
 
         #gradients
-        out = [x]
+        if self.par['vec_norm']:
+            out = [F.normalize(x, dim=-1, p=2)]
+        else:
+            out = [x]
         for i, (edge_index, _, size) in enumerate(adjs):
             x = self.grad[i](x, edge_index, size, kernels, R)
             out.append(x)
@@ -80,7 +83,9 @@ class net(nn.Module):
         if self.par['inner_product_features']:
             out = self.inner_products(out)
         else:
-            out = torch.cat(out, axis=1)       
+            out = torch.cat(out, axis=1)     
+            
+        # out = F.normalize(out, dim=-1, p=2)
         
         return self.enc(out), out
     

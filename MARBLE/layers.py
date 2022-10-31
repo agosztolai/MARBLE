@@ -3,6 +3,7 @@
 
 import torch
 import torch.nn as nn
+from torch.nn.functional import normalize
 
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn import MLP
@@ -20,7 +21,7 @@ def setup_layers(par):
     diffusion = Diffusion()
     
     #gradient features
-    grad = nn.ModuleList(AnisoConv() for i in range(o))
+    grad = nn.ModuleList(AnisoConv(par['vec_norm']) for i in range(o))
         
     #cumulated number of channels after gradient features
     cum_channels = s*((1-e**(o+1))//(1-e))
@@ -53,8 +54,10 @@ def setup_layers(par):
 # =============================================================================
 class AnisoConv(MessagePassing):
     """Anisotropic Convolution"""
-    def __init__(self, in_channels=None, out_channels=None, **kwargs):
+    def __init__(self, vec_norm=True, **kwargs):
         super().__init__(aggr='add', **kwargs)
+        
+        self.vec_norm = vec_norm
         
     def forward(self, x, edge_index, size, kernels=None, R=None):
         
@@ -77,6 +80,9 @@ class AnisoConv(MessagePassing):
         #[[dx1/du, dx2/du], [dx1/dv, dx2/dv]] -> [dx1/du, dx1/dv, dx2/du, dx2/dv]
         out = torch.stack(out, axis=2)
         out = out.view(out.shape[0], -1)
+        
+        if self.vec_norm:
+            out = normalize(out, dim=-1, p=2)
             
         return out
 
@@ -211,4 +217,4 @@ class InnerProductFeatures(nn.Module):
             #\sum_j x_i^T@O_ij@x_j
             xOx = torch.einsum('bki,bkj->bi', x, Ox)
             
-            return xOx.reshape(x.shape[0], -1)#torch.tanh(xOx)
+            return torch.tanh(xOx).reshape(x.shape[0], -1)

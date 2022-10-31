@@ -197,8 +197,10 @@ def embedding(emb, labels=None, clusters=None, titles=None, save=None):
 def neighbourhoods(data,
                    clusters, 
                    hops=1,
+                   cols=4,
                    norm=False, 
                    plot_graph=False,
+                   figsize=(10, 25),
                    save=None):
     """
     For each clustered neighbourhood type, draw one sample neighbourhood 
@@ -217,8 +219,8 @@ def neighbourhoods(data,
     
     vector = True if data.x.shape[1] > 1 else False
     nc = clusters['n_clusters']
-    fig = plt.figure(figsize=(10, 20), constrained_layout=True)
-    outer = gridspec.GridSpec(int(np.ceil(nc/3)), 3, wspace=0.2, hspace=0.2, figure=fig)
+    fig = plt.figure(figsize=figsize, constrained_layout=True)
+    outer = gridspec.GridSpec(int(np.ceil(nc/cols)), cols, wspace=0.2, hspace=0.2, figure=fig)
     
     data_list = data.to_data_list()
     graphs = []
@@ -241,7 +243,7 @@ def neighbourhoods(data,
                                                  hspace=0.1)
 
         ax = plt.Subplot(fig, outer[i])
-        ax.set_title("Type {}".format(i+1))
+        ax.set_title("Type {}".format(i+1), fontsize=30)
         ax.axis('off')
         fig.add_subplot(ax)
         

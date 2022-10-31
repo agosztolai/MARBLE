@@ -168,12 +168,10 @@ def embed(x, embed_typ='umap'):
     assert x.shape[1]>2, 'Data dimension is less <= 2, perhaps already embedded?'
     
     if embed_typ == 'tsne': 
-        print('Performed t-SNE embedding on embedded results.')
         x = StandardScaler().fit_transform(x)
         emb = TSNE(init='random',learning_rate='auto').fit_transform(x)
             
     elif embed_typ == 'umap':
-        print('Performed UMAP embedding on embedded results.')
         x = StandardScaler().fit_transform(x)
         emb = umap.UMAP().fit_transform(x)
         
@@ -181,6 +179,8 @@ def embed(x, embed_typ='umap'):
         emb = MDS(n_components=2, dissimilarity='precomputed').fit_transform(x)
     else:
         NotImplementedError
+        
+    print('Performed {} embedding on embedded results.'.format(embed_typ))
     
     return emb
 

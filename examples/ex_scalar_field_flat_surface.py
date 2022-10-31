@@ -16,7 +16,7 @@ def main():
            'order': 1, #order of derivatives
            'n_lin_layers': 2,
            'hidden_channels': 16, #number of internal dimensions in MLP
-           'out_channels': 4,
+           'out_channels': 3,
            }
     
     #evaluate functions

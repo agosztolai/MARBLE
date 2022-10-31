@@ -2,7 +2,7 @@
 batch_size : 256, #batch size
 epochs : 20, #optimisation epochs
 lr: 0.01 #learning rate
-pretrained: True
+pretrained: False
 
 #manifold/signal parameters
 order: 2 #order to which to compute the directional derivatives
@@ -17,9 +17,10 @@ var_explained: 0.9 #fraction of variance explained by the local gauges
 dropout: 0. #dropout in the MLP
 n_lin_layers: 2 #number of layers if MLP
 hidden_channels: 16 #number of hidden channels
-out_channels: null #number of output channels (if null, then =hidden_channels)
-bias: False #learn bias parameters in MLP
-batch_norm: True #batch normalisation
+out_channels: 3 #number of output channels (if null, then =hidden_channels)
+bias: True #learn bias parameters in MLP
+vec_norm: False
+batch_norm: False #batch normalisation
 
 #other params
 seed: 0 #seed for reproducibility

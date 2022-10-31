@@ -43,6 +43,8 @@ def parse_parameters(data, kwargs):
     
     if kwargs['batch_norm']:
         kwargs['batch_norm'] = 'batch_norm'
+    else:
+        kwargs['batch_norm'] = None
             
     par = check_parameters(kwargs, data)
                   
