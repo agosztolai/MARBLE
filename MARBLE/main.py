@@ -84,9 +84,7 @@ class net(nn.Module):
             out = self.inner_products(out)
         else:
             out = torch.cat(out, axis=1)     
-            
-        # out = F.normalize(out, dim=-1, p=2)
-        
+                    
         return self.enc(out), out
     
     
