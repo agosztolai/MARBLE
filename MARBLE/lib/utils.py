@@ -39,6 +39,7 @@ def parse_parameters(data, kwargs):
     kwargs['signal_dim'] = data.x.shape[1]
     kwargs['emb_dim'] = data.pos.shape[1]
     kwargs['n_geodesic_nb'] = int(data.degree*par['frac_geodesic_nb'])
+    kwargs['n_sampled_nb'] = int(data.degree*par['frac_sampled_nb'])
     
     if kwargs['batch_norm']:
         kwargs['batch_norm'] = 'batch_norm'
@@ -118,7 +119,7 @@ def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
 # =============================================================================
 # Conversions
 # =============================================================================
-def construct_dataset(pos, features=None, graph_type='cknn', k=10):
+def construct_dataset(pos, features, graph_type='cknn', k=10):
     """Construct PyG dataset from node positions and features"""
                 
     pos = [torch.tensor(p).float() for p in to_list(pos)]

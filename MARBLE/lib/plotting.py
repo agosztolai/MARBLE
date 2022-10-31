@@ -237,8 +237,8 @@ def neighbourhoods(data,
         inner = gridspec.GridSpecFromSubplotSpec(row, 
                                                  col,
                                                  subplot_spec=outer[i], 
-                                                 wspace=0.5, 
-                                                 hspace=0.5)
+                                                 wspace=0.1, 
+                                                 hspace=0.1)
 
         ax = plt.Subplot(fig, outer[i])
         ax.set_title("Type {}".format(i+1))

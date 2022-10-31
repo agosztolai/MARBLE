@@ -11,9 +11,9 @@ def main():
     k = 20
     n_clusters = 10
     
-    par = {'batch_size': 256, #batch size
-           'epochs': 20, #optimisation epochs
-           'order': 2, #order of derivatives
+    par = {'batch_size': 128, #batch size
+           'epochs': 30, #optimisation epochs
+           'order': 1, #order of derivatives
            'n_lin_layers': 2,
            'hidden_channels': 16, #number of internal dimensions in MLP
            'out_channels': 4,
@@ -37,23 +37,10 @@ def main():
     
     #plot
     titles=['Constant','Linear','Parabola','Saddle']
-    plotting.fields(data, titles=titles, save='scalar_fields.svg')
+    plotting.fields(data, titles=titles, node_size=30, save='scalar_fields.svg')
     plotting.embedding(emb, data.y.numpy(), clusters, titles=titles, save='scalar_fields_embedding.svg') 
     plotting.histograms(clusters, titles=titles, save='scalar_fields_histogram.svg')
     plotting.neighbourhoods(data, clusters, hops=1, norm=True, save='scalar_fields_nhoods.svg') 
-    
-
-# def f0(x, alpha=1):
-#     return np.cos(alpha)*x[:,[0]] + np.sin(alpha)*x[:,[1]]
-  
-# def f1(x, alpha=2):
-#     return np.cos(alpha)*x[:,[0]] + np.sin(alpha)*x[:,[1]]
-
-# def f2(x, alpha=3):
-#     return np.cos(alpha)*x[:,[0]] + np.sin(alpha)*x[:,[1]]
-
-# def f3(x, alpha=4):
-#     return np.cos(alpha)*x[:,[0]] + np.sin(alpha)*x[:,[1]]
     
 def f0(x):
     return x[:,[0]]*0

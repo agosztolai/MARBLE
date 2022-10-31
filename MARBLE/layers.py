@@ -81,7 +81,7 @@ class AnisoConv(MessagePassing):
         return out
 
     def message_and_aggregate(self, K_t, x):
-        """Message passing step. If K_t is a txs matrix (s source, t target),
+        """Message passing step. If K_t is a txs matrix (s sources, t targets),
            do matrix multiplication K_t@x, broadcasting over column features. 
            If K_t is a t*dimxs*dim matrix, in case of manifold computations,
            then first reshape, assuming that the columns of x are ordered as

@@ -51,7 +51,6 @@ class net(nn.Module):
         are the target nodes, i.e, x = concat[x_target, x_other]."""  
         
         #parse parameters
-        o = self.par['order']
         if n_id is None:
             n_id = np.arange(len(x))
 
@@ -70,7 +69,7 @@ class net(nn.Module):
 
         #gradients
         out = [x]
-        for i, (edge_index, _, size) in enumerate(adjs[-o:]):
+        for i, (edge_index, _, size) in enumerate(adjs):
             x = self.grad[i](x, edge_index, size, kernels, R)
             out.append(x)
             
@@ -164,7 +163,7 @@ class net(nn.Module):
             
             for epoch in range(self.par['epochs']):
                 self.train() #training mode
-                loss, optimizer = self.batch_loss(x, loader, torch.nn.MSELoss(), optimizer)
+                loss, optimizer = self.batch_loss(x, loader, loss_fun_autoencoder, optimizer)
                 print("Epoch: {}, reconstruction loss: {:.4f}" \
                       .format(epoch+1, loss))
                     
@@ -207,3 +206,13 @@ def loss_fun(out, *args):
     neg_loss = F.logsigmoid(-(z * z_neg).sum(-1)).mean()
     
     return -pos_loss -neg_loss    
+
+
+def loss_fun_autoencoder(out, *args):
+    
+    zhat, _, _ = out.split(out.size(0) // 3, dim=0)
+    z, _, _ = args[0].split(out.size(0) // 3, dim=0)
+    
+    loss = torch.nn.MSELoss()
+    
+    return loss(z, zhat)

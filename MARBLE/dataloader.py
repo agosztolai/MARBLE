@@ -8,7 +8,7 @@ from torch_geometric.loader import NeighborSampler as NS
 
 def loaders(data, par, split=True):
     
-    nb = [-1] * par['order']
+    nb = [par['n_sampled_nb']] * par['order']
     
     if split:
         train_loader = NeighborSampler(data.edge_index,

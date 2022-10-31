@@ -221,27 +221,42 @@ def relabel_by_proximity(clusters):
 
 
 def compute_histogram_distances(clusters, dist_typ='Wasserstein', return_OT_matrix=False):
+    """
+    Compute the distance between clustered distributions across datasets.
+
+    Parameters
+    ----------
+    clusters : clusters : sklearn object containing 'centroids', 'slices', 'labels'
+    dist_typ : Type of distance. The default is 'Wasserstein'.
+    return_OT_matrix : return optimal transport matrix (for Wasserstein only)
+
+    Returns
+    -------
+    dist : distance matrix
+    gamma : optimal transport matrix (optional)
+
+    """
     
+    #compute discrete measures from clusters
     l, s = clusters['labels'], clusters['slices']
     l = [l[s[i]:s[i+1]]+1 for i in range(len(s)-1)]
     nc, nl = clusters['n_clusters'], len(l)
-    bins = []
-    for l_ in l:
-        bins_i = []
-        for i in range(nc):
-            bins_i.append((l_ == i).sum())
-        bins_i = np.array(bins_i)
-        bins.append(bins_i/bins_i.sum())
+    bins_dataset = []
+    for l_ in l: #loop over datasets
+        bins = [(l_ == i+1).sum() for i in range(nc)] #loop over clusters
+        bins = np.array(bins)
+        bins_dataset.append(bins/bins.sum())
     
+    #compute distance between measures
     dist = np.zeros([nl, nl])
     gamma = np.zeros([nl, nl, nl, nl])
     if dist_typ == 'Wasserstein':
         centroid_distances = pairwise_distances(clusters['centroids'])
         for i in range(nl):
             for j in range(i+1,nl):
-                dist[i,j] = ot.emd2(bins[i], bins[j], centroid_distances)
+                dist[i,j] = ot.emd2(bins_dataset[i], bins_dataset[j], centroid_distances)
                 if return_OT_matrix:
-                    gamma[i,j,...] = ot.emd(bins[i], bins[j], centroid_distances)
+                    gamma[i,j,...] = ot.emd(bins_dataset[i], bins_dataset[j], centroid_distances)
                 
         dist += dist.T
         

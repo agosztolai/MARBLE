@@ -6,13 +6,19 @@ from .lib.utils import np2torch
 
 def preprocessing(data, par):
     
+    par['dim_embedding'] = data.pos.shape[1]
+    
+    if par['vector'] and par['dim_embedding']>2:
+        local_gauge = True
+    else:
+        local_gauge = False
+        par['vector'] = False
+    
     #gauges
-    local_gauge = True if par['vector'] else False
     gauges, Sigma = g.compute_gauges(data, local_gauge, par['n_geodesic_nb'])
     
     #connections
     R = None
-    par['dim_embedding'] = data.pos.shape[1]
     if par['vector']:
         par['dim_man'] = g.manifold_dimension(Sigma, frac_explained=par['var_explained'])
         
