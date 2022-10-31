@@ -39,8 +39,12 @@ def parse_parameters(data, kwargs):
     kwargs['signal_dim'] = data.x.shape[1]
     kwargs['emb_dim'] = data.pos.shape[1]
     kwargs['n_geodesic_nb'] = int(data.degree*par['frac_geodesic_nb'])
-    kwargs['n_sampled_nb'] = int(data.degree*par['frac_sampled_nb'])
     
+    if par['frac_sampled_nb']!=-1:
+        kwargs['n_sampled_nb'] = int(data.degree*par['frac_sampled_nb'])
+    else:
+        kwargs['n_sampled_nb'] = -1
+        
     if kwargs['batch_norm']:
         kwargs['batch_norm'] = 'batch_norm'
     else:
