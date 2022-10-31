@@ -10,7 +10,6 @@ from torch import Tensor
 import yaml
 import os
 from pathlib import Path
-import warnings
 
 from torch_geometric.transforms import RandomNodeSplit
 from torch_geometric.data import Data, Batch
@@ -57,18 +56,24 @@ def parse_parameters(data, kwargs):
 
 def check_parameters(par, data):
     """Check parameter validity"""
-                      
-    if par['vector'] and data.x.shape[1]==1:
-        par['vector'] = False
-        warnings.warn('Vector computation is requested but signal dimension is \
-                     one! Setting vector=False')
                      
-    if par['frac_geodesic_nb'] <= 1.0:
-        par['frac_geodesic_nb'] = 1.0
-        warnings.warn('We need least the nearest neighbours to define the \
-                      tangent space!')
+    assert par['frac_geodesic_nb'] > 1.0, 'We need least the nearest neighbours \
+            to define the tangent space!'
                       
-    assert par['order'] > 0, "Derivative order must be at least 1!" 
+    assert par['order'] > 0, "Derivative order must be at least 1!"
+    
+    if par['vec_norm']:         
+        assert data.x.shape[1]>1, 'Using vec_norm=True is \
+        not permitted for scalar signals'
+        
+    pars = ['batch_size', 'epochs', 'lr', 'pretrained', 'order', 'vector', \
+            'inner_product_features', 'vector', 'diffusion', 'frac_geodesic_nb', \
+            'frac_sampled_nb', 'var_explained', 'dropout', 'n_lin_layers', \
+            'hidden_channels', 'out_channels', 'bias', 'vec_norm', 'batch_norm' , \
+            'seed','signal_dim', 'emb_dim', 'n_geodesic_nb', 'n_sampled_nb']
+        
+    for p in par.keys():
+        assert p in pars, 'Unknown specified parameter {}!'.format(p)
                       
     return par
 

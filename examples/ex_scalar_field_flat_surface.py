@@ -13,7 +13,7 @@ def main():
     
     par = {'batch_size': 128, #batch size
            'epochs': 30, #optimisation epochs
-           'order': 1, #order of derivatives
+           'order': 2, #order of derivatives
            'n_lin_layers': 2,
            'hidden_channels': 16, #number of internal dimensions in MLP
            'out_channels': 3,

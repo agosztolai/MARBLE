@@ -201,6 +201,7 @@ def neighbourhoods(data,
                    norm=False, 
                    plot_graph=False,
                    figsize=(10, 25),
+                   fontsize=20,
                    save=None):
     """
     For each clustered neighbourhood type, draw one sample neighbourhood 
@@ -243,7 +244,7 @@ def neighbourhoods(data,
                                                  hspace=0.1)
 
         ax = plt.Subplot(fig, outer[i])
-        ax.set_title("Type {}".format(i+1), fontsize=30)
+        ax.set_title("Type {}".format(i+1), fontsize=fontsize)
         ax.axis('off')
         fig.add_subplot(ax)
         
