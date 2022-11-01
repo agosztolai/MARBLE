@@ -13,12 +13,14 @@ from .lib import geometry as g
 from .lib import utils
 
 
-def setup_layers(par):
+def setup_layers(model):
+    
+    par = model.par
     
     s, e, o = par['signal_dim'], par['emb_dim'], par['order']
     
     #diffusion
-    diffusion = Diffusion()
+    diffusion = Diffusion(model.L, model.Lc)
     
     #gradient features
     grad = nn.ModuleList(AnisoConv(par['vec_norm']) for i in range(o))
@@ -52,6 +54,35 @@ def setup_layers(par):
 # =============================================================================
 # Layer definitions
 # =============================================================================
+class Diffusion(nn.Module):
+    """Diffusion with learned t."""
+
+    def __init__(self, L, Lc=None, tau0=0.0):
+        super().__init__()
+                
+        self.diffusion_time = nn.Parameter(torch.tensor(float(tau0)))
+        self.par = {'L': L, 'Lc': Lc}
+        self.par['evals_L'], self.par['evecs_L'] = g.compute_eigendecomposition(L)
+        if Lc is not None:
+            self.par['evals_Lc'], self.par['evecs_Lc'] = g.compute_eigendecomposition(Lc)
+        
+    def forward(self, x, method='spectral', normalise=False):
+        
+        # making sure diffusion times are positive
+        with torch.no_grad():
+            self.diffusion_time.data = torch.clamp(self.diffusion_time, min=1e-8)
+            
+        t = self.diffusion_time
+        
+        if self.par['Lc'] is not None:
+            out = g.vector_diffusion(x, t, method, self.par)
+        else:
+            out = [g.scalar_diffusion(x_, t, method, self.par) for x_ in x.T]
+            out = torch.cat(out, axis=1)
+            
+        return out
+    
+    
 class AnisoConv(MessagePassing):
     """Anisotropic Convolution"""
     def __init__(self, vec_norm=True, **kwargs):
@@ -127,43 +158,6 @@ class autoencoder(nn.Module):
         encoded = self.encoder(x)
         decoded = self.decoder(encoded)
         return decoded
-    
-    
-class Diffusion(nn.Module):
-    """Diffusion with learned t."""
-
-    def __init__(self, ic=0.0):
-        super().__init__()
-                    
-        self.diffusion_time = nn.Parameter(torch.tensor(ic))
-        
-    def forward(self, x, L, Lc=None, method='spectral', normalise=False):
-        
-        par_L, par_Lc = {'L': L}, {'Lc': Lc}
-        
-        # making sure diffusion times are positive
-        with torch.no_grad():
-            self.diffusion_time.data = torch.clamp(self.diffusion_time, min=1e-8)
-            
-        t = self.diffusion_time
-        
-        if Lc is not None:
-            if method=='spectral' and 'evals' not in par_Lc.keys():
-                par_Lc['evals'], par_Lc['evecs'] = g.compute_eigendecomposition(Lc)
-                
-            assert (x.shape[0]*x.shape[1] % Lc.shape[0])==0, \
-                'Data dimension must be an integer multiple of the dimensions \
-                 of the connection Laplacian!'
-                 
-            out = g.vector_diffusion(x, t, method, par_Lc)
-                
-        else:
-            if method=='spectral' and 'evals' not in par_L.keys():
-                par_L['evals'], par_L['evecs'] = g.compute_eigendecomposition(L)
-            out = [g.scalar_diffusion(x_, t, method, par_L) for x_ in x.T]
-            out = torch.cat(out, axis=1)
-            
-        return out
 
     
 class InnerProductFeatures(nn.Module):
@@ -194,13 +188,11 @@ class InnerProductFeatures(nn.Module):
         if not isinstance(x, list):
             x = [x]
             
-        for i, x_ in enumerate(x):
-            x[i] = x_.reshape(x_.shape[0], self.D, -1)
+        x = [x_.reshape(x_.shape[0], self.D, -1) for x_ in x]
             
         #for scalar signals take magnitude
         if self.D==1:
-            for i, x_ in enumerate(x):
-                x[i] = x_.norm(dim=2)
+            x = [x_.norm(dim=2) for x_ in x]
             
             return torch.cat(x, axis=1)
         

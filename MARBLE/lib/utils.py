@@ -36,7 +36,7 @@ def parse_parameters(data, kwargs):
             kwargs[key] = par[key]
             
     kwargs['signal_dim'] = data.x.shape[1]
-    kwargs['emb_dim'] = data.pos.shape[1]
+    kwargs['dim_emb'] = data.pos.shape[1]
     kwargs['n_geodesic_nb'] = int(data.degree*par['frac_geodesic_nb'])
     
     if par['frac_sampled_nb']!=-1:
@@ -97,7 +97,7 @@ def print_settings(model):
     print('---- Total number of parameters: ', n_parameters)
     
     if par['vector']:
-        if par['dim_signal']==1:
+        if par['signal_dim']==1:
             print('\n Signal dimension is 1, so manifold computations are disabled!')
         else:
             print('---- Embedding dimension: {}'.format(par['dim_embedding']))
@@ -117,13 +117,17 @@ def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
     
     if processes==-1:
         processes = multiprocessing.cpu_count()
-    pool = multiprocessing.Pool(processes=processes)
-    fun = partial(fun, inputs)
-    result = list(tqdm(pool.imap(fun, iterable), 
-                            total=len(iterable), 
-                            desc=desc))
-    pool.close()
-    pool.join()
+        
+    if processes>1 and len(iterable)>1:
+        pool = multiprocessing.Pool(processes=processes)
+        fun = partial(fun, inputs)
+        result = list(tqdm(pool.imap(fun, iterable), 
+                           total=len(iterable), 
+                           desc=desc))
+        pool.close()
+        pool.join()
+    else:
+        result = [fun(inputs, i) for i in tqdm(iterable, desc=desc)]
         
     return result
 

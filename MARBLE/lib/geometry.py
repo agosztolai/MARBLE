@@ -395,7 +395,7 @@ def gradient_op(pos, edge_index, gauges):
     return K
 
 
-def compute_gauges(data, local=True, n_nb=10):
+def compute_gauges(data, local=True, n_nb=10, processes=1):
     """
     Compute gauges
 
@@ -405,6 +405,7 @@ def compute_gauges(data, local=True, n_nb=10):
     local : bool, The default is False.
     n_nb : int, Number of neighbours to use to compute gauges. Should be
     more than the number of neighbours in the knn graph. The default is 10.
+    processes: number of CPUs to use
 
     Returns
     -------
@@ -417,7 +418,9 @@ def compute_gauges(data, local=True, n_nb=10):
     dim = data.pos.shape[-1]
     
     if local:
-        gauges, Sigma = compute_tangent_bundle(data, n_geodesic_nb=n_nb)
+        gauges, Sigma = compute_tangent_bundle(data, 
+                                               n_geodesic_nb=n_nb, 
+                                               processes=processes)
         return gauges, Sigma
     else:      
         gauges = torch.eye(dim)
@@ -495,8 +498,7 @@ def compute_connection_laplacian(data, R, normalization='rw'):
 
     Parameters
     ----------
-    L : (nxn) Laplacian matrix.
-    R : (nxnxdimxdim) Connection matrices between all pairs of nodes.
+    R : (nxnxdxd) Connection matrices between all pairs of nodes.
         Default is None, in case of a global coordinate system.
     normalization: None, 'sym', 'rw'
                  1. None: No normalization
@@ -511,36 +513,37 @@ def compute_connection_laplacian(data, R, normalization='rw'):
 
     Returns
     -------
-    (n*dimxn*dim) Connection Laplacian matrox.
+    (ndxnd) Normalised connection Laplacian matrix.
 
     """
     
+    n, _, _, d = R.shape
+    
+    #unnormalised (combinatorial) laplacian, to be normalised later
     L = compute_laplacian(data, normalization=None)
     
-    n = L.shape[0]
-    dim = data.pos.shape[-1]
-    
     #rearrange into block form
-    L = torch.kron(L, torch.ones([dim,dim]))
-    
-    R = R.swapaxes(1,2).reshape(n*dim, n*dim)
-    R += torch.eye(n).kron(torch.ones(dim,dim))
+    L = torch.kron(L, torch.eye(d))
+    R = R.swapaxes(1,2).reshape(n*d, n*d)
         
-    #multiply off-diagonal terms
+    #unnormalised connection laplacian 
+    #Lc(i,j) = L(i,j)*R(i,j) if (i,j)=\in E else 0
+    R += torch.eye(n).kron(torch.ones(d,d))
     Lc = L*R
-       
+    
     #normalize
     edge_index, edge_weight = PyGu.remove_self_loops(data.edge_index, data.edge_weight)
     if edge_weight is None:
         edge_weight = torch.ones(edge_index.size(1), device=edge_index.device)
-    row, _ = edge_index[0], edge_index[1]
-    deg = scatter_add(edge_weight, row, dim=0, dim_size=data.num_nodes)
+        
+    #degree matrix
+    deg = scatter_add(edge_weight, edge_index[0], dim=0, dim_size=n)
     
     if normalization == 'rw':
         deg_inv = 1.0 / deg
         deg_inv.masked_fill_(deg_inv == float('inf'), 0)
-        deg_inv = deg_inv.repeat_interleave(dim, dim=0)
-        Lc *= deg_inv
+        deg_inv = deg_inv.repeat_interleave(d, dim=0)
+        Lc = torch.diag(deg_inv)@Lc
 
     elif normalization == 'sym':
         NotImplementedError
@@ -548,7 +551,11 @@ def compute_connection_laplacian(data, R, normalization='rw'):
     return Lc
 
 
-def compute_tangent_bundle(data, n_geodesic_nb=10, chunk=512, return_predecessors=True):
+def compute_tangent_bundle(data, 
+                           n_geodesic_nb=10,
+                           processes=1, 
+                           chunk=512,
+                           return_predecessors=True):
     """
     Orthonormal gauges for the tangent space at each node, and connection 
     matrices between each pair of adjacent nodes.
@@ -581,7 +588,8 @@ def compute_tangent_bundle(data, n_geodesic_nb=10, chunk=512, return_predecessor
     inputs = [X_chunks, A_chunks, n_geodesic_nb, return_predecessors]
     out = utils.parallel_proc(_compute_tangent_bundle, 
                               range(n_chunks), 
-                              inputs, 
+                              inputs,
+                              processes=processes,
                               desc="Computing gauges...")
         
     tangents, Sigma = zip(*out)
@@ -598,7 +606,7 @@ def _compute_tangent_bundle(inputs, i):
     return tangents, Sigma
 
     
-def compute_connections(gauges, edge_index, dim_man=None):
+def compute_connections(gauges, edge_index, processes=1, dim_man=None):
     """
     Find smallest rotations R between gauges pairs. It is assumed that the first 
     row of edge_index is what we want to align to, i.e., 
@@ -606,7 +614,7 @@ def compute_connections(gauges, edge_index, dim_man=None):
 
     Parameters
     ----------
-    gauges : (n,dim,dim) matrix of orthogonal unit vectors for each node
+    gauges : (n,d,d) matrix of orthogonal unit vectors for each node
     edge_index : (2x|E|) Matrix of edge indices
     dim_man : integer, manifold dimension
 
@@ -615,28 +623,32 @@ def compute_connections(gauges, edge_index, dim_man=None):
     R : (n,n,dim,dim) matrix of rotation matrices
 
     """
-    n, dim, k = gauges.shape
+    n, d, k = gauges.shape
     
-    R = np.eye(dim)[None,None,:,:]
+    R = np.eye(d)[None,None,:,:]
     R = np.tile(R, (n,n,1,1))
     
     if dim_man is not None:
-        if dim_man == dim: #the manifold is the whole space
-            return R
-        elif dim_man <= dim:
+        if dim_man == d: #the manifold is the whole space
+            return utils.np2torch(R)
+        elif dim_man <= d:
             gauges = gauges[:,:,dim_man:]
         else:
             raise Exception('Manifold dim must be <= embedding dim!')
             
     _R = utils.parallel_proc(_procrustes, 
-                            edge_index.T, 
-                            gauges, 
-                            desc="Compute connections...")
+                             edge_index.T, 
+                             gauges,
+                             processes=processes,
+                             desc="Computing connections...")
         
     for l, (i,j) in enumerate(edge_index.T):
-        R[i,j,...] = _R[l]#procrustes(gauges[i].T, gauges[j].T)
+        if i!=j:
+            R[i,j,...] = _R[l]
+        else:
+            R[i,j,...] = np.zeros([d,d])
 
-    return R
+    return utils.np2torch(R)
 
 
 def _procrustes(gauges, edge_index):
@@ -692,17 +704,23 @@ def scalar_diffusion(x, t, method='matrix_exp', par=None):
     
     
 def vector_diffusion(x, t, method='spectral', par=None, normalise=False):
+    
+    assert (x.shape[0]*x.shape[1] % par['Lc'].shape[0])==0, \
+        'Data dimension must be an integer multiple of the dimensions \
+         of the connection Laplacian!'
         
     #vector diffusion with connection Laplacian
     out = x.view(par['Lc'].shape[0], -1)
-    out = scalar_diffusion(out, t, method, {'L': par['Lc']})
+    p = {'L': par['Lc'], 'evals': par['evals_Lc'], 'evecs': par['evecs_Lc']}
+    out = scalar_diffusion(out, t, method, p)
     out = out.view(x.shape)
     
     if normalise:
         assert par['L'] is not None, 'Need Laplacian for normalised diffusion!'
         x_abs = x.norm(dim=-1, p=2, keepdim=True)
         out_abs = scalar_diffusion(x_abs, t, method, {'L': par['L']})
-        ind = scalar_diffusion(torch.ones(x.shape[0],1), t, method, {'L': par['L']})
+        p = {'L': par['L'], 'evals': par['evals_L'], 'evecs': par['evecs_L']}
+        ind = scalar_diffusion(torch.ones(x.shape[0],1), t, method, p)
         out = out*out_abs/(ind*out.norm(dim=-1, p=2, keepdim=True))
         
     return out

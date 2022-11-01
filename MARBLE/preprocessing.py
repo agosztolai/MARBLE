@@ -2,13 +2,30 @@
 # -*- coding: utf-8 -*-
 
 from .lib import geometry as g
-from .lib.utils import np2torch
 
 def preprocessing(data, par):
-    
-    par['dim_embedding'] = data.pos.shape[1]
-    
-    if par['vector'] and par['dim_embedding']>2:
+    """
+    Compute geometric objects used later: local gauges, Levi-Civita connections
+    gradient kernels, scalar and connection laplacians.
+
+    Parameters
+    ----------
+    data : pytorch geometric data object
+    par : dictionary of parameters
+
+    Returns
+    -------
+    R : (nxnxdxd) tensor of L-C connectionc (dxd) matrices
+    kernels : list of d (nxn) matrices of directional kernels
+    L : (nxn) matrix of scalar laplacian
+    Lc : (ndxnd) matrix of connection laplacian
+    par : updated dictionary of parameters
+
+    """
+        
+    #disable vector computations if 1) signal is scalar or 2) embedding dimension
+    #is <= 2. In case 2), either M=R^2 (manifold is whole space) or case 1).
+    if par['vector'] and par['dim_emb']>2:
         local_gauge = True
     else:
         local_gauge = False
@@ -17,22 +34,23 @@ def preprocessing(data, par):
     #gauges
     gauges, Sigma = g.compute_gauges(data, local_gauge, par['n_geodesic_nb'])
     
-    #connections
-    R = None
-    if par['vector']:
-        par['dim_man'] = g.manifold_dimension(Sigma, frac_explained=par['var_explained'])
-        
-        if par['dim_man']==par['dim_embedding']:
-            par['vector'] = False
-        else:
-            R = g.compute_connections(gauges, data.edge_index, par['dim_man'])
-            R = np2torch(R)
-    
     #kernels
     kernels = g.gradient_op(data.pos, data.edge_index, gauges)
     
-    #Laplacians
+    #Laplacian
     L = g.compute_laplacian(data)
-    Lc = g.compute_connection_laplacian(data, R) if par['vector'] else None
+    
+    #connections
+    if par['vector']:
+        par['dim_man'] = g.manifold_dimension(Sigma, frac_explained=par['var_explained'])
+        
+        if par['dim_man']==par['dim_emb']:
+            par['vector'] = False
+        else:
+            R = g.compute_connections(gauges, data.edge_index, par['dim_man'])
+            Lc = g.compute_connection_laplacian(data, R)
+    else:
+        R = None
+        Lc = None
     
     return R, kernels, L, Lc, par

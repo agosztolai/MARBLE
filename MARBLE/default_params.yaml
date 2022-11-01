@@ -24,3 +24,4 @@ batch_norm: False #batch normalisation
 
 #other params
 seed: 0 #seed for reproducibility
+processes: 1

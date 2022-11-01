@@ -30,7 +30,7 @@ class net(nn.Module):
         
         #layers
         self.diffusion, self.grad, self.enc, self.inner_products = \
-            layers.setup_layers(self.par)
+            layers.setup_layers(self)
             
         self.reset_parameters()
         
@@ -56,7 +56,7 @@ class net(nn.Module):
 
         #diffusion
         if self.par['diffusion']:
-            x = self.diffusion(x, self.L, self.Lc)
+            x = self.diffusion(x)
         
         #restrict to current batch n_id
         x = x[n_id] 

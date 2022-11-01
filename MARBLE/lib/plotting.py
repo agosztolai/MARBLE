@@ -21,7 +21,7 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 # =============================================================================
 def fields(data, 
            titles=None, 
-           col=2, 
+           col=1, 
            figsize=(10,10), 
            keeplim=True, 
            ax=None, 
@@ -51,12 +51,13 @@ def fields(data,
     
     lims = None
     for i, d in enumerate(data):
+        signal = d.x.detach().numpy()
         _, ax = create_axis(dim, grid[i], fig=fig)
         
         G = to_networkx(d, node_attrs=['pos'], edge_attrs=None, to_undirected=True,
                 remove_self_loops=True)
         
-        c = np.linalg.norm(d.x, axis=1) if vector else d.x.numpy()
+        c = np.linalg.norm(signal, axis=1) if vector else signal
         c, _ = set_colors(c.squeeze())
         
         graph(G,
@@ -70,14 +71,14 @@ def fields(data,
             pos = d.pos.numpy()
             if dim==2:
                 ax.quiver(pos[:,0], pos[:,1], 
-                      d.x[:,0], d.x[:,1], 
+                      signal[:,0], signal[:,1], 
                       color=c, 
                       scale=10, 
                       scale_units='x',
                       width=0.005)
             elif dim==3:
                 ax.quiver(pos[:,0], pos[:,1], pos[:,2], 
-                      d.x[:,0], d.x[:,1], d.x[:,2], 
+                      signal[:,0], signal[:,1], signal[:,2], 
                       color=c, 
                       length=.5
                       # scale=10, 
@@ -98,6 +99,8 @@ def fields(data,
         
     if save is not None:
         savefig(fig, save)
+        
+    return ax
         
         
 def histograms(clusters, titles=None, col=2, figsize=(10,10), save=None):
