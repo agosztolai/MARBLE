@@ -6,7 +6,7 @@ setup(
     name="MARBLE",
     version="1.0",
     install_requires=[
-        "teaspoon==1.3.1"
+        "teaspoon==1.3.1",
         "matplotlib",
         "pandas",
         "numpy",
@@ -20,8 +20,8 @@ setup(
         "pyyaml",
         "POT",
         "pyEDM",
-        "teaspoon"
-        "umap-learn"
+        "teaspoon",
+        "umap-learn",
     ],
     packages=find_packages(),
     ext_modules=cythonize(
