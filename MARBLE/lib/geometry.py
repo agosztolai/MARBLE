@@ -614,7 +614,7 @@ def compute_connections(gauges, edge_index, processes=1, dim_man=None):
     """
     Find smallest rotations R between gauges pairs. It is assumed that the first 
     row of edge_index is what we want to align to, i.e., 
-    gauges(edge_index[1]) = R*gauges(edge_index[1]).
+    gauges(edge_index[0]) = R[edge_index[0],edge_index[1],...]@gauges(edge_index[1]).
 
     Parameters
     ----------
@@ -648,8 +648,8 @@ def compute_connections(gauges, edge_index, processes=1, dim_man=None):
         
     for l, (i,j) in enumerate(edge_index.T):
         if i!=j:
-            R[i,j,...] = _R[l].T
-            R[j,i,...] = _R[l]
+            R[i,j,...] = _R[l]
+            R[j,i,...] = _R[l].T
 
     return utils.np2torch(R)
 
