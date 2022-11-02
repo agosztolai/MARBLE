@@ -193,7 +193,7 @@ def embedding(emb, labels=None, clusters=None, titles=None, save=None):
     
     if titles is not None:
         handles,_ = scatter.legend_elements()
-        ax.legend(handles,titles)
+        ax.legend(handles, titles, loc='upper right')
         
     ax.set_axis_off()
     
