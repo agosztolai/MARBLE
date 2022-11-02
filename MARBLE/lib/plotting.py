@@ -170,6 +170,7 @@ def embedding(emb, labels=None, clusters=None, titles=None, save=None):
     
     assert emb.shape[0]==len(labels)
     
+    #for more than 1000 nodes, choose randomly
     if len(labels) > 1000:
         idx = np.random.choice(np.arange(len(labels)), size=1000)
         emb, labels = emb[idx], labels[idx]
