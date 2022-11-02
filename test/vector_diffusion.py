@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-import matplotlib.pyplot as plt
 import sys
 from MARBLE import plotting, utils, geometry
 from MARBLE.layers import Diffusion
@@ -31,8 +30,6 @@ def main():
  
     #plot
     plotting.fields(data)
-    
-   # plot_functions(data, titles=titles, gauges=gauges) #sampled functions
 
 
 def f(x):
@@ -41,13 +38,6 @@ def f(x):
     u = x[:,[1]]/norm
     v = -(x[:,[0]]-1)/norm
     return np.hstack([u,v])
-
-
-def plot_gauges(data, ax, gauges):
-    x = data.pos
-    ax.quiver(x[:,0],x[:,1],gauges[:,0,0], gauges[:,0,1], scale=20, color='k',width=0.002, headwidth=2)
-    ax.quiver(x[:,0],x[:,1],gauges[:,1,0], gauges[:,1,1], scale=20, color='k',width=0.002, headwidth=2)
-
 
 if __name__ == '__main__':
     sys.exit(main())

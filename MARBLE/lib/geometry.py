@@ -428,6 +428,11 @@ def compute_gauges(data, local=True, n_nb=10, processes=1):
         return gauges, None
     
     
+def project_to_gauges(x, gauges, dim=2):
+    coeffs = torch.einsum('bij,bi->bj', gauges, x)
+    return torch.einsum('bj,bij->bi', coeffs[:,:dim], gauges[:,:,:dim])
+    
+    
 def manifold_dimension(Sigma, frac_explained=0.9):
     """Estimate manifold dimension based on singular vectors"""
     

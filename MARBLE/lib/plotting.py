@@ -24,7 +24,9 @@ def fields(data,
            col=1, 
            figsize=(10,10), 
            keeplim=True, 
-           ax=None, 
+           ax=None,
+           c=None,
+           alpha=0.5,
            save=None,
            node_size=10):
     """
@@ -52,20 +54,22 @@ def fields(data,
     lims = None
     for i, d in enumerate(data):
         signal = d.x.detach().numpy()
-        _, ax = create_axis(dim, grid[i], fig=fig)
+        if ax is None:
+            _, ax = create_axis(dim, grid[i], fig=fig)
         
         G = to_networkx(d, node_attrs=['pos'], edge_attrs=None, to_undirected=True,
                 remove_self_loops=True)
         
-        c = np.linalg.norm(signal, axis=1) if vector else signal
-        c, _ = set_colors(c.squeeze())
+        if c is None:
+            c = np.linalg.norm(signal, axis=1) if vector else signal
+            c, _ = set_colors(c.squeeze())
         
         graph(G,
               labels=None if vector else c,
               ax=ax,
               node_size=node_size,
               edge_width=0.5,
-              edge_alpha=0.3)
+              edge_alpha=alpha)
         
         if vector:
             pos = d.pos.numpy()
@@ -91,7 +95,7 @@ def fields(data,
         if titles is not None:
             ax.set_title(titles[i])
             
-        fig.add_subplot(ax)
+        # fig.add_subplot(ax)
         
         if lims is None:
             lims = get_limits(ax)
