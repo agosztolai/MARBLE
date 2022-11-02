@@ -17,7 +17,7 @@ def setup_layers(model):
     
     par = model.par
     
-    s, e, o = par['signal_dim'], par['emb_dim'], par['order']
+    s, e, o = par['dim_signal'], par['dim_emb'], par['order']
     
     #diffusion
     diffusion = Diffusion(model.L, model.Lc)
