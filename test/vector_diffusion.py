@@ -11,7 +11,7 @@ def main():
     #parameters
     n = 512
     k = 30
-    tau0 = 100
+    tau0 = 50
     
     # f1: constant, f2: linear, f3: parabola, f4: saddle
     x = geometry.sample_2d(n, [[-1,-1],[1,1]], 'random')

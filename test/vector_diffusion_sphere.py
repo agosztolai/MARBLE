@@ -11,7 +11,7 @@ def main():
     #parameters
     n = 512
     k = 0.4
-    tau0 = 100
+    tau0 = 5
     
     x = sphere()
     y = f(x) #evaluated functions
@@ -24,20 +24,20 @@ def main():
     data.x = geometry.project_to_gauges(data.x, gauges)
     data.x = data.x/2
     
-    # # R = geometry.compute_connections(gauges, data.edge_index, processes=1)
-    # # L = geometry.compute_laplacian(data)
-    # # Lc = geometry.compute_connection_laplacian(data, R)
+    R = geometry.compute_connections(gauges, data.edge_index, processes=1)
+    L = geometry.compute_laplacian(data)
+    Lc = geometry.compute_connection_laplacian(data, R)
     
-    # # diffusion = Diffusion(L, Lc, tau0=tau0)
-    # # data.x = diffusion(data.x, method='matrix_exp')
+    diffusion = Diffusion(L, Lc, tau0=tau0)
+    data.x = diffusion(data.x, method='matrix_exp', normalise=True)
  
     #plot
     ax = plotting.fields(data, alpha=1)
     
-    data.x = gauges[...,0]/2
-    ax = plotting.fields(data, ax=ax, c='k')
-    data.x = gauges[...,1]/2
-    ax = plotting.fields(data, ax=ax, c='k')
+    # data.x = gauges[...,0]/2
+    # ax = plotting.fields(data, ax=ax, c='k')
+    # data.x = gauges[...,1]/2
+    # ax = plotting.fields(data, ax=ax, c='k')
     # data.x = gauges[...,2]/2
     # ax = plotting.fields(data, ax=ax, c='k')
     

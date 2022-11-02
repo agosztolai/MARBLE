@@ -75,7 +75,7 @@ class Diffusion(nn.Module):
         t = self.diffusion_time
         
         if self.par['Lc'] is not None:
-            out = g.vector_diffusion(x, t, method, self.par)
+            out = g.vector_diffusion(x, t, method, self.par, normalise)
         else:
             out = [g.scalar_diffusion(x_, t, method, self.par) for x_ in x.T]
             out = torch.cat(out, axis=1)

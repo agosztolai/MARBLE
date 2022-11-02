@@ -528,12 +528,11 @@ def compute_connection_laplacian(data, R, normalization='rw'):
     L = compute_laplacian(data, normalization=None)
     
     #rearrange into block form
-    L = torch.kron(L, torch.eye(d))
+    L = torch.kron(L, torch.ones(d,d))
     R = R.swapaxes(1,2).reshape(n*d, n*d)
         
     #unnormalised connection laplacian 
     #Lc(i,j) = L(i,j)*R(i,j) if (i,j)=\in E else 0
-    R += torch.eye(n).kron(torch.ones(d,d))
     Lc = L*R
     
     #normalize
@@ -649,9 +648,8 @@ def compute_connections(gauges, edge_index, processes=1, dim_man=None):
         
     for l, (i,j) in enumerate(edge_index.T):
         if i!=j:
-            R[i,j,...] = _R[l]
-        else:
-            R[i,j,...] = np.zeros([d,d])
+            R[i,j,...] = _R[l].T
+            R[j,i,...] = _R[l]
 
     return utils.np2torch(R)
 
