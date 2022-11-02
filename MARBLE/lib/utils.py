@@ -70,7 +70,7 @@ def check_parameters(par, data):
             'inner_product_features', 'vector', 'diffusion', 'frac_geodesic_nb', \
             'frac_sampled_nb', 'var_explained', 'dropout', 'n_lin_layers', \
             'hidden_channels', 'out_channels', 'bias', 'vec_norm', 'batch_norm' , \
-            'seed','signal_dim', 'emb_dim', 'n_geodesic_nb', 'n_sampled_nb']
+            'seed','signal_dim', 'emb_dim', 'n_geodesic_nb', 'n_sampled_nb', 'processes']
         
     for p in par.keys():
         assert p in pars, 'Unknown specified parameter {}!'.format(p)

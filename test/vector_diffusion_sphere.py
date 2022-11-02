@@ -11,7 +11,7 @@ def main():
     #parameters
     n = 512
     k = 0.4
-    tau0 = 5
+    tau0 = 1
     
     x = sphere()
     y = f(x) #evaluated functions
