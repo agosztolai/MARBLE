@@ -35,7 +35,7 @@ def parse_parameters(data, kwargs):
         if key not in kwargs.keys():
             kwargs[key] = par[key]
             
-    kwargs['signal_dim'] = data.x.shape[1]
+    kwargs['dim_signal'] = data.x.shape[1]
     kwargs['dim_emb'] = data.pos.shape[1]
     kwargs['n_geodesic_nb'] = int(data.degree*par['frac_geodesic_nb'])
     
@@ -70,7 +70,7 @@ def check_parameters(par, data):
             'inner_product_features', 'vector', 'diffusion', 'frac_geodesic_nb', \
             'frac_sampled_nb', 'var_explained', 'dropout', 'n_lin_layers', \
             'hidden_channels', 'out_channels', 'bias', 'vec_norm', 'batch_norm' , \
-            'seed','dim_man', 'emb_dim', 'n_geodesic_nb', 'n_sampled_nb', 'processes']
+            'seed','dim_man', 'emb_dim', 'dim_signal', 'n_geodesic_nb', 'n_sampled_nb', 'processes']
         
     for p in par.keys():
         assert p in pars, 'Unknown specified parameter {}!'.format(p)
@@ -97,7 +97,7 @@ def print_settings(model):
     print('---- Total number of parameters: ', n_parameters)
     
     if par['vector']:
-        if par['signal_dim']==1:
+        if par['dim_signal']==1:
             print('\n Signal dimension is 1, so manifold computations are disabled!')
         else:
             print('---- Embedding dimension: {}'.format(par['dim_embedding']))
