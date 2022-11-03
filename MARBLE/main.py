@@ -145,7 +145,6 @@ class net(nn.Module):
             self.L = [L.to(device) for L in self.L]
         else:
             self.L = self.L.to(device)
-        print(self.L[0].device)
         if isinstance(self.Lc, tuple):
             self.Lc = [Lc.to(device) for Lc in self.Lc]
         else:
