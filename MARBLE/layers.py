@@ -62,8 +62,11 @@ class Diffusion(nn.Module):
                 
         self.diffusion_time = nn.Parameter(torch.tensor(float(tau0)))
         self.par = {'L': L, 'Lc': Lc}
-        self.par['evals_L'], self.par['evecs_L'] = g.compute_eigendecomposition(L)
-        if Lc is not None:
+        
+        if Lc is None:
+            self.par['evals'], self.par['evecs'] = g.compute_eigendecomposition(L)
+        else:
+            self.par['evals_L'], self.par['evecs_L'] = g.compute_eigendecomposition(L)
             self.par['evals_Lc'], self.par['evecs_Lc'] = g.compute_eigendecomposition(Lc)
         
     def forward(self, x, method='spectral', normalise=False):
