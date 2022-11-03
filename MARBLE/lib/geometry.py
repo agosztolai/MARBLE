@@ -693,10 +693,6 @@ def scalar_diffusion(x, t, method='matrix_exp', par=None):
         evals, evecs = par['evals'], par['evecs'] 
 
         # Transform to spectral
-        print(evecs)
-        print(x)
-        print(evecs.device)
-        print(x.device)
         x_spec = torch.mm(evecs.T, x)
 
         # Diffuse
