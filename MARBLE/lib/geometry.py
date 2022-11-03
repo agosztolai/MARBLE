@@ -111,14 +111,14 @@ def cluster_embedding(data,
     clusters['slices'] = data._slice_dict['x']
     
     #compute distances between clusters
-    dist = compute_histogram_distances(clusters)
+    dist, gamma = compute_histogram_distances(clusters)
     
     #embed into 2D via t-SNE for visualisation
     emb = np.vstack([emb, clusters['centroids']])
     emb = embed(emb, embed_typ)  
     emb, clusters['centroids'] = emb[:-n_clusters], emb[-n_clusters:]
         
-    return emb, clusters, dist
+    return emb, clusters, dist, gamma
 
 
 def cluster(x, cluster_typ='kmeans', n_clusters=15, seed=0):
@@ -223,7 +223,7 @@ def relabel_by_proximity(clusters):
     return clusters
 
 
-def compute_histogram_distances(clusters, dist_typ='Wasserstein', return_OT_matrix=False):
+def compute_histogram_distances(clusters, dist_typ='Wasserstein', return_OT_matrix=True):
     """
     Compute the distance between clustered distributions across datasets.
 
