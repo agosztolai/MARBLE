@@ -179,7 +179,7 @@ def embed(x, embed_typ='umap'):
         emb = umap.UMAP().fit_transform(x)
         
     elif embed_typ == 'MDS':
-        emb = MDS(n_components=2, dissimilarity='precomputed').fit_transform(x)
+        emb = MDS(n_components=2, n_init=20, dissimilarity='precomputed').fit_transform(x)
     else:
         NotImplementedError
         
