@@ -57,19 +57,27 @@ def setup_layers(model):
 class Diffusion(nn.Module):
     """Diffusion with learned t."""
 
-    def __init__(self, L, Lc=None, tau0=0.0):
+    def __init__(self, L, Lc=None, method='spectral', tau0=0.0):
         super().__init__()
                 
         self.diffusion_time = nn.Parameter(torch.tensor(float(tau0)))
-        self.par = {'L': L, 'Lc': Lc}
+        self.method=method
+        self.par = {}
         
         if Lc is None:
-            self.par['evals'], self.par['evecs'] = g.compute_eigendecomposition(L)
+            if method=='spectral':
+                self.par['evals'], self.par['evecs'] = L[0], L[1]
+            else:
+                self.par['L'] = L
         else:
-            self.par['evals_L'], self.par['evecs_L'] = g.compute_eigendecomposition(L)
-            self.par['evals_Lc'], self.par['evecs_Lc'] = g.compute_eigendecomposition(Lc)
-        
-    def forward(self, x, method='spectral', normalise=False):
+            if method=='spectral':
+                self.par['evals_L'], self.par['evecs_L'] = L[0], L[1]
+                self.par['evals_Lc'], self.par['evecs_Lc'] = Lc[0], Lc[1]
+            else:
+                self.par['L'], self.par['Lc'] = L, Lc
+                
+                
+    def forward(self, x, normalise=False):
         
         # making sure diffusion times are positive
         with torch.no_grad():
@@ -78,9 +86,9 @@ class Diffusion(nn.Module):
         t = self.diffusion_time
         
         if self.par['Lc'] is not None:
-            out = g.vector_diffusion(x, t, method, self.par, normalise)
+            out = g.vector_diffusion(x, t, self.method, self.par, normalise)
         else:
-            out = [g.scalar_diffusion(x_, t, method, self.par) for x_ in x.T]
+            out = [g.scalar_diffusion(x_, t, self.method, self.par) for x_ in x.T]
             out = torch.cat(out, axis=1)
             
         return out

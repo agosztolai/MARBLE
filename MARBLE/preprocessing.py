@@ -39,6 +39,8 @@ def preprocessing(data, par):
     
     #Laplacian
     L = g.compute_laplacian(data)
+    if par['diffusion_method'] == 'spectral':
+        L = g.compute_eigendecomposition(L)
     
     #connections
     if par['vector']:
@@ -49,6 +51,8 @@ def preprocessing(data, par):
         else:
             R = g.compute_connections(gauges, data.edge_index, par['dim_man'])
             Lc = g.compute_connection_laplacian(data, R)
+            if par['diffusion_method'] == 'spectral':
+                Lc = g.compute_eigendecomposition(Lc)
     else:
         R = None
         Lc = None
