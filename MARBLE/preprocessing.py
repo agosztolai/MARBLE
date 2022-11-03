@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from .lib import geometry as g
+import torch
 
 def preprocessing(data, par):
     """
@@ -56,5 +57,18 @@ def preprocessing(data, par):
     else:
         R = None
         Lc = None
+        
+    #move to gpu
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    if isinstance(L, tuple):
+        L = [L_.to(device) for L_ in L]
+    else:
+        L = L.to(device)
+    if isinstance(Lc, tuple):
+        Lc = [Lc_.to(device) for Lc_ in Lc]
+    else:
+        Lc = Lc.to(device) if Lc is not None else None
+    R = R.to(device) if R is not None else None
+    kernels = [K.to(device) for K in kernels]
     
     return R, kernels, L, Lc, par

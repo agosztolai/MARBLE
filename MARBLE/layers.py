@@ -65,8 +65,6 @@ class Diffusion(nn.Module):
         self.vector = False if Lc is None else True
         self.par = {}
         
-        print(L[0].device)
-        print(L[1].device)
         if not self.vector:
             if method=='spectral':
                 self.par['evals'], self.par['evecs'] = L[0], L[1]
