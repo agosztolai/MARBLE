@@ -62,9 +62,10 @@ class Diffusion(nn.Module):
                 
         self.diffusion_time = nn.Parameter(torch.tensor(float(tau0)))
         self.method=method
+        self.vector = False if Lc is None else True
         self.par = {}
         
-        if Lc is None:
+        if not self.vector:
             if method=='spectral':
                 self.par['evals'], self.par['evecs'] = L[0], L[1]
             else:
@@ -85,7 +86,7 @@ class Diffusion(nn.Module):
             
         t = self.diffusion_time
         
-        if self.par['Lc'] is not None:
+        if self.vector:
             out = g.vector_diffusion(x, t, self.method, self.par, normalise)
         else:
             out = [g.scalar_diffusion(x_, t, self.method, self.par) for x_ in x.T]
