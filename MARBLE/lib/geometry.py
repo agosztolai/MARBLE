@@ -152,7 +152,7 @@ def cluster(x, cluster_typ='kmeans', n_clusters=15, seed=0):
 
 def embed(x, embed_typ='umap'):
     """
-    Embed data to Euclidean space
+    Embed data to 2D space.
 
     Parameters
     ----------
@@ -165,7 +165,10 @@ def embed(x, embed_typ='umap'):
 
     """
     
-    assert x.shape[1]>2, 'Data dimension is less <= 2, perhaps already embedded?'
+    if x.shape[1]<=2:
+        print('\n No {} embedding performed. Embedding seems to be \
+              already in 2D.'.format(embed_typ))
+        return x
     
     if embed_typ == 'tsne': 
         x = StandardScaler().fit_transform(x)
