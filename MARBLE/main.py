@@ -142,12 +142,12 @@ class net(nn.Module):
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self = self.to(device)
         if isinstance(self.L, tuple):
-            self.L = (L.to(device) for L in self.L)
+            self.L = [L.to(device) for L in self.L]
         else:
             self.L = self.L.to(device)
         print(self.L[0].device)
         if isinstance(self.Lc, tuple):
-            self.Lc = (Lc.to(device) for Lc in self.Lc)
+            self.Lc = [Lc.to(device) for Lc in self.Lc]
         else:
             self.Lc = self.Lc.to(device) if self.Lc is not None else None
         self.R = self.R.to(device) if self.R is not None else None
