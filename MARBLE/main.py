@@ -141,8 +141,14 @@ class net(nn.Module):
         #move to gpu
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self = self.to(device)
-        self.L = self.L.to(device)
-        self.Lc = self.Lc.to(device) if self.Lc is not None else None
+        if isinstance(self.L, tuple):
+            self.L = (L.to(device) for L in self.L)
+        else:
+            self.L = self.L.to(device)
+        if isinstance(self.Lc, tuple):
+            self.Lc = (Lc.to(device) for Lc in self.Lc)
+        else:
+            self.Lc = self.Lc.to(device) if self.Lc is not None else None
         self.R = self.R.to(device) if self.R is not None else None
         self.kernels = [K.to(device) for K in self.kernels]
         x = data.x.to(device)
