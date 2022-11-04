@@ -184,7 +184,10 @@ def embedding(emb,
     else:
         c = 'C0'
             
-    ax.scatter(emb[:,0], emb[:,1], c=c, alpha=alpha, s=s)
+    types = set(labels)
+    for i, typ in enumerate(types):
+        ind = np.where(labels==typ)[0]
+        ax.scatter(emb[ind,0], emb[ind,1], c=np.array(c)[ind], alpha=alpha, s=s, label=titles[i])
     
     if clusters is not None:
         vor = Voronoi(clusters['centroids']) 
@@ -193,10 +196,10 @@ def embedding(emb,
             ax.annotate(k+1,clusters['centroids'][k,:])
     
     if titles is not None:
-        handles = [Line2D([0], [0], marker='o', color='w', label=t,
-                   markerfacecolor=list(set(c))[i], markersize=5) \
-                   for i, t in enumerate(titles)]
-        ax.legend(handles, titles, loc='upper right')
+        # handles = [Line2D([0], [0], marker='o', color='w', label=t,
+        #            markerfacecolor=list(set(c))[i], markersize=5) \
+        #            for i, t in enumerate(titles)]
+        ax.legend(loc='upper right')
         
     ax.set_axis_off()
     
