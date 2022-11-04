@@ -179,14 +179,8 @@ def embedding(emb,
         idx = np.random.choice(np.arange(len(labels)), size=1000)
         emb, labels = emb[idx], labels[idx]
      
-    if labels is not None: 
-        if isinstance(labels[0], int):
-            colors = [f"C{i}" for i in np.arange(1, labels.max()+1)]
-            cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, labels.max()+2), 
-                                                              colors)
-        elif isinstance(labels[0], float):
-            labels, cbar = set_colors(labels)
-            plt.colorbar(cbar)
+    if labels is not None:        
+        colors, cbar = set_colors(labels)
             
     scatter = ax.scatter(emb[:,0], emb[:,1], c=labels, alpha=alpha, s=s)
     
@@ -201,6 +195,7 @@ def embedding(emb,
         ax.legend(handles, titles, loc='upper right')
         
     ax.set_axis_off()
+    plt.colorbar(cbar)
     
     return ax
         
