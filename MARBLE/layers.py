@@ -221,4 +221,4 @@ class InnerProductFeatures(nn.Module):
             #\sum_j x_i^T@O_ij@x_j
             xOx = torch.einsum('bki,bkj->bi', x, Ox)
             
-            return torch.abs(torch.tanh(xOx).reshape(x.shape[0], -1))
+            return torch.tanh(xOx).reshape(x.shape[0], -1)
