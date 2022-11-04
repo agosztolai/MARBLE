@@ -22,11 +22,11 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 # =============================================================================
 def fields(data, 
            titles=None, 
-           col=1, 
+           col=1,
            figsize=(8,8), 
            keeplim=True, 
            axis=None,
-           c=None,
+           color=None,
            alpha=0.5,
            node_size=10):
     """
@@ -38,7 +38,6 @@ def fields(data,
     titles : list of titles
     col : int for number of columns to plot
     figsize : tuple of figure dimensions
-    save : filename
 
     """
     if not isinstance(data, list):
@@ -62,9 +61,11 @@ def fields(data,
         G = to_networkx(d, node_attrs=['pos'], edge_attrs=None, to_undirected=True,
                 remove_self_loops=True)
         
-        if c is None:
+        if color is None:
             c = np.linalg.norm(signal, axis=1) if vector else signal
             c, _ = set_colors(c.squeeze())
+        else:
+            c = color
         
         graph(G,
               labels=None if vector else c,

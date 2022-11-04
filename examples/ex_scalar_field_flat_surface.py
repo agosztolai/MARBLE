@@ -8,7 +8,7 @@ def main():
     
     #parameters
     n = 512
-    k = 20
+    k = 15
     n_clusters = 10
     
     par = {'batch_size': 256, #batch size
@@ -30,19 +30,19 @@ def main():
     data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
     
     #train model
-    model = net(data, **par)
-    model.run_training(data)
+    # model = net(data, **par)
+    # model.run_training(data)
     
     #evaluate model on data
-    data = model.evaluate(data)
-    emb, clusters, dist, _ = geometry.cluster_embedding(data, n_clusters=n_clusters)
+    # data = model.evaluate(data)
+    # emb, clusters, dist, _ = geometry.cluster_embedding(data, n_clusters=n_clusters)
     
     #plot
     titles=['Constant','Linear','Parabola','Saddle']
-    plotting.fields(data, titles=titles, node_size=10)
-    plotting.embedding(emb, data.y.numpy(), clusters, titles=titles)
-    plotting.histograms(clusters, titles=titles)
-    plotting.neighbourhoods(data, clusters, hops=1, norm=True)
+    plotting.fields(data, titles=titles, node_size=10, col=2)
+    # plotting.embedding(emb, data.y.numpy(), clusters, titles=titles)
+    # plotting.histograms(clusters, titles=titles)
+    # plotting.neighbourhoods(data, clusters, hops=1, norm=True)
     
 def f0(x):
     return x[:,[0]]*0

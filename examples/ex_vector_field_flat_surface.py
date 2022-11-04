@@ -10,7 +10,7 @@ def main():
     
     #parameters
     n = 512
-    k = 30
+    k = 15
     n_clusters = 10
     
     par = {'batch_size': 256, #batch size
