@@ -186,7 +186,7 @@ class InnerProductFeatures(nn.Module):
         self.C, self.D = C, D
         
         self.O = nn.ModuleList()
-        for i in range(C):
+        for i in range(1):
             self.O.append(nn.Linear(D, D, bias=False))
         
         self.reset_parameters()
@@ -215,7 +215,7 @@ class InnerProductFeatures(nn.Module):
             assert x.shape[2]==self.C, 'Number of channels is incorrect!'
             
             #O_ij@x_j
-            Ox = [self.O[j](x[...,j]) for j in range(self.C)]
+            Ox = [self.O[0](x[...,j]) for j in range(x.shape[2])]
             Ox = torch.stack(Ox, dim=2)
             
             #\sum_j x_i^T@O_ij@x_j
