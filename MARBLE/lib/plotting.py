@@ -149,11 +149,12 @@ def histograms(clusters, titles=None, col=2, figsize=(10,10), save=None):
             
         fig.add_subplot(ax)
         
-    if save is not None:
-        savefig(fig, save)
         
-        
-def embedding(emb, labels=None, clusters=None, titles=None, save=None):
+def embedding(emb, 
+              labels=None, 
+              clusters=None,
+              titles=None, 
+              ax=None):
     """
     Plot embeddings.
 
@@ -163,10 +164,11 @@ def embedding(emb, labels=None, clusters=None, titles=None, save=None):
     labels : list of increasing integer node labels
     clusters : sklearn cluster object
     titles : list of titles
-    save : filename
 
     """
-    fig, ax = plt.subplots()
+    
+    if ax is None:
+        fig, ax = create_axis(2)
     
     assert emb.shape[0]==len(labels)
     
@@ -198,8 +200,7 @@ def embedding(emb, labels=None, clusters=None, titles=None, save=None):
         
     ax.set_axis_off()
     
-    if save is not None:
-        savefig(fig, save)
+    return ax
         
         
 def neighbourhoods(data,
@@ -209,8 +210,7 @@ def neighbourhoods(data,
                    norm=False, 
                    plot_graph=False,
                    figsize=(10, 25),
-                   fontsize=20,
-                   save=None):
+                   fontsize=20):
     """
     For each clustered neighbourhood type, draw one sample neighbourhood 
     from each dataset and plot.
@@ -222,7 +222,6 @@ def neighbourhoods(data,
     hops : size of neighbourhood in number of hops
     norm : if True, then normalise values to zero mean within clusters
     plot_graph : if True, then plot the underlying graph.
-    save : filename
 
     """
     
@@ -315,9 +314,6 @@ def neighbourhoods(data,
             ax.set_frame_on(False)
             set_axes(ax, off=True)
             fig.add_subplot(ax)
-            
-    if save is not None:
-        savefig(fig, save)
         
         
 def graph(
@@ -388,8 +384,7 @@ def time_series(T,
                 node_feature=None, 
                 figsize=(10,5), 
                 lw=1, 
-                ms=5,
-                save=None):
+                ms=5):
     """
     Plot time series.
 
@@ -444,9 +439,6 @@ def time_series(T,
             ax.plot(T[i:i+2], X_[i:i+2], style, c=c, linewidth=lw, markersize=ms)
             
             fig.add_subplot(ax)
-        
-    if save is not None:
-        savefig(fig, save)
         
     return ax
 
