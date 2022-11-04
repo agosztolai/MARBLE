@@ -156,7 +156,8 @@ def embedding(emb,
               titles=None, 
               ax=None,
               alpha=0.3,
-              s=5):
+              s=5,
+              colorbar=True):
     """
     Plot embeddings.
 
@@ -197,8 +198,9 @@ def embedding(emb,
         ax.legend(handles, titles, loc='upper right')
         
     ax.set_axis_off()
-    fig = plt.gcf()
-    fig.colorbar(cbar, ax=ax)
+    if colorbar:
+        fig = plt.gcf()
+        fig.colorbar(cbar, ax=ax)
     
     return ax
         
