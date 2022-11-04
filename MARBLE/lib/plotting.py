@@ -197,6 +197,7 @@ def embedding(emb,
         ax.legend(handles, titles, loc='upper right')
         
     ax.set_axis_off()
+    fig = plt.gcf()
     fig.colorbar(cbar, ax=ax)
     
     return ax
