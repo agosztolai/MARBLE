@@ -187,7 +187,8 @@ def embedding(emb,
     types = set(labels)
     for i, typ in enumerate(types):
         ind = np.where(labels==typ)[0]
-        ax.scatter(emb[ind,0], emb[ind,1], c=np.array(c)[ind], alpha=alpha, s=s, label=titles[i])
+        title = titles[i] if titles is not None else str(typ)
+        ax.scatter(emb[ind,0], emb[ind,1], c=np.array(c)[ind], alpha=alpha, s=s, label=title)
     
     if clusters is not None:
         vor = Voronoi(clusters['centroids']) 
