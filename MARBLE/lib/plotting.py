@@ -154,7 +154,9 @@ def embedding(emb,
               labels=None, 
               clusters=None,
               titles=None, 
-              ax=None):
+              ax=None,
+              alpha=0.3,
+              s=5):
     """
     Plot embeddings.
 
@@ -186,7 +188,7 @@ def embedding(emb,
             labels, cbar = set_colors(labels)
             plt.colorbar(cbar)
             
-    scatter = ax.scatter(emb[:,0], emb[:,1], c=labels, alpha=0.3)
+    scatter = ax.scatter(emb[:,0], emb[:,1], c=labels, alpha=alpha, s=s)
     
     if clusters is not None:
         vor = Voronoi(clusters['centroids']) 
