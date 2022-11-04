@@ -8,18 +8,17 @@ def main():
     
     #parameters
     n = 512
-    k = 15
-    n_clusters = 10
+    k = 30
+    n_clusters = 16
     
     par = {'batch_size': 256, #batch size
            'epochs': 20, #optimisation epochs
            'order': 1, #order of derivatives
            'n_lin_layers': 2,
            'hidden_channels': 16, #number of internal dimensions in MLP
-           'out_channels': 3,
+           'out_channels': 8,
            'inner_product_features': False,
-           'diffusion': True,
-           'batch_norm': True
+           'diffusion': False,
            }
     
     #evaluate functions
@@ -43,7 +42,7 @@ def main():
     plotting.fields(data, titles=titles, node_size=10, col=2)
     plotting.embedding(emb, data.y.numpy(), clusters, titles=titles)
     plotting.histograms(clusters, titles=titles)
-    plotting.neighbourhoods(data, clusters, hops=1, norm=True)
+    plotting.neighbourhoods(data, clusters, hops=1, norm=True,figsize=(10, 20))
     
 def f0(x):
     return x[:,[0]]*0

@@ -196,9 +196,6 @@ def embedding(emb,
             ax.annotate(k+1,clusters['centroids'][k,:])
     
     if titles is not None:
-        # handles = [Line2D([0], [0], marker='o', color='w', label=t,
-        #            markerfacecolor=list(set(c))[i], markersize=5) \
-        #            for i, t in enumerate(titles)]
         ax.legend(loc='upper right')
         
     ax.set_axis_off()
@@ -250,8 +247,8 @@ def neighbourhoods(data,
         inner = gridspec.GridSpecFromSubplotSpec(row, 
                                                  col,
                                                  subplot_spec=outer[i], 
-                                                 wspace=0.1, 
-                                                 hspace=0.1)
+                                                 wspace=0., 
+                                                 hspace=0.)
 
         ax = plt.Subplot(fig, outer[i])
         ax.set_title("Type {}".format(i+1), fontsize=fontsize)
