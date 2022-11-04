@@ -252,7 +252,7 @@ def compute_histogram_distances(clusters, dist_typ='Wasserstein', return_OT_matr
     
     #compute distance between measures
     dist = np.zeros([nl, nl])
-    gamma = np.zeros([nc, nc, nc, nc])
+    gamma = np.zeros([nl, nl, nc, nc])
     if dist_typ == 'Wasserstein':
         centroid_distances = pairwise_distances(clusters['centroids'])
         for i in range(nl):
