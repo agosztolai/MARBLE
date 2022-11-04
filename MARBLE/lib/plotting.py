@@ -180,9 +180,11 @@ def embedding(emb,
         emb, labels = emb[idx], labels[idx]
      
     if labels is not None:        
-        colors, cbar = set_colors(labels)
+        c, cbar = set_colors(labels)
+    else:
+        c = 'C0'
             
-    scatter = ax.scatter(emb[:,0], emb[:,1], c=labels, alpha=alpha, s=s)
+    scatter = ax.scatter(emb[:,0], emb[:,1], c=c, alpha=alpha, s=s)
     
     if clusters is not None:
         vor = Voronoi(clusters['centroids']) 
@@ -195,7 +197,7 @@ def embedding(emb,
         ax.legend(handles, titles, loc='upper right')
         
     ax.set_axis_off()
-    plt.colorbar(cbar)
+    fig.colorbar(cbar, ax=ax)
     
     return ax
         
