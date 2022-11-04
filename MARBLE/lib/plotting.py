@@ -494,6 +494,7 @@ def trajectories(X,
         _, ax = create_axis(dim)
             
     c = set_colors(node_feature)[0]
+    print(c)
     if alpha is not None:
         al=np.ones(len(X))*alpha
     elif len(c)>1 and not isinstance(c, str):
@@ -625,8 +626,7 @@ def set_colors(color, cmap=plt.cm.coolwarm):
     elif isinstance(color[0], (int, np.integer)):
         colors = [f"C{i}" for i in np.arange(1, len(color)+1)]
         cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, len(color)+2), 
-                                                              colors)
-        
+                                                              colors)       
     cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
             
     return colors, cbar
