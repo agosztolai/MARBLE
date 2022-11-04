@@ -507,6 +507,7 @@ def trajectories(X,
         if '-' in style:
             ax.plot(X[:,0], X[:,1], c=c, linewidth=lw, markersize=ms, alpha=al)
         if '>' in style:
+            print(len(c))
             arrow_prop_dict = dict(color=c, alpha=al, lw=lw)
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
