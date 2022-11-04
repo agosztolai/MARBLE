@@ -507,7 +507,6 @@ def trajectories(X,
         if '-' in style:
             ax.plot(X[:,0], X[:,1], c=c, linewidth=lw, markersize=ms, alpha=al)
         if '>' in style:
-            print(len(c))
             arrow_prop_dict = dict(color=c, alpha=al, lw=lw)
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
@@ -624,8 +623,8 @@ def set_colors(color, cmap=plt.cm.coolwarm):
             colors.append(cmap(norm(np.array(c).flatten())))
    
     elif isinstance(color[0], (int, np.integer)):
-        colors = [f"C{i}" for i in np.arange(1, color.max()+1)]
-        cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, color.max()+2), 
+        colors = [f"C{i}" for i in np.arange(1, len(color)+1)]
+        cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, len(color)+2), 
                                                               colors)
         
     cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
