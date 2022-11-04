@@ -3,6 +3,7 @@ batch_size : 256, #batch size
 epochs : 20, #optimisation epochs
 lr: 0.01 #learning rate
 pretrained: False
+second_training: True
 
 #manifold/signal parameters
 order: 2 #order to which to compute the directional derivatives
