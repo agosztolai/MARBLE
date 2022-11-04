@@ -12,11 +12,13 @@ def main():
     n_clusters = 10
     
     par = {'batch_size': 128, #batch size
-           'epochs': 30, #optimisation epochs
-           'order': 2, #order of derivatives
+           'epochs': 10, #optimisation epochs
+           'order': 1, #order of derivatives
            'n_lin_layers': 2,
            'hidden_channels': 16, #number of internal dimensions in MLP
            'out_channels': 3,
+           'inner_product_features':False,
+           'diffusion': False
            }
     
     #evaluate functions
@@ -33,14 +35,14 @@ def main():
     
     #evaluate model on data
     data = model.evaluate(data)
-    emb, clusters, dist = geometry.cluster_embedding(data, n_clusters=n_clusters)
+    emb, clusters, dist, _ = geometry.cluster_embedding(data, n_clusters=n_clusters)
     
     #plot
     titles=['Constant','Linear','Parabola','Saddle']
-    plotting.fields(data, titles=titles, node_size=30, save='scalar_fields.svg')
-    plotting.embedding(emb, data.y.numpy(), clusters, titles=titles, save='scalar_fields_embedding.svg') 
-    plotting.histograms(clusters, titles=titles, save='scalar_fields_histogram.svg')
-    plotting.neighbourhoods(data, clusters, hops=1, norm=True, save='scalar_fields_nhoods.svg') 
+    plotting.fields(data, titles=titles, node_size=30)
+    plotting.embedding(emb, data.y.numpy(), clusters, titles=titles)
+    plotting.histograms(clusters, titles=titles)
+    plotting.neighbourhoods(data, clusters, hops=1, norm=True)
     
 def f0(x):
     return x[:,[0]]*0

@@ -35,14 +35,14 @@ def main():
     
     #evaluate model on data
     data = model.evaluate(data)
-    emb, clusters, dist = geometry.cluster_embedding(data, n_clusters=n_clusters)
+    emb, clusters, dist, _ = geometry.cluster_embedding(data, n_clusters=n_clusters)
     
     #plot
     titles=['Linear left','Linear right','Vortex right','Vortex left']
-    plotting.fields(data, titles=titles, save='vector_fields.svg')
-    plotting.embedding(emb, data.y.numpy(), clusters, titles=titles, save='vector_fields_embedding.svg') 
-    plotting.histograms(clusters, titles=titles, save='vector_fields_histogram.svg') 
-    plotting.neighbourhoods(data, clusters, save='vector_fields_nhoods.svg')
+    plotting.fields(data, titles=titles)
+    plotting.embedding(emb, data.y.numpy(), clusters, titles=titles)
+    plotting.histograms(clusters, titles=titles)
+    plotting.neighbourhoods(data, clusters)
     
 def f0(x):
     return x*0 + np.array([-1,-1])

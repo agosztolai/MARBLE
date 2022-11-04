@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
+from matplotlib.lines import Line2D
 
 import numpy as np
 import networkx as nx
@@ -156,8 +157,7 @@ def embedding(emb,
               titles=None, 
               ax=None,
               alpha=0.3,
-              s=5,
-              colorbar=True):
+              s=5):
     """
     Plot embeddings.
 
@@ -185,7 +185,7 @@ def embedding(emb,
     else:
         c = 'C0'
             
-    scatter = ax.scatter(emb[:,0], emb[:,1], c=c, alpha=alpha, s=s)
+    ax.scatter(emb[:,0], emb[:,1], c=c, alpha=alpha, s=s)
     
     if clusters is not None:
         vor = Voronoi(clusters['centroids']) 
@@ -194,13 +194,12 @@ def embedding(emb,
             ax.annotate(k+1,clusters['centroids'][k,:])
     
     if titles is not None:
-        handles,_ = scatter.legend_elements()
+        handles = [Line2D([0], [0], marker='o', color='w', label=t,
+                   markerfacecolor=list(set(c))[i], markersize=5) \
+                   for i, t in enumerate(titles)]
         ax.legend(handles, titles, loc='upper right')
         
     ax.set_axis_off()
-    if colorbar:
-        fig = plt.gcf()
-        fig.colorbar(cbar, ax=ax)
     
     return ax
         
