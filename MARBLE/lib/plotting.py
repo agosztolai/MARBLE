@@ -23,12 +23,11 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 def fields(data, 
            titles=None, 
            col=1, 
-           figsize=(10,10), 
+           figsize=(8,8), 
            keeplim=True, 
-           ax=None,
+           axis=None,
            c=None,
            alpha=0.5,
-           save=None,
            node_size=10):
     """
     Plot scalar or vector fields
@@ -50,13 +49,15 @@ def fields(data,
     row = int(np.ceil(len(data)/col))
     
     fig = plt.figure(figsize=figsize, constrained_layout=True)
-    grid = gridspec.GridSpec(row, col, wspace=0.1, hspace=0.1, figure=fig)
+    grid = gridspec.GridSpec(row, col, wspace=0., hspace=0., figure=fig)
     
     lims = None
     for i, d in enumerate(data):
         signal = d.x.detach().numpy()
-        if ax is None:
+        if axis is None:
             _, ax = create_axis(dim, grid[i], fig=fig)
+        else:
+            ax = axis
         
         G = to_networkx(d, node_attrs=['pos'], edge_attrs=None, to_undirected=True,
                 remove_self_loops=True)
@@ -96,14 +97,11 @@ def fields(data,
         if titles is not None:
             ax.set_title(titles[i])
             
-        # fig.add_subplot(ax)
+        fig.add_subplot(ax)
         
         if lims is None:
             lims = get_limits(ax)
         set_axes(ax, lims=lims, off=True)
-        
-    if save is not None:
-        savefig(fig, save)
         
     return ax
         
@@ -592,7 +590,8 @@ def set_axes(ax, lims=None, padding=0.1, off=True):
         ax.set_yticklabels([])
         ax.set_xticklabels([])
         if ax.name=="3d":
-            ax.set_zticklabels([])        
+            ax.set_zticklabels([])      
+        ax.axis('off')
     
     return ax
 

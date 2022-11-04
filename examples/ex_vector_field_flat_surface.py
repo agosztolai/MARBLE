@@ -39,7 +39,7 @@ def main():
     
     #plot
     titles=['Linear left','Linear right','Vortex right','Vortex left']
-    plotting.fields(data, titles=titles)
+    plotting.fields(data, titles=titles, col=2)
     plotting.embedding(emb, data.y.numpy(), clusters, titles=titles)
     plotting.histograms(clusters, titles=titles)
     plotting.neighbourhoods(data, clusters)

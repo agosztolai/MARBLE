@@ -11,7 +11,7 @@ def main():
     k = 20
     n_clusters = 10
     
-    par = {'batch_size': 128, #batch size
+    par = {'batch_size': 256, #batch size
            'epochs': 10, #optimisation epochs
            'order': 1, #order of derivatives
            'n_lin_layers': 2,
@@ -39,7 +39,7 @@ def main():
     
     #plot
     titles=['Constant','Linear','Parabola','Saddle']
-    plotting.fields(data, titles=titles, node_size=30)
+    plotting.fields(data, titles=titles, node_size=10)
     plotting.embedding(emb, data.y.numpy(), clusters, titles=titles)
     plotting.histograms(clusters, titles=titles)
     plotting.neighbourhoods(data, clusters, hops=1, norm=True)
