@@ -622,7 +622,7 @@ def set_colors(color, cmap=plt.cm.coolwarm):
         for i, c in enumerate(color):
             colors.append(cmap(norm(np.array(c).flatten())))
    
-    elif isinstance(color[0], int):
+    elif isinstance(color[0], (int, np.integer)):
         colors = [f"C{i}" for i in np.arange(1, color.max()+1)]
         cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, color.max()+2), 
                                                               colors)
