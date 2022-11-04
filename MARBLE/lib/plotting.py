@@ -494,7 +494,6 @@ def trajectories(X,
         _, ax = create_axis(dim)
             
     c = set_colors(node_feature)[0]
-    print(c)
     if alpha is not None:
         al=np.ones(len(X))*alpha
     elif len(c)>1 and not isinstance(c, str):
@@ -511,9 +510,8 @@ def trajectories(X,
             arrow_prop_dict = dict(color=c, alpha=al, lw=lw)
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
-            for j in range(X.shape[0]):
-                ax.quiver(X[j,0], X[j,1], V[j,0]*0.1, V[j,1]*0.1,
-                          **arrow_prop_dict)
+            ax.quiver(X[:,0], X[:,1], V[:,0]*0.1, V[:,1]*0.1,
+                      **arrow_prop_dict)
     elif dim==3:
         if 'o' in style:
             ax.scatter(X[:,0], X[:,1], X[:,2], c=c, s=ms, alpha=al)
