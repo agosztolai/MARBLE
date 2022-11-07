@@ -274,24 +274,31 @@ def compute_histogram_distances(clusters, dist_typ='Wasserstein', return_OT_matr
     return dist
 
 
-def compute_distribution_distances(data):
+def compute_distribution_distances(data, return_OT_matrix=True):
     
     pdists = pairwise_distances(data.emb)
     s = data._slice_dict['x']
     n = len(s)-1
     
     dist = np.zeros([n, n])
+    gamma = np.zeros([n, n, n, n])
     for i in range(n):
         for j in range(i+1, n):
-            mu = np.ones(s[i+1]-s[i])
+            mu = np.ones(s[i+1]-s[i]); 
+            mu /= len(mu)
             nu = np.ones(s[j+1]-s[j])
-            dist[i,j] = ot.emd2(mu/len(mu), 
-                                nu/len(nu), 
-                                pdists[s[i]:s[i+1], s[j]:s[j+1]])
+            nu /= len(nu)
+            dxy = pdists[s[i]:s[i+1], s[j]:s[j+1]]
+            dist[i,j] = ot.emd2(mu, nu, dxy)
+            if return_OT_matrix:
+                gamma[i,j,...] = ot.emd(mu, nu, dxy)
             
     dist += dist.T
     
-    return dist
+    if return_OT_matrix:
+        return dist, gamma
+    else:
+        return dist
 
 
 # =============================================================================
