@@ -285,8 +285,8 @@ def compute_distribution_distances(data, return_OT_matrix=True):
             dist[i,j] = ot.emd2(mu, nu, dxy)
             dist[j,i] = dist[i,j]
             if return_OT_matrix:
-                gamma[i,j] = ot.emd(mu, nu, dxy)
-                gamma[j,i] = gamma[i,j]
+                gamma[i,j].append(ot.emd(mu, nu, dxy))
+                gamma[j,i].append(gamma[i,j])
                 
     if return_OT_matrix:
         return dist, gamma
