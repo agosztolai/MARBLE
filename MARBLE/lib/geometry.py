@@ -223,14 +223,13 @@ def relabel_by_proximity(clusters):
     return clusters
 
 
-def compute_histogram_distances(clusters, dist_typ='Wasserstein', return_OT_matrix=True):
+def compute_histogram_distances(clusters, return_OT_matrix=True):
     """
     Compute the distance between clustered distributions across datasets.
 
     Parameters
     ----------
     clusters : clusters : sklearn object containing 'centroids', 'slices', 'labels'
-    dist_typ : Type of distance. The default is 'Wasserstein'.
     return_OT_matrix : return optimal transport matrix (for Wasserstein only)
 
     Returns
@@ -253,23 +252,17 @@ def compute_histogram_distances(clusters, dist_typ='Wasserstein', return_OT_matr
     #compute distance between measures
     dist = np.zeros([nl, nl])
     gamma = np.zeros([nl, nl, nc, nc])
-    if dist_typ == 'Wasserstein':
-        centroid_distances = pairwise_distances(clusters['centroids'])
-        for i in range(nl):
-            for j in range(i+1, nl):
-                dist[i,j] = ot.emd2(bins_dataset[i], bins_dataset[j], centroid_distances)
-                if return_OT_matrix:
-                    gamma[i,j,...] = ot.emd(bins_dataset[i], bins_dataset[j], centroid_distances)
-                
-        dist += dist.T
-        
-        if return_OT_matrix:
-            return dist, gamma
-        
-    elif dist_typ == 'KL_divergence':
-        NotImplementedError
-    else:
-        NotImplementedError
+    centroid_distances = pairwise_distances(clusters['centroids'])
+    for i in range(nl):
+        for j in range(i+1, nl):
+            dist[i,j] = ot.emd2(bins_dataset[i], bins_dataset[j], centroid_distances)
+            dist[j,i] = dist[i,j]
+            if return_OT_matrix:
+                gamma[i,j,...] = ot.emd(bins_dataset[i], bins_dataset[j], centroid_distances)
+                gamma[j,i,...] = gamma[i,j,...]
+                        
+    if return_OT_matrix:
+        return dist, gamma
     
     return dist
 
@@ -279,10 +272,9 @@ def compute_distribution_distances(data, return_OT_matrix=True):
     pdists = pairwise_distances(data.emb)
     s = data._slice_dict['x']
     nl = len(s)-1
-    n = data.x.shape[0]
     
     dist = np.zeros([nl, nl])
-    gamma = np.zeros([nl, nl, n, n])
+    gamma = [[[] for n in range(nl)] for n in range(nl)]
     for i in range(nl):
         for j in range(i+1, nl):
             mu = np.ones(s[i+1]-s[i]); 
@@ -291,11 +283,11 @@ def compute_distribution_distances(data, return_OT_matrix=True):
             nu /= len(nu)
             dxy = pdists[s[i]:s[i+1], s[j]:s[j+1]]
             dist[i,j] = ot.emd2(mu, nu, dxy)
+            dist[j,i] = dist[i,j]
             if return_OT_matrix:
-                gamma[i,j,...] = ot.emd(mu, nu, dxy)
-            
-    dist += dist.T
-    
+                gamma[i,j] = ot.emd(mu, nu, dxy)
+                gamma[j,i] = gamma[i,j]
+                
     if return_OT_matrix:
         return dist, gamma
     else:
