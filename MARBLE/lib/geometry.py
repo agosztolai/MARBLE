@@ -256,7 +256,7 @@ def compute_histogram_distances(clusters, dist_typ='Wasserstein', return_OT_matr
     if dist_typ == 'Wasserstein':
         centroid_distances = pairwise_distances(clusters['centroids'])
         for i in range(nl):
-            for j in range(i+1,nl):
+            for j in range(i+1, nl):
                 dist[i,j] = ot.emd2(bins_dataset[i], bins_dataset[j], centroid_distances)
                 if return_OT_matrix:
                     gamma[i,j,...] = ot.emd(bins_dataset[i], bins_dataset[j], centroid_distances)
@@ -278,12 +278,13 @@ def compute_distribution_distances(data, return_OT_matrix=True):
     
     pdists = pairwise_distances(data.emb)
     s = data._slice_dict['x']
-    n = len(s)-1
+    nl = len(s)-1
+    n = data.x.shape[0]
     
-    dist = np.zeros([n, n])
-    gamma = np.zeros([n, n, n, n])
-    for i in range(n):
-        for j in range(i+1, n):
+    dist = np.zeros([nl, nl])
+    gamma = np.zeros([nl, nl, n, n])
+    for i in range(nl):
+        for j in range(i+1, nl):
             mu = np.ones(s[i+1]-s[i]); 
             mu /= len(mu)
             nu = np.ones(s[j+1]-s[j])
