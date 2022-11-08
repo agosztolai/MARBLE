@@ -453,7 +453,7 @@ def trajectories(X,
                  ms=5, 
                  arrowhead=1, 
                  arrow_spacing=1,
-                 axis=False, 
+                 axis=True, 
                  alpha=None):
     """
     Plot trajectory in phase space. If multiple trajectories
