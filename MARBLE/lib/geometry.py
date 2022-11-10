@@ -196,7 +196,7 @@ def embed(x, embed_typ='umap', manifold=None):
         
     print('Performed {} embedding on embedded results.'.format(embed_typ))
     
-    return emb, manifold
+    return emb, manifold    
 
 
 def relabel_by_proximity(clusters):

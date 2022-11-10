@@ -172,17 +172,17 @@ def embedding(emb,
     if ax is None:
         fig, ax = create_axis(2)
     
-    assert emb.shape[0]==len(labels)
+    if labels is not None:
+        assert emb.shape[0]==len(labels)
+    else:
+        labels = np.arange(emb.shape[0])
     
     #for more than 1000 nodes, choose randomly
     if len(labels) > 1000:
-        idx = np.random.choice(np.arange(len(labels)), size=1000)
+        idx = np.random.choice(labels, size=1000)
         emb, labels = emb[idx], labels[idx]
      
-    if labels is not None:        
-        c, cbar = set_colors(labels)
-    else:
-        c = 'C0'
+    c, cbar = set_colors(labels)
             
     types = set(labels)
     for i, typ in enumerate(types):
@@ -202,6 +202,9 @@ def embedding(emb,
     ax.set_axis_off()
     
     return ax
+
+
+
         
         
 def neighbourhoods(data,
@@ -595,7 +598,7 @@ def set_axes(ax, lims=None, padding=0.1, off=True):
 def set_colors(color, cmap=plt.cm.coolwarm):
     
     if color is None:
-        return 'C0', None
+        return 'k', None
     else:
         assert isinstance(color, (list, tuple, np.ndarray))
         
