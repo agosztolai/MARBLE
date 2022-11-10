@@ -13,8 +13,7 @@ def main():
     k = 15
     n_clusters = 10
     
-    par = {'batch_size': 256, #batch size
-           'epochs': 10, #optimisation epochs
+    par = {'epochs': 10, #optimisation epochs
            'order': 1, #order of derivatives
            'n_lin_layers': 2,
            'hidden_channels': 16, #number of internal dimensions in MLP
@@ -35,7 +34,7 @@ def main():
     
     #evaluate model on data
     data = model.evaluate(data)
-    emb, clusters, dist, _ = geometry.cluster_embedding(data, n_clusters=n_clusters)
+    emb, _, clusters, dist, _ = geometry.cluster_embedding(data, n_clusters=n_clusters)
     
     #plot
     titles=['Linear left','Linear right','Vortex right','Vortex left']

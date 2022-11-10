@@ -39,16 +39,23 @@ def setup_layers(model):
     channel_list = [cum_channels] + \
                     (par['n_lin_layers']-1) * [par['hidden_channels']] + \
                     [par['out_channels']]
-    if par['pretrained']:
-        enc = autoencoder(channel_list)
-    else:
-        enc = MLP(channel_list=channel_list,
-                  dropout=par['dropout'],
-                  norm=par['batch_norm'],
-                  bias=par['bias']
-                  )
+
+    enc = MLP(channel_list=channel_list,
+              dropout=par['dropout'],
+              norm=par['batch_norm'],
+              bias=par['bias']
+              )
     
-    return diffusion, grad, enc, ip
+    dec = MLP(channel_list=channel_list[::-1],
+              dropout=par['dropout'],
+              norm=par['batch_norm'],
+              bias=par['bias']
+              )
+    
+    if par['autoencoder']:
+        return diffusion, grad, ip, enc, dec
+    else:
+        return diffusion, grad, ip, enc, None
 
 
 # =============================================================================
@@ -156,20 +163,6 @@ def expand_adjacenecy_matrix(edge_index, dim):
     edge_index = tgu.sparse.dense_to_sparse(adj)[0]
     
     return edge_index
-    
-    
-class autoencoder(nn.Module):
-    """Autoencoder to initialise weights"""
-    def __init__(self, channel_list):
-        super().__init__()
-         
-        self.encoder = MLP(channel_list=channel_list)
-        self.decoder = MLP(channel_list=channel_list[::-1])
- 
-    def forward(self, x):
-        encoded = self.encoder(x)
-        decoded = self.decoder(encoded)
-        return decoded
 
     
 class InnerProductFeatures(nn.Module):

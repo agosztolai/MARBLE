@@ -176,7 +176,7 @@ def embedding(emb,
         assert emb.shape[0]==len(labels)
         #for more than 1000 nodes, choose randomly
         if len(labels) > 1000:
-            idx = np.random.choice(np.arange(labels), size=1000)
+            idx = np.random.choice(np.arange(len(labels)), size=1000)
             emb, labels = emb[idx], labels[idx]
 
     color, cbar = set_colors(labels)

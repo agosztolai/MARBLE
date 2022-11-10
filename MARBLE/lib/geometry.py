@@ -89,7 +89,7 @@ def furthest_point_sampling(x, N=None, stop_crit=0.1):
 # =============================================================================
 def cluster_embedding(data,
                       cluster_typ='kmeans', 
-                      embed_typ='tsne', 
+                      embed_typ='umap', 
                       n_clusters=15, 
                       manifold=None,
                       seed=0):
