@@ -91,6 +91,7 @@ def cluster_embedding(data,
                       cluster_typ='kmeans', 
                       embed_typ='tsne', 
                       n_clusters=15, 
+                      manifold=None,
                       seed=0):
     """
     Cluster embedding and return distance between clusters
@@ -115,10 +116,10 @@ def cluster_embedding(data,
     
     #embed into 2D via t-SNE for visualisation
     emb = np.vstack([emb, clusters['centroids']])
-    emb = embed(emb, embed_typ)  
+    emb, manifold = embed(emb, embed_typ, manifold)  
     emb, clusters['centroids'] = emb[:-n_clusters], emb[-n_clusters:]
         
-    return emb, clusters, dist, gamma
+    return emb, manifold, clusters, dist, gamma
 
 
 def cluster(x, cluster_typ='kmeans', n_clusters=15, seed=0):
