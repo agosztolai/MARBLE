@@ -174,17 +174,20 @@ def embedding(emb,
     
     if labels is not None:
         assert emb.shape[0]==len(labels)
-    else:
-        labels = np.arange(emb.shape[0])
-    
-    #for more than 1000 nodes, choose randomly
-    if len(labels) > 1000:
-        idx = np.random.choice(labels, size=1000)
-        emb, labels = emb[idx], labels[idx]
-     
+        #for more than 1000 nodes, choose randomly
+        if len(labels) > 1000:
+            idx = np.random.choice(np.arange(labels), size=1000)
+            emb, labels = emb[idx], labels[idx]
+
     c, cbar = set_colors(labels)
+    
+    if labels is None:
+        labels = np.ones(emb.shape[0])
             
     types = set(labels)
+    if titles is not None:
+        assert len(titles)==len(types)
+        
     for i, typ in enumerate(types):
         ind = np.where(labels==typ)[0]
         title = titles[i] if titles is not None else str(typ)
