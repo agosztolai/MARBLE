@@ -150,7 +150,7 @@ def cluster(x, cluster_typ='kmeans', n_clusters=15, seed=0):
     return clusters
 
 
-def embed(x, embed_typ='umap'):
+def embed(x, embed_typ='umap', manifold=None):
     """
     Embed data to 2D space.
 
@@ -172,20 +172,29 @@ def embed(x, embed_typ='umap'):
     
     if embed_typ == 'tsne': 
         x = StandardScaler().fit_transform(x)
+        if manifold is not None:
+            raise Exception('t-SNE cannot fit on existing manifold')
+            
         emb = TSNE(init='random',learning_rate='auto').fit_transform(x)
             
     elif embed_typ == 'umap':
         x = StandardScaler().fit_transform(x)
-        emb = umap.UMAP().fit_transform(x)
+        if manifold is None:
+            manifold = umap.UMAP().fit(x)
+            
+        emb = manifold.transform(x)
         
     elif embed_typ == 'MDS':
+        if manifold is not None:
+            raise Exception('t-SNE cannot fit on existing manifold')
+            
         emb = MDS(n_components=2, n_init=20, dissimilarity='precomputed').fit_transform(x)
     else:
         NotImplementedError
         
     print('Performed {} embedding on embedded results.'.format(embed_typ))
     
-    return emb
+    return emb, manifold
 
 
 def relabel_by_proximity(clusters):
