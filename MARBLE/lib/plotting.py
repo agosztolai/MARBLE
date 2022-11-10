@@ -607,6 +607,7 @@ def set_colors(color, cmap=plt.cm.coolwarm):
         assert isinstance(color, (list, tuple, np.ndarray))
         
     if isinstance(color[0], (float, np.floating)):
+        color = np.array(color)
         if (color>=0).all():
             norm = plt.cm.colors.Normalize(0, np.max(np.abs(color)))
         else:    
@@ -619,7 +620,7 @@ def set_colors(color, cmap=plt.cm.coolwarm):
     elif isinstance(color[0], (int, np.integer)):
         colors = [f"C{i}" for i in color]
         cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, len(color)+2), 
-                                                              colors)       
+                                                              colors)
     cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
             
     return colors, cbar
