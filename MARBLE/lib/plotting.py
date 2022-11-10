@@ -607,11 +607,7 @@ def set_colors(color, cmap=plt.cm.coolwarm):
         assert isinstance(color, (list, tuple, np.ndarray))
         
     if isinstance(color[0], (float, np.floating)):
-        color = np.array(color)
-        if (color>=0).all():
-            norm = plt.cm.colors.Normalize(0, np.max(np.abs(color)))
-        else:    
-            norm = plt.cm.colors.Normalize(-np.max(np.abs(color)), np.max(np.abs(color)))
+        norm = plt.cm.colors.Normalize(-np.max(np.abs(color)), np.max(np.abs(color)))
         
         colors = []
         for i, c in enumerate(color):
