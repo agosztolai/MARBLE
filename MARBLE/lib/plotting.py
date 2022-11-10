@@ -179,7 +179,7 @@ def embedding(emb,
             idx = np.random.choice(np.arange(labels), size=1000)
             emb, labels = emb[idx], labels[idx]
 
-    c, cbar = set_colors(labels)
+    color, cbar = set_colors(labels)
     
     if labels is None:
         labels = np.ones(emb.shape[0])
@@ -191,7 +191,8 @@ def embedding(emb,
     for i, typ in enumerate(types):
         ind = np.where(labels==typ)[0]
         title = titles[i] if titles is not None else str(typ)
-        ax.scatter(emb[ind,0], emb[ind,1], c=np.array(c)[ind], alpha=alpha, s=s, label=title)
+        c = np.array(color)[ind] if not isinstance(color, str) else color 
+        ax.scatter(emb[ind,0], emb[ind,1], c=c, alpha=alpha, s=s, label=title)
     
     if clusters is not None:
         vor = Voronoi(clusters['centroids']) 
