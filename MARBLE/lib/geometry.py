@@ -190,6 +190,7 @@ def embed(x, embed_typ='umap', manifold=None):
             raise Exception('t-SNE cannot fit on existing manifold')
             
         emb = MDS(n_components=2, n_init=20, dissimilarity='precomputed').fit_transform(x)
+        
     else:
         NotImplementedError
         
