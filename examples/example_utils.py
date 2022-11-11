@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.neighbors import KDTree
 from scipy.spatial.transform import Rotation as R
 
-from MARBLE import utils
+from MARBLE import utils, geometry, plotting
 
 
 """Some functions that are used for the exampels"""
@@ -97,3 +97,27 @@ def nb_query(inputs, i):
     ind =   ind[np.abs(ind-ind_query)>theiler][:nn]
             
     return dist, ind
+
+
+def reject_outliers(*args, min_v=-3, max_v=3):
+    inds = []
+    for arg in args:
+        inds.append(np.where((arg>min_v).all(1)*(arg<max_v).all(1))[0])
+        
+    return list(set.intersection(*map(set,inds)))
+
+
+def initial_conditions(n, reps, area = [[-3,-3],[3,3]] ):
+    X0_range = [geometry.sample_2d(n, area, 'random', seed=i) for i in range(reps)]
+        
+    return X0_range
+
+
+def plot_phase_portrait(pos, vel, ax=None, node_feature=None):
+    if not isinstance(pos, list):
+        pos = [pos]
+    if not isinstance(vel, list):
+        vel = [vel]
+
+    for p, v in zip(pos, vel):
+        ax = plotting.trajectories(p, v, ax=ax, style='>', node_feature=node_feature, lw=2, arrowhead=.1, axis=False, alpha=1.)
