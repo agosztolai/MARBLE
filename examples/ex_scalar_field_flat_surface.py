@@ -11,7 +11,7 @@ def main():
     k = 30
     n_clusters = 16
     
-    par = {'epochs': 20, #optimisation epochs
+    par = {'epochs': 30, #optimisation epochs
            'order': 1, #order of derivatives
            'n_lin_layers': 1,
            'hidden_channels': 8, #number of internal dimensions in MLP

@@ -1,7 +1,7 @@
 #training parameters
-batch_size : 64 #batch size
+batch_size : 32 #batch size
 epochs : 20, #optimisation epochs
-lr: 0.01 #learning rate
+lr: 0.001 #learning rate
 autoencoder: False
 
 #manifold/signal parameters

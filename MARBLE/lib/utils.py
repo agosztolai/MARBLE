@@ -33,7 +33,7 @@ def construct_dataset(pos, features, graph_type='cknn', k=10, stop_crit=0.0):
     else:
         num_node_features = None
         
-    data_list, count = [], 0
+    data_list = []
     for i, (p, f) in enumerate(zip(pos, features)):
         #even sampling of points
         sample_ind, _ = geometry.furthest_point_sampling(p, stop_crit=stop_crit)
