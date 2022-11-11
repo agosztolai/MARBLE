@@ -23,7 +23,7 @@ class net(nn.Module):
         self.R, self.kernels, self.L, self.Lc, self.par = preprocessing(data, self.par)
         self.diffusion, self.grad, self.inner_products, self.enc, self.dec = \
             layers.setup_layers(self)      
-        # self.loss = loss_fun()       
+        self.loss = loss_fun()       
         self.reset_parameters()
         
         utils.print_settings(self)
@@ -77,7 +77,11 @@ class net(nn.Module):
         else:
             out = torch.cat(out, axis=1)     
                     
-        return self.enc(out), out
+        emb = self.enc(out)
+        if self.par['autoencoder']:
+            return emb, out, self.dec(emb)
+        else:
+            return emb, None, None
     
     
     def evaluate(self, data):
@@ -92,13 +96,13 @@ class net(nn.Module):
             adjs = [adj.to(device) for adj in adjs]
             x = data.x.to(device)
             
-            emb, _ = self.forward(x, None, adjs)
+            emb, _, _ = self.forward(x, None, adjs)
             data.emb = emb.detach().cpu()
             
             return data
                 
 
-    def batch_loss(self, x, loader, loss_function, optimizer=None):
+    def batch_loss(self, x, loader, optimizer=None):
         """Loop over minibatches provided by loader function.
         
         Parameters
@@ -115,8 +119,8 @@ class net(nn.Module):
             _, n_id, adjs = batch
             adjs = [adj.to(x.device) for adj in utils.to_list(adjs)]
                         
-            enc_out, out = self.forward(x, n_id, adjs)
-            loss = loss_function(enc_out, out)
+            enc_out, out, dec_out = self.forward(x, n_id, adjs)
+            loss = self.loss(enc_out, out, dec_out)
             cum_loss += float(loss)
             
             if optimizer is not None:
@@ -145,10 +149,10 @@ class net(nn.Module):
         for epoch in range(self.par['epochs']):
                             
             self.train() #training mode
-            train_loss, optimizer = self.batch_loss(x, train_loader, loss_fun, optimizer)
+            train_loss, optimizer = self.batch_loss(x, train_loader, optimizer)
                                     
             self.eval() #testing mode (disables dropout in MLP)
-            val_loss, _ = self.batch_loss(x, val_loader, loss_fun)
+            val_loss, _ = self.batch_loss(x, val_loader)
             val_loss /= (sum(data.val_mask)/sum(data.train_mask))
                 
             writer.add_scalar('Loss/train', train_loss, epoch)
@@ -156,26 +160,30 @@ class net(nn.Module):
             print("Epoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}" \
                   .format(epoch+1, train_loss, val_loss))
             
-        test_loss, _ = self.batch_loss(x, test_loader, loss_fun)
+        test_loss, _ = self.batch_loss(x, test_loader)
         test_loss /= (sum(data.test_mask)/sum(data.train_mask))
         print('Final test loss: {:.4f}'.format(test_loss))
     
 
-def loss_fun(out, *args):
-    """Unsupervised loss modified from from GraphSAGE (Hamilton et al. 2018.)"""
-    
-    z, z_pos, z_neg = out.split(out.size(0) // 3, dim=0)
-    pos_loss = F.logsigmoid((z * z_pos).sum(-1)).mean()
-    neg_loss = F.logsigmoid(-(z * z_neg).sum(-1)).mean()
-    
-    return -pos_loss -neg_loss    
+class loss_fun(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.mse = nn.MSELoss()
+        self.lamb = nn.Parameter(torch.tensor(0.5))
 
-
-def loss_fun_autoencoder(out, *args):
+    def forward(self, out, *args):
+        
+        with torch.no_grad():
+            self.lamb.data = torch.clamp(self.lamb, min=1e-8, max=1-1e-8)
     
-    zhat, _, _ = out.split(out.size(0) // 3, dim=0)
-    z, _, _ = args[0].split(out.size(0) // 3, dim=0)
-    
-    loss = torch.nn.MSELoss()
-    
-    return loss(z, zhat)
+        z, z_pos, z_neg = out.split(out.size(0) // 3, dim=0)
+        pos_loss = F.logsigmoid((z * z_pos).sum(-1)).mean()
+        neg_loss = F.logsigmoid(-(z * z_neg).sum(-1)).mean()
+        
+        if args[0] is None:
+            return -pos_loss -neg_loss
+        
+        x, _, _ = args[0].split(out.size(0) // 3, dim=0)
+        xhat, _, _ = args[1].split(out.size(0) // 3, dim=0)
+        
+        return self.lamb*self.mse(x, xhat) + (1-self.lamb)*(-pos_loss -neg_loss)
