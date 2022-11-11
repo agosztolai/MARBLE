@@ -51,7 +51,7 @@ def postprocessing(data,
 
 def compare_attractors(data, source_target):
     
-    assert hasattr(data, ('emb_2d', 'gamma', 'clusters', 'cdist')), \
+    assert all(hasattr(data, attr) for attr in ['emb_2d', 'gamma', 'clusters', 'cdist']), \
         'It looks like postprocessing has not been run...'
     
     s, t = source_target
