@@ -66,12 +66,12 @@ def check_parameters(par, data):
         assert data.x.shape[1]>1, 'Using vec_norm=True is \
         not permitted for scalar signals'
         
-    pars = ['batch_size', 'epochs', 'lr', 'pretrained', 'order', 'vector', \
+    pars = ['batch_size', 'epochs', 'lr', 'autoencoder', 'order', 'vector', \
             'inner_product_features', 'vector', 'diffusion', 'frac_geodesic_nb', \
             'frac_sampled_nb', 'var_explained', 'dropout', 'n_lin_layers', \
             'hidden_channels', 'out_channels', 'bias', 'vec_norm', 'batch_norm' , \
             'seed','dim_man', 'dim_emb', 'dim_signal', 'n_geodesic_nb', \
-            'n_sampled_nb', 'processes', 'diffusion_method', 'second_training']
+            'n_sampled_nb', 'processes']
         
     for p in par.keys():
         assert p in pars, 'Unknown specified parameter {}!'.format(p)
@@ -90,10 +90,8 @@ def print_settings(model):
         print (x,':',model.par[x])
             
     n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    if par['pretrained']:
-        n_features = model.enc.encoder.in_channels
-    else:
-        n_features = model.enc.in_channels
+    n_features = model.enc.in_channels
+    
     print('\n---- Number of features to pass to the MLP: ', n_features)
     print('---- Total number of parameters: ', n_parameters)
     

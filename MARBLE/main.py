@@ -17,21 +17,14 @@ from . import preprocessing, layers, dataloader
 
 """Main network"""
 class net(nn.Module):
-    def __init__(self,
-                 data,
-                 **kwargs):
+    def __init__(self, data, **kwargs):
         super(net, self).__init__()
         
-        #parameters
         self.par = utils.parse_parameters(data, kwargs)
-        
-        #preprocessing
         self.R, self.kernels, self.L, self.Lc, self.par = preprocessing(data, self.par)
-        
-        #layers
-        self.diffusion, self.grad, self.enc, self.inner_products = \
-            layers.setup_layers(self)
-            
+        self.diffusion, self.grad, self.inner_products, self.enc, self.dec = \
+            layers.setup_layers(self)      
+        # self.loss = loss_fun()       
         self.reset_parameters()
         
         utils.print_settings(self)
@@ -145,57 +138,28 @@ class net(nn.Module):
         
         writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
         
-        if self.par['pretrained']:
-            print('\n---- Pretraining encoder ... \n')
-            self.train_autoencoder = True
+        print('\n---- Training network ... \n')
             
-            loader = dataloader.loaders(data, self.par, split=False)
+        train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.par['lr'])
             
-            #disable all modules except autoencoder
-            enc = copy.deepcopy(self.enc)
-            for p in self.parameters():
-                p.requires_grad = False
-                
-            self.enc = enc
-                  
-            optimizer = torch.optim.Adam(self.parameters(), lr=self.par['lr'])
-            
-            for epoch in range(self.par['epochs']):
-                self.train() #training mode
-                loss, optimizer = self.batch_loss(x, loader, loss_fun_autoencoder, optimizer)
-                print("Epoch: {}, reconstruction loss: {:.4f}" \
-                      .format(epoch+1, loss))
-                    
-            self.enc = self.enc.encoder
-                    
-            #enable all modules except autoencoder
-            for p in self.parameters():
-                p.requires_grad = True
-                
-        
-        if self.par['second_training']:
-            print('\n---- Training network ... \n')
-            
-            train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
-            optimizer = torch.optim.Adam(self.parameters(), lr=self.par['lr'])
-            
-            for epoch in range(self.par['epochs']):
+        for epoch in range(self.par['epochs']):
                             
-                self.train() #training mode
-                train_loss, optimizer = self.batch_loss(x, train_loader, loss_fun, optimizer)
+            self.train() #training mode
+            train_loss, optimizer = self.batch_loss(x, train_loader, loss_fun, optimizer)
                                     
-                self.eval() #testing mode (disables dropout in MLP)
-                val_loss, _ = self.batch_loss(x, val_loader, loss_fun)
-                val_loss /= (sum(data.val_mask)/sum(data.train_mask))
+            self.eval() #testing mode (disables dropout in MLP)
+            val_loss, _ = self.batch_loss(x, val_loader, loss_fun)
+            val_loss /= (sum(data.val_mask)/sum(data.train_mask))
                 
-                writer.add_scalar('Loss/train', train_loss, epoch)
-                writer.add_scalar('Loss/validation', val_loss, epoch)
-                print("Epoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}" \
-                      .format(epoch+1, train_loss, val_loss))
+            writer.add_scalar('Loss/train', train_loss, epoch)
+            writer.add_scalar('Loss/validation', val_loss, epoch)
+            print("Epoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}" \
+                  .format(epoch+1, train_loss, val_loss))
             
-            test_loss, _ = self.batch_loss(x, test_loader, loss_fun)
-            test_loss /= (sum(data.test_mask)/sum(data.train_mask))
-            print('Final test loss: {:.4f}'.format(test_loss))
+        test_loss, _ = self.batch_loss(x, test_loader, loss_fun)
+        test_loss /= (sum(data.test_mask)/sum(data.train_mask))
+        print('Final test loss: {:.4f}'.format(test_loss))
     
 
 def loss_fun(out, *args):
