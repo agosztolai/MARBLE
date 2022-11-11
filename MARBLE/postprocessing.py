@@ -51,8 +51,8 @@ def postprocessing(data,
 
 def compare_attractors(data, source_target):
     
-    assert hasattr(data, ('emb_2d', )), 'No clusters found. First, run \
-        geometry.cluster(data) or postprocessing(data)!'
+    assert hasattr(data, ('emb_2d', 'gamma', 'clusters', 'cdist')), \
+        'It looks like postprocessing has not been run...'
     
     s, t = source_target
     slices = data._slice_dict['x']
