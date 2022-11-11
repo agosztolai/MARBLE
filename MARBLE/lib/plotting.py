@@ -460,7 +460,7 @@ def trajectories(X,
                  arrowhead=1, 
                  arrow_spacing=1,
                  axis=True, 
-                 alpha=1.):
+                 alpha=None):
     """
     Plot trajectory in phase space. If multiple trajectories
     are given, they are plotted with different colors.
@@ -493,25 +493,31 @@ def trajectories(X,
         _, ax = create_axis(dim)
             
     c = set_colors(node_feature)[0]
+    if alpha is not None:
+        al=np.ones(len(X))*alpha
+    elif len(c)>1 and not isinstance(c, str):
+        al=np.abs(node_feature)/np.max(np.abs(node_feature))
+    else:
+        al=1
                 
     if dim==2:
         if 'o' in style:
-            ax.scatter(X[:,0], X[:,1], c=c, s=ms, alpha=alpha)
+            ax.scatter(X[:,0], X[:,1], c=c, s=ms, alpha=al)
         if '-' in style:
-            ax.plot(X[:,0], X[:,1], c=c, linewidth=lw, markersize=ms, alpha=alpha)
+            ax.plot(X[:,0], X[:,1], c=c, linewidth=lw, markersize=ms, alpha=al)
         if '>' in style:
-            arrow_prop_dict = dict(color=c, alpha=alpha, lw=lw)
+            arrow_prop_dict = dict(color=c, alpha=al, lw=lw)
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
             ax.quiver(X[:,0], X[:,1], V[:,0]*0.1, V[:,1]*0.1,
                       **arrow_prop_dict)
     elif dim==3:
         if 'o' in style:
-            ax.scatter(X[:,0], X[:,1], X[:,2], c=c, s=ms, alpha=alpha)
+            ax.scatter(X[:,0], X[:,1], X[:,2], c=c, s=ms, alpha=al)
         if '-' in style:
-            ax.plot(X[:,0], X[:,1], X[:,2], c=c, linewidth=lw, markersize=ms, alpha=alpha)
+            ax.plot(X[:,0], X[:,1], X[:,2], c=c, linewidth=lw, markersize=ms, alpha=al)
         if '>' in style:
-            arrow_prop_dict = dict(mutation_scale=arrowhead, arrowstyle='-|>', color=c, alpha=alpha, lw=lw)
+            arrow_prop_dict = dict(mutation_scale=arrowhead, arrowstyle='-|>', color=c, alpha=al, lw=lw)
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
             for j in range(X.shape[0]):
