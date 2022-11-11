@@ -11,12 +11,11 @@ def main():
     k = 30
     n_clusters = 16
     
-    par = {'batch_size': 256, #batch size
-           'epochs': 20, #optimisation epochs
+    par = {'epochs': 20, #optimisation epochs
            'order': 1, #order of derivatives
-           'n_lin_layers': 2,
-           'hidden_channels': 16, #number of internal dimensions in MLP
-           'out_channels': 8,
+           'n_lin_layers': 1,
+           'hidden_channels': 8, #number of internal dimensions in MLP
+           'out_channels': 3,
            'inner_product_features': False,
            }
     

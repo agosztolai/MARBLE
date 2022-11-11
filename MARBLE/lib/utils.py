@@ -22,7 +22,7 @@ from tqdm import tqdm
 from . import geometry
 
 
-def construct_dataset(pos, features, graph_type='cknn', k=10):
+def construct_dataset(pos, features, graph_type='cknn', k=10, stop_crit=0.0):
     """Construct PyG dataset from node positions and features"""
                 
     pos = [torch.tensor(p).float() for p in to_list(pos)]
@@ -33,16 +33,20 @@ def construct_dataset(pos, features, graph_type='cknn', k=10):
     else:
         num_node_features = None
         
-    data_list = []
-    for i, p in enumerate(pos):
+    data_list, count = [], 0
+    for i, (p, f) in enumerate(zip(pos, features)):
+        #even sampling of points
+        sample_ind, _ = geometry.furthest_point_sampling(p, stop_crit=stop_crit)
+        p, f = p[sample_ind], f[sample_ind]
+        
         #fit graph to point cloud
         edge_index, edge_weight = geometry.fit_graph(p, 
                                                      graph_type=graph_type, 
                                                      par=k
                                                      )
         n = len(p)  
-        data_ = Data(pos=pos[i], #positions
-                     x=features[i], #features
+        data_ = Data(pos=p, #positions
+                     x=f, #features
                      edge_index=edge_index,
                      edge_weight=edge_weight,
                      num_nodes = n,
