@@ -136,8 +136,8 @@ class net(nn.Module):
                 optimizer.zero_grad() #zero gradients, otherwise accumulates
                 loss.backward() #backprop
                 optimizer.step()
-                
-        return cum_loss, optimizer
+                                
+        return cum_loss/len(loader), optimizer
     
     
     def run_training(self, data):
@@ -162,7 +162,6 @@ class net(nn.Module):
             
             self.eval() #testing mode (disables dropout in MLP)
             val_loss, _ = self.batch_loss(x, val_loader)
-            val_loss /= (sum(data.val_mask)/sum(data.train_mask))
             
             writer.add_scalar('Loss/train', train_loss, epoch)
             writer.add_scalar('Loss/validation', val_loss, epoch)
@@ -170,7 +169,6 @@ class net(nn.Module):
                   .format(epoch+1, train_loss, val_loss))
         
         test_loss, _ = self.batch_loss(x, test_loader)
-        test_loss /= (sum(data.test_mask)/sum(data.train_mask))
         print('Final test loss: {:.4f}'.format(test_loss))
     
 

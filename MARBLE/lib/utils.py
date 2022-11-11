@@ -67,6 +67,8 @@ def construct_dataset(pos, features, graph_type='cknn', k=10, stop_crit=0.0):
     val_mask = torch.zeros(len(batch.x), dtype=bool)
     test_mask = torch.zeros(len(batch.x), dtype=bool)
     
+    print('\n---- Total # of points: {}'.format(batch.num_nodes))
+    
     ns = len(batch.sample_ind)
     if ns==batch.num_nodes:
         shuffle = torch.randperm(ns)
@@ -79,13 +81,12 @@ def construct_dataset(pos, features, graph_type='cknn', k=10, stop_crit=0.0):
         not_train_ind = not_train_ind[torch.randperm(len(not_train_ind))]
         val_mask[not_train_ind[:int(.1*ns)]] = True
         test_mask[not_train_ind[int(.1*ns):int(.2*ns)]] = True
+        
+        print('---- # evenly sampled training points: {}'.format(train_mask.sum()))
+        print('---- # randomly sampled validation points: {}'.format(val_mask.sum()))
+        print('---- # randomly test points: {} \n'.format(test_mask.sum()))
           
     batch.train_mask, batch.val_mask, batch.test_mask = train_mask, val_mask, test_mask
-    
-    print('\n---- Total # of points: {}'.format(batch.num_nodes))
-    print('---- # training points: {}'.format(train_mask.sum()))
-    print('---- # validation points: {}'.format(val_mask.sum()))
-    print('---- # test points: {} \n'.format(test_mask.sum()))
     
     return batch
 
