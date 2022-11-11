@@ -4,6 +4,7 @@
 from .lib import plotting
 from .lib import geometry as g
 import numpy as np
+import matplotlib.pyplot as plt
 
 def postprocessing(data,
                    cluster_typ='kmeans', 
@@ -48,7 +49,7 @@ def postprocessing(data,
     return data
 
 
-def compare_attractors(data, source_target, ax=None):
+def compare_attractors(data, source_target):
     
     s, t = source_target
     slices = data._slice_dict['x']
@@ -59,8 +60,7 @@ def compare_attractors(data, source_target, ax=None):
     assert s<n_slices-2 and t<n_slices-1, 'Source and target must be < number of slices!'
     assert s!=t, 'Source and target must be different!'
     
-    if ax is None:
-        _, ax = plt.subplots(1, 3, figsize=(10,5))
+    _, ax = plt.subplots(1, 3, figsize=(10,5))
     
     #color code features
     gammadist = data.gamma[s,t,...]*data.cdist
@@ -76,9 +76,10 @@ def compare_attractors(data, source_target, ax=None):
     
     plotting.embedding(data.emb_2d, ax=ax[0], alpha=0.05)
     plotting.embedding(data.emb_2d[s_s], labels=labels, ax=ax[0], alpha=1.)
-    
-    plot_phase_portrait(data.pos[s_s], data.x[s_s], ax[1], node_feature=labels)
-    
+    prop_dict = dict(style='>', node_feature=labels, lw=2, arrowhead=.1, \
+                           axis=False, alpha=1.)
+    plotting.trajectories(data.pos[s_s], data.x[s_s], ax=ax[1], **prop_dict)
+        
     c = gammadist.sum(0)
     cluster_ids = set(data.clusters['labels'][s_t])
     labels = [i for i in s_t]
@@ -88,5 +89,4 @@ def compare_attractors(data, source_target, ax=None):
             labels[i] = -c[cid]
     
     plotting.embedding(data.emb_2d[s_t], labels=labels, ax=ax[0], alpha=1.)
-    
-    plot_phase_portrait(data.pos[s_t], data.x[s_t], ax[2], node_feature=labels)
+    plotting.trajectories(data.pos[s_t], data.x[s_t], ax=ax[2],**prop_dict)
