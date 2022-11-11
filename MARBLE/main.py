@@ -109,7 +109,6 @@ class net(nn.Module):
         ----------
         x : (nxdim) feature matrix
         loader : dataloader object from dataloader.py
-        loss_function : loss function
         optimizer : pytorch optimiser
         
         """
@@ -127,8 +126,8 @@ class net(nn.Module):
                 optimizer.zero_grad() #zero gradients, otherwise accumulates
                 loss.backward() #backprop
                 optimizer.step()
-                
-        return cum_loss, optimizer
+                                
+        return cum_loss/len(loader), optimizer
     
     
     def run_training(self, data):
@@ -139,29 +138,27 @@ class net(nn.Module):
         self = self.to(device)
         x = data.x.to(device)
         
-        writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
+        writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))         
         
         print('\n---- Training network ... \n')
             
         train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
         optimizer = torch.optim.Adam(self.parameters(), lr=self.par['lr'])
-            
+        
         for epoch in range(self.par['epochs']):
-                            
+            
             self.train() #training mode
             train_loss, optimizer = self.batch_loss(x, train_loader, optimizer)
-                                    
+            
             self.eval() #testing mode (disables dropout in MLP)
             val_loss, _ = self.batch_loss(x, val_loader)
-            val_loss /= (sum(data.val_mask)/sum(data.train_mask))
-                
+            
             writer.add_scalar('Loss/train', train_loss, epoch)
             writer.add_scalar('Loss/validation', val_loss, epoch)
             print("Epoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}" \
                   .format(epoch+1, train_loss, val_loss))
-            
+        
         test_loss, _ = self.batch_loss(x, test_loader)
-        test_loss /= (sum(data.test_mask)/sum(data.train_mask))
         print('Final test loss: {:.4f}'.format(test_loss))
     
 
