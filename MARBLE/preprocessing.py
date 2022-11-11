@@ -40,7 +40,7 @@ def preprocessing(data, par):
     
     #Laplacian
     L = g.compute_laplacian(data)
-    if par['diffusion'] == 'spectral':
+    if par['diffusion_method'] == 'spectral':
         L = g.compute_eigendecomposition(L)
     
     #connections

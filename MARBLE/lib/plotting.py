@@ -172,22 +172,19 @@ def embedding(emb,
     if ax is None:
         fig, ax = create_axis(2)
     
-    if labels is not None:
-        assert emb.shape[0]==len(labels)
-        #for more than 1000 nodes, choose randomly
-        if len(labels) > 1000:
-            idx = np.random.choice(np.arange(len(labels)), size=1000)
-            emb, labels = emb[idx], labels[idx]
-
-    c, cbar = set_colors(labels)
+    assert emb.shape[0]==len(labels)
     
-    if labels is None:
-        labels = np.ones(emb.shape[0])
+    #for more than 1000 nodes, choose randomly
+    if len(labels) > 1000:
+        idx = np.random.choice(np.arange(len(labels)), size=1000)
+        emb, labels = emb[idx], labels[idx]
+     
+    if labels is not None:        
+        c, cbar = set_colors(labels)
+    else:
+        c = 'C0'
             
     types = set(labels)
-    if titles is not None:
-        assert len(titles)==len(types)
-        
     for i, typ in enumerate(types):
         ind = np.where(labels==typ)[0]
         title = titles[i] if titles is not None else str(typ)
@@ -205,9 +202,6 @@ def embedding(emb,
     ax.set_axis_off()
     
     return ax
-
-
-
         
         
 def neighbourhoods(data,
@@ -460,7 +454,7 @@ def trajectories(X,
                  arrowhead=1, 
                  arrow_spacing=1,
                  axis=True, 
-                 alpha=None):
+                 alpha=1.):
     """
     Plot trajectory in phase space. If multiple trajectories
     are given, they are plotted with different colors.
@@ -493,31 +487,25 @@ def trajectories(X,
         _, ax = create_axis(dim)
             
     c = set_colors(node_feature)[0]
-    if alpha is not None:
-        al=np.ones(len(X))*alpha
-    elif len(c)>1 and not isinstance(c, str):
-        al=np.abs(node_feature)/np.max(np.abs(node_feature))
-    else:
-        al=1
                 
     if dim==2:
         if 'o' in style:
-            ax.scatter(X[:,0], X[:,1], c=c, s=ms, alpha=al)
+            ax.scatter(X[:,0], X[:,1], c=c, s=ms, alpha=alpha)
         if '-' in style:
-            ax.plot(X[:,0], X[:,1], c=c, linewidth=lw, markersize=ms, alpha=al)
+            ax.plot(X[:,0], X[:,1], c=c, linewidth=lw, markersize=ms, alpha=alpha)
         if '>' in style:
-            arrow_prop_dict = dict(color=c, alpha=al, lw=lw)
+            arrow_prop_dict = dict(color=c, alpha=alpha, lw=lw)
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
             ax.quiver(X[:,0], X[:,1], V[:,0]*0.1, V[:,1]*0.1,
                       **arrow_prop_dict)
     elif dim==3:
         if 'o' in style:
-            ax.scatter(X[:,0], X[:,1], X[:,2], c=c, s=ms, alpha=al)
+            ax.scatter(X[:,0], X[:,1], X[:,2], c=c, s=ms, alpha=alpha)
         if '-' in style:
-            ax.plot(X[:,0], X[:,1], X[:,2], c=c, linewidth=lw, markersize=ms, alpha=al)
+            ax.plot(X[:,0], X[:,1], X[:,2], c=c, linewidth=lw, markersize=ms, alpha=alpha)
         if '>' in style:
-            arrow_prop_dict = dict(mutation_scale=arrowhead, arrowstyle='-|>', color=c, alpha=al, lw=lw)
+            arrow_prop_dict = dict(mutation_scale=arrowhead, arrowstyle='-|>', color=c, alpha=alpha, lw=lw)
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
             for j in range(X.shape[0]):
@@ -607,12 +595,15 @@ def set_axes(ax, lims=None, padding=0.1, off=True):
 def set_colors(color, cmap=plt.cm.coolwarm):
     
     if color is None:
-        return 'k', None
+        return 'C0', None
     else:
         assert isinstance(color, (list, tuple, np.ndarray))
         
     if isinstance(color[0], (float, np.floating)):
-        norm = plt.cm.colors.Normalize(-np.max(np.abs(color)), np.max(np.abs(color)))
+        if (color>=0).all():
+            norm = plt.cm.colors.Normalize(0, np.max(np.abs(color)))
+        else:    
+            norm = plt.cm.colors.Normalize(-np.max(np.abs(color)), np.max(np.abs(color)))
         
         colors = []
         for i, c in enumerate(color):
@@ -621,7 +612,7 @@ def set_colors(color, cmap=plt.cm.coolwarm):
     elif isinstance(color[0], (int, np.integer)):
         colors = [f"C{i}" for i in color]
         cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, len(color)+2), 
-                                                              colors)
+                                                              colors)       
     cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
             
     return colors, cbar

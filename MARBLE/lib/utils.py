@@ -11,6 +11,7 @@ import yaml
 import os
 from pathlib import Path
 
+from torch_geometric.transforms import RandomNodeSplit
 from torch_geometric.data import Data, Batch
 from torch_sparse import SparseTensor
 
@@ -19,77 +20,6 @@ from functools import partial
 from tqdm import tqdm
 
 from . import geometry
-
-
-def construct_dataset(pos, features, graph_type='cknn', k=10, stop_crit=0.0):
-    """Construct PyG dataset from node positions and features"""
-                
-    pos = [torch.tensor(p).float() for p in to_list(pos)]
-    
-    if features is not None:
-        features = [torch.tensor(x).float() for x in to_list(features)]
-        num_node_features = features[0].shape[1]
-    else:
-        num_node_features = None
-        
-    data_list, count = [], 0
-    for i, (p, f) in enumerate(zip(pos, features)):
-        #fit graph to point cloud
-        edge_index, edge_weight = geometry.fit_graph(p, 
-                                                     graph_type=graph_type, 
-                                                     par=k
-                                                     )
-        #even sampling of points
-        sample_ind, _ = geometry.furthest_point_sampling(p, stop_crit=stop_crit)
-        
-        assert len(1.2*sample_ind<len(p)), 'Not enough points left for validation/testing.\
-        Set stop_crit=0.0 or increase it slightly!'
-        
-        data_ = Data(pos=p, #positions
-                     x=f, #features
-                     edge_index=edge_index,
-                     edge_weight=edge_weight,
-                     sample_ind=sample_ind+count,
-                     num_nodes=len(p),
-                     num_node_features=num_node_features,
-                     y=torch.ones(len(p), dtype=int)*i
-                     )
-        
-        count += len(p)
-        data_list.append(data_)
-        
-    #collate datasets
-    batch = Batch.from_data_list(data_list)
-    batch.degree = k
-    
-    #split into training/validation/test datasets
-    train_mask = torch.zeros(len(batch.x), dtype=bool)
-    val_mask = torch.zeros(len(batch.x), dtype=bool)
-    test_mask = torch.zeros(len(batch.x), dtype=bool)
-    
-    print('\n---- Total # of points: {}'.format(batch.num_nodes))
-    
-    ns = len(batch.sample_ind)
-    if ns==batch.num_nodes:
-        shuffle = torch.randperm(ns)
-        train_mask[shuffle[:int(.8*ns)]] = True
-        val_mask[shuffle[int(.8*ns):int(.9*ns)]] = True
-        test_mask[shuffle[int(.9*ns):]] = True
-    else:
-        train_mask[batch.sample_ind] = True
-        not_train_ind = torch.where(~train_mask)[0]
-        not_train_ind = not_train_ind[torch.randperm(len(not_train_ind))]
-        val_mask[not_train_ind[:int(.1*ns)]] = True
-        test_mask[not_train_ind[int(.1*ns):int(.2*ns)]] = True
-        
-        print('---- # evenly sampled training points: {}'.format(train_mask.sum()))
-        print('---- # randomly sampled validation points: {}'.format(val_mask.sum()))
-        print('---- # randomly test points: {} \n'.format(test_mask.sum()))
-          
-    batch.train_mask, batch.val_mask, batch.test_mask = train_mask, val_mask, test_mask
-    
-    return batch
-
 
 # =============================================================================
 # Manage parameters
@@ -136,12 +66,12 @@ def check_parameters(par, data):
         assert data.x.shape[1]>1, 'Using vec_norm=True is \
         not permitted for scalar signals'
         
-    pars = ['batch_size', 'epochs', 'lr', 'autoencoder', 'order', 'vector', \
+    pars = ['batch_size', 'epochs', 'lr', 'pretrained', 'order', 'vector', \
             'inner_product_features', 'vector', 'diffusion', 'frac_geodesic_nb', \
             'frac_sampled_nb', 'var_explained', 'dropout', 'n_lin_layers', \
             'hidden_channels', 'out_channels', 'bias', 'vec_norm', 'batch_norm' , \
             'seed','dim_man', 'dim_emb', 'dim_signal', 'n_geodesic_nb', \
-            'n_sampled_nb', 'processes']
+            'n_sampled_nb', 'processes', 'diffusion_method', 'second_training']
         
     for p in par.keys():
         assert p in pars, 'Unknown specified parameter {}!'.format(p)
@@ -160,8 +90,10 @@ def print_settings(model):
         print (x,':',model.par[x])
             
     n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    n_features = model.enc.in_channels
-    
+    if par['pretrained']:
+        n_features = model.enc.encoder.in_channels
+    else:
+        n_features = model.enc.in_channels
     print('\n---- Number of features to pass to the MLP: ', n_features)
     print('---- Total number of parameters: ', n_parameters)
     
@@ -203,6 +135,46 @@ def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
 # =============================================================================
 # Conversions
 # =============================================================================
+def construct_dataset(pos, features, graph_type='cknn', k=10):
+    """Construct PyG dataset from node positions and features"""
+                
+    pos = [torch.tensor(p).float() for p in to_list(pos)]
+    
+    if features is not None:
+        features = [torch.tensor(x).float() for x in to_list(features)]
+        num_node_features = features[0].shape[1]
+    else:
+        num_node_features = None
+        
+    data_list = []
+    for i, p in enumerate(pos):
+        #fit graph to point cloud
+        edge_index, edge_weight = geometry.fit_graph(p, 
+                                                     graph_type=graph_type, 
+                                                     par=k
+                                                     )
+        n = len(p)  
+        data_ = Data(pos=pos[i], #positions
+                     x=features[i], #features
+                     edge_index=edge_index,
+                     edge_weight=edge_weight,
+                     num_nodes = n,
+                     num_node_features = num_node_features,
+                     y = torch.ones(n, dtype=int)*i
+                     )
+        
+        data_list.append(data_)
+        
+    #collate datasets
+    batch = Batch.from_data_list(data_list)
+    batch.degree = k
+    
+    #split into training/validation/test datasets
+    split = RandomNodeSplit(split='train_rest', num_val=0.1, num_test=0.1)
+    
+    return split(batch)
+
+
 def to_SparseTensor(edge_index, size=None, value=None):
     """
     Adjacency matrix as torch_sparse tensor
