@@ -46,10 +46,9 @@ def construct_dataset(pos, features, graph_type='cknn', k=10, stop_crit=None):
             ind, _ = geometry.furthest_point_sampling(p, stop_crit=0.02)
             p = p[ind]
             f = f[ind]
-            print(ind)
-            print(edge_index)
-            print(edge_weight)
-            edge_index, edge_weight = subgraph(ind, edge_index, edge_weight)
+            edge_index, edge_weight = subgraph(ind, 
+                                               edge_index, 
+                                               edge_attr=edge_weight)
             
         n = len(p)  
         data_ = Data(pos=p, #positions
