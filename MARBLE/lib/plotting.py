@@ -533,6 +533,8 @@ def trajectories(X,
     if not axis:
         ax = set_axes(ax, off=True)
         
+    ax.axis('square')
+        
     return ax
 
 
