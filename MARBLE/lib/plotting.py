@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
-from matplotlib.lines import Line2D
 
 import numpy as np
 import networkx as nx
@@ -107,7 +106,7 @@ def fields(data,
     return ax
         
         
-def histograms(clusters, titles=None, col=2, figsize=(10,10), save=None):
+def histograms(data, titles=None, col=2, figsize=(10,10), save=None):
     """
     Plot histograms of cluster distribution across datasets.
 
@@ -122,10 +121,13 @@ def histograms(clusters, titles=None, col=2, figsize=(10,10), save=None):
 
     """
     
-    l, s = clusters['labels'], clusters['slices']
+    assert hasattr(data, 'clusters'), 'No clusters found. First, run \
+        geometry.cluster(data) or postprocessing(data)!'
+    
+    l, s = data.clusters['labels'], data.clusters['slices']
     n_slices = len(s)-1
     l = [l[s[i]:s[i+1]]+1 for i in range(n_slices)]
-    nc = clusters['n_clusters']
+    nc = data.clusters['n_clusters']
     
     row = int(np.ceil(n_slices/col))
     
@@ -150,7 +152,7 @@ def histograms(clusters, titles=None, col=2, figsize=(10,10), save=None):
         fig.add_subplot(ax)
         
         
-def embedding(emb, 
+def embedding(data, 
               labels=None, 
               clusters=None,
               titles=None, 
@@ -168,6 +170,11 @@ def embedding(emb,
     titles : list of titles
 
     """
+    
+    assert hasattr(data, 'emb_2d'), 'No 2D embedding found. First, run \
+        geometry.embed(data) or postprocessing(data)!'
+        
+    emb = data.emb_2d
     
     if ax is None:
         fig, ax = create_axis(2)
@@ -212,7 +219,6 @@ def embedding(emb,
         
         
 def neighbourhoods(data,
-                   clusters, 
                    hops=1,
                    cols=4,
                    norm=False, 
@@ -225,16 +231,18 @@ def neighbourhoods(data,
 
     Parameters
     ----------
-    data : PyG Batch data object class created with utils.construct_dataset
-    clusters : sklearn cluster object
+    data : postprocessed PyG Batch data object class created with utils.construct_dataset
     hops : size of neighbourhood in number of hops
     norm : if True, then normalise values to zero mean within clusters
     plot_graph : if True, then plot the underlying graph.
 
     """
     
+    assert hasattr(data, 'clusters'), 'No clusters found. First, run \
+        geometry.cluster(data) or postprocessing(data)!'
+    
     vector = True if data.x.shape[1] > 1 else False
-    nc = clusters['n_clusters']
+    nc = data.clusters['n_clusters']
     fig = plt.figure(figsize=figsize, constrained_layout=True)
     outer = gridspec.GridSpec(int(np.ceil(nc/cols)), cols, wspace=0.2, hspace=0.2, figure=fig)
     
@@ -268,7 +276,7 @@ def neighbourhoods(data,
 
         for j, G in enumerate(graphs):
             
-            label_i = clusters['labels'][n_nodes[j]:n_nodes[j+1]]==i
+            label_i = data.clusters['labels'][n_nodes[j]:n_nodes[j+1]]==i
             label_i = np.where(label_i)[0]
             if not list(label_i):
                 continue

@@ -3,7 +3,7 @@
 
 import numpy as np
 import sys
-from MARBLE import plotting, utils, geometry, net
+from MARBLE import plotting, utils, geometry, net, postprocessing
 
 
 def main():
@@ -35,14 +35,14 @@ def main():
     
     #evaluate model on data
     data = model.evaluate(data)
-    emb, _, clusters, dist, _, _ = geometry.cluster_embedding(data, n_clusters=n_clusters)
+    data = postprocessing(data, n_clusters=n_clusters)
     
     #plot
     titles=['Linear left','Linear right','Vortex right','Vortex left']
     plotting.fields(data, titles=titles, col=2)
-    plotting.embedding(emb, data.y.numpy(), clusters, titles=titles)
-    plotting.histograms(clusters, titles=titles)
-    plotting.neighbourhoods(data, clusters)
+    plotting.embedding(data, data.y.numpy(),titles=titles)
+    plotting.histograms(data, titles=titles)
+    plotting.neighbourhoods(data)
     
 def f0(x):
     return x*0 + np.array([-1,-1])

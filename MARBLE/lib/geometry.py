@@ -90,41 +90,6 @@ def furthest_point_sampling(x, N=None, stop_crit=0.1):
 # =============================================================================
 # Clustering
 # =============================================================================
-def cluster_embedding(data,
-                      cluster_typ='kmeans', 
-                      embed_typ='umap', 
-                      n_clusters=15, 
-                      manifold=None,
-                      seed=0):
-    """
-    Cluster embedding and return distance between clusters
-    
-    Returns
-    -------
-    data : PyG data object containing .emb attribute, a nx2 matrix of embedded data
-    clusters : sklearn cluster object
-    dist : cxc matrix of pairwise distances where c is the number of clusters
-    
-    """
-
-    emb = data.emb
-    
-    #k-means cluster
-    clusters = cluster(emb, cluster_typ, n_clusters, seed)
-    clusters = relabel_by_proximity(clusters)
-    clusters['slices'] = data._slice_dict['x']
-    
-    #compute distances between clusters
-    dist, gamma, cdist = compute_histogram_distances(clusters)
-    
-    #embed into 2D via t-SNE for visualisation
-    emb = np.vstack([emb, clusters['centroids']])
-    emb, manifold = embed(emb, embed_typ, manifold)  
-    emb, clusters['centroids'] = emb[:-n_clusters], emb[-n_clusters:]
-        
-    return emb, manifold, clusters, dist, gamma, cdist
-
-
 def cluster(x, cluster_typ='kmeans', n_clusters=15, seed=0):
     """
     Cluster data
