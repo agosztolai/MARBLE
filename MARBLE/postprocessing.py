@@ -85,6 +85,7 @@ def compare_attractors(data, source_target):
                           ax=ax[1], 
                           node_feature=labels,
                           **prop_dict)
+    ax[1].set_title('Before')
         
     c = gammadist.sum(0)
     cluster_ids = set(data.clusters['labels'][s_t])
@@ -99,3 +100,4 @@ def compare_attractors(data, source_target):
                           ax=ax[2],
                           node_feature=labels,
                           **prop_dict)
+    ax[1].set_title('After')
