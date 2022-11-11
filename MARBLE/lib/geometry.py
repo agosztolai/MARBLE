@@ -52,7 +52,7 @@ def furthest_point_sampling(x, N=None, stop_crit=0.1):
     ----------
     x : nxdim matrix of data
     N : Integer number of sampled points.
-    stop_crit : when reaching thisfraction of the total manifold diameter,
+    stop_crit : when reaching this fraction of the total manifold diameter,
                 we stop sampling
 
     Returns
@@ -62,18 +62,21 @@ def furthest_point_sampling(x, N=None, stop_crit=0.1):
 
     """
     
-    D = pairwise_distances(x)
+    if stop_crit==0.:
+        return torch.arange(len(x)), None
+    
+    D = utils.np2torch(pairwise_distances(x))
     n = D.shape[0] if N is None else N
     diam = D.max()
     
-    perm = np.zeros(n, dtype=np.int64)
-    lambdas = np.zeros(n)
+    perm = torch.zeros(n, dtype=torch.int64)
+    lambdas = torch.zeros(n)
     ds = D[0, :]
     for i in range(1, n):
-        idx = np.argmax(ds)
+        idx = torch.argmax(ds)
         perm[i] = idx
         lambdas[i] = ds[idx]
-        ds = np.minimum(ds, D[idx, :])
+        ds = torch.minimum(ds, D[idx, :])
         
         if N is None:
             if lambdas[i]/diam < stop_crit:
@@ -89,8 +92,9 @@ def furthest_point_sampling(x, N=None, stop_crit=0.1):
 # =============================================================================
 def cluster_embedding(data,
                       cluster_typ='kmeans', 
-                      embed_typ='tsne', 
+                      embed_typ='umap', 
                       n_clusters=15, 
+                      manifold=None,
                       seed=0):
     """
     Cluster embedding and return distance between clusters
@@ -115,10 +119,10 @@ def cluster_embedding(data,
     
     #embed into 2D via t-SNE for visualisation
     emb = np.vstack([emb, clusters['centroids']])
-    emb = embed(emb, embed_typ)  
+    emb, manifold = embed(emb, embed_typ, manifold)  
     emb, clusters['centroids'] = emb[:-n_clusters], emb[-n_clusters:]
         
-    return emb, clusters, dist, gamma
+    return emb, manifold, clusters, dist, gamma
 
 
 def cluster(x, cluster_typ='kmeans', n_clusters=15, seed=0):
@@ -150,7 +154,7 @@ def cluster(x, cluster_typ='kmeans', n_clusters=15, seed=0):
     return clusters
 
 
-def embed(x, embed_typ='umap'):
+def embed(x, embed_typ='umap', manifold=None):
     """
     Embed data to 2D space.
 
@@ -172,20 +176,30 @@ def embed(x, embed_typ='umap'):
     
     if embed_typ == 'tsne': 
         x = StandardScaler().fit_transform(x)
+        if manifold is not None:
+            raise Exception('t-SNE cannot fit on existing manifold')
+            
         emb = TSNE(init='random',learning_rate='auto').fit_transform(x)
             
     elif embed_typ == 'umap':
         x = StandardScaler().fit_transform(x)
-        emb = umap.UMAP().fit_transform(x)
+        if manifold is None:
+            manifold = umap.UMAP().fit(x)
+            
+        emb = manifold.transform(x)
         
     elif embed_typ == 'MDS':
+        if manifold is not None:
+            raise Exception('t-SNE cannot fit on existing manifold')
+            
         emb = MDS(n_components=2, n_init=20, dissimilarity='precomputed').fit_transform(x)
+        
     else:
         NotImplementedError
         
     print('Performed {} embedding on embedded results.'.format(embed_typ))
     
-    return emb
+    return emb, manifold    
 
 
 def relabel_by_proximity(clusters):
