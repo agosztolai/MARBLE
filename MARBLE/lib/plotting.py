@@ -171,10 +171,8 @@ def embedding(data,
 
     """
     
-    assert hasattr(data, 'emb_2d'), 'No 2D embedding found. First, run \
-        geometry.embed(data) or postprocessing(data)!'
-        
-    emb = data.emb_2d
+    if hasattr(data, 'emb_2d'):
+        emb = data.emb_2d
     
     if ax is None:
         fig, ax = create_axis(2)
