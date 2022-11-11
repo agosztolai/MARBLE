@@ -172,23 +172,27 @@ def embedding(emb,
     if ax is None:
         fig, ax = create_axis(2)
     
-    assert emb.shape[0]==len(labels)
+    if labels is not None:
+        assert emb.shape[0]==len(labels)
+        #for more than 1000 nodes, choose randomly
+        if len(labels) > 1000:
+            idx = np.random.choice(np.arange(len(labels)), size=1000)
+            emb, labels = emb[idx], labels[idx]
+
+    color, cbar = set_colors(labels)
     
-    #for more than 1000 nodes, choose randomly
-    if len(labels) > 1000:
-        idx = np.random.choice(np.arange(len(labels)), size=1000)
-        emb, labels = emb[idx], labels[idx]
-     
-    if labels is not None:        
-        c, cbar = set_colors(labels)
-    else:
-        c = 'C0'
+    if labels is None:
+        labels = np.ones(emb.shape[0])
             
     types = set(labels)
+    if titles is not None:
+        assert len(titles)==len(types)
+        
     for i, typ in enumerate(types):
         ind = np.where(labels==typ)[0]
         title = titles[i] if titles is not None else str(typ)
-        ax.scatter(emb[ind,0], emb[ind,1], c=np.array(c)[ind], alpha=alpha, s=s, label=title)
+        c = np.array(color)[ind] if not isinstance(color, str) else color 
+        ax.scatter(emb[ind,0], emb[ind,1], c=c, alpha=alpha, s=s, label=title)
     
     if clusters is not None:
         vor = Voronoi(clusters['centroids']) 
@@ -202,6 +206,9 @@ def embedding(emb,
     ax.set_axis_off()
     
     return ax
+
+
+
         
         
 def neighbourhoods(data,
@@ -595,15 +602,12 @@ def set_axes(ax, lims=None, padding=0.1, off=True):
 def set_colors(color, cmap=plt.cm.coolwarm):
     
     if color is None:
-        return 'C0', None
+        return 'k', None
     else:
         assert isinstance(color, (list, tuple, np.ndarray))
         
     if isinstance(color[0], (float, np.floating)):
-        if (color>=0).all():
-            norm = plt.cm.colors.Normalize(0, np.max(np.abs(color)))
-        else:    
-            norm = plt.cm.colors.Normalize(-np.max(np.abs(color)), np.max(np.abs(color)))
+        norm = plt.cm.colors.Normalize(-np.max(np.abs(color)), np.max(np.abs(color)))
         
         colors = []
         for i, c in enumerate(color):
@@ -612,7 +616,7 @@ def set_colors(color, cmap=plt.cm.coolwarm):
     elif isinstance(color[0], (int, np.integer)):
         colors = [f"C{i}" for i in color]
         cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, len(color)+2), 
-                                                              colors)       
+                                                              colors)
     cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
             
     return colors, cbar
