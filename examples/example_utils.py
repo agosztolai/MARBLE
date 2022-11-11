@@ -107,8 +107,8 @@ def reject_outliers(*args, min_v=-3, max_v=3):
     return list(set.intersection(*map(set,inds)))
 
 
-def initial_conditions(n, reps, area = [[-3,-3],[3,3]] ):
-    X0_range = [geometry.sample_2d(n, area, 'random', seed=i) for i in range(reps)]
+def initial_conditions(n, reps, area = [[-3,-3],[3,3]], seed=0):
+    X0_range = [geometry.sample_2d(n, area, 'random', seed=i+seed) for i in range(reps)]
         
     return X0_range
 
