@@ -42,6 +42,9 @@ def construct_dataset(pos, features, graph_type='cknn', k=10, stop_crit=0.0):
         #even sampling of points
         sample_ind, _ = geometry.furthest_point_sampling(p, stop_crit=stop_crit)
         
+        assert len(1.2*sample_ind<len(p)), 'Not enough points left for validation/testing.\
+        Set stop_crit=0.0 or increase it slightly!'
+        
         data_ = Data(pos=p, #positions
                      x=f, #features
                      edge_index=edge_index,
@@ -67,16 +70,15 @@ def construct_dataset(pos, features, graph_type='cknn', k=10, stop_crit=0.0):
     ns = len(batch.sample_ind)
     if ns==batch.num_nodes:
         shuffle = torch.randperm(ns)
-        train_mask[shuffle[:int(ns*0.8)]] = True
-        val_mask[shuffle[int(ns*0.8):int(ns*0.9)]] = True
-        test_mask[shuffle[int(ns*0.9):]] = True
+        train_mask[shuffle[:int(.8*ns)]] = True
+        val_mask[shuffle[int(.8*ns):int(.9*ns)]] = True
+        test_mask[shuffle[int(.9*ns):]] = True
     else:
         train_mask[batch.sample_ind] = True
         not_train_ind = torch.where(~train_mask)[0]
-        nnt = len(not_train_ind)
-        not_train_ind = not_train_ind[torch.randperm(nnt)]
-        val_mask[not_train_ind[int(nnt*0.8):int(nnt*0.9)]] = True
-        test_mask[not_train_ind[int(nnt*0.9):]] = True
+        not_train_ind = not_train_ind[torch.randperm(len(not_train_ind))]
+        val_mask[not_train_ind[:int(.1*ns)]] = True
+        test_mask[not_train_ind[int(.1*ns):int(.2*ns)]] = True
           
     batch.train_mask, batch.val_mask, batch.test_mask = train_mask, val_mask, test_mask
     
