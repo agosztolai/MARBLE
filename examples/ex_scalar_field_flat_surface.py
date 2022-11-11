@@ -34,7 +34,7 @@ def main():
     
     #evaluate model on data
     data = model.evaluate(data)
-    emb, clusters, dist, _ = geometry.cluster_embedding(data, n_clusters=n_clusters)
+    emb, _, clusters, dist, _ = geometry.cluster_embedding(data, n_clusters=n_clusters)
     
     #plot
     titles=['Constant','Linear','Parabola','Saddle']
