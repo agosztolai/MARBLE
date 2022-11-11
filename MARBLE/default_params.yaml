@@ -1,5 +1,5 @@
 #training parameters
-batch_size : 32, #batch size
+batch_size : 32 #batch size
 epochs : 20, #optimisation epochs
 lr: 0.01 #learning rate
 autoencoder: False

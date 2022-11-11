@@ -11,7 +11,6 @@ import yaml
 import os
 from pathlib import Path
 
-from torch_geometric.transforms import RandomNodeSplit
 from torch_geometric.data import Data, Batch
 from torch_sparse import SparseTensor
 
@@ -22,7 +21,7 @@ from tqdm import tqdm
 from . import geometry
 
 
-def construct_dataset(pos, features, graph_type='cknn', k=10):
+def construct_dataset(pos, features, graph_type='cknn', k=10, stop_crit=0.0):
     """Construct PyG dataset from node positions and features"""
                 
     pos = [torch.tensor(p).float() for p in to_list(pos)]
@@ -33,24 +32,27 @@ def construct_dataset(pos, features, graph_type='cknn', k=10):
     else:
         num_node_features = None
         
-    data_list = []
+    data_list, count = [], 0
     for i, (p, f) in enumerate(zip(pos, features)):
         #fit graph to point cloud
         edge_index, edge_weight = geometry.fit_graph(p, 
                                                      graph_type=graph_type, 
                                                      par=k
                                                      )
-            
-        n = len(p)  
+        #even sampling of points
+        sample_ind, _ = geometry.furthest_point_sampling(p, stop_crit=stop_crit)
+        
         data_ = Data(pos=p, #positions
                      x=f, #features
                      edge_index=edge_index,
                      edge_weight=edge_weight,
-                     num_nodes=n,
+                     sample_ind=sample_ind+count,
+                     num_nodes=len(p),
                      num_node_features=num_node_features,
-                     y=torch.ones(n, dtype=int)*i
+                     y=torch.ones(len(p), dtype=int)*i
                      )
         
+        count += len(p)
         data_list.append(data_)
         
     #collate datasets
@@ -58,9 +60,32 @@ def construct_dataset(pos, features, graph_type='cknn', k=10):
     batch.degree = k
     
     #split into training/validation/test datasets
-    split = RandomNodeSplit(split='train_rest', num_val=0.1, num_test=0.1)
+    train_mask = torch.zeros(len(batch.x), dtype=bool)
+    val_mask = torch.zeros(len(batch.x), dtype=bool)
+    test_mask = torch.zeros(len(batch.x), dtype=bool)
     
-    return split(batch)
+    ns = len(batch.sample_ind)
+    if ns==batch.num_nodes:
+        shuffle = torch.randperm(ns)
+        train_mask[shuffle[:int(ns*0.8)]] = True
+        val_mask[shuffle[int(ns*0.8):int(ns*0.9)]] = True
+        test_mask[shuffle[int(ns*0.9):]] = True
+    else:
+        train_mask[batch.sample_ind] = True
+        not_train_ind = torch.where(~train_mask)[0]
+        nnt = len(not_train_ind)
+        not_train_ind = not_train_ind[torch.randperm(nnt)]
+        val_mask[not_train_ind[int(nnt*0.8):int(nnt*0.9)]] = True
+        test_mask[not_train_ind[int(nnt*0.9):]] = True
+          
+    batch.train_mask, batch.val_mask, batch.test_mask = train_mask, val_mask, test_mask
+    
+    print('\n---- Total # of points: {}'.format(batch.num_nodes))
+    print('---- # training points: {}'.format(train_mask.sum()))
+    print('---- # validation points: {}'.format(val_mask.sum()))
+    print('---- # test points: {} \n'.format(test_mask.sum()))
+    
+    return batch
 
 
 # =============================================================================

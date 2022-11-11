@@ -52,7 +52,7 @@ def furthest_point_sampling(x, N=None, stop_crit=0.1):
     ----------
     x : nxdim matrix of data
     N : Integer number of sampled points.
-    stop_crit : when reaching thisfraction of the total manifold diameter,
+    stop_crit : when reaching this fraction of the total manifold diameter,
                 we stop sampling
 
     Returns
@@ -62,18 +62,21 @@ def furthest_point_sampling(x, N=None, stop_crit=0.1):
 
     """
     
-    D = pairwise_distances(x)
+    if stop_crit==0.:
+        return torch.arange(len(x)), None
+    
+    D = utils.np2torch(pairwise_distances(x))
     n = D.shape[0] if N is None else N
     diam = D.max()
     
-    perm = np.zeros(n, dtype=np.int64)
-    lambdas = np.zeros(n)
+    perm = torch.zeros(n, dtype=torch.int64)
+    lambdas = torch.zeros(n)
     ds = D[0, :]
     for i in range(1, n):
-        idx = np.argmax(ds)
+        idx = torch.argmax(ds)
         perm[i] = idx
         lambdas[i] = ds[idx]
-        ds = np.minimum(ds, D[idx, :])
+        ds = torch.minimum(ds, D[idx, :])
         
         if N is None:
             if lambdas[i]/diam < stop_crit:
