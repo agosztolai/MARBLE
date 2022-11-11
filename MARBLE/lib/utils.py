@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 
 from torch_geometric.transforms import RandomNodeSplit
+from torch_geometric.utils import subgraph
 from torch_geometric.data import Data, Batch
 from torch_sparse import SparseTensor
 
@@ -20,6 +21,54 @@ from functools import partial
 from tqdm import tqdm
 
 from . import geometry
+
+
+def construct_dataset(pos, features, graph_type='cknn', k=10, stop_crit=None):
+    """Construct PyG dataset from node positions and features"""
+                
+    pos = [torch.tensor(p).float() for p in to_list(pos)]
+    
+    if features is not None:
+        features = [torch.tensor(x).float() for x in to_list(features)]
+        num_node_features = features[0].shape[1]
+    else:
+        num_node_features = None
+        
+    data_list = []
+    for i, (p, f) in enumerate(zip(pos, features)):
+        #fit graph to point cloud
+        edge_index, edge_weight = geometry.fit_graph(p, 
+                                                     graph_type=graph_type, 
+                                                     par=k
+                                                     )
+        
+        if stop_crit is not None:
+            ind, _ = geometry.furthest_point_sampling(p, stop_crit=0.02)
+            p = p[ind]
+            f = f[ind]
+            edge_index, edge_weight = subgraph(ind, edge_index, edge_weight)
+            
+        n = len(p)  
+        data_ = Data(pos=p, #positions
+                     x=f, #features
+                     edge_index=edge_index,
+                     edge_weight=edge_weight,
+                     num_nodes=n,
+                     num_node_features=num_node_features,
+                     y=torch.ones(n, dtype=int)*i
+                     )
+        
+        data_list.append(data_)
+        
+    #collate datasets
+    batch = Batch.from_data_list(data_list)
+    batch.degree = k
+    
+    #split into training/validation/test datasets
+    split = RandomNodeSplit(split='train_rest', num_val=0.1, num_test=0.1)
+    
+    return split(batch)
+
 
 # =============================================================================
 # Manage parameters
@@ -133,46 +182,6 @@ def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
 # =============================================================================
 # Conversions
 # =============================================================================
-def construct_dataset(pos, features, graph_type='cknn', k=10):
-    """Construct PyG dataset from node positions and features"""
-                
-    pos = [torch.tensor(p).float() for p in to_list(pos)]
-    
-    if features is not None:
-        features = [torch.tensor(x).float() for x in to_list(features)]
-        num_node_features = features[0].shape[1]
-    else:
-        num_node_features = None
-        
-    data_list = []
-    for i, p in enumerate(pos):
-        #fit graph to point cloud
-        edge_index, edge_weight = geometry.fit_graph(p, 
-                                                     graph_type=graph_type, 
-                                                     par=k
-                                                     )
-        n = len(p)  
-        data_ = Data(pos=pos[i], #positions
-                     x=features[i], #features
-                     edge_index=edge_index,
-                     edge_weight=edge_weight,
-                     num_nodes = n,
-                     num_node_features = num_node_features,
-                     y = torch.ones(n, dtype=int)*i
-                     )
-        
-        data_list.append(data_)
-        
-    #collate datasets
-    batch = Batch.from_data_list(data_list)
-    batch.degree = k
-    
-    #split into training/validation/test datasets
-    split = RandomNodeSplit(split='train_rest', num_val=0.1, num_test=0.1)
-    
-    return split(batch)
-
-
 def to_SparseTensor(edge_index, size=None, value=None):
     """
     Adjacency matrix as torch_sparse tensor
