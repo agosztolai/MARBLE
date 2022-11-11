@@ -35,7 +35,7 @@ def main():
     
     #evaluate model on data
     data = model.evaluate(data)
-    emb, _, clusters, dist, _ = geometry.cluster_embedding(data, n_clusters=n_clusters)
+    emb, _, clusters, dist, _, _ = geometry.cluster_embedding(data, n_clusters=n_clusters)
     
     #plot
     titles=['Linear left','Linear right','Vortex right','Vortex left']

@@ -115,14 +115,14 @@ def cluster_embedding(data,
     clusters['slices'] = data._slice_dict['x']
     
     #compute distances between clusters
-    dist, gamma = compute_histogram_distances(clusters)
+    dist, gamma, cdist = compute_histogram_distances(clusters)
     
     #embed into 2D via t-SNE for visualisation
     emb = np.vstack([emb, clusters['centroids']])
     emb, manifold = embed(emb, embed_typ, manifold)  
     emb, clusters['centroids'] = emb[:-n_clusters], emb[-n_clusters:]
         
-    return emb, manifold, clusters, dist, gamma
+    return emb, manifold, clusters, dist, gamma, cdist
 
 
 def cluster(x, cluster_typ='kmeans', n_clusters=15, seed=0):
@@ -237,19 +237,19 @@ def relabel_by_proximity(clusters):
     return clusters
 
 
-def compute_histogram_distances(clusters, return_OT_matrix=True):
+def compute_histogram_distances(clusters):
     """
     Compute the distance between clustered distributions across datasets.
 
     Parameters
     ----------
     clusters : clusters : sklearn object containing 'centroids', 'slices', 'labels'
-    return_OT_matrix : return optimal transport matrix (for Wasserstein only)
 
     Returns
     -------
     dist : distance matrix
-    gamma : optimal transport matrix (optional)
+    gamma : optimal transport matrix
+    centroid_distances : distances between cluster centroids
 
     """
     
@@ -271,41 +271,36 @@ def compute_histogram_distances(clusters, return_OT_matrix=True):
         for j in range(i+1, nl):
             dist[i,j] = ot.emd2(bins_dataset[i], bins_dataset[j], centroid_distances)
             dist[j,i] = dist[i,j]
-            if return_OT_matrix:
-                gamma[i,j,...] = ot.emd(bins_dataset[i], bins_dataset[j], centroid_distances)
-                gamma[j,i,...] = gamma[i,j,...]
+            gamma[i,j,...] = ot.emd(bins_dataset[i], bins_dataset[j], centroid_distances)
+            gamma[j,i,...] = gamma[i,j,...]
                         
-    if return_OT_matrix:
-        return dist, gamma
-    
-    return dist
+    return dist, gamma, centroid_distances
 
-
-def compute_distribution_distances(data, return_OT_matrix=True):
+# def compute_distribution_distances(data, return_OT_matrix=True):
     
-    pdists = pairwise_distances(data.emb)
-    s = data._slice_dict['x']
-    nl = len(s)-1
+#     pdists = pairwise_distances(data.emb)
+#     s = data._slice_dict['x']
+#     nl = len(s)-1
     
-    dist = np.zeros([nl, nl])
-    gamma = [[[] for n in range(nl)] for n in range(nl)]
-    for i in range(nl):
-        for j in range(i+1, nl):
-            mu = np.ones(s[i+1]-s[i]); 
-            mu /= len(mu)
-            nu = np.ones(s[j+1]-s[j])
-            nu /= len(nu)
-            dxy = pdists[s[i]:s[i+1], s[j]:s[j+1]]
-            dist[i,j] = ot.emd2(mu, nu, dxy)
-            dist[j,i] = dist[i,j]
-            if return_OT_matrix:
-                gamma[i][j].append(ot.emd(mu, nu, dxy))
-                gamma[j][i].append(gamma[i][j])
+#     dist = np.zeros([nl, nl])
+#     gamma = [[[] for n in range(nl)] for n in range(nl)]
+#     for i in range(nl):
+#         for j in range(i+1, nl):
+#             mu = np.ones(s[i+1]-s[i]); 
+#             mu /= len(mu)
+#             nu = np.ones(s[j+1]-s[j])
+#             nu /= len(nu)
+#             dxy = pdists[s[i]:s[i+1], s[j]:s[j+1]]
+#             dist[i,j] = ot.emd2(mu, nu, dxy)
+#             dist[j,i] = dist[i,j]
+#             if return_OT_matrix:
+#                 gamma[i][j].append(ot.emd(mu, nu, dxy))
+#                 gamma[j][i].append(gamma[i][j])
                 
-    if return_OT_matrix:
-        return dist, gamma
-    else:
-        return dist
+#     if return_OT_matrix:
+#         return dist, gamma
+#     else:
+#         return dist
 
 
 # =============================================================================
