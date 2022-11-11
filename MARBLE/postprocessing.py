@@ -79,9 +79,12 @@ def compare_attractors(data, source_target):
     
     plotting.embedding(data.emb_2d, ax=ax[0], alpha=0.05)
     plotting.embedding(data.emb_2d[s_s], labels=labels, ax=ax[0], alpha=1.)
-    prop_dict = dict(style='>', node_feature=labels, lw=2, arrowhead=.1, \
+    prop_dict = dict(style='>', lw=2, arrowhead=.1, \
                            axis=False, alpha=1.)
-    plotting.trajectories(data.pos[s_s], data.x[s_s], ax=ax[1], **prop_dict)
+    plotting.trajectories(data.pos[s_s], data.x[s_s], 
+                          ax=ax[1], 
+                          node_feature=labels,
+                          **prop_dict)
         
     c = gammadist.sum(0)
     cluster_ids = set(data.clusters['labels'][s_t])
@@ -92,4 +95,7 @@ def compare_attractors(data, source_target):
             labels[i] = -c[cid]
     
     plotting.embedding(data.emb_2d[s_t], labels=labels, ax=ax[0], alpha=1.)
-    plotting.trajectories(data.pos[s_t], data.x[s_t], ax=ax[2],**prop_dict)
+    plotting.trajectories(data.pos[s_t], data.x[s_t], 
+                          ax=ax[2],
+                          node_feature=labels,
+                          **prop_dict)
