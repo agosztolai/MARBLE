@@ -12,7 +12,6 @@ import os
 from pathlib import Path
 
 from torch_geometric.transforms import RandomNodeSplit
-from torch_geometric.utils import subgraph
 from torch_geometric.data import Data, Batch
 from torch_sparse import SparseTensor
 
@@ -23,7 +22,7 @@ from tqdm import tqdm
 from . import geometry
 
 
-def construct_dataset(pos, features, graph_type='cknn', k=10, stop_crit=None):
+def construct_dataset(pos, features, graph_type='cknn', k=10):
     """Construct PyG dataset from node positions and features"""
                 
     pos = [torch.tensor(p).float() for p in to_list(pos)]
@@ -41,14 +40,6 @@ def construct_dataset(pos, features, graph_type='cknn', k=10, stop_crit=None):
                                                      graph_type=graph_type, 
                                                      par=k
                                                      )
-        
-        if stop_crit is not None:
-            ind, _ = geometry.furthest_point_sampling(p, stop_crit=0.02)
-            p = p[ind]
-            f = f[ind]
-            edge_index, edge_weight = subgraph(ind, 
-                                               edge_index, 
-                                               edge_attr=edge_weight)
             
         n = len(p)  
         data_ = Data(pos=p, #positions
