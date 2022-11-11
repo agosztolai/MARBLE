@@ -20,7 +20,7 @@ def setup_layers(model):
     s, e, o = par['dim_signal'], par['dim_emb'], par['order']
     
     #diffusion
-    diffusion = Diffusion(model.L, model.Lc)
+    diffusion = Diffusion(model.L, model.Lc, method=par['diffusion'])
     
     #gradient features
     grad = nn.ModuleList(AnisoConv(par['vec_norm']) for i in range(o))
@@ -32,8 +32,9 @@ def setup_layers(model):
         if s==1:
             cum_channels = o+1
     
-    #inner product features
-    ip = InnerProductFeatures(cum_channels, s)
+        ip = InnerProductFeatures(cum_channels, s)
+    else:
+        ip = None
     
     #encoder
     channel_list = [cum_channels] + \
@@ -46,16 +47,16 @@ def setup_layers(model):
               bias=par['bias']
               )
     
-    dec = MLP(channel_list=channel_list[::-1],
-              dropout=par['dropout'],
-              norm=par['batch_norm'],
-              bias=par['bias']
-              )
-    
     if par['autoencoder']:
-        return diffusion, grad, ip, enc, dec
+        dec = MLP(channel_list=channel_list[::-1],
+                  dropout=par['dropout'],
+                  norm=par['batch_norm'],
+                  bias=par['bias']
+                  )
     else:
-        return diffusion, grad, ip, enc, None
+        dec = None
+    
+    return diffusion, grad, ip, enc, dec
 
 
 # =============================================================================

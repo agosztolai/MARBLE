@@ -16,24 +16,14 @@ from . import preprocessing, layers, dataloader
 
 """Main network"""
 class net(nn.Module):
-    def __init__(self,
-                 data,
-                 **kwargs):
+    def __init__(self, data, **kwargs):
         super(net, self).__init__()
         
-        #parameters
         self.par = utils.parse_parameters(data, kwargs)
-        
-        #preprocessing
         self.R, self.kernels, self.L, self.Lc, self.par = preprocessing(data, self.par)
-        
-        #layers
         self.diffusion, self.grad, self.inner_products, self.enc, self.dec = \
-            layers.setup_layers(self)
-            
-        #loss
-        self.loss = loss_fun()
-            
+            layers.setup_layers(self)      
+        self.loss = loss_fun()       
         self.reset_parameters()
         
         utils.print_settings(self)
@@ -57,7 +47,7 @@ class net(nn.Module):
             n_id = np.arange(len(x))
 
         #diffusion
-        if self.par['diffusion']:
+        if self.par['diffusion'] is not None:
             x = self.diffusion(x)
         
         #restrict to current batch n_id

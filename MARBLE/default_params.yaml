@@ -8,13 +8,12 @@ autoencoder: False
 order: 2 #order to which to compute the directional derivatives
 inner_product_features: True
 vector: True
-diffusion: False
+diffusion: null #'spectral' or 'matrix_exp'
 frac_geodesic_nb: 2.0 #fraction of geodesic neighbours (relative to node degree) to map to tangent space
 frac_sampled_nb: -1 #fraction of neighbours to sample for gradient computation (if -1 then all neighbours)
 var_explained: 0.9 #fraction of variance explained by the local gauges
 
 #network parameters
-diffusion_method: spectral
 dropout: 0. #dropout in the MLP
 n_lin_layers: 2 #number of layers if MLP
 hidden_channels: 16 #number of hidden channels

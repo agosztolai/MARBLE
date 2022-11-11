@@ -17,7 +17,6 @@ def main():
            'hidden_channels': 16, #number of internal dimensions in MLP
            'out_channels': 3,
            'inner_product_features': False,
-           'diffusion': False,
            }
     
     #evaluate functions
