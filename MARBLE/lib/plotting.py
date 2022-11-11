@@ -173,6 +173,8 @@ def embedding(data,
     
     if hasattr(data, 'emb_2d'):
         emb = data.emb_2d
+    else:
+        emb = data
     
     if ax is None:
         fig, ax = create_axis(2)
