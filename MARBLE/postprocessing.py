@@ -65,10 +65,14 @@ def compare_attractors(data, source_target):
     
     _, ax = plt.subplots(1, 3, figsize=(10,5))
     
-    #color code features
-    gammadist = data.gamma[s,t,...]/data.cdist
+    #plot embedding of all points in gray
+    plotting.embedding(data.emb_2d, ax=ax[0], alpha=0.05)
+    
+    #get gamma matrix for the given source-target pair
+    gammadist = data.gamma[s,t,...]
     np.fill_diagonal(gammadist, 0.0)
     
+    #color code source features
     c = gammadist.sum(1)
     cluster_ids = set(data.clusters['labels'][s_s])
     labels = [i for i in s_s]
@@ -77,7 +81,7 @@ def compare_attractors(data, source_target):
         for i in idx:
             labels[i] = c[cid]
     
-    plotting.embedding(data.emb_2d, ax=ax[0], alpha=0.05)
+    #plot source features in red
     plotting.embedding(data.emb_2d[s_s], labels=labels, ax=ax[0], alpha=1.)
     prop_dict = dict(style='>', lw=2, arrowhead=.1, \
                            axis=False, alpha=1.)
@@ -87,14 +91,16 @@ def compare_attractors(data, source_target):
                           **prop_dict)
     ax[1].set_title('Before')
         
+    #color code target features
     c = gammadist.sum(0)
     cluster_ids = set(data.clusters['labels'][s_t])
     labels = [i for i in s_t]
     for cid in cluster_ids:
         idx = np.where(cid==data.clusters['labels'][s_t])[0]
         for i in idx:
-            labels[i] = -c[cid]
+            labels[i] = -c[cid] #negative for blue color
     
+    #plot target features in blue
     plotting.embedding(data.emb_2d[s_t], labels=labels, ax=ax[0], alpha=1.)
     plotting.trajectories(data.pos[s_t], data.x[s_t], 
                           ax=ax[2],
