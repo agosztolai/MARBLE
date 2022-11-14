@@ -66,7 +66,7 @@ def compare_attractors(data, source_target):
     _, ax = plt.subplots(1, 3, figsize=(10,5))
     
     #color code features
-    gammadist = data.gamma[s,t,...]*data.cdist
+    gammadist = data.gamma[s,t,...]/data.cdist
     np.fill_diagonal(gammadist, 0.0)
     
     c = gammadist.sum(1)
