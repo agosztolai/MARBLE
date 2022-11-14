@@ -154,7 +154,6 @@ def histograms(data, titles=None, col=2, figsize=(10,10), save=None):
         
 def embedding(data, 
               labels=None, 
-              clusters=None,
               titles=None, 
               ax=None,
               alpha=0.3,
@@ -201,11 +200,8 @@ def embedding(data,
         c = np.array(color)[ind] if not isinstance(color, str) else color 
         ax.scatter(emb[ind,0], emb[ind,1], c=c, alpha=alpha, s=s, label=title)
     
-    if clusters is not None:
-        vor = Voronoi(clusters['centroids']) 
-        voronoi_plot_2d(vor, ax=ax, show_vertices=False) 
-        for k in range(clusters['n_clusters']):
-            ax.annotate(k+1,clusters['centroids'][k,:])
+    if hasattr(data, 'clusters'):
+        voronoi(data.clusters, ax)
     
     if titles is not None:
         ax.legend(loc='upper right')
@@ -215,9 +211,13 @@ def embedding(data,
     return ax
 
 
-
+def voronoi(clusters, ax):
+    vor = Voronoi(clusters['centroids']) 
+    voronoi_plot_2d(vor, ax=ax, show_vertices=False) 
+    for k in range(clusters['n_clusters']):
+        ax.annotate(k+1, clusters['centroids'][k,:])
         
-        
+    
 def neighbourhoods(data,
                    hops=1,
                    cols=4,
