@@ -663,11 +663,12 @@ def scalar_diffusion(x, t, method='matrix_exp', par=None):
         x = x.unsqueeze(1)
     
     if method == 'matrix_exp':
-        return torch.matrix_exp(-t*par['L']).mm(x)
+        return torch.matrix_exp(-t*par).mm(x)
     
     if method == 'spectral':
-        
-        evals, evecs = par['evals'], par['evecs'] 
+        assert isinstance(par, (list, tuple)) and len(par)==2, 'For spectral method, par must be a tuple of \
+            eigenvalues, eigenvectors!'
+        evals, evecs = par
 
         # Transform to spectral
         x_spec = torch.mm(evecs.T, x)
@@ -684,23 +685,28 @@ def scalar_diffusion(x, t, method='matrix_exp', par=None):
     
     
 def vector_diffusion(x, t, method='spectral', par=None, normalise=False):
+    n, d = x.shape[0], x.shape[1]
     
-    assert (x.shape[0]*x.shape[1] % par['Lc'].shape[0])==0, \
+    if method=='spectral':
+        assert len(par['Lc'])==2, 'Lc must be a tuple of eigenvalues, eigenvectors!'
+        nd = par['Lc'][0].shape[0]
+    else:
+        nd = par['Lc'].shape[0]
+    
+    assert (n*d % nd)==0, \
         'Data dimension must be an integer multiple of the dimensions \
          of the connection Laplacian!'
         
     #vector diffusion with connection Laplacian
-    out = x.view(par['Lc'].shape[0], -1)
-    p = {'L': par['Lc'], 'evals': par['evals_Lc'], 'evecs': par['evecs_Lc']}
-    out = scalar_diffusion(out, t, method, p)
+    out = x.view(nd, -1)
+    out = scalar_diffusion(out, t, method, par['Lc'])
     out = out.view(x.shape)
     
     if normalise:
         assert par['L'] is not None, 'Need Laplacian for normalised diffusion!'
         x_abs = x.norm(dim=-1, p=2, keepdim=True)
-        out_abs = scalar_diffusion(x_abs, t, method, {'L': par['L']})
-        p = {'L': par['L'], 'evals': par['evals_L'], 'evecs': par['evecs_L']}
-        ind = scalar_diffusion(torch.ones(x.shape[0],1), t, method, p)
+        out_abs = scalar_diffusion(x_abs, t, method, par['L'])
+        ind = scalar_diffusion(torch.ones(x.shape[0],1), t, method, par['L'])
         out = out*out_abs/(ind*out.norm(dim=-1, p=2, keepdim=True))
         
     return out
@@ -722,6 +728,9 @@ def compute_eigendecomposition(A, k=2, eps=1e-8):
     evecs : (V,k) matrix of eigenvectors of the Laplacian 
     
     """
+    
+    if A is None:
+        return None
     
     # Compute the eigenbasis
     failcount = 0

@@ -13,14 +13,15 @@ from .lib import geometry as g
 from .lib import utils
 
 
-def setup_layers(model):
+def setup_layers(model, data):
     
     par = model.par
     
     s, e, o = par['dim_signal'], par['dim_emb'], par['order']
     
     #diffusion
-    diffusion = Diffusion(model.L, model.Lc, method=par['diffusion'])
+    Lc = data.Lc if hasattr(data, 'Lc') else None
+    diffusion = Diffusion(data.L, Lc)
     
     #gradient features
     grad = nn.ModuleList(AnisoConv(par['vec_norm']) for i in range(o))
@@ -56,7 +57,10 @@ def setup_layers(model):
     else:
         dec = None
     
-    return diffusion, grad, ip, enc, dec
+    model.diffusion, model.grad, model.ip, model.enc, model.dec = \
+        diffusion, grad, ip, enc, dec
+        
+    return model
 
 
 # =============================================================================
@@ -65,25 +69,20 @@ def setup_layers(model):
 class Diffusion(nn.Module):
     """Diffusion with learned t."""
 
-    def __init__(self, L, Lc=None, method='spectral', tau0=0.0):
+    def __init__(self, L, Lc=None, tau0=0.0):
         super().__init__()
                 
         self.diffusion_time = nn.Parameter(torch.tensor(float(tau0)))
-        self.method=method
-        self.vector = False if Lc is None else True
-        self.par = {}
         
-        if not self.vector:
-            if method=='spectral':
-                self.par['evals'], self.par['evecs'] = L[0], L[1]
-            else:
-                self.par['L'] = L
-        else:
-            if method=='spectral':
-                self.par['evals_L'], self.par['evecs_L'] = L[0], L[1]
-                self.par['evals_Lc'], self.par['evecs_Lc'] = Lc[0], Lc[1]
-            else:
-                self.par['L'], self.par['Lc'] = L, Lc
+        method = 'matrix_exp'
+        self.par = {'L': L, 'Lc': Lc}
+        
+        if isinstance(L, (list, tuple)):
+            assert len(L)==2, 'L must be a matrix or a tuple of eigenvalues \
+                                and eigenvectors'
+            method='spectral'
+                
+        self.method = method
                 
                 
     def forward(self, x, normalise=False):
@@ -94,10 +93,10 @@ class Diffusion(nn.Module):
             
         t = self.diffusion_time
         
-        if self.vector:
-            out = g.vector_diffusion(x, t, self.method, self.par, normalise)
+        if self.par['Lc'] is not None:
+            out = g.vector_diffusion(x, t, self.method, self.par['Lc'], normalise)
         else:
-            out = [g.scalar_diffusion(x_, t, self.method, self.par) for x_ in x.T]
+            out = [g.scalar_diffusion(x_, t, self.method, self.par['L']) for x_ in x.T]
             out = torch.cat(out, axis=1)
             
         return out

@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from .lib import geometry as g
-import torch
 
-def preprocessing(data, par):
+def preprocessing(data, 
+                  frac_geodesic_nb=2.0, 
+                  var_explained=0.9, 
+                  diffusion_method='spectral'):
     """
     Compute geometric objects used later: local gauges, Levi-Civita connections
     gradient kernels, scalar and connection laplacians.
@@ -12,7 +14,10 @@ def preprocessing(data, par):
     Parameters
     ----------
     data : pytorch geometric data object
-    par : dictionary of parameters
+    frac_geodesic_nb: fraction of geodesic neighbours (relative to node degree) 
+    to map to tangent space
+    var_explained: fraction of variance explained by the local gauges
+    diffusion: 'spectral' or 'matrix_exp'
 
     Returns
     -------
@@ -23,52 +28,53 @@ def preprocessing(data, par):
     par : updated dictionary of parameters
 
     """
-        
+    
+    dim_emb = data.pos.shape[1]
+    dim_signal = data.x.shape[1]
+    print('---- Embedding dimension: {}'.format(dim_emb))
+    print('---- Signal dimension: {}'.format(dim_signal))
+    
     #disable vector computations if 1) signal is scalar or 2) embedding dimension
     #is <= 2. In case 2), either M=R^2 (manifold is whole space) or case 1).
-    if par['vector'] and par['dim_emb']>2:
-        local_gauge = True
-    else:
+    if dim_signal==1:
+        print('\n Signal dimension is 1, so manifold computations are disabled!')
         local_gauge = False
-        par['vector'] = False
+    elif dim_emb<=2:
+        print('\n Embedding dimension <= 2, so manifold computations are disabled!')
+        local_gauge = False
+    else:
+        local_gauge = True
     
     #gauges
-    gauges, Sigma = g.compute_gauges(data, local_gauge, par['n_geodesic_nb'])
-    
-    #kernels
-    kernels = g.gradient_op(data.pos, data.edge_index, gauges)
+    n_geodesic_nb = int(data.degree*frac_geodesic_nb)
+    gauges, Sigma = g.compute_gauges(data, local_gauge, n_geodesic_nb)
     
     #Laplacian
-    L = g.compute_laplacian(data)
-    if par['diffusion'] == 'spectral':
-        L = g.compute_eigendecomposition(L)
+    L = g.compute_laplacian(data)        
     
     #connections
-    if par['vector']:
-        par['dim_man'] = g.manifold_dimension(Sigma, frac_explained=par['var_explained'])
+    if local_gauge:
+        dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
         
-        if par['dim_man']==par['dim_emb']:
-            par['vector'] = False
-        else:
-            R = g.compute_connections(gauges, data.edge_index, par['dim_man'])
+        print('---- Manifold dimension: {}'.format(dim_man))
+        
+        if dim_man<dim_emb:
+            R = g.compute_connections(gauges, data.edge_index, dim_man)
             Lc = g.compute_connection_laplacian(data, R)
-            if par['diffusion_method'] == 'spectral':
-                Lc = g.compute_eigendecomposition(Lc)
+        else:
+            print('\n Embedding dimension = manifold dimension, so \
+                      manifold computations are disabled!')
     else:
         R = None
         Lc = None
         
-    #move to gpu
-    device = torch.device('cuda:0' if par['gpu'] else 'cpu')
-    if isinstance(L, tuple):
-        L = [L_.to(device) for L_ in L]
-    else:
-        L = L.to(device)
-    if isinstance(Lc, tuple):
-        Lc = [Lc_.to(device) for Lc_ in Lc]
-    else:
-        Lc = Lc.to(device) if Lc is not None else None
-    R = R.to(device) if R is not None else None
-    kernels = [K.to(device) for K in kernels]
-    
-    return R, kernels, L, Lc, par
+    if diffusion_method == 'spectral':
+        L = g.compute_eigendecomposition(L)
+        Lc = g.compute_eigendecomposition(Lc)
+        
+    #kernels
+    kernels = g.gradient_op(data.pos, data.edge_index, gauges)
+        
+    data.R, data.kernels, data.L, data.Lc = R, kernels, L, Lc
+        
+    return data

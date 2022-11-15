@@ -19,10 +19,12 @@ class net(nn.Module):
     def __init__(self, data, **kwargs):
         super(net, self).__init__()
         
+        assert all(hasattr(data, attr) for attr in ['kernels', 'L']), \
+            'It seems that data is not preprocessed. Run preprocess(data) \
+            before initialising network!'
+        
         self.par = utils.parse_parameters(data, kwargs)
-        self.R, self.kernels, self.L, self.Lc, self.par = preprocessing(data, self.par)
-        self.diffusion, self.grad, self.inner_products, self.enc, self.dec = \
-            layers.setup_layers(self)      
+        self = layers.setup_layers(self, data)      
         self.loss = loss_fun()       
         self.reset_parameters()
         
@@ -47,17 +49,12 @@ class net(nn.Module):
             n_id = np.arange(len(x))
 
         #diffusion
-        if self.par['diffusion'] is not None:
-            x = self.diffusion(x)
+        x = self.diffusion(x)
         
         #restrict to current batch n_id
         x = x[n_id] 
         kernels = [K[n_id,:][:,n_id] for K in self.kernels]
-        if self.par['vector']:
-            assert self.R is not None, 'Need connections for vector computations!'
-            R = self.R[n_id,:][:,n_id]
-        else:
-            R = None
+        R = self.R[n_id,:][:,n_id] if hasattr(self, 'R') else None
 
         #gradients
         if self.par['vec_norm']:
@@ -92,9 +89,7 @@ class net(nn.Module):
             adjs = utils.to_list(adjs) * self.par['order']
             
             #move to gpu
-            device = torch.device('cuda:0' if self.par['gpu'] else 'cpu')
-            adjs = [adj.to(device) for adj in adjs]
-            x = data.x.to(device)
+            adjs, x = utils.move_to_gpu(adjs, data.x)
             
             emb, _, _ = self.forward(x, None, adjs)
             data.emb = emb.detach().cpu()
@@ -133,10 +128,13 @@ class net(nn.Module):
     def run_training(self, data):
         """Network training"""
         
-        #move to gpu
-        device = torch.device('cuda:0' if self.par['gpu'] else 'cpu')
-        self = self.to(device)
-        x = data.x.to(device)
+        assert all(hasattr(data, attr) for attr in ['kernels', 'L', ]), \
+            'It seems that data is not preprocessed. Run preprocess(data) before training!'
+        
+        x = data.x
+        Lc = data.Lc if hasattr(data, 'Lc') else None
+        self, x, self.L, self.Lc, self.kernels = \
+            utils.move_to_gpu(self, x, data.L, Lc, data.kernels)
         
         writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))         
         
@@ -160,6 +158,10 @@ class net(nn.Module):
         
         test_loss, _ = self.batch_loss(x, test_loader)
         print('Final test loss: {:.4f}'.format(test_loss))
+        
+        
+    def preprocess(self, data):
+        preprocessing
     
 
 class loss_fun(nn.Module):

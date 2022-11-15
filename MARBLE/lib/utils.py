@@ -62,8 +62,9 @@ def construct_dataset(pos, features, graph_type='cknn', k=10, stop_crit=0.0):
     
     #split into training/validation/test datasets
     split = RandomNodeSplit(split='train_rest', num_val=0.1, num_test=0.1)
+    split(batch)
     
-    return split(batch)
+    return batch
 
 
 # =============================================================================
@@ -75,15 +76,14 @@ def parse_parameters(data, kwargs):
     file = os.path.dirname(__file__) + '/../default_params.yaml'
     par = yaml.load(open(file,'rb'), Loader=yaml.FullLoader)
     
+    par['dim_signal'] = data.x.shape[1]
+    par['dim_emb'] = data.pos.shape[1]
+    
     #merge dictionaries without duplications
     for key in par.keys():
         if key not in kwargs.keys():
             kwargs[key] = par[key]
             
-    kwargs['dim_signal'] = data.x.shape[1]
-    kwargs['dim_emb'] = data.pos.shape[1]
-    kwargs['n_geodesic_nb'] = int(data.degree*par['frac_geodesic_nb'])
-    
     if par['frac_sampled_nb']!=-1:
         kwargs['n_sampled_nb'] = int(data.degree*par['frac_sampled_nb'])
     else:
@@ -101,25 +101,18 @@ def parse_parameters(data, kwargs):
 
 def check_parameters(par, data):
     """Check parameter validity"""
-                     
-    assert par['frac_geodesic_nb'] > 1.0, 'We need least the nearest neighbours \
-            to define the tangent space!'
                       
     assert par['order'] > 0, "Derivative order must be at least 1!"
-    
-    if par['gpu']:
-        assert torch.cuda.is_available(), 'No gpu available!'
     
     if par['vec_norm']:         
         assert data.x.shape[1]>1, 'Using vec_norm=True is \
         not permitted for scalar signals'
         
-    pars = ['batch_size', 'epochs', 'lr', 'autoencoder', 'order', 'vector', \
-            'inner_product_features', 'vector', 'diffusion', 'frac_geodesic_nb', \
-            'frac_sampled_nb', 'var_explained', 'dropout', 'n_lin_layers', \
-            'hidden_channels', 'out_channels', 'bias', 'vec_norm', 'batch_norm' , \
-            'seed','dim_man', 'dim_emb', 'dim_signal', 'n_geodesic_nb', \
-            'n_sampled_nb', 'processes', 'gpu']
+    pars = ['batch_size', 'epochs', 'lr', 'autoencoder', 'order', \
+            'inner_product_features', 'dim_signal', 'dim_emb', \
+            'frac_sampled_nb', 'dropout', 'n_lin_layers', \
+            'hidden_channels', 'out_channels', 'bias', 'vec_norm', 'batch_norm', \
+            'seed', 'n_geodesic_nb', 'n_sampled_nb', 'processes']
         
     for p in par.keys():
         assert p in pars, 'Unknown specified parameter {}!'.format(p)
@@ -131,9 +124,7 @@ def print_settings(model):
     """Print parameters to screen"""
     
     print('---- Settings: \n')
-    
-    par = model.par
-    
+        
     for x in model.par:
         print (x,':',model.par[x])
             
@@ -142,18 +133,6 @@ def print_settings(model):
     
     print('\n---- Number of features to pass to the MLP: ', n_features)
     print('---- Total number of parameters: ', n_parameters)
-    
-    if par['vector']:
-        if par['dim_signal']==1:
-            print('\n Signal dimension is 1, so manifold computations are disabled!')
-        else:
-            print('---- Embedding dimension: {}'.format(par['dim_embedding']))
-            print('---- Manifold dimension: {}'.format(par['dim_man']))
-            if par['dim_embedding']==par['dim_man']:
-                print('\n Embedding dimension = manifold dimension, so \
-                      manifold computations are disabled!')
-    else:
-        print('---- Treating features as scalar channels.')
 
 
 # =============================================================================
@@ -177,6 +156,26 @@ def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
         result = [fun(inputs, i) for i in tqdm(iterable, desc=desc)]
         
     return result
+
+
+def move_to_gpu(*args):
+    """Move variables to gpu"""
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    
+    out = []
+    for i, arg in enumerate(args):
+        if arg is None:
+            out.append(None)
+        elif isinstance(arg, (list, tuple)):
+            if arg[0] is None:
+                out.append(None)
+            else:
+                out.append([a.to(device) for a in arg])
+        else:
+            out.append(arg.to(device))
+            
+    return out
+
 
 # =============================================================================
 # Conversions
