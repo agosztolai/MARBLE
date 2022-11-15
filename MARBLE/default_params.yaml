@@ -3,6 +3,7 @@ batch_size : 32 #batch size
 epochs : 20, #optimisation epochs
 lr: 0.001 #learning rate
 autoencoder: False
+gpu: False
 
 #manifold/signal parameters
 order: 2 #order to which to compute the directional derivatives

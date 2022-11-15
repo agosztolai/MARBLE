@@ -107,6 +107,9 @@ def check_parameters(par, data):
                       
     assert par['order'] > 0, "Derivative order must be at least 1!"
     
+    if par['gpu']:
+        assert torch.cuda.is_available(), 'No gpu available!'
+    
     if par['vec_norm']:         
         assert data.x.shape[1]>1, 'Using vec_norm=True is \
         not permitted for scalar signals'
@@ -116,7 +119,7 @@ def check_parameters(par, data):
             'frac_sampled_nb', 'var_explained', 'dropout', 'n_lin_layers', \
             'hidden_channels', 'out_channels', 'bias', 'vec_norm', 'batch_norm' , \
             'seed','dim_man', 'dim_emb', 'dim_signal', 'n_geodesic_nb', \
-            'n_sampled_nb', 'processes']
+            'n_sampled_nb', 'processes', 'gpu']
         
     for p in par.keys():
         assert p in pars, 'Unknown specified parameter {}!'.format(p)

@@ -69,7 +69,7 @@ def compare_attractors(data, source_target):
     plotting.embedding(data.emb_2d, ax=ax[0], alpha=0.05)
     
     #get gamma matrix for the given source-target pair
-    gammadist = data.gamma[s,t,...]
+    gammadist = data.gamma[s,t,...]*data.cdist
     np.fill_diagonal(gammadist, 0.0)
     
     #color code source features

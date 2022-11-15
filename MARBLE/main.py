@@ -92,7 +92,7 @@ class net(nn.Module):
             adjs = utils.to_list(adjs) * self.par['order']
             
             #move to gpu
-            device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+            device = torch.device('cuda:0' if self.par['gpu'] else 'cpu')
             adjs = [adj.to(device) for adj in adjs]
             x = data.x.to(device)
             
