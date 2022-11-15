@@ -117,6 +117,8 @@ class net(nn.Module):
         for batch in loader:
             _, n_id, adjs = batch
             adjs = [adj.to(x.device) for adj in utils.to_list(adjs)]
+            
+            print(adjs[0].device)
                         
             enc_out, out, dec_out = self.forward(x, n_id, adjs)
             loss = self.loss(enc_out, out, dec_out)
