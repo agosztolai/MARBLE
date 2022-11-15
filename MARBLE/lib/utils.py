@@ -202,8 +202,6 @@ def to_SparseTensor(edge_index, size=None, value=None):
     if size is None:
         size = (edge_index.max()+1, edge_index.max()+1)
         
-    print(edge_index.device)
-    print(value.device)
     adj = SparseTensor(row=edge_index[0], 
                        col=edge_index[1], 
                        value=value,

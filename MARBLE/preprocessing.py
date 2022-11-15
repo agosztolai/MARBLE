@@ -59,7 +59,7 @@ def preprocessing(data, par):
         Lc = None
         
     #move to gpu
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda:0' if par['gpu'] else 'cpu')
     if isinstance(L, tuple):
         L = [L_.to(device) for L_ in L]
     else:
