@@ -134,7 +134,7 @@ class net(nn.Module):
         """Network training"""
         
         #move to gpu
-        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+        device = torch.device('cuda:0' if self.par['gpu'] else 'cpu')
         self = self.to(device)
         x = data.x.to(device)
         
