@@ -522,6 +522,7 @@ def trajectories(X,
         if 'o' in style:
             ax.scatter(X[:,0], X[:,1], X[:,2], c=c, s=ms, alpha=alpha)
         if '-' in style:
+            print(c)
             if isinstance(c, (list, tuple)):
                 for i in range(len(X)-2):
                     ax.plot(X[i:i+2,0], X[i:i+2,1], X[i:i+2,2], c=c[i], linewidth=lw, markersize=ms, alpha=alpha)
