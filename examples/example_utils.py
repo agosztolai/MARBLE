@@ -24,10 +24,10 @@ def circle(ax, r, X_p, col='C1'):
         M_R = R.from_rotvec(v_rot).as_matrix()
         x = np.matmul(M_R,x.T).T + X_p[0]
     
-        ax.plot(x[:,0],x[:,1],x[:,2],'C1')
+        ax.plot(x[:,0],x[:,1],x[:,2],col)
     elif X_p.shape[1]==2:
         x = x[:,:2] + X_p[0]
-        ax.plot(x[:,0], x[:,1],'C1')
+        ax.plot(x[:,0], x[:,1],col)
     else:
         NotImplementedError
     
