@@ -135,11 +135,11 @@ class net(nn.Module):
             'It seems that data is not preprocessed. Run preprocess(data) before training!'
         
         #load to gpu if possible
-        print(data.L.device)
+        print(data.L[0].device)
         Lc = data.Lc if hasattr(data, 'Lc') else None
         self, data.x, data.L, data.Lc, data.kernels = \
             utils.move_to_gpu(self, data.x, data.L, Lc, data.kernels)
-        print(data.L.device)
+        print(data.L[0].device)
         
         writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))         
         
