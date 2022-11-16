@@ -90,8 +90,10 @@ class net(nn.Module):
             adjs = utils.EdgeIndex(data.edge_index, None, size)
             adjs = utils.to_list(adjs) * self.par['order']
             
-            #move to gpu
-            adjs, x = utils.move_to_gpu(adjs, data.x)
+            #load to gpu if possible
+            Lc = data.Lc if hasattr(data, 'Lc') else None
+            adjs, data.x, data.L, data.Lc, data.kernels = \
+                utils.move_to_gpu(adjs, data.x, data.L, Lc, data.kernels)
             
             emb, _, _ = self.forward(data, None, adjs)
             data.emb = emb.detach().cpu()
@@ -133,6 +135,7 @@ class net(nn.Module):
         assert all(hasattr(data, attr) for attr in ['kernels', 'L']), \
             'It seems that data is not preprocessed. Run preprocess(data) before training!'
         
+        #load to gpu if possible
         Lc = data.Lc if hasattr(data, 'Lc') else None
         self, data.x, data.L, data.Lc, data.kernels = \
             utils.move_to_gpu(self, data.x, data.L, Lc, data.kernels)
