@@ -40,7 +40,7 @@ def preprocessing(data,
         print('\n Signal dimension is 1, so manifold computations are disabled!')
         local_gauge = False
     elif dim_emb<=2:
-        print('\n Embedding dimension <= 2, so manifold computations are disabled!')
+        print('\nEmbedding dimension <= 2, so manifold computations are disabled!')
         local_gauge = False
     else:
         local_gauge = True
@@ -62,7 +62,7 @@ def preprocessing(data,
             R = g.compute_connections(gauges, data.edge_index, dim_man)
             Lc = g.compute_connection_laplacian(data, R)
         else:
-            print('\n Embedding dimension = manifold dimension, so \
+            print('\nEmbedding dimension = manifold dimension, so \
                       manifold computations are disabled!')
     else:
         R = None
@@ -74,6 +74,7 @@ def preprocessing(data,
         
     #kernels
     kernels = g.gradient_op(data.pos, data.edge_index, gauges)
+    
         
     data.R, data.kernels, data.L, data.Lc = R, kernels, L, Lc
         

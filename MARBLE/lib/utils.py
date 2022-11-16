@@ -20,6 +20,7 @@ from functools import partial
 from tqdm import tqdm
 
 from . import geometry
+from MARBLE import preprocessing
 
 
 def construct_dataset(pos, features, graph_type='cknn', k=10, stop_crit=0.0):
@@ -63,6 +64,8 @@ def construct_dataset(pos, features, graph_type='cknn', k=10, stop_crit=0.0):
     #split into training/validation/test datasets
     split = RandomNodeSplit(split='train_rest', num_val=0.1, num_test=0.1)
     split(batch)
+    
+    batch = preprocessing.preprocessing(batch)
     
     return batch
 
@@ -123,7 +126,7 @@ def check_parameters(par, data):
 def print_settings(model):
     """Print parameters to screen"""
     
-    print('---- Settings: \n')
+    print('\n---- Settings: \n')
         
     for x in model.par:
         print (x,':',model.par[x])

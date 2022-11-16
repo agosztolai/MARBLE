@@ -3,7 +3,7 @@
 
 import numpy as np
 import sys
-from MARBLE import plotting, utils, geometry, net, postprocessing, preprocessing
+from MARBLE import plotting, utils, geometry, net, postprocessing
 
 
 def main():
@@ -30,7 +30,6 @@ def main():
     data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
     
     #train model
-    data = preprocessing(data)
     model = net(data, **par)
     model.run_training(data)
     

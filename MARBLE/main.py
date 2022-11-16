@@ -37,12 +37,14 @@ class net(nn.Module):
                 layer.reset_parameters()
         
         
-    def forward(self, x, n_id=None, adjs=None):
+    def forward(self, data, n_id=None, adjs=None):
         """Forward pass. 
         Messages are passed to a set target nodes (current batch) from source
         nodes. The source nodes and target nodes form a bipartite graph to 
         simplify message passing. By convention, the first size[1] entries of x 
-        are the target nodes, i.e, x = concat[x_target, x_other]."""  
+        are the target nodes, i.e, x = concat[x_target, x_other]."""
+        
+        x = data.x
         
         #parse parameters
         if n_id is None:
@@ -53,8 +55,8 @@ class net(nn.Module):
         
         #restrict to current batch n_id
         x = x[n_id] 
-        kernels = [K[n_id,:][:,n_id] for K in self.kernels]
-        R = self.R[n_id,:][:,n_id] if hasattr(self, 'R') else None
+        kernels = [K[n_id,:][:,n_id] for K in data.kernels]
+        R = data.R[n_id,:][:,n_id] if hasattr(data, 'R') else None
 
         #gradients
         if self.par['vec_norm']:
@@ -91,13 +93,13 @@ class net(nn.Module):
             #move to gpu
             adjs, x = utils.move_to_gpu(adjs, data.x)
             
-            emb, _, _ = self.forward(x, None, adjs)
+            emb, _, _ = self.forward(data, None, adjs)
             data.emb = emb.detach().cpu()
             
             return data
                 
 
-    def batch_loss(self, x, loader, optimizer=None):
+    def batch_loss(self, data, loader, optimizer=None):
         """Loop over minibatches provided by loader function.
         
         Parameters
@@ -111,9 +113,9 @@ class net(nn.Module):
         cum_loss = 0
         for batch in loader:
             _, n_id, adjs = batch
-            adjs = [adj.to(x.device) for adj in utils.to_list(adjs)]
+            adjs = [adj.to(data.x.device) for adj in utils.to_list(adjs)]
                         
-            enc_out, out, dec_out = self.forward(x, n_id, adjs)
+            enc_out, out, dec_out = self.forward(data, n_id, adjs)
             loss = self.loss(enc_out, out, dec_out)
             cum_loss += float(loss)
             
@@ -128,13 +130,12 @@ class net(nn.Module):
     def run_training(self, data):
         """Network training"""
         
-        assert all(hasattr(data, attr) for attr in ['kernels', 'L', ]), \
+        assert all(hasattr(data, attr) for attr in ['kernels', 'L']), \
             'It seems that data is not preprocessed. Run preprocess(data) before training!'
         
-        x = data.x
         Lc = data.Lc if hasattr(data, 'Lc') else None
-        self, x, self.L, self.Lc, self.kernels = \
-            utils.move_to_gpu(self, x, data.L, Lc, data.kernels)
+        self, data.x, data.L, data.Lc, data.kernels = \
+            utils.move_to_gpu(self, data.x, data.L, Lc, data.kernels)
         
         writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))         
         
@@ -146,22 +147,18 @@ class net(nn.Module):
         for epoch in range(self.par['epochs']):
             
             self.train() #training mode
-            train_loss, optimizer = self.batch_loss(x, train_loader, optimizer)
+            train_loss, optimizer = self.batch_loss(data, train_loader, optimizer)
             
             self.eval() #testing mode (disables dropout in MLP)
-            val_loss, _ = self.batch_loss(x, val_loader)
+            val_loss, _ = self.batch_loss(data, val_loader)
             
             writer.add_scalar('Loss/train', train_loss, epoch)
             writer.add_scalar('Loss/validation', val_loss, epoch)
             print("Epoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}" \
                   .format(epoch+1, train_loss, val_loss))
         
-        test_loss, _ = self.batch_loss(x, test_loader)
+        test_loss, _ = self.batch_loss(data, test_loader)
         print('Final test loss: {:.4f}'.format(test_loss))
-        
-        
-    def preprocess(self, data):
-        preprocessing
     
 
 class loss_fun(nn.Module):
