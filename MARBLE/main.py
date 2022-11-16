@@ -92,9 +92,10 @@ class net(nn.Module):
             
             #load to gpu if possible
             Lc = data.Lc if hasattr(data, 'Lc') else None
+            print(data.L.device)
             adjs, data.x, data.L, data.Lc, data.kernels = \
                 utils.move_to_gpu(adjs, data.x, data.L, Lc, data.kernels)
-            
+            print(data.L.device)
             emb, _, _ = self.forward(data, None, adjs)
             data.emb = emb.detach().cpu()
             
