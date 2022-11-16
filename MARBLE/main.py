@@ -44,6 +44,7 @@ class net(nn.Module):
         simplify message passing. By convention, the first size[1] entries of x 
         are the target nodes, i.e, x = concat[x_target, x_other]."""
         
+        print(data.x.device)
         x = data.x
         print(x.device)
         
