@@ -45,6 +45,7 @@ class net(nn.Module):
         are the target nodes, i.e, x = concat[x_target, x_other]."""
         
         x = data.x
+        print(x.device)
         
         #parse parameters
         if n_id is None:
@@ -138,7 +139,6 @@ class net(nn.Module):
         Lc = data.Lc if hasattr(data, 'Lc') else None
         self, data.x, data.L, data.Lc, data.kernels = \
             utils.move_to_gpu(self, data.x, data.L, Lc, data.kernels)
-        print(data.x.device)
         
         writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))         
         
