@@ -507,7 +507,11 @@ def trajectories(X,
         if 'o' in style:
             ax.scatter(X[:,0], X[:,1], c=c, s=ms, alpha=alpha)
         if '-' in style:
-            ax.plot(X[:,0], X[:,1], c=c, linewidth=lw, markersize=ms, alpha=alpha)
+            if isinstance(c, (list, tuple)):
+                for i in range(len(X)-1):
+                    ax.plot(X[i:i+1,0], X[i:i+1,1], c=c[i], linewidth=lw, markersize=ms, alpha=alpha)
+            else:
+                ax.plot(X[:,0], X[:,1], c=c, linewidth=lw, markersize=ms, alpha=alpha)
         if '>' in style:
             arrow_prop_dict = dict(color=c, alpha=alpha, lw=lw)
             skip = (slice(None, None, arrow_spacing), slice(None))
@@ -518,7 +522,11 @@ def trajectories(X,
         if 'o' in style:
             ax.scatter(X[:,0], X[:,1], X[:,2], c=c, s=ms, alpha=alpha)
         if '-' in style:
-            ax.plot(X[:,0], X[:,1], X[:,2], c=c, linewidth=lw, markersize=ms, alpha=alpha)
+            if isinstance(c, (list, tuple)):
+                for i in range(len(X)-1):
+                    ax.plot(X[i:i+1,0], X[i:i+1,1], X[i:i+1,2], c=c, linewidth=lw, markersize=ms, alpha=alpha)
+            else:
+                ax.plot(X[:,0], X[:,1], X[:,2], c=c, linewidth=lw, markersize=ms, alpha=alpha)
         if '>' in style:
             arrow_prop_dict = dict(mutation_scale=arrowhead, arrowstyle='-|>', color=c, alpha=alpha, lw=lw)
             skip = (slice(None, None, arrow_spacing), slice(None))
@@ -615,16 +623,16 @@ def set_colors(color, cmap=plt.cm.coolwarm):
         assert isinstance(color, (list, tuple, np.ndarray))
         
     if isinstance(color[0], (float, np.floating)):
-        norm = plt.cm.colors.Normalize(-np.max(np.abs(color)), np.max(np.abs(color)))
-        
-        colors = []
-        for i, c in enumerate(color):
-            colors.append(cmap(norm(np.array(c).flatten())))
+        norm = plt.cm.colors.Normalize(-np.max(np.abs(color)), np.max(np.abs(color)))        
+        colors = [cmap(norm(np.array(c).flatten())) for c in color]
    
     elif isinstance(color[0], (int, np.integer)):
         colors = [f"C{i}" for i in color]
         cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, len(color)+2), 
                                                               colors)
+    else:
+        raise Exception('color must be a list of integers or floats')
+        
     cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
             
     return colors, cbar
