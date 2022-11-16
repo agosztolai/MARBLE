@@ -13,15 +13,14 @@ from .lib import geometry as g
 from .lib import utils
 
 
-def setup_layers(model, data):
+def setup_layers(model):
     
     par = model.par
     
     s, e, o = par['dim_signal'], par['dim_emb'], par['order']
     
     #diffusion
-    Lc = data.Lc if hasattr(data, 'Lc') else None
-    diffusion = Diffusion(data.L, Lc)
+    diffusion = Diffusion()
     
     #gradient features
     grad = nn.ModuleList(AnisoConv(par['vec_norm']) for i in range(o))
@@ -69,23 +68,16 @@ def setup_layers(model, data):
 class Diffusion(nn.Module):
     """Diffusion with learned t."""
 
-    def __init__(self, L, Lc=None, tau0=0.0):
+    def __init__(self, tau0=0.0):
         super().__init__()
                 
         self.diffusion_time = nn.Parameter(torch.tensor(float(tau0)))
+                
+    def forward(self, x, L, Lc=None, method='spectral', normalise=False):
         
-        method = 'matrix_exp'
-        self.par = {'L': L, 'Lc': Lc}
-        
-        if isinstance(L, (list, tuple)):
-            assert len(L)==2, 'L must be a matrix or a tuple of eigenvalues \
+        if method=='spectral':
+            assert len(L)==2, 'L must be a matrix or a pair of eigenvalues \
                                 and eigenvectors'
-            method='spectral'
-                
-        self.method = method
-                
-                
-    def forward(self, x, normalise=False):
         
         # making sure diffusion times are positive
         with torch.no_grad():
@@ -93,10 +85,10 @@ class Diffusion(nn.Module):
             
         t = self.diffusion_time
         
-        if self.par['Lc'] is not None:
-            out = g.vector_diffusion(x, t, self.method, self.par['Lc'], normalise)
+        if Lc is not None:
+            out = g.vector_diffusion(x, t, method, Lc, normalise)
         else:
-            out = [g.scalar_diffusion(x_, t, self.method, self.par['L']) for x_ in x.T]
+            out = [g.scalar_diffusion(x_, t, method, L) for x_ in x.T]
             out = torch.cat(out, axis=1)
             
         return out

@@ -11,7 +11,7 @@ from tensorboardX import SummaryWriter
 from datetime import datetime
 
 from .lib import utils
-from . import preprocessing, layers, dataloader
+from . import layers, dataloader
 
 
 """Main network"""
@@ -24,7 +24,7 @@ class net(nn.Module):
             before initialising network!'
         
         self.par = utils.parse_parameters(data, kwargs)
-        self = layers.setup_layers(self, data)      
+        self = layers.setup_layers(self)      
         self.loss = loss_fun()       
         self.reset_parameters()
         
@@ -44,16 +44,15 @@ class net(nn.Module):
         simplify message passing. By convention, the first size[1] entries of x 
         are the target nodes, i.e, x = concat[x_target, x_other]."""
         
-        print(data.x.device)
         x = data.x
-        print(x.device)
         
         #parse parameters
         if n_id is None:
             n_id = np.arange(len(x))
 
         #diffusion
-        x = self.diffusion(x)
+        Lc = data.Lc if hasattr(data, 'Lc') else None
+        x = self.diffusion(x, data.L, Lc=Lc, method='spectral')
         
         #restrict to current batch n_id
         x = x[n_id] 
