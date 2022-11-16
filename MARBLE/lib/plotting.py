@@ -513,7 +513,7 @@ def trajectories(X,
             else:
                 ax.plot(X[:,0], X[:,1], c=c, linewidth=lw, markersize=ms, alpha=alpha)
         if '>' in style:
-            arrow_prop_dict = dict(color=c, alpha=alpha, lw=lw)
+            arrow_prop_dict = dict(alpha=alpha, lw=lw)
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
             ax.quiver(X[:,0], X[:,1], V[:,0]*0.1, V[:,1]*0.1,
@@ -522,21 +522,21 @@ def trajectories(X,
         if 'o' in style:
             ax.scatter(X[:,0], X[:,1], X[:,2], c=c, s=ms, alpha=alpha)
         if '-' in style:
-            print(c)
             if isinstance(c, (list, tuple)):
                 for i in range(len(X)-2):
                     ax.plot(X[i:i+2,0], X[i:i+2,1], X[i:i+2,2], c=c[i], linewidth=lw, markersize=ms, alpha=alpha)
             else:
                 ax.plot(X[:,0], X[:,1], X[:,2], c=c, linewidth=lw, markersize=ms, alpha=alpha)
         if '>' in style:
-            arrow_prop_dict = dict(mutation_scale=arrowhead, arrowstyle='-|>', color=c, alpha=alpha, lw=lw)
+            arrow_prop_dict = dict(mutation_scale=arrowhead, arrowstyle='-|>', alpha=alpha, lw=lw)
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
-            for j in range(X.shape[0]):
+            for j in range(len(X)):
                 a = Arrow3D([X[j,0], X[j,0]+V[j,0]], 
                             [X[j,1], X[j,1]+V[j,1]], 
                             [X[j,2], X[j,2]+V[j,2]], 
-                            **arrow_prop_dict)
+                            **arrow_prop_dict,
+                            color=c[j])
                 ax.add_artist(a)
                 
     if not axis:
