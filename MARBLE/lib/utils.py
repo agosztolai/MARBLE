@@ -113,7 +113,7 @@ def check_parameters(par, data):
         
     pars = ['batch_size', 'epochs', 'lr', 'autoencoder', 'order', \
             'inner_product_features', 'dim_signal', 'dim_emb', \
-            'frac_sampled_nb', 'dropout', 'n_lin_layers', \
+            'frac_sampled_nb', 'dropout', 'n_lin_layers', 'diffusion', \
             'hidden_channels', 'out_channels', 'bias', 'vec_norm', 'batch_norm', \
             'seed', 'n_geodesic_nb', 'n_sampled_nb', 'processes']
         

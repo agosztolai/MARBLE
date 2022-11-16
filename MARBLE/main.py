@@ -51,8 +51,9 @@ class net(nn.Module):
             n_id = np.arange(len(x))
 
         #diffusion
-        Lc = data.Lc if hasattr(data, 'Lc') else None
-        x = self.diffusion(x, data.L, Lc=Lc, method='spectral')
+        if self.par['diffusion']:
+            Lc = data.Lc if hasattr(data, 'Lc') else None
+            x = self.diffusion(x, data.L, Lc=Lc, method='spectral')
         
         #restrict to current batch n_id
         x = x[n_id] 
