@@ -508,8 +508,8 @@ def trajectories(X,
             ax.scatter(X[:,0], X[:,1], c=c, s=ms, alpha=alpha)
         if '-' in style:
             if isinstance(c, (list, tuple)):
-                for i in range(len(X)-1):
-                    ax.plot(X[i:i+1,0], X[i:i+1,1], c=c[i], linewidth=lw, markersize=ms, alpha=alpha)
+                for i in range(len(X)-2):
+                    ax.plot(X[i:i+2,0], X[i:i+2,1], c=c[i], linewidth=lw, markersize=ms, alpha=alpha)
             else:
                 ax.plot(X[:,0], X[:,1], c=c, linewidth=lw, markersize=ms, alpha=alpha)
         if '>' in style:
@@ -523,8 +523,8 @@ def trajectories(X,
             ax.scatter(X[:,0], X[:,1], X[:,2], c=c, s=ms, alpha=alpha)
         if '-' in style:
             if isinstance(c, (list, tuple)):
-                for i in range(len(X)-1):
-                    ax.plot(X[i:i+1,0], X[i:i+1,1], X[i:i+1,2], c=c[i], linewidth=lw, markersize=ms, alpha=alpha)
+                for i in range(len(X)-2):
+                    ax.plot(X[i:i+2,0], X[i:i+2,1], X[i:i+2,2], c=c[i], linewidth=lw, markersize=ms, alpha=alpha)
             else:
                 ax.plot(X[:,0], X[:,1], X[:,2], c=c, linewidth=lw, markersize=ms, alpha=alpha)
         if '>' in style:
