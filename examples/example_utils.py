@@ -7,7 +7,7 @@ from MARBLE import utils, geometry, plotting
 
 """Some functions that are used for the exampels"""
 
-def circle(ax, r, X_p):
+def circle(ax, r, X_p, col='C1'):
     
     theta = np.linspace(0, 2 * np.pi, 101)
     x = r*np.vstack([np.cos(theta), np.sin(theta), np.zeros_like(theta)]).T
