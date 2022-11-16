@@ -18,7 +18,7 @@ def main():
            'n_lin_layers': 2,
            'hidden_channels': 16, #number of internal dimensions in MLP
            'out_channels': 3,
-           'inner_product_features': False
+           'inner_product_features': True
            }
       
     #evaluate functions

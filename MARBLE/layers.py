@@ -32,9 +32,9 @@ def setup_layers(model):
         if s==1:
             cum_channels = o+1
     
-        ip = InnerProductFeatures(cum_channels, s)
+        inner_products = InnerProductFeatures(cum_channels, s)
     else:
-        ip = None
+        inner_products = None
     
     #encoder
     channel_list = [cum_channels] + \
@@ -56,8 +56,8 @@ def setup_layers(model):
     else:
         dec = None
     
-    model.diffusion, model.grad, model.ip, model.enc, model.dec = \
-        diffusion, grad, ip, enc, dec
+    model.diffusion, model.grad, model.inner_products, model.enc, model.dec = \
+        diffusion, grad, inner_products, enc, dec
         
     return model
 
