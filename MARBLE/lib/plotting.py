@@ -628,6 +628,7 @@ def set_colors(color, cmap=plt.cm.coolwarm):
    
     elif isinstance(color[0], (int, np.integer)):
         colors = [f"C{i}" for i in color]
+        colors = [matplotlib.colors.to_rgba(c) for c in colors]
         cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, len(color)+2), 
                                                               colors)
     else:
