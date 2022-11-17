@@ -191,7 +191,7 @@ def embedding(data,
         labels = np.ones(emb.shape[0])
             
     print(labels)
-    types = set(labels)
+    types = sorted(set(labels))
     print(types)
     print(titles)
     if titles is not None:
