@@ -482,7 +482,7 @@ def trajectories(X,
         Velocities.
     style : string
         Plotting style. The default is 'o'.
-    node_feature: bool
+    node_feature: 
         Color lines. The default is None.
     lw : int
         Line width.
@@ -517,7 +517,8 @@ def trajectories(X,
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
             ax.quiver(X[:,0], X[:,1], V[:,0]*0.1, V[:,1]*0.1,
-                      **arrow_prop_dict)
+                      **arrow_prop_dict,
+                      c=c)
     elif dim==3:
         if 'o' in style:
             ax.scatter(X[:,0], X[:,1], X[:,2], c=c, s=ms, alpha=alpha)
