@@ -69,7 +69,7 @@ def compare_attractors(data, source_target):
     plotting.embedding(data.emb_2d, ax=ax[0], alpha=0.05)
     
     #get gamma matrix for the given source-target pair
-    gammadist = data.gamma[s,t,...]*data.cdist
+    gammadist = data.gamma[s,t,...]*data.cdist/data.cdist.max()
     np.fill_diagonal(gammadist, 0.0)
     
     #color code source features
@@ -101,7 +101,6 @@ def compare_attractors(data, source_target):
             labels[i] = -c[cid] #negative for blue color
     
     #plot target features in blue
-    print(labels)
     plotting.embedding(data.emb_2d[s_t], labels=labels, ax=ax[0], alpha=1.)
     plotting.trajectories(data.pos[s_t], data.x[s_t], 
                           ax=ax[2],
