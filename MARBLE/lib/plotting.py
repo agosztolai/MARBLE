@@ -197,7 +197,9 @@ def embedding(data,
     for i, typ in enumerate(types):
         ind = np.where(labels==typ)[0]
         title = titles[i] if titles is not None else str(typ)
-        c = np.array(color)[ind] if not isinstance(color, str) else color 
+        c = np.array(color)[ind] if not isinstance(color, str) else color
+        print(c)
+        print(title)
         ax.scatter(emb[ind,0], emb[ind,1], c=c, alpha=alpha, s=s, label=title)
     
     if hasattr(data, 'clusters'):

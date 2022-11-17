@@ -98,6 +98,7 @@ class net(nn.Module):
                 utils.move_to_gpu(adjs, data.x, data.L, Lc, data.kernels)
             emb, _, _ = self.forward(data, None, adjs)
             data.emb = emb.detach().cpu()
+            data.x = data.x.detach().cpu()
             
             return data
                 
