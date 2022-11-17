@@ -190,10 +190,7 @@ def embedding(data,
     if labels is None:
         labels = np.ones(emb.shape[0])
             
-    print(labels)
     types = sorted(set(labels))
-    print(types)
-    print(titles)
     if titles is not None:
         assert len(titles)==len(types)
         
