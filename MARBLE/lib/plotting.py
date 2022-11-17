@@ -518,7 +518,7 @@ def trajectories(X,
             X, V = X[skip], V[skip]
             ax.quiver(X[:,0], X[:,1], V[:,0]*0.1, V[:,1]*0.1,
                       **arrow_prop_dict,
-                      c=c)
+                      color=c)
     elif dim==3:
         if 'o' in style:
             ax.scatter(X[:,0], X[:,1], X[:,2], c=c, s=ms, alpha=alpha)
