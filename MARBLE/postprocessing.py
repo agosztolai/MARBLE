@@ -101,6 +101,7 @@ def compare_attractors(data, source_target):
             labels[i] = -c[cid] #negative for blue color
     
     #plot target features in blue
+    print(labels)
     plotting.embedding(data.emb_2d[s_t], labels=labels, ax=ax[0], alpha=1.)
     plotting.trajectories(data.pos[s_t], data.x[s_t], 
                           ax=ax[2],
