@@ -79,7 +79,7 @@ def fields(data,
                 ax.quiver(pos[:,0], pos[:,1], 
                       signal[:,0], signal[:,1], 
                       color=c, 
-                      scale=10, 
+                      scale=5, 
                       scale_units='x',
                       width=0.005)
             elif dim==3:

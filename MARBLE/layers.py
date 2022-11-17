@@ -26,7 +26,7 @@ def setup_layers(model):
     grad = nn.ModuleList(AnisoConv(par['vec_norm']) for i in range(o))
         
     #cumulated number of channels after gradient features
-    cum_channels = s*((1-e**(o+1))//(1-e))
+    cum_channels = s*(1-e**(o+1))//(1-e)
     if par['inner_product_features']:
         cum_channels //= s
         if s==1:
