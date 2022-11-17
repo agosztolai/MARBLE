@@ -190,7 +190,10 @@ def embedding(data,
     if labels is None:
         labels = np.ones(emb.shape[0])
             
+    print(labels)
     types = set(labels)
+    print(types)
+    print(titles)
     if titles is not None:
         assert len(titles)==len(types)
         
@@ -198,8 +201,6 @@ def embedding(data,
         ind = np.where(labels==typ)[0]
         title = titles[i] if titles is not None else str(typ)
         c = np.array(color)[ind] if not isinstance(color, str) else color
-        print(c)
-        print(title)
         ax.scatter(emb[ind,0], emb[ind,1], c=c, alpha=alpha, s=s, label=title)
     
     if hasattr(data, 'clusters'):
