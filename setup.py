@@ -22,6 +22,8 @@ setup(
         "pyEDM",
         "teaspoon",
         "umap-learn",
+        "mat73",
+        "wget"
     ],
     packages=find_packages(),
     ext_modules=cythonize(
