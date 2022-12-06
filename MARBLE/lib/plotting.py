@@ -50,6 +50,7 @@ def fields(data,
     grid = gridspec.GridSpec(row, col, wspace=0., hspace=0., figure=fig)
     
     lims = None
+    ax_list = []
     for i, d in enumerate(data):
         signal = d.x.detach().numpy()
         if axis is None:
@@ -102,8 +103,9 @@ def fields(data,
         if lims is None:
             lims = get_limits(ax)
         set_axes(ax, lims=lims, off=True)
+        ax_list.append(ax)
         
-    return ax
+    return ax_list
         
         
 def histograms(data, titles=None, col=2, figsize=(10,10), save=None):
