@@ -39,6 +39,9 @@ def fields(data,
     figsize : tuple of figure dimensions
 
     """
+    
+    assert axis is None or len(axis)==len(data)
+        
     if not isinstance(data, list):
         data = data.to_data_list() #split data batch 
         
@@ -56,7 +59,7 @@ def fields(data,
         if axis is None:
             _, ax = create_axis(dim, grid[i], fig=fig)
         else:
-            ax = axis
+            ax = axis[i]
         
         G = to_networkx(d, node_attrs=['pos'], edge_attrs=None, to_undirected=True,
                 remove_self_loops=True)
