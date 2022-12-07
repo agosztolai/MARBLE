@@ -1,4 +1,5 @@
 results/
+results/outputs/
 build/
 data/
 examples/log/
