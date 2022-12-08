@@ -178,11 +178,11 @@ class net(nn.Module):
                 checkpoint['optimizer_state_dict'] = optimizer.state_dict()
                 print(' *', end="")       
         
-        test_loss, _ = self.batch_loss(data, test_loader)
-        print('\nFinal test loss: {:.4f}'.format(test_loss))
-        
         self.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        
+        test_loss, _ = self.batch_loss(data, test_loader)
+        print('\nFinal test loss: {:.4f}'.format(test_loss))
         
         if save:
             if not os.path.exists('./outputs'):
