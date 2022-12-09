@@ -13,7 +13,7 @@ from cknn import cknneighbors_graph
 
 from torch.nn.functional import normalize
 
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, MeanShift
 from sklearn.metrics import pairwise_distances
 from sklearn.manifold import TSNE, MDS
 from sklearn.preprocessing import StandardScaler
@@ -90,7 +90,7 @@ def furthest_point_sampling(x, N=None, stop_crit=0.1):
 # =============================================================================
 # Clustering
 # =============================================================================
-def cluster(x, cluster_typ='kmeans', n_clusters=15, seed=0):
+def cluster(x, cluster_typ='meanshift', n_clusters=15, seed=0):
     """
     Cluster data
 
@@ -113,6 +113,11 @@ def cluster(x, cluster_typ='kmeans', n_clusters=15, seed=0):
         clusters['n_clusters'] = n_clusters
         clusters['labels'] = kmeans.labels_
         clusters['centroids'] = kmeans.cluster_centers_
+    elif cluster_typ=='meanshift':
+        meanshift = MeanShift(bandwidth=n_clusters).fit(x)
+        clusters['n_clusters'] = len(set(meanshift.labels_))
+        clusters['labels'] = meanshift.labels_
+        clusters['centroids'] = meanshift.cluster_centers_
     else:
         NotImplementedError
         

@@ -4,6 +4,7 @@
 import numpy as np
 import sys
 from MARBLE import plotting, utils, geometry, net, postprocessing
+import matplotlib.pyplot as plt
 
 
 def main():
@@ -11,14 +12,15 @@ def main():
     #parameters
     n = 512
     k = 15
-    n_clusters = 10
+    n_clusters = 15
     
-    par = {'epochs': 10, #optimisation epochs
+    par = {'epochs': 20, #optimisation epochs
            'order': 1, #order of derivatives
            'n_lin_layers': 2,
            'hidden_channels': 16, #number of internal dimensions in MLP
            'out_channels': 3,
-           'inner_product_features': True
+           'inner_product_features': False,
+           'autoencoder': True
            }
       
     #evaluate functions
@@ -35,14 +37,20 @@ def main():
     
     #evaluate model on data
     data = model.evaluate(data)
-    data = postprocessing(data, n_clusters=n_clusters)
+    data = postprocessing(data, n_clusters=n_clusters, cluster_typ='kmeans')
     
     #plot
+    cmap = sns.color_palette("dark", as_cmap=True)
+    color = cmap[0]
     titles=['Linear left','Linear right','Vortex right','Vortex left']
     plotting.fields(data, titles=titles, col=2)
+    plt.savefig('../results/fields.svg')
     plotting.embedding(data, data.y.numpy(),titles=titles)
+    plt.savefig('../results/embedding.svg')
     plotting.histograms(data, titles=titles)
+    plt.savefig('../results/histogram.svg')
     plotting.neighbourhoods(data)
+    plt.savefig('../results/neighbourhoods.svg')
     
 def f0(x):
     return x*0 + np.array([-1,-1])

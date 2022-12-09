@@ -10,6 +10,8 @@ import matplotlib.gridspec as gridspec
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
 
+import seaborn as sns
+
 import numpy as np
 import networkx as nx
 from torch_geometric.utils.convert import to_networkx
@@ -223,8 +225,9 @@ def neighbourhoods(data,
                    hops=1,
                    cols=4,
                    norm=False, 
+                   color=None:
                    plot_graph=False,
-                   figsize=(10, 25),
+                   figsize=(15, 20),
                    fontsize=20):
     """
     For each clustered neighbourhood type, draw one sample neighbourhood 
@@ -289,13 +292,16 @@ def neighbourhoods(data,
             node_ids = np.sort(node_ids) #sort nodes
                 
             #convert node values to colors
-            c = nv
-            if vector:
-                c = np.linalg.norm(nv, axis=1)
+            if color is not None:
+                c = color
+            else:
+                c = nv
+                if vector:
+                    c = np.linalg.norm(nv, axis=1)
                 
             if not norm: #set colors based on global values
                 c, _ = set_colors(c)
-                c = [c[i] for i in node_ids] if isinstance(c,list) else c
+                c = [c[i] for i in node_ids] if isinstance(c, (list, np.ndarray)) else c
                 nv = nv[node_ids]
             else: #first extract subgraph, then compute normalized colors
                 nv = nv[node_ids]
@@ -618,7 +624,7 @@ def set_axes(ax, lims=None, padding=0.1, off=True):
     return ax
 
 
-def set_colors(color, cmap=plt.cm.coolwarm):
+def set_colors(color):
     
     if color is None:
         return 'k', None
@@ -626,10 +632,12 @@ def set_colors(color, cmap=plt.cm.coolwarm):
         assert isinstance(color, (list, tuple, np.ndarray))
         
     if isinstance(color[0], (float, np.floating)):
+        cmap = sns.color_palette("coolwarm", as_cmap=True)
         norm = plt.cm.colors.Normalize(-np.max(np.abs(color)), np.max(np.abs(color)))        
         colors = [cmap(norm(np.array(c).flatten())) for c in color]
    
     elif isinstance(color[0], (int, np.integer)):
+        cmap = sns.color_palette()
         colors = [f"C{i}" for i in color]
         colors = [matplotlib.colors.to_rgba(c) for c in colors]
         cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, len(color)+2), 
