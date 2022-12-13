@@ -6,7 +6,6 @@ import sys
 from MARBLE import plotting, utils, geometry, net, postprocessing
 import matplotlib.pyplot as plt
 
-
 def main():
     
     #parameters
@@ -20,9 +19,9 @@ def main():
            'hidden_channels': 16, #number of internal dimensions in MLP
            'out_channels': 3,
            'inner_product_features': False,
-           'autoencoder': True
+           'autoencoder': False
            }
-      
+    
     #evaluate functions
     # f0: linear, f1: point source, f2: point vortex, f3: saddle
     x = [geometry.sample_2d(n, [[-1,-1],[1,1]], 'random') for i in range(4)]
@@ -40,8 +39,6 @@ def main():
     data = postprocessing(data, n_clusters=n_clusters, cluster_typ='kmeans')
     
     #plot
-    cmap = sns.color_palette("dark", as_cmap=True)
-    color = cmap[0]
     titles=['Linear left','Linear right','Vortex right','Vortex left']
     plotting.fields(data, titles=titles, col=2)
     plt.savefig('../results/fields.svg')

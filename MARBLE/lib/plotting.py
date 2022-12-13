@@ -225,7 +225,7 @@ def neighbourhoods(data,
                    hops=1,
                    cols=4,
                    norm=False, 
-                   color=None:
+                   color=None,
                    plot_graph=False,
                    figsize=(15, 20),
                    fontsize=20):

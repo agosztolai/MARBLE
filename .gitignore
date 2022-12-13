@@ -1,5 +1,5 @@
 results/
-results/outputs/
+examples/outputs/
 build/
 data/
 examples/log/
