@@ -58,7 +58,7 @@ class net(nn.Module):
         #restrict to current batch n_id
         x = x[n_id] 
         kernels = [K[n_id,:][:,n_id] for K in data.kernels]
-        R = data.R[n_id,:][:,n_id] if hasattr(data, 'R') else None
+        R = data.R[n_id,...][:,n_id,...] if hasattr(data, 'R') else None
 
         #gradients
         if self.par['vec_norm']:
