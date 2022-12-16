@@ -3,21 +3,20 @@
 
 import numpy as np
 import sys
-from MARBLE import plotting, utils, geometry, net, postprocessing
+from MARBLE import plotting, utils, net, postprocessing
 from DE_library import simulate_trajectories
-import matplotlib.pyplot as plt
 
 def main():
     
     #parameters
     n_clusters = 15
     
-    par = {'epochs': 200, #optimisation epochs
-           'order': 1, #order of derivatives
+    par = {'epochs': 100, #optimisation epochs
+           'order': 2, #order of derivatives
            'n_lin_layers': 2,
            'hidden_channels': 16, #number of internal dimensions in MLP
            'out_channels': 3,
-           'inner_product_features': False,
+           'inner_product_features': True,
            'autoencoder': False
            }
     
@@ -36,11 +35,11 @@ def main():
             p, v = simulate_system(t, X0, rho=r)
                             
             X_tmp.append(np.vstack(p)[10:])
-            V_tmp.append(np.vstack(v)[10:]/1e3)
+            V_tmp.append(np.vstack(v)[10:])
             
         X.append(np.vstack(X_tmp))
         V.append(np.vstack(V_tmp))
-                
+        
     #construct PyG data object
     data = utils.construct_dataset(X, features=V, graph_type='cknn', k=10, stop_crit=0.02)
     
@@ -54,7 +53,7 @@ def main():
     
     #plot
     titles=[r'$\rho={}$'.format(r) for r in rho]
-    plotting.fields(data, axshow=True, plot_gauges=False, titles=titles, figsize=(8,8), col=2)
+    plotting.fields(data, axshow=True, plot_gauges=False, titles=titles, figsize=(8,8), col=2, scale=3, width=10)
     # plt.savefig('../results/fields.svg')
     plotting.embedding(data, data.y.numpy(),titles=titles)
     # plt.savefig('../results/embedding.svg')

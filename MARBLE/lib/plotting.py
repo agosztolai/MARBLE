@@ -15,6 +15,7 @@ import seaborn as sns
 import numpy as np
 import networkx as nx
 from torch_geometric.utils.convert import to_networkx
+from .geometry import embed
 
 from scipy.spatial import Voronoi, voronoi_plot_2d
 
@@ -30,7 +31,9 @@ def fields(data,
            color=None,
            alpha=0.5,
            node_size=10,
-           plot_gauges=False):
+           plot_gauges=False,
+           width=0.005,
+           scale=5):
     """
     Plot scalar or vector fields
 
@@ -81,7 +84,7 @@ def fields(data,
         
         if vector:
             pos = d.pos.numpy()
-            ax = plot_arrows(pos, signal, ax, c)
+            ax = plot_arrows(pos, signal, ax, c, scale=scale, width=width)
                 
         if plot_gauges and (gauges is not None):
             ax = plot_arrows(pos, gauges[...,0]/5, ax, 'k')
@@ -106,33 +109,6 @@ def fields(data,
         ax_list.append(ax)
         
     return ax_list
-
-
-def plot_arrows(pos, signal, ax, c='k', alpha=1.):
-    dim = pos.shape[1]
-    scale = (pos.max()-pos.min())*(signal.max()-signal.min())
-    if dim==3:
-        arrow_prop_dict = dict(alpha=alpha, mutation_scale=scale*0.25, arrowstyle='-|>', lw=1, zorder=3)
-        for j in range(len(pos)):
-            a = Arrow3D([pos[j,0], pos[j,0]+signal[j,0]*scale], 
-                        [pos[j,1], pos[j,1]+signal[j,1]*scale], 
-                        [pos[j,2], pos[j,2]+signal[j,2]*scale], 
-                        **arrow_prop_dict,
-                        color=c[j] if len(c)>1 else c)
-            ax.add_artist(a)
-    if dim==2:
-        arrow_prop_dict = dict(alpha=alpha, lw=1, zorder=3)
-        ax.quiver(pos[:,0], pos[:,1], 
-              signal[:,0], signal[:,1], 
-              color=c if len(c)>1 else c, 
-              scale=5, 
-              scale_units='x',
-              width=0.005,
-              **arrow_prop_dict)
-    else:
-        NotImplementedError
-        
-    return ax
         
         
 def histograms(data, titles=None, col=2, figsize=(10,10), save=None):
@@ -285,7 +261,7 @@ def neighbourhoods(data,
                                   to_undirected=True,
                                   remove_self_loops=True))
     
-    node_values = [d.x for d in data_list]
+    signals = [d.x for d in data_list]
     
     for i in range(nc):
         col = 2
@@ -313,7 +289,7 @@ def neighbourhoods(data,
             else:
                 random_node = np.random.choice(label_i)
             
-            nv = node_values[j].numpy()
+            signal = signals[j].numpy()
             node_ids = nx.ego_graph(G, random_node, radius=hops).nodes
             node_ids = np.sort(node_ids) #sort nodes
                 
@@ -321,18 +297,18 @@ def neighbourhoods(data,
             if color is not None:
                 c = color
             else:
-                c = nv
+                c = signal
                 if vector:
-                    c = np.linalg.norm(nv, axis=1)
+                    c = np.linalg.norm(signal, axis=1)
                 
             if not norm: #set colors based on global values
                 c, _ = set_colors(c)
                 c = [c[i] for i in node_ids] if isinstance(c, (list, np.ndarray)) else c
-                nv = nv[node_ids]
+                signal = signal[node_ids]
             else: #first extract subgraph, then compute normalized colors
-                nv = nv[node_ids]
-                nv -= nv.mean()
-                c, _ = set_colors(nv.squeeze())
+                signal = signal[node_ids]
+                signal -= signal.mean()
+                c, _ = set_colors(signal.squeeze())
                   
             ax = plt.Subplot(fig, inner[j])
             
@@ -349,16 +325,15 @@ def neighbourhoods(data,
                       node_size=30,
                       edge_width=0.5)
             
-            x = np.array(list(nx.get_node_attributes(subgraph, name='pos').values()))
+            pos = np.array(list(nx.get_node_attributes(subgraph, name='pos').values()))
+            
+            if pos.shape[1]>2:
+                pos, manifold = embed(pos, embed_typ='PCA')
+                signal = embed(signal, embed_typ='PCA', manifold=manifold)[0]
             if vector:
-                ax.quiver(x[:,0], x[:,1],
-                          nv[:,0], nv[:,1], 
-                          color=c, 
-                          scale=10, 
-                          scale_units='x', 
-                          width=0.02)  
+                ax = plot_arrows(pos, signal, ax, c, width=0.025, scale=1) 
             else:
-                ax.scatter(x[:,0], x[:,1], c=c)
+                ax.scatter(pos[:,0], pos[:,1], c=c)
             
             ax.set_frame_on(False)
             set_axes(ax, off=True)
@@ -402,13 +377,7 @@ def graph(
                 ax=ax
             )
 
-        nx.draw_networkx_edges(
-            G,
-            pos=pos,
-            width=edge_width,
-            alpha=edge_alpha,
-            ax=ax
-        )
+        nx.draw_networkx_edges(G, pos=pos, width=edge_width, alpha=edge_alpha, ax=ax)
     
     elif dim == 3:
         node_xyz = np.array([pos[v] for v in sorted(G)])
@@ -567,6 +536,35 @@ def trajectories(X,
     if not axis:
         ax = set_axes(ax, off=True)
                 
+    return ax
+
+
+def plot_arrows(pos, signal, ax, c='k', alpha=1., width=1, scale=1):
+    dim = pos.shape[1]
+    if dim==3:
+        norm = signal.max()-signal.min()
+        norm = norm if norm!=0 else 1
+        scaling = (pos.max()-pos.min())/norm/scale
+        arrow_prop_dict = dict(alpha=alpha, mutation_scale=width, arrowstyle='-|>', zorder=3)
+        for j in range(len(pos)):
+            a = Arrow3D([pos[j,0], pos[j,0]+signal[j,0]*scaling], 
+                        [pos[j,1], pos[j,1]+signal[j,1]*scaling], 
+                        [pos[j,2], pos[j,2]+signal[j,2]*scaling], 
+                        **arrow_prop_dict,
+                        color=c[j] if len(c)>1 else c)
+            ax.add_artist(a)
+            
+    if dim==2:
+        arrow_prop_dict = dict(alpha=alpha, zorder=3, headwidth=5, scale_units='dots')
+        ax.quiver(pos[:,0], pos[:,1], 
+              signal[:,0], signal[:,1], 
+              color=c if len(c)>1 else c, 
+              scale=scale,
+              width=width,
+              **arrow_prop_dict)
+    else:
+        NotImplementedError
+        
     return ax
 
 

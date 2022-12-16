@@ -16,6 +16,7 @@ from torch.nn.functional import normalize
 from sklearn.cluster import KMeans, MeanShift
 from sklearn.metrics import pairwise_distances
 from sklearn.manifold import TSNE, MDS
+from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 import umap
 
@@ -163,6 +164,12 @@ def embed(x, embed_typ='umap', manifold=None):
             raise Exception('t-SNE cannot fit on existing manifold')
             
         emb = MDS(n_components=2, n_init=20, dissimilarity='precomputed').fit_transform(x)
+        
+    elif embed_typ == 'PCA':
+        if manifold is None:
+            manifold = PCA(n_components=2).fit(x)
+        
+        emb = manifold.transform(x)
         
     else:
         NotImplementedError

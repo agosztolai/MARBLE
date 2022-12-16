@@ -9,11 +9,10 @@ def main():
     #parameters
     n = 512
     k = 30
-    n_clusters = 16
+    n_clusters = 15
     
     par = {'epochs': 30, #optimisation epochs
            'order': 1, #order of derivatives
-           'n_lin_layers': 1,
            'hidden_channels': 8, #number of internal dimensions in MLP
            'out_channels': 3,
            'inner_product_features': False,
@@ -40,7 +39,7 @@ def main():
     plotting.fields(data, titles=titles, node_size=10, col=2)
     plotting.embedding(data, data.y.numpy(), titles=titles)
     plotting.histograms(data, titles=titles)
-    plotting.neighbourhoods(data, hops=1, norm=True,figsize=(10, 20))
+    plotting.neighbourhoods(data, hops=1, norm=True, figsize=(10, 20))
     
 def f0(x):
     return x[:,[0]]*0
