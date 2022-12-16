@@ -50,23 +50,24 @@ def preprocessing(data,
     gauges, Sigma = g.compute_gauges(data, local_gauge, n_geodesic_nb)
     
     #Laplacian
-    L = g.compute_laplacian(data)        
+    L = g.compute_laplacian(data)
     
     #connections
     if local_gauge:
         dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
         
-        print('---- Manifold dimension: {}'.format(dim_man))
+        print('\n---- Manifold dimension: {}'.format(dim_man))
         
         if dim_man<dim_emb:
             R = g.compute_connections(gauges, data.edge_index, dim_man)
             Lc = g.compute_connection_laplacian(data, R)
         else:
+            R, Lc = None, None
             print('\nEmbedding dimension = manifold dimension, so \
                       manifold computations are disabled!')
+                
     else:
-        R = None
-        Lc = None
+        R, Lc = None, None
         
     if diffusion_method == 'spectral':
         L = g.compute_eigendecomposition(L)
@@ -75,7 +76,6 @@ def preprocessing(data,
     #kernels
     kernels = g.gradient_op(data.pos, data.edge_index, gauges)
     
-        
-    data.R, data.kernels, data.L, data.Lc = R, kernels, L, Lc
+    data.R, data.gauges, data.kernels, data.L, data.Lc = R, gauges, kernels, L, Lc
         
     return data

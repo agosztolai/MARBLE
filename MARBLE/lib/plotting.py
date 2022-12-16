@@ -25,10 +25,12 @@ def fields(data,
            titles=None, 
            col=1,
            figsize=(8,8), 
-           keeplim=True, 
+           axlim=None,
+           axshow=False,
            color=None,
            alpha=0.5,
-           node_size=10):
+           node_size=10,
+           plot_gauges=False):
     """
     Plot scalar or vector fields
 
@@ -41,6 +43,11 @@ def fields(data,
 
     """
             
+    if hasattr(data, 'gauges'):
+        gauges = data.gauges
+    else:
+        gauges = None
+        
     if not isinstance(data, list):
         data = data.to_data_list() #split data batch 
         
@@ -49,10 +56,9 @@ def fields(data,
     row = int(np.ceil(len(data)/col))
     
     fig = plt.figure(figsize=figsize, constrained_layout=True)
-    grid = gridspec.GridSpec(row, col, wspace=0., hspace=0., figure=fig)
-    
-    lims = None
-    ax_list = []
+    grid = gridspec.GridSpec(row, col, wspace=0., hspace=0., figure=fig) 
+        
+    ax_list, lims = [], None
     for i, d in enumerate(data):
         signal = d.x.detach().numpy()
         _, ax = create_axis(dim, grid[i], fig=fig)
@@ -75,38 +81,58 @@ def fields(data,
         
         if vector:
             pos = d.pos.numpy()
-            if dim==2:
-                ax.quiver(pos[:,0], pos[:,1], 
-                      signal[:,0], signal[:,1], 
-                      color=c, 
-                      scale=5, 
-                      scale_units='x',
-                      width=0.005,
-                      zorder=3)
-            elif dim==3:
-                ax.quiver(pos[:,0], pos[:,1], pos[:,2], 
-                      signal[:,0], signal[:,1], signal[:,2], 
-                      color=c, 
-                      length=.5,
-                      zorder=3
-                      # scale=10, 
-                      # scale_units='x',
-                      # width=0.005
-                      )
-            else:
-                NotImplementedError
-        
+            ax = plot_arrows(pos, signal, ax, c)
+                
+        if plot_gauges and (gauges is not None):
+            ax = plot_arrows(pos, gauges[...,0]/5, ax, 'k')
+            ax = plot_arrows(pos, gauges[...,1]/5, ax, 'k')
+            ax = plot_arrows(pos, gauges[...,2]/5, ax, 'k')
+
         if titles is not None:
             ax.set_title(titles[i])
             
         fig.add_subplot(ax)
         
-        if lims is None:
-            lims = get_limits(ax)
-        set_axes(ax, lims=lims, off=True)
+        if axlim is not None:
+            if axlim=='same' and (lims is None):
+                lims = get_limits(ax)
+            elif len(axlim)==len(data):
+                lims = axlim[i]
+            else:
+                NotImplementedError
+
+        set_axes(ax, lims=lims, off=axshow)
+        
         ax_list.append(ax)
         
     return ax_list
+
+
+def plot_arrows(pos, signal, ax, c='k', alpha=1.):
+    dim = pos.shape[1]
+    scale = (pos.max()-pos.min())*(signal.max()-signal.min())
+    if dim==3:
+        arrow_prop_dict = dict(alpha=alpha, mutation_scale=scale*0.25, arrowstyle='-|>', lw=1, zorder=3)
+        for j in range(len(pos)):
+            a = Arrow3D([pos[j,0], pos[j,0]+signal[j,0]*scale], 
+                        [pos[j,1], pos[j,1]+signal[j,1]*scale], 
+                        [pos[j,2], pos[j,2]+signal[j,2]*scale], 
+                        **arrow_prop_dict,
+                        color=c[j] if len(c)>1 else c)
+            ax.add_artist(a)
+    if dim==2:
+        arrow_prop_dict = dict(alpha=alpha, lw=1, zorder=3)
+        ax.quiver(pos[:,0], pos[:,1], 
+              signal[:,0], signal[:,1], 
+              color=c if len(c)>1 else c, 
+              scale=5, 
+              scale_units='x',
+              width=0.005,
+              **arrow_prop_dict)
+    else:
+        NotImplementedError
+        
+    return ax
         
         
 def histograms(data, titles=None, col=2, figsize=(10,10), save=None):
@@ -520,12 +546,10 @@ def trajectories(X,
             else:
                 ax.plot(X[:,0], X[:,1], c=c, linewidth=lw, markersize=ms, alpha=alpha)
         if '>' in style:
-            arrow_prop_dict = dict(alpha=alpha, lw=lw)
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
-            ax.quiver(X[:,0], X[:,1], V[:,0]*0.1, V[:,1]*0.1,
-                      **arrow_prop_dict,
-                      color=c)
+            ax = plot_arrows(X, V, ax, c)
+
     elif dim==3:
         if 'o' in style:
             ax.scatter(X[:,0], X[:,1], X[:,2], c=c, s=ms, alpha=alpha)
@@ -536,16 +560,9 @@ def trajectories(X,
             else:
                 ax.plot(X[:,0], X[:,1], X[:,2], c=c, linewidth=lw, markersize=ms, alpha=alpha)
         if '>' in style:
-            arrow_prop_dict = dict(mutation_scale=arrowhead, arrowstyle='-|>', alpha=alpha, lw=lw)
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
-            for j in range(len(X)):
-                a = Arrow3D([X[j,0], X[j,0]+V[j,0]], 
-                            [X[j,1], X[j,1]+V[j,1]], 
-                            [X[j,2], X[j,2]+V[j,2]], 
-                            **arrow_prop_dict,
-                            color=c[j])
-                ax.add_artist(a)
+            ax = plot_arrows(X, V, ax, c)
                 
     if not axis:
         ax = set_axes(ax, off=True)
