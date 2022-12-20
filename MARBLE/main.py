@@ -94,8 +94,8 @@ class net(nn.Module):
             
             #load to gpu if possible
             Lc = data.Lc if hasattr(data, 'Lc') else None
-            adjs, data.x, data.L, data.Lc, data.kernels = \
-                utils.move_to_gpu(adjs, data.x, data.L, Lc, data.kernels)
+            adjs, data.x, data.L, data.Lc, data.kernels, data.R = \
+                utils.move_to_gpu(adjs, data.x, data.L, Lc, data.kernels, data.R)
             emb, _, _ = self.forward(data, None, adjs)
             data.emb = emb.detach().cpu()
             data.x = data.x.detach().cpu()
@@ -139,8 +139,8 @@ class net(nn.Module):
         
         #load to gpu if possible
         Lc = data.Lc if hasattr(data, 'Lc') else None
-        self, data.x, data.L, data.Lc, data.kernels = \
-            utils.move_to_gpu(self, data.x, data.L, Lc, data.kernels)
+        self, data.x, data.L, data.Lc, data.kernels, data.R = \
+            utils.move_to_gpu(self, data.x, data.L, Lc, data.kernels, data.R)
         
         writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))         
         
