@@ -5,18 +5,21 @@ import numpy as np
 import sys
 from MARBLE import plotting, utils, net, postprocessing
 from DE_library import simulate_trajectories
+import matplotlib.pyplot as plt
+
 
 def main():
     
     #parameters
     n_clusters = 15
     
-    par = {'epochs': 100, #optimisation epochs
-           'order': 2, #order of derivatives
+    par = {'batch_size': 128,
+           'epochs': 100, #optimisation epochs
+           'order': 1, #order of derivatives
            'n_lin_layers': 2,
            'hidden_channels': 16, #number of internal dimensions in MLP
-           'out_channels': 3,
-           'inner_product_features': True,
+           'out_channels': 4,
+           'inner_product_features': False,
            'autoencoder': False
            }
     
@@ -34,7 +37,7 @@ def main():
         for i, X0 in enumerate(X0_set):
             p, v = simulate_system(t, X0, rho=r)
                             
-            X_tmp.append(np.vstack(p)[10:])
+            X_tmp.append(np.vstack(p)[10:]) #eliminate transient
             V_tmp.append(np.vstack(v)[10:])
             
         X.append(np.vstack(X_tmp))

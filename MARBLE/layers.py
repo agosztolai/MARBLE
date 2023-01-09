@@ -113,7 +113,7 @@ class AnisoConv(MessagePassing):
         out = []
         for K in utils.to_list(kernels):
             if R is not None:
-                K = torch.kron(K, torch.eye(dim, device=x.device))
+                K = torch.kron(K, torch.ones((dim,dim), device=x.device))
                 K *= R
                 
             #transpose to change from source to target
