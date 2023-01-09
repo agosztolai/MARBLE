@@ -62,7 +62,7 @@ def preprocessing(data,
     gauges, Sigma = g.compute_gauges(data, local='False', n_nb=n_nb)
     import numpy as np
     import torch
-    b = np.random.choice([-1,1], size=len(data.gauges[:,-1,-1]), replace=True)
+    b = np.random.choice([-1,1], size=len(gauges[:,-1,-1]), replace=True)
     gauges[:,-1,-1] = torch.tensor(b)
     print(gauges)
         
