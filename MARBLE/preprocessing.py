@@ -62,12 +62,13 @@ def preprocessing(data,
     gauges, Sigma = g.compute_gauges(data, local='False', n_nb=n_nb)
     
     import numpy as np
+    import torch
     for i, ga in enumerate(gauges):
         t = np.random.uniform(low=0,high=2*np.pi)
         R = np.array([[np.cos(t), -np.sin(t), 0], 
                            [np.sin(t),  np.cos(t), 0],
                            [0,          0,         1]])
-        gauges[i] = R@ga
+        gauges[i] = torch.tensor(R)@ga
         
     #Laplacian
     L = g.compute_laplacian(data)
