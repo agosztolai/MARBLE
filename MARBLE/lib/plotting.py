@@ -555,11 +555,11 @@ def plot_arrows(pos, signal, ax, c='k', alpha=1., width=1, scale=1):
             ax.add_artist(a)
             
     if dim==2:
-        arrow_prop_dict = dict(alpha=alpha, zorder=3, headwidth=1, scale_units='xy')
+        arrow_prop_dict = dict(alpha=alpha, zorder=3, headwidth=1, scale_units='inches')
         ax.quiver(pos[:,0], pos[:,1], 
               signal[:,0], signal[:,1], 
               color=c if len(c)>1 else c, 
-              #scale=scale,
+              scale=scale,
               width=width,
               **arrow_prop_dict
               )
