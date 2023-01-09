@@ -63,8 +63,7 @@ def preprocessing(data,
             Lc = g.compute_connection_laplacian(data, R)
         else:
             R, Lc = None, None
-            print('\nEmbedding dimension = manifold dimension, so \
-                      manifold computations are disabled!')
+            print('\nEmbedding dimension = manifold dimension, so manifold computations are disabled!')
                 
     else:
         R, Lc = None, None
