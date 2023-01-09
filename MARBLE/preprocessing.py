@@ -61,6 +61,7 @@ def preprocessing(data,
     
     print('debug')
     gauges, Sigma = g.compute_gauges(data, 'False', n_geodesic_nb)
+    print(gauges)
         
     #Laplacian
     L = g.compute_laplacian(data)
