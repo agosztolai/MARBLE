@@ -428,12 +428,10 @@ def manifold_dimension(Sigma, frac_explained=0.9):
     Sigma **= 2
     Sigma /= Sigma.sum(1, keepdim=True)
     Sigma = Sigma.cumsum(dim=1)
-    print(Sigma.mean(0)-Sigma.std(0))
-    dim_man = (Sigma<frac_explained).sum(0)
+    var_exp = Sigma.mean(0)-Sigma.std(0)
+    dim_man = torch.where(var_exp >= frac_explained)[0][0]
     
-    dim_man = torch.where(dim_man<Sigma.shape[0]*(1-frac_explained))[0][0] + 1
-    
-    print('\nFraction of variance explained: ', Sigma.mean(0))
+    print('\nFraction of variance explained: ', var_exp)
     
     return int(dim_man)
 
