@@ -539,7 +539,7 @@ def trajectories(X,
     return ax
 
 
-def plot_arrows(pos, signal, ax, c='k', alpha=1., width=1, scale=1):
+def plot_arrows(pos, signal, ax, c='k', alpha=1., width=1., scale=1.):
     dim = pos.shape[1]
     if dim==3:
         norm = signal.max()-signal.min()

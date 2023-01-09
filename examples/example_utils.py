@@ -113,7 +113,7 @@ def initial_conditions(n, reps, area = [[-3,-3],[3,3]], seed=0):
     return X0_range
 
 
-def plot_phase_portrait(pos, vel, ax=None, node_feature=None, style='>', lw=2, scale=.1, spacing=1):
+def plot_phase_portrait(pos, vel, ax=None, node_feature=None, style='>', lw=2, scale=1., spacing=1):
     if not isinstance(pos, list):
         pos = [pos]
     if not isinstance(vel, list):
