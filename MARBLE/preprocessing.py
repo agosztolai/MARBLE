@@ -47,8 +47,13 @@ def preprocessing(data,
     
     #gauges
     n_geodesic_nb = int(data.degree*frac_geodesic_nb)
-    gauges, Sigma = g.compute_gauges(data, local_gauge, n_geodesic_nb)
-    
+    try:
+        gauges, Sigma = g.compute_gauges(data, local_gauge, n_geodesic_nb)
+    except:
+        gauges, Sigma = g.compute_gauges(data, False, n_geodesic_nb)
+        print('Could not compute gauges (possibly data is too sparse or the \
+              number of neighbours is too small. Manifold computations are disabled!')
+        
     #Laplacian
     L = g.compute_laplacian(data)
     
