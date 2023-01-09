@@ -67,7 +67,8 @@ def preprocessing(data,
     
     #connections
     if local_gauge:
-        dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
+        # dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
+        dim_man=2
         
         print('\n---- Manifold dimension: {}'.format(dim_man))
         print('\nManifold dimension can decrease with more data. Try smaller values of stop_crit\
