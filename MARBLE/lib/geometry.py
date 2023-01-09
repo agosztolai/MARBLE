@@ -405,19 +405,14 @@ def compute_gauges(data, local=True, n_nb=10, processes=1):
     
     n = data.pos.shape[0]
     dim = data.pos.shape[-1]
-    
-    print(local)
-    
+        
     if local is True:
-        print('why here')
         gauges, Sigma = compute_tangent_bundle(data, 
                                                n_geodesic_nb=n_nb, 
                                                processes=processes)
         return gauges, Sigma
     
-    else:    
-        
-        print('here')
+    else:            
         gauges = torch.eye(dim)
         gauges = gauges.repeat(n,1,1)      
         return gauges, None
