@@ -5,6 +5,7 @@ import numpy as np
 
 import torch
 import torch.nn as nn
+import torch.optim as opt
 import torch.nn.functional as F
 
 from tensorboardX import SummaryWriter
@@ -94,8 +95,9 @@ class net(nn.Module):
             
             #load to gpu if possible
             Lc = data.Lc if hasattr(data, 'Lc') else None
+            R = data.R if hasattr(data, 'R') else None
             adjs, data.x, data.L, data.Lc, data.kernels, data.R = \
-                utils.move_to_gpu(adjs, data.x, data.L, Lc, data.kernels, data.R)
+                utils.move_to_gpu(adjs, data.x, data.L, Lc, data.kernels, R)
             emb, _, _ = self.forward(data, None, adjs)
             data.emb = emb.detach().cpu()
             data.x = data.x.detach().cpu()
@@ -139,15 +141,17 @@ class net(nn.Module):
         
         #load to gpu if possible
         Lc = data.Lc if hasattr(data, 'Lc') else None
+        R = data.R if hasattr(data, 'R') else None
         self, data.x, data.L, data.Lc, data.kernels, data.R = \
-            utils.move_to_gpu(self, data.x, data.L, Lc, data.kernels, data.R)
+            utils.move_to_gpu(self, data.x, data.L, Lc, data.kernels, R)
         
         writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))         
         
         print('\n---- Training network ...')
             
         train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.par['lr'])
+        optimizer = opt.Adam(self.parameters(), lr=self.par['lr'])
+        scheduler = opt.lr_scheduler.ExponentialLR(optimizer, gamma=self.par['gamma'])
         
         if loadpath is not None:
             checkpoint = torch.load(loadpath)
@@ -163,20 +167,22 @@ class net(nn.Module):
             
             self.train() #training mode
             train_loss, optimizer = self.batch_loss(data, train_loader, optimizer)
+            scheduler.step()
             
             self.eval() #testing mode (disables dropout in MLP)
             val_loss, _ = self.batch_loss(data, val_loader)
             
             writer.add_scalar('Loss/train', train_loss, epoch)
             writer.add_scalar('Loss/validation', val_loss, epoch)
-            print("\nEpoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}" \
-                  .format(epoch+epoch0+1, train_loss, val_loss), end="")
+            lr = scheduler.get_last_lr()[0]
+            print("\nEpoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}, lr: {:.4f}" \
+                  .format(epoch+epoch0+1, train_loss, val_loss, lr), end="")
                 
             if best_loss==-1 or (val_loss<best_loss):
                 best_loss = val_loss 
                 checkpoint['model_state_dict'] = self.state_dict()
                 checkpoint['optimizer_state_dict'] = optimizer.state_dict()
-                print(' *', end="")       
+                print(' *', end="")
         
         self.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])

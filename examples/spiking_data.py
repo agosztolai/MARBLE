@@ -9,7 +9,7 @@ import pickle
 
 def main():
         
-    file = '../data/subject_Pierre.date_2016-08-19.saveTagGroup_1.saveTag_2,3,5_export.mat'
+    file = '../data/conditions_spiking_data.mat'
     
     #data is a matrix with shape (trials, conditions)
     data = loadmat(file)['result']
