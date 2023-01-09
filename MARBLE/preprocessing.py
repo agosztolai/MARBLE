@@ -51,24 +51,23 @@ def preprocessing(data,
         
     #gauges
     n_nb = int(data.degree*frac_geodesic_nb)
-    # try:
-    #     gauges, Sigma = g.compute_gauges(data, local_gauge, n_nb)
-    # except:
-    #     local_gauge = False
-    #     gauges, Sigma = g.compute_gauges(data, local_gauge, n_nb)
-    #     print('Could not compute gauges (possibly data is too sparse or the \
-    #           number of neighbours is too small) Manifold computations are disabled!')
+    try:
+        gauges, Sigma = g.compute_gauges(data, local_gauge, n_nb)
+    except:
+        local_gauge = False
+        gauges, Sigma = g.compute_gauges(data, local_gauge, n_nb)
+        print('Could not compute gauges (possibly data is too sparse or the \
+              number of neighbours is too small) Manifold computations are disabled!')
     
-    gauges, Sigma = g.compute_gauges(data, local='False', n_nb=n_nb)
+    # gauges, Sigma = g.compute_gauges(data, local='False', n_nb=n_nb)
     
-    import numpy as np
-    import torch
-    for i, ga in enumerate(gauges):
-        t = np.random.uniform(low=0,high=2*np.pi)
-        R = np.array([[np.cos(t), -np.sin(t), 0], 
-                           [np.sin(t),  np.cos(t), 0],
-                           [0,          0,         1]])
-        gauges[i] = torch.tensor(R, dtype=torch.float32)@ga
+    # import numpy as np
+    # import torch
+    # for i, ga in enumerate(gauges):
+    #     t = np.random.uniform(low=0,high=2*np.pi)
+    #     R = np.array([[np.cos(t), -np.sin(t)], 
+    #                        [np.sin(t),  np.cos(t)]])
+    #     gauges[i] = torch.tensor(R, dtype=torch.float32)@ga
         
     #Laplacian
     L = g.compute_laplacian(data)
