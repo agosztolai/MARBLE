@@ -113,7 +113,7 @@ def initial_conditions(n, reps, area = [[-3,-3],[3,3]], seed=0):
     return X0_range
 
 
-def plot_phase_portrait(pos, vel, ax=None, node_feature=None, style='>', lw=2, ah=.1, spacing=1):
+def plot_phase_portrait(pos, vel, ax=None, node_feature=None, style='>', lw=2, scale=.1, spacing=1):
     if not isinstance(pos, list):
         pos = [pos]
     if not isinstance(vel, list):
@@ -123,6 +123,6 @@ def plot_phase_portrait(pos, vel, ax=None, node_feature=None, style='>', lw=2, a
         node_feature = len(pos) * [None]
         
     for p, v, nf in zip(pos, vel, node_feature):
-        ax = plotting.trajectories(p, v, ax=ax, style=style, node_feature=nf, lw=lw, arrowhead=ah, axis=False, alpha=1., arrow_spacing=spacing)
+        ax = plotting.trajectories(p, v, ax=ax, style=style, node_feature=nf, lw=lw, scale=scale, axis=False, alpha=1., arrow_spacing=spacing)
         
     return ax
