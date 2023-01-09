@@ -468,7 +468,7 @@ def trajectories(X,
                  node_feature=None, 
                  lw=1, 
                  ms=5, 
-                 arrowhead=1, 
+                 scale=1, 
                  arrow_spacing=1,
                  axis=True, 
                  alpha=1.):
@@ -517,7 +517,7 @@ def trajectories(X,
         if '>' in style:
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
-            ax = plot_arrows(X, V, ax, c)
+            ax = plot_arrows(X, V, ax, c, scale=scale)
 
     elif dim==3:
         if 'o' in style:
@@ -531,7 +531,7 @@ def trajectories(X,
         if '>' in style:
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
-            ax = plot_arrows(X, V, ax, c)
+            ax = plot_arrows(X, V, ax, c, scale=scale)
                 
     if not axis:
         ax = set_axes(ax, off=True)
@@ -560,7 +560,7 @@ def plot_arrows(pos, signal, ax, c='k', alpha=1., width=1, scale=1):
                   signal[:,0], signal[:,1], 
                   color=c if len(c)>1 else c, 
                   scale=scale,
-                  # width=width,
+                  width=width,
                   **arrow_prop_dict
                   )
     else:
