@@ -68,7 +68,7 @@ def preprocessing(data,
         R = np.array([[np.cos(t), -np.sin(t), 0], 
                            [np.sin(t),  np.cos(t), 0],
                            [0,          0,         1]])
-        gauges[i] = torch.tensor(R, astype=torch.float32)@ga
+        gauges[i] = torch.tensor(R, dtype=torch.float32)@ga
         
     #Laplacian
     L = g.compute_laplacian(data)
