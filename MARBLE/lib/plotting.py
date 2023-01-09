@@ -561,8 +561,8 @@ def plot_arrows(pos, signal, ax, c='k', alpha=1., width=1, scale=1):
               color=c if len(c)>1 else c, 
               #scale=scale,
               #width=width,
-              **arrow_prop_dict)
-        
+              # **arrow_prop_dict
+              )
     else:
         NotImplementedError
         
