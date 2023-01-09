@@ -57,6 +57,8 @@ def preprocessing(data,
         dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
         
         print('\n---- Manifold dimension: {}'.format(dim_man))
+        print('\nManifold dimension can decrease with more data. Try smaller values of stop_crit\
+                 before settling on a value')
         
         if dim_man<dim_emb:
             R = g.compute_connections(gauges, data.edge_index, dim_man)
