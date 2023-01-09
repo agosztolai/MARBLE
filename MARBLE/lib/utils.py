@@ -116,7 +116,7 @@ def check_parameters(par, data):
         assert data.x.shape[1] > 1, 'Using vec_norm=True is \
         not permitted for scalar signals'
         
-    pars = ['batch_size', 'epochs', 'lr', 'autoencoder', 'order', \
+    pars = ['batch_size', 'epochs', 'lr', 'momentum', 'autoencoder', 'order', \
             'inner_product_features', 'dim_signal', 'dim_emb', \
             'frac_sampled_nb', 'dropout', 'n_lin_layers', 'diffusion', \
             'hidden_channels', 'out_channels', 'bias', 'vec_norm', 'batch_norm', \

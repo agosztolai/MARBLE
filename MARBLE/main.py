@@ -148,9 +148,9 @@ class net(nn.Module):
         writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))         
         
         print('\n---- Training network ...')
-            
+        
         train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
-        optimizer = opt.Adam(self.parameters(), lr=self.par['lr'])
+        optimizer = opt.SGD(self.parameters(), lr=self.par['lr'], momentum=self.par['momentum'])
         scheduler = opt.lr_scheduler.ExponentialLR(optimizer, gamma=self.par['gamma'])
         
         if loadpath is not None:
