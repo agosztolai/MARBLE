@@ -6,7 +6,8 @@ from .lib import geometry as g
 def preprocessing(data, 
                   frac_geodesic_nb=2.0, 
                   var_explained=0.9, 
-                  diffusion_method='spectral'):
+                  diffusion_method='spectral', 
+                  vector=True):
     """
     Compute geometric objects used later: local gauges, Levi-Civita connections
     gradient kernels, scalar and connection laplacians.
@@ -36,8 +37,11 @@ def preprocessing(data,
     
     #disable vector computations if 1) signal is scalar or 2) embedding dimension
     #is <= 2. In case 2), either M=R^2 (manifold is whole space) or case 1).
-    if dim_signal==1:
-        print('\n Signal dimension is 1, so manifold computations are disabled!')
+    if not vector:
+        local_gauge=False
+        print('\nVector computations are disabled')
+    elif dim_signal==1:
+        print('\nSignal dimension is 1, so manifold computations are disabled!')
         local_gauge = False
     elif dim_emb<=2:
         print('\nEmbedding dimension <= 2, so manifold computations are disabled!')
@@ -45,22 +49,17 @@ def preprocessing(data,
     else:
         local_gauge = True
         
-# =============================================================================
-#         debug!!
-# =============================================================================
-    local_gauge=False
-# =============================================================================
-#     
-# =============================================================================
     #gauges
     n_geodesic_nb = int(data.degree*frac_geodesic_nb)
-    try:
-        gauges, Sigma = g.compute_gauges(data, local_gauge, n_geodesic_nb)
-    except:
-        local_gauge = False
-        gauges, Sigma = g.compute_gauges(data, local_gauge, n_geodesic_nb)
-        print('Could not compute gauges (possibly data is too sparse or the \
-              number of neighbours is too small) Manifold computations are disabled!')
+    # try:
+    #     gauges, Sigma = g.compute_gauges(data, local_gauge, n_geodesic_nb)
+    # except:
+    #     local_gauge = False
+    #     gauges, Sigma = g.compute_gauges(data, local_gauge, n_geodesic_nb)
+    #     print('Could not compute gauges (possibly data is too sparse or the \
+    #           number of neighbours is too small) Manifold computations are disabled!')
+    
+    gauges, Sigma = g.compute_gauges(data, 'False', n_geodesic_nb)
         
     #Laplacian
     L = g.compute_laplacian(data)

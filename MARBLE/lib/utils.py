@@ -23,7 +23,12 @@ from . import geometry
 from MARBLE import preprocessing
 
 
-def construct_dataset(pos, features, graph_type='cknn', k=10, stop_crit=0.0):
+def construct_dataset(pos, 
+                      features, 
+                      graph_type='cknn', 
+                      k=10, 
+                      stop_crit=0.0, 
+                      vector=True):
     """Construct PyG dataset from node positions and features"""
                 
     pos = [torch.tensor(p).float() for p in to_list(pos)]
@@ -58,7 +63,7 @@ def construct_dataset(pos, features, graph_type='cknn', k=10, stop_crit=0.0):
         data_list.append(data_)
         
     #collate datasets
-    batch = Batch.from_data_list(data_list)
+    batch = Batch.from_data_list(data_list, vector)
     batch.degree = k
     
     #split into training/validation/test datasets
@@ -108,7 +113,7 @@ def check_parameters(par, data):
     assert par['order'] > 0, "Derivative order must be at least 1!"
     
     if par['vec_norm']:         
-        assert data.x.shape[1]>1, 'Using vec_norm=True is \
+        assert data.x.shape[1] > 1, 'Using vec_norm=True is \
         not permitted for scalar signals'
         
     pars = ['batch_size', 'epochs', 'lr', 'autoencoder', 'order', \
