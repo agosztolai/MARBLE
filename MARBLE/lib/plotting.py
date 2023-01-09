@@ -33,7 +33,8 @@ def fields(data,
            node_size=10,
            plot_gauges=False,
            width=0.005,
-           scale=5):
+           scale=5,
+           view=None):
     """
     Plot scalar or vector fields
 
@@ -65,6 +66,9 @@ def fields(data,
     for i, d in enumerate(data):
         signal = d.x.detach().numpy()
         _, ax = create_axis(dim, grid[i], fig=fig)
+        
+        if view is not None:
+            ax.view_init(elev=view[0], azim=view[1])
     
         G = to_networkx(d, node_attrs=['pos'], edge_attrs=None, to_undirected=True,
                 remove_self_loops=True)
