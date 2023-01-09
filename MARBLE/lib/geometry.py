@@ -414,7 +414,9 @@ def compute_gauges(data, local=True, n_nb=10, processes=1):
                                                processes=processes)
         return gauges, Sigma
     
-    else:      
+    else:    
+        
+        print('here')
         gauges = torch.eye(dim)
         gauges = gauges.repeat(n,1,1)      
         return gauges, None
