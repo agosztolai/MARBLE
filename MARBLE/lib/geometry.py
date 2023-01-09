@@ -409,6 +409,7 @@ def compute_gauges(data, local=True, n_nb=10, processes=1):
     print(local)
     
     if local:
+        print('why here')
         gauges, Sigma = compute_tangent_bundle(data, 
                                                n_geodesic_nb=n_nb, 
                                                processes=processes)
