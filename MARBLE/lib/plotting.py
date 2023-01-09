@@ -539,7 +539,7 @@ def trajectories(X,
     return ax
 
 
-def plot_arrows(pos, signal, ax, c='k', alpha=1., width=.1, scale=.1):
+def plot_arrows(pos, signal, ax, c='k', alpha=1., width=10, scale=10):
     dim = pos.shape[1]
     if dim==3:
         norm = signal.max()-signal.min()
@@ -557,12 +557,12 @@ def plot_arrows(pos, signal, ax, c='k', alpha=1., width=.1, scale=.1):
     if dim==2:
         arrow_prop_dict = dict(alpha=alpha, zorder=3, headwidth=.1, scale_units='xy')
         ax.quiver(pos[:,0], pos[:,1], 
-              signal[:,0], signal[:,1], 
-              color=c if len(c)>1 else c, 
-              scale=scale,
-              width=width,
-              **arrow_prop_dict
-              )
+                  signal[:,0], signal[:,1], 
+                  color=c if len(c)>1 else c, 
+                  scale=scale,
+                  width=width,
+                  **arrow_prop_dict
+                  )
     else:
         NotImplementedError
         
