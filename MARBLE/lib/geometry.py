@@ -454,7 +454,7 @@ def project_gauge_to_neighbours(nvec, gauges):
             
     #inner product over last dim of nvec and second dim of gauges
     #batch over first dims (a) and leave last broadcast over last dim of gauges (c)
-    proj = torch.einsum('abi,bic->abc', nvec, gauges)
+    proj = torch.einsum('abi,aic->abc', nvec, gauges)
         
     return [proj[...,i] for i in range(proj.shape[-1])] #split into a list
 
