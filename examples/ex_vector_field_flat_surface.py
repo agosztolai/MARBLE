@@ -17,7 +17,7 @@ def main():
            'order': 1, #order of derivatives
            'hidden_channels': 16, #number of internal dimensions in MLP
            'out_channels': 3,
-           'inner_product_features': False,
+           'inner_product_features': True,
            'autoencoder': False
            }
     
