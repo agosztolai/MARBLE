@@ -58,20 +58,6 @@ def preprocessing(data,
         gauges, Sigma = g.compute_gauges(data, local_gauge, n_nb)
         print('Could not compute gauges (possibly data is too sparse or the \
               number of neighbours is too small) Manifold computations are disabled!')
-    
-# =============================================================================
-#     Debug
-# =============================================================================
-    # gauges, Sigma = g.compute_gauges(data, 'False', n_nb=n_nb)
-    # print(gauges)
-    
-    import numpy as np
-    import torch
-    for i, ga in enumerate(gauges):
-        t = np.random.uniform(low=0,high=2*np.pi)
-        R = np.array([[np.cos(t), -np.sin(t)], 
-                            [np.sin(t),  np.cos(t)]])
-        gauges[i] = torch.tensor(R, dtype=torch.float32)@ga
         
     #Laplacian
     L = g.compute_laplacian(data)
@@ -79,7 +65,6 @@ def preprocessing(data,
     #connections
     if local_gauge:
         dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
-        # dim_man=2
         
         print('\n---- Manifold dimension: {}'.format(dim_man))
         print('\nManifold dimension can decrease with more data. Try smaller values of stop_crit\
