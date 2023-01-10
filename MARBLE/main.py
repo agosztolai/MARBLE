@@ -151,7 +151,7 @@ class net(nn.Module):
         
         train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
         optimizer = opt.SGD(self.parameters(), lr=self.par['lr'], momentum=self.par['momentum'])
-        scheduler = opt.lr_scheduler.ExponentialLR(optimizer, gamma=self.par['gamma'])
+        scheduler = opt.lr_scheduler.ReduceLROnPlateau(optimizer)
         
         if loadpath is not None:
             checkpoint = torch.load(loadpath)
@@ -167,14 +167,14 @@ class net(nn.Module):
             
             self.train() #training mode
             train_loss, optimizer = self.batch_loss(data, train_loader, optimizer)
-            scheduler.step()
             
             self.eval() #testing mode (disables dropout in MLP)
             val_loss, _ = self.batch_loss(data, val_loader)
+            scheduler.step(train_loss)
             
             writer.add_scalar('Loss/train', train_loss, epoch)
             writer.add_scalar('Loss/validation', val_loss, epoch)
-            lr = scheduler.get_last_lr()[0]
+            lr = scheduler._last_lr[0]
             print("\nEpoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}, lr: {:.4f}" \
                   .format(epoch+epoch0+1, train_loss, val_loss, lr), end="")
                 

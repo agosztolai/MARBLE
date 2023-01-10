@@ -1,9 +1,8 @@
 #training parameters
 batch_size : 64 #batch size
 epochs : 20, #optimisation epochs
-lr: 0.001 #learning rate
+lr: 0.01 #learning rate
 momentum: 0.9 #momentum
-gamma: 0.9 #learning rate decay rate
 autoencoder: False
 diffusion: False
 

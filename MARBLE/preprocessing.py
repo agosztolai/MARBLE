@@ -59,7 +59,11 @@ def preprocessing(data,
         print('Could not compute gauges (possibly data is too sparse or the \
               number of neighbours is too small) Manifold computations are disabled!')
     
-    # gauges, Sigma = g.compute_gauges(data, local='False', n_nb=n_nb)
+# =============================================================================
+#     Debug
+# =============================================================================
+    gauges, Sigma = g.compute_gauges(data, 'False', n_nb=n_nb)
+    print(gauges)
     
     # import numpy as np
     # import torch
