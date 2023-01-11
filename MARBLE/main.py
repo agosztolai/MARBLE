@@ -136,6 +136,8 @@ class net(nn.Module):
     def run_training(self, data, save=True, loadpath=None):
         """Network training"""
         
+        print('\n---- Training network ...')
+        
         assert all(hasattr(data, attr) for attr in ['kernels', 'L']), \
             'It seems that data is not preprocessed. Run preprocess(data) before training!'
         
@@ -145,10 +147,8 @@ class net(nn.Module):
         self, data.x, data.L, data.Lc, data.kernels, data.R = \
             utils.move_to_gpu(self, data.x, data.L, Lc, data.kernels, R)
         
-        writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))         
-        
-        print('\n---- Training network ...')
-        
+        #initialise logger and optimiser
+        writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
         train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
         optimizer = opt.SGD(self.parameters(), lr=self.par['lr'], momentum=self.par['momentum'])
         scheduler = opt.lr_scheduler.ReduceLROnPlateau(optimizer)

@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from GeoDySys import geometry
-from GeoDySys import utils
+import torch
+from MARBLE import geometry
+from MARBLE import utils
 import matplotlib.pyplot as plt
+from MARBLE.layers import AnisoConv
 
 n = 100
 k=8
@@ -19,13 +21,37 @@ x = np.vstack([xv.flatten(),yv.flatten()]).T
 def f1(x, alpha):
     return np.cos(alpha)*x[:,[0]] + np.sin(alpha)*x[:,[1]]
 y = f1(x, alpha)
+y = torch.tensor(y)
 
 data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
 gauges, _ = geometry.compute_gauges(data[0], local=False)
-K = geometry.gradient_op(data.pos, data.edge_index, gauges)
 
-der = np.hstack([np.matmul(K[0],y),np.matmul(K[1],y)])
-derder = np.hstack([np.matmul(K[0],der[:,[0]]),np.matmul(K[1],der[:,[0]]),np.matmul(K[0],der[:,[1]]),np.matmul(K[1],der[:,[1]])])
+#generate random matrices and rotate gauges arbitrarily
+import numpy as np
+import torch
+np.random.seed(0)
+Rot = []
+for i, ga in enumerate(gauges):
+    t = np.random.uniform(low=0,high=2*np.pi)
+    R = np.array([[np.cos(t), -np.sin(t)], 
+                        [np.sin(t),  np.cos(t)]])
+    R = torch.tensor(R, dtype=torch.float32)
+    Rot.append(R)
+    gauges[i] = R@ga
+    
+y = geometry.coordinate_transform(y,gauges)
+
+K = geometry.gradient_op(data.pos, data.edge_index, gauges)
+grad = AnisoConv()
+der = grad(y, data.edge_index, (len(y),len(y)), K)
+# rotate derivatives to match the ambient coordinate system
+for i, R in enumerate(Rot):
+    R = torch.tensor(R, dtype=torch.float64)
+    der[i] = R@der[i]
+derder = grad(der, data.edge_index, (len(y),len(y)), K)
+for i, R in enumerate(Rot):
+    R = torch.tensor(R, dtype=torch.float64)
+    derder[i] = torch.einsum('ij,kj->ik', R, derder[i].view(2,2)).view(1,4)
 
 f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(14, 3),
                                 subplot_kw={'aspect': 1})
@@ -59,9 +85,16 @@ plt.colorbar(PCM, ax=ax1)
 def f2(x, alpha):
     return np.cos(alpha)*x[:,[0]]**2# - np.sin(alpha)*x[:,[1]]**2
 y = f2(x, alpha)
+y = torch.tensor(y)
 
-der = np.hstack([np.matmul(K[0],y),np.matmul(K[1],y)])
-derder = np.hstack([np.matmul(K[0],der[:,[0]]),np.matmul(K[1],der[:,[0]]),np.matmul(K[0],der[:,[1]]),np.matmul(K[1],der[:,[1]])])
+der = grad(y, data.edge_index, (len(y),len(y)), K)
+# for i, R in enumerate(Rot):
+#     R = torch.tensor(R, dtype=torch.float64)
+#     der[i] = R@der[i]
+derder = grad(der, data.edge_index, (len(y),len(y)), K)
+# for i, R in enumerate(Rot):
+#     R = torch.tensor(R, dtype=torch.float64)
+#     derder[i] = torch.einsum('ij,kj->ik', R, derder[i].view(2,2)).view(1,4)
 
 f, (ax1, ax2, ax3) = plt.subplots(1, 3, sharey=True, figsize=(14, 3),
                                 subplot_kw={'aspect': 1})

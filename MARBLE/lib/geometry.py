@@ -329,6 +329,12 @@ def optimal_rotation(X, Y):
     return (U * J) @ Vt
 
 
+def coordinate_transform(x, gauges):
+    """Transform signal into local coordinates"""
+    
+    return torch.einsum('aij,ai->aj', gauges, x)
+
+
 # def gradient_op(pos, edge_index, gauges):
 #     """Gradient operator
 
@@ -342,7 +348,7 @@ def optimal_rotation(X, Y):
 
 #     """
 
-#     nvec = -neighbour_vectors(pos, edge_index, normalise=False) #(nxnxdim)
+#     nvec = neighbour_vectors(pos, edge_index, normalise=False) #(nxnxdim)
     
 #     G = torch.zeros_like(nvec)
 #     for i, g_ in enumerate(nvec):
@@ -366,11 +372,11 @@ def gradient_op(pos, edge_index, gauges):
     pos : (nxdim) Matrix of node positions
     edge_index : (2x|E|) Matrix of edge indices
     gauge : List of orthonormal unit vectors
-
+    
     Returns
     -------
     K : list of (nxn) Anisotropic kernels.
-
+    
     """
     
     nvec = neighbour_vectors(pos, edge_index, normalise=False) #(nxnxdim)
@@ -378,8 +384,9 @@ def gradient_op(pos, edge_index, gauges):
     
     K = []
     for _F in F:
-        Fhat = normalize(_F, dim=-1, p=1)
-        K.append(Fhat - torch.diag(torch.sum(Fhat, dim=1)))
+        Fhat = normalize(_F, dim=1, p=1)
+        Fhat -= torch.diag(torch.sum(Fhat, dim=1))
+        K.append(Fhat)
             
     return K
 

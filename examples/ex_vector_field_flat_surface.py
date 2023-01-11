@@ -14,10 +14,10 @@ def main():
     n_clusters = 15
     
     par = {'epochs': 50, #optimisation epochs
-           'order': 2, #order of derivatives
+           'order': 1, #order of derivatives
            'hidden_channels': 16, #number of internal dimensions in MLP
            'out_channels': 3,
-           'inner_product_features': True,
+           'inner_product_features': False,
            'autoencoder': False
            }
     

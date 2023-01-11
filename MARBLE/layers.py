@@ -96,12 +96,12 @@ class Diffusion(nn.Module):
     
 class AnisoConv(MessagePassing):
     """Anisotropic Convolution"""
-    def __init__(self, vec_norm=True, **kwargs):
+    def __init__(self, vec_norm=False, **kwargs):
         super().__init__(aggr='add', **kwargs)
         
         self.vec_norm = vec_norm
         
-    def forward(self, x, edge_index, size, kernels=None, R=None):
+    def forward(self, x, edge_index, size, kernels, R=None):
         
         if R is not None:
             n, _, _, dim = R.shape

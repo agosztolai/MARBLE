@@ -58,28 +58,13 @@ def preprocessing(data,
         gauges, Sigma = g.compute_gauges(data, local_gauge, n_nb)
         print('Could not compute gauges (possibly data is too sparse or the \
               number of neighbours is too small) Manifold computations are disabled!')
-    
-# =============================================================================
-#     Debug
-# =============================================================================
-    
-    import numpy as np
-    import torch
-    for i, ga in enumerate(gauges):
-        t = np.random.uniform(low=0,high=2*np.pi)
-        R = np.array([[np.cos(t), -np.sin(t)], 
-                            [np.sin(t),  np.cos(t)]])
-        gauges[i] = torch.tensor(R, dtype=torch.float32)@ga
-        
-    print(gauges)
-        
+                
     #Laplacian
     L = g.compute_laplacian(data)
     
     #connections
     if local_gauge:
         dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
-        # dim_man=2
         
         print('\n---- Manifold dimension: {}'.format(dim_man))
         print('\nManifold dimension can decrease with more data. Try smaller values of stop_crit\
@@ -99,7 +84,12 @@ def preprocessing(data,
         L = g.compute_eigendecomposition(L)
         Lc = g.compute_eigendecomposition(Lc)
         
-    #kernels
+    #kernels 
+    #Working with global gauges is good enough here because local
+    #gauges would introduce the need for coordinate transforms. We only need
+    #to ensure that the signal and its componentwise derivatives live in the 
+    #same vector space (the tangent space of M) so we can take inner products.
+    gauges, _ = g.compute_gauges(data, False, n_nb)
     kernels = g.gradient_op(data.pos, data.edge_index, gauges)
     
     data.R, data.gauges, data.kernels, data.L, data.Lc = R, gauges, kernels, L, Lc
