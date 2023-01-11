@@ -92,6 +92,6 @@ def preprocessing(data,
     gauges, _ = g.compute_gauges(data, False, n_nb)
     kernels = g.gradient_op(data.pos, data.edge_index, gauges)
     
-    data.R, data.gauges, data.kernels, data.L, data.Lc = R, gauges, kernels, L, Lc
+    data.R, data.kernels, data.L, data.Lc = R, kernels, L, Lc
         
     return data
