@@ -56,7 +56,7 @@ def preprocessing(data,
     except:
         local_gauge = False
         gauges, Sigma = g.compute_gauges(data, local_gauge, n_nb)
-        print('Could not compute gauges (possibly data is too sparse or the \
+        print('\nCould not compute gauges (possibly data is too sparse or the \
               number of neighbours is too small) Manifold computations are disabled!')
                 
     #Laplacian
@@ -68,7 +68,7 @@ def preprocessing(data,
         
         print('\n---- Manifold dimension: {}'.format(dim_man))
         print('\nManifold dimension can decrease with more data. Try smaller values of stop_crit\
-                 before settling on a value')
+                 before settling on a value\n')
         
         if dim_man<dim_emb:
             R = g.compute_connections(gauges, data.edge_index, dim_man)

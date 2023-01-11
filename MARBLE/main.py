@@ -182,6 +182,7 @@ class net(nn.Module):
                 best_loss = val_loss 
                 checkpoint['model_state_dict'] = self.state_dict()
                 checkpoint['optimizer_state_dict'] = optimizer.state_dict()
+                checkpoint['epoch'] = epoch+epoch0
                 print(' *', end="")
         
         self.load_state_dict(checkpoint['model_state_dict'])
