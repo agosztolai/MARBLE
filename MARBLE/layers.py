@@ -186,7 +186,7 @@ class InnerProductFeatures(nn.Module):
         if not isinstance(x, list):
             x = [x]
             
-        x = [x_.reshape(x_.shape[0], self.D, -1) for x_ in x]
+        x = [x_.view(x_.shape[0], -1, self.D) for x_ in x]
             
         #for scalar signals take magnitude
         if self.D==1:
@@ -195,7 +195,13 @@ class InnerProductFeatures(nn.Module):
             return torch.cat(x, axis=1)
         
         #for vector signals take inner products
-        else:  
+        else:
+            #bring to form where all columns are vector in the tangent space
+            #so taking inner products is possible
+            #[ x1 dx1/du ...]
+            #  x2 dx1/dv
+            #  x3 dx1/dw
+            x = [x_.swapaxes(1,2) for x_ in x]
             x = torch.cat(x, axis=2)
             
             assert x.shape[2]==self.C, 'Number of channels is incorrect!'
