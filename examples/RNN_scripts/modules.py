@@ -4,12 +4,14 @@ MAIN FILE
 Definition of network classes, training functionality.
 """
 
-from helpers import *
+from helpers import gram_schmidt_pt
 import torch.nn as nn
 from math import sqrt, floor
 import random
 import time
-
+import torch
+import numpy as np
+import matplotlib.pyplot as plt
 
 def loss_mse(output, target, mask):
     """
@@ -262,6 +264,7 @@ class FullRankRNN(nn.Module):
                               self.rho, self.train_wi, self.train_wo, self.train_wrec, self.train_h0,
                               self.wi, self.wo, self.wrec, self.si, self.so)
         return new_net
+    
     
 def simulation_loop(model, input):
     batch_size = input.shape[0]

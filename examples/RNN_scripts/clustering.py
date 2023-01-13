@@ -9,8 +9,8 @@ from sklearn.cluster import SpectralClustering
 from sklearn.metrics import adjusted_rand_score
 from sklearn.neighbors import NearestNeighbors
 import matplotlib.pyplot as plt
-from low_rank_rnns.modules import SupportLowRankRNN
-from low_rank_rnns.helpers import center_axes
+from modules import SupportLowRankRNN
+from helpers import center_axes
 
 
 def phi_prime(x):

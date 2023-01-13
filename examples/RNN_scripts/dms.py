@@ -153,98 +153,39 @@ def confusion_matrix(net):
     for i, row in enumerate(rows):
         print("{:^12s}|{:^12.2f}|{:^12.2f}".format(row, matrix[i, 0], matrix[i, 1]))
         print("-"*40)
-
-
-def plot_trial_epochs(net, input, epochs, scalings=True, rect=None, n_traj=2, fp_load=None, sizes=1.,
-                      axes=None):
-    def get_input(input, time):
-        if input[0, time, 0] == 0 and input[0, time, 1] == 0:
-            return 0
-        elif input[0, time, 0] == 1:
-            return 1
-        else:
-            return 2
-
+            
+            
+def plot_trajectories(net, trajectories, ax, n_traj=2, interval=[None, None]):
+    
     m1 = net.m[:,0].detach().numpy()
     m2 = net.m[:,1].detach().numpy()
     
     for j in range(n_traj):
+        proj1 = trajectories[j] @ m1 / net.hidden_size
+        proj2 = trajectories[j] @ m2 / net.hidden_size
         
-        _, trajectories = net(input)
-        trajectories = trajectories.squeeze().detach().numpy()
-
-        if scalings:
-            proj1 = trajectories @ m1 / sqrt(net.hidden_size)
-            proj2 = trajectories @ m2 / sqrt(net.hidden_size)
-        else:
-            proj1 = trajectories @ m1 / net.hidden_size
-            proj2 = trajectories @ m2 / net.hidden_size
+        if interval[1] != 0:
+            ax.plot(proj1[:interval[0]],
+                    proj2[:interval[0]], c='C0', lw=4)
+        
+        ax.plot(proj1[interval[0]:interval[1]], 
+                proj2[interval[0]:interval[1]], c='C1', lw=4)
             
-        if rect is None:
-            xmin, xmax, ymin, ymax = proj1.min(), proj1.max(), proj2.min(), proj2.max()
-        else:
-            xmin, xmax, ymin, ymax = rect
-            
-        for i in range(len(epochs) - 1):
-            if axes is None:
-                fig, ax = plt.subplots()
-            else:
-                ax = axes[i]
-            if j<1:
-                if scalings:
-                    if fp_load is not None:
-                        ranktwo.plot_field(net, m1, m2, xmin, xmax, ymin, ymax, input=input[0, epochs[i]], ax=ax, sizes=sizes,
-                                       add_fixed_points=True, fp_load=fp_load[get_input(input, epochs[i])])
-                    else:
-                        ranktwo.plot_field(net, m1, m2, xmin, xmax, ymin, ymax, input=input[0, epochs[i]], ax=ax, sizes=sizes)
-                else:
-                    if fp_load is not None:
-                        ranktwo.plot_field_noscalings(net, m1, m2, xmin, xmax, ymin, ymax, input=input[0, epochs[i]], ax=ax, sizes=sizes,
-                                                  add_fixed_points=True, fp_load=fp_load[get_input(input, epochs[i])])
-                    else:
-                        ranktwo.plot_field_noscalings(net, m1, m2, xmin, xmax, ymin, ymax, input=input[0, epochs[i]], ax=ax,
-                                                      sizes=sizes)
 
-            if i > 0:
-                ax.plot(proj1[:epochs[i]], proj2[:epochs[i]], c='C0', lw=4)
-                
-            ax.plot(proj1[epochs[i]:epochs[i+1]], proj2[epochs[i]:epochs[i+1]], c='C1', lw=4)
-            remove_axes(ax)
-
-
-def plot_trajectories_steps_ranktwo(net, rect=None, scalings=True, n_traj=2, fp_load=None, sizes=1.,
-                                    ax=None):
-    stim1_begin = max_fixation_duration_discrete
-    stim1_end = max_fixation_duration_discrete + max_stimulus1_duration_discrete
-    stim2_begin = stim1_end + max_delay_duration_discrete
-    stim2_end = stim2_begin + max_stimulus2_duration_discrete
-    decision_end = stim2_end + decision_duration_discrete
-    epochs = [0, stim1_begin, stim1_end, stim2_begin, stim2_end, decision_end]
-    input = torch.zeros(4, decision_end, 2)
+def plot_field(net, input, ax, sizes=1., rect=(-5, 5, -4, 4), scalings=False):
     
-    #input[(0, 1), stim1_begin:stim1_end, 0] = 1
-    #input[(0, 2), stim2_begin:stim2_end, 0] = 1
-    #input[(2, 3), stim1_begin:stim1_end, 1] = 1
-    #input[(1, 3), stim2_begin:stim2_end, 1] = 1
+    m1 = net.m[:,0].detach().numpy()
+    m2 = net.m[:,1].detach().numpy()
     
-    input[0, stim1_begin:stim1_end, 0] = 1
-    input[0, stim2_begin:stim2_end, 0] = 1
-    input[1, stim1_begin:stim1_end, 0] = .5
-    input[1, stim2_begin:stim2_end, 0] = .5
-    input[2, stim1_begin:stim1_end, 0] = .25
-    input[2, stim2_begin:stim2_end, 0] = .25
-    input[3, stim1_begin:stim1_end, 0] = .1
-    input[3, stim2_begin:stim2_end, 0] = .1
-    
-    if ax is None:
-        for i in range(4):
-            plot_trial_epochs(net, input[i].unsqueeze(0), epochs, scalings, rect, n_traj, fp_load, sizes)
+    xmin, xmax, ymin, ymax = rect
 
+    if scalings:
+        ranktwo.plot_field(net, m1, m2, xmin, xmax, ymin, ymax, input=input, ax=ax, sizes=sizes)
     else:
-        for i in range(4):
-            plot_trial_epochs(net, input[i].unsqueeze(0), epochs, scalings, rect, n_traj, fp_load, sizes,
-                                  axes=ax[i])
+        ranktwo.plot_field_noscalings(net, m1, m2, xmin, xmax, ymin, ymax, input=input, ax=ax, sizes=sizes)
             
+    remove_axes(ax)
+
 
 def psychometric_matrix(net, n_trials=10, ax=None):
     if ax is None:

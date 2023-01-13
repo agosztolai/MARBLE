@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 from scipy.optimize import root
-from low_rank_rnns.helpers import phi_prime
+from helpers import phi_prime
 
 
 def adjust_plot(ax, xmin, xmax, ymin, ymax):
