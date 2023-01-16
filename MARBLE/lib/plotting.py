@@ -204,7 +204,7 @@ def embedding(data,
         assert len(titles)==len(types)
         
     for i, typ in enumerate(types):
-        ind = np.where(labels==typ)[0]
+        ind = np.where(np.array(labels)==typ)[0]
         title = titles[i] if titles is not None else str(typ)
         c = np.array(color)[ind] if not isinstance(color, str) else color
         ax.scatter(emb[ind,0], emb[ind,1], c=c, alpha=alpha, s=s, label=title)
