@@ -5,7 +5,7 @@ from .lib import geometry as g
 
 def preprocessing(data, 
                   frac_geodesic_nb=2.0, 
-                  var_explained=0.9, 
+                  var_explained=0.9,
                   diffusion_method='spectral', 
                   vector=True):
     """

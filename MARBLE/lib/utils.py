@@ -28,6 +28,7 @@ def construct_dataset(pos,
                       graph_type='cknn', 
                       k=10, 
                       stop_crit=0.0, 
+                      number_of_resamples=1,
                       vector=True):
     """Construct PyG dataset from node positions and features"""
                 
@@ -42,7 +43,10 @@ def construct_dataset(pos,
     data_list = []
     for i, (p, f) in enumerate(zip(pos, features)):
         #even sampling of points
-        sample_ind, _ = geometry.furthest_point_sampling(p, stop_crit=stop_crit)
+        start_idx = torch.randint(low=0, high=len(p), size=(1,))
+        sample_ind, _ = geometry.furthest_point_sampling(p, 
+                                                         stop_crit=stop_crit, 
+                                                         start_idx=start_idx)
         p, f = p[sample_ind], f[sample_ind]
         
         #fit graph to point cloud

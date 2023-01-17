@@ -45,7 +45,7 @@ def sample_2d(N=100, interval=[[-1,-1],[1,1]], method='uniform', seed=0):
     return x
 
 
-def furthest_point_sampling(x, N=None, stop_crit=0.1):
+def furthest_point_sampling(x, N=None, stop_crit=0.1, start_idx=0):
     """
     A greedy O(N^2) algorithm to do furthest points sampling
 
@@ -55,11 +55,12 @@ def furthest_point_sampling(x, N=None, stop_crit=0.1):
     N : Integer number of sampled points.
     stop_crit : when reaching this fraction of the total manifold diameter,
                 we stop sampling
+    start_idx : index of starting node
 
     Returns
     -------
     perm : node indices of the N sampled points
-    lambdas : list of furthest points
+    lambdas : list of distances of furthest points
 
     """
     
@@ -70,9 +71,12 @@ def furthest_point_sampling(x, N=None, stop_crit=0.1):
     n = D.shape[0] if N is None else N
     diam = D.max()
     
+    start_idx = 5
+    
     perm = torch.zeros(n, dtype=torch.int64)
+    perm[0] = start_idx
     lambdas = torch.zeros(n)
-    ds = D[0, :]
+    ds = D[start_idx, :]
     for i in range(1, n):
         idx = torch.argmax(ds)
         perm[i] = idx
