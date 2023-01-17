@@ -155,7 +155,7 @@ def confusion_matrix(net):
         print("-"*40)
             
             
-def plot_trajectories(net, trajectories, ax, n_traj=2, c='C0', interval=[None, None]):
+def plot_trajectories(net, trajectories, ax, n_traj=2, style='-', c='C0', interval=[None, None]):
     
     m1 = net.m[:,0].detach().numpy()
     m2 = net.m[:,1].detach().numpy()
@@ -166,7 +166,7 @@ def plot_trajectories(net, trajectories, ax, n_traj=2, c='C0', interval=[None, N
         
         if interval[1] != 0:
             ax.plot(proj1[:interval[0]],
-                    proj2[:interval[0]], c=c, lw=4)
+                    proj2[:interval[0]], c=c, lw=4, linestyle=style)
             
 
 def plot_field(net, input, ax, sizes=1., rect=(-5, 5, -4, 4), scalings=False):
