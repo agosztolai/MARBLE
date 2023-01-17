@@ -53,7 +53,12 @@ def fields(data,
         gauges = None
         
     if not isinstance(data, list):
-        data = data.to_data_list() #split data batch 
+        number_of_resamples = data.number_of_resamples
+        data = data.to_data_list() #split data batch
+        
+        if number_of_resamples>1:
+            print('\nDetected several samples of the same data. Taking only first one for visualisation!')
+            data = data[::number_of_resamples]
         
     dim = data[0].pos.shape[1]
     vector = True if data[0].x.shape[1] > 1 else False
@@ -256,20 +261,26 @@ def neighbourhoods(data,
     fig = plt.figure(figsize=figsize, constrained_layout=True)
     outer = gridspec.GridSpec(int(np.ceil(nc/cols)), cols, wspace=0.2, hspace=0.2, figure=fig)
     
-    data_list = data.to_data_list()
+    number_of_resamples = data.number_of_resamples
+    data = data.to_data_list() #split data batch
+    
+    if number_of_resamples>1:
+        print('\nDetected several samples of the same data. Taking only first one for visualisation!')
+        data = data[::number_of_resamples]
+        
     graphs = []
-    for d in data_list:
+    for d in data:
         graphs.append(to_networkx(d, 
                                   node_attrs=['pos'], 
                                   edge_attrs=None, 
                                   to_undirected=True,
                                   remove_self_loops=True))
     
-    signals = [d.x for d in data_list]
+    signals = [d.x for d in data]
     
     for i in range(nc):
         col = 2
-        row = int(np.ceil(len(data_list)/col))
+        row = int(np.ceil(len(data)/col))
         inner = gridspec.GridSpecFromSubplotSpec(row, 
                                                  col,
                                                  subplot_spec=outer[i], 
