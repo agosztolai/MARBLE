@@ -30,6 +30,9 @@ def postprocessing(data,
     clusters = g.relabel_by_proximity(clusters)
     clusters['slices'] = data._slice_dict['x']
     
+    if data.number_of_resamples>1:
+        clusters['slices'] = clusters['slices'][::data.number_of_resamples]
+    
     #compute distances between clusters
     dist, gamma, cdist = g.compute_histogram_distances(clusters)
     

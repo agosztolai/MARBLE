@@ -586,8 +586,8 @@ def compute_tangent_bundle(data,
     
     #make chunks for data processing
     slices = data._slice_dict['x']
-    n_chunks = len(slices)-1
-    X_chunks, A_chunks = [], []
+        
+    n_chunks, X_chunks, A_chunks = len(slices)-1, [], []
     for i in range(n_chunks):
             X_ = X[slices[i]:slices[i+1]]
             A_ = A[slices[i]:slices[i+1],:][:,slices[i]:slices[i+1]]

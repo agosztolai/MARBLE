@@ -40,35 +40,40 @@ def construct_dataset(pos,
     else:
         num_node_features = None
         
+    if stop_crit==0.0:
+        number_of_resamples=1
+        
     data_list = []
     for i, (p, f) in enumerate(zip(pos, features)):
-        #even sampling of points
-        start_idx = torch.randint(low=0, high=len(p), size=(1,))
-        sample_ind, _ = geometry.furthest_point_sampling(p, 
-                                                         stop_crit=stop_crit, 
-                                                         start_idx=start_idx)
-        p, f = p[sample_ind], f[sample_ind]
+        for j in range(number_of_resamples):
+            #even sampling of points
+            start_idx = torch.randint(low=0, high=len(p), size=(1,))
+            sample_ind, _ = geometry.furthest_point_sampling(p, 
+                                                             stop_crit=stop_crit, 
+                                                             start_idx=start_idx)
+            p, f = p[sample_ind], f[sample_ind]
+            
+            #fit graph to point cloud
+            edge_index, edge_weight = geometry.fit_graph(p, 
+                                                         graph_type=graph_type, 
+                                                         par=k
+                                                         )
+            n = len(p)  
+            data_ = Data(pos=p, #positions
+                         x=f, #features
+                         edge_index=edge_index,
+                         edge_weight=edge_weight,
+                         num_nodes = n,
+                         num_node_features = num_node_features,
+                         y = torch.ones(n, dtype=int)*i
+                         )
         
-        #fit graph to point cloud
-        edge_index, edge_weight = geometry.fit_graph(p, 
-                                                     graph_type=graph_type, 
-                                                     par=k
-                                                     )
-        n = len(p)  
-        data_ = Data(pos=p, #positions
-                     x=f, #features
-                     edge_index=edge_index,
-                     edge_weight=edge_weight,
-                     num_nodes = n,
-                     num_node_features = num_node_features,
-                     y = torch.ones(n, dtype=int)*i
-                     )
-        
-        data_list.append(data_)
+            data_list.append(data_)
         
     #collate datasets
     batch = Batch.from_data_list(data_list)
     batch.degree = k
+    batch.number_of_resamples=number_of_resamples
     
     #split into training/validation/test datasets
     split = RandomNodeSplit(split='train_rest', num_val=0.1, num_test=0.1)
