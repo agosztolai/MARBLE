@@ -3,8 +3,8 @@
 
 import torch
 import numpy as np
+import scipy
 import scipy.sparse as sp
-from scipy.linalg import orthogonal_procrustes
 
 import torch_geometric.utils as PyGu
 from torch_geometric.nn import knn_graph, radius_graph
@@ -319,52 +319,10 @@ def neighbour_vectors(pos, edge_index, normalise=False):
     return nvec
 
 
-def optimal_rotation(X, Y):
-    """Optimal rotation between orthogonal coordinate frames X and Y"""
-    
-    XtY = X.T@Y
-    n = XtY[0].shape[0]
-    U, S, Vt = np.linalg.svd(XtY)
-    UVt = U @ Vt
-    if abs(1.0 - np.linalg.det(UVt)) < 1e-10:
-        return UVt
-    # UVt is in O(n) but not SO(n), which is easily corrected.
-    J = np.append(np.ones(n - 1), -1)
-    return (U * J) @ Vt
-
-
-def coordinate_transform(x, gauges):
+def map_to_local_gauges(x, gauges):
     """Transform signal into local coordinates"""
     
     return torch.einsum('aij,ai->aj', gauges, x)
-
-
-# def gradient_op(pos, edge_index, gauges):
-#     """Gradient operator
-
-#     Parameters
-#     ----------
-#     nvec : (nxnxdim) Matrix of neighbourhood vectors.
-
-#     Returns
-#     -------
-#     G : (nxn) Gradient operator matrix.
-
-#     """
-
-#     nvec = neighbour_vectors(pos, edge_index, normalise=False) #(nxnxdim)
-    
-#     G = torch.zeros_like(nvec)
-#     for i, g_ in enumerate(nvec):
-#         nb_ind = torch.where(g_[:,0]!=0)[0]
-#         A = g_[nb_ind]
-#         B = torch.column_stack([-1.*torch.ones((len(nb_ind),1)),
-#                                 torch.eye(len(nb_ind))])
-#         grad = torch.linalg.lstsq(A, B).solution
-#         G[i,i,:] = grad[:,[0]].T
-#         G[i,nb_ind,:] = grad[:,1:].T
-            
-#     return [G[...,i] for i in range(G.shape[-1])]
 
 
 def gradient_op(pos, edge_index, gauges):
@@ -390,7 +348,7 @@ def gradient_op(pos, edge_index, gauges):
     for _F in F:
         Fhat = normalize(_F, dim=1, p=1)
         Fhat -= torch.diag(torch.sum(Fhat, dim=1))
-        K.append(Fhat)
+        K.append(Fhat)#.to_sparse())
             
     return K
 
@@ -508,6 +466,7 @@ def compute_connection_laplacian(data, R, normalization='rw'):
 
     Parameters
     ----------
+    data : Pytorch geometric data object.
     R : (nxnxdxd) Connection matrices between all pairs of nodes.
         Default is None, in case of a global coordinate system.
     normalization: None, 'sym', 'rw'
@@ -527,18 +486,19 @@ def compute_connection_laplacian(data, R, normalization='rw'):
 
     """
     
-    n, _, _, d = R.shape
+    n, d = data.x.shape
     
     #unnormalised (combinatorial) laplacian, to be normalised later
-    L = compute_laplacian(data, normalization=None)
+    L = compute_laplacian(data, normalization=None).to_sparse()
     
-    #rearrange into block form
-    L = torch.kron(L, torch.ones(d,d))
-    R = R.swapaxes(1,2).reshape(n*d, n*d)
+    #rearrange into block form (kron(L, ones(d,d)))
+    edge_index = utils.expand_edge_index(L.indices(), d)
+    L = torch.sparse_coo_tensor(edge_index, L.values().repeat_interleave(d*d))
         
     #unnormalised connection laplacian 
     #Lc(i,j) = L(i,j)*R(i,j) if (i,j)=\in E else 0
-    Lc = L*R
+    R = R.swapaxes(1,2).reshape(n*d, n*d)#.to_sparse()
+    Lc = L.to_dense()*R
     
     #normalize
     edge_index, edge_weight = PyGu.remove_self_loops(data.edge_index, data.edge_weight)
@@ -552,7 +512,7 @@ def compute_connection_laplacian(data, R, normalization='rw'):
         deg_inv = 1.0 / deg
         deg_inv.masked_fill_(deg_inv == float('inf'), 0)
         deg_inv = deg_inv.repeat_interleave(d, dim=0)
-        Lc = torch.diag(deg_inv)@Lc
+        Lc = torch.diag(deg_inv).to_sparse()@Lc
 
     elif normalization == 'sym':
         NotImplementedError
@@ -610,12 +570,12 @@ def compute_tangent_bundle(data,
 def _compute_tangent_bundle(inputs, i):
     X_chunks, A_chunks, n_geodesic_nb, return_predecessors = inputs
     
-    _, _, tangents, Sigma, _ = ptu_dijkstra(X_chunks[i], A_chunks[i], X_chunks[i].shape[1], n_geodesic_nb, return_predecessors)
+    _, _, tangents, Sigma, R = ptu_dijkstra(X_chunks[i], A_chunks[i], X_chunks[i].shape[1], n_geodesic_nb, return_predecessors)
     
     return tangents, Sigma
 
     
-def compute_connections(gauges, edge_index, processes=1, dim_man=None):
+def compute_connections(gauges, edge_index, processes=-1):
     """
     Find smallest rotations R between gauges pairs. It is assumed that the first 
     row of edge_index is what we want to align to, i.e., 
@@ -625,7 +585,7 @@ def compute_connections(gauges, edge_index, processes=1, dim_man=None):
     ----------
     gauges : (n,d,d) matrix of orthogonal unit vectors for each node
     edge_index : (2x|E|) Matrix of edge indices
-    dim_man : integer, manifold dimension
+    processes : number of processors to use (-1 -> all)
 
     Returns
     -------
@@ -633,17 +593,7 @@ def compute_connections(gauges, edge_index, processes=1, dim_man=None):
 
     """
     n, d, k = gauges.shape
-    
-    R = np.eye(d)[None,None,:,:]
-    R = np.tile(R, (n,n,1,1))
-    
-    if dim_man is not None:
-        if dim_man == d: #the manifold is the whole space
-            return utils.np2torch(R)
-        elif dim_man <= d:
-            gauges = gauges[:,:,dim_man:]
-        else:
-            raise Exception('Manifold dim must be <= embedding dim!')
+    R = np.zeros([n,n,d,d])
             
     _R = utils.parallel_proc(_procrustes, 
                              edge_index.T, 
@@ -652,34 +602,34 @@ def compute_connections(gauges, edge_index, processes=1, dim_man=None):
                              desc="Computing connections...")
         
     for l, (i,j) in enumerate(edge_index.T):
-        if i!=j:
-            R[i,j,...] = _R[l]
-            R[j,i,...] = _R[l].T
-
+        R[i,j,...] = _R[l].T
+      
     return utils.np2torch(R)
 
 
 def _procrustes(gauges, edge_index):
+    """Solve for optimal rotation that minimises ||X - RY||_F """
     
     i, j = edge_index
-    R = procrustes(gauges[i].T, gauges[j].T)
+    X, Y = gauges[i].T, gauges[j].T
+
+    U, _, Vt = scipy.linalg.svd(X.T@Y)
     
-    return R
+    return U@Vt
 
 
-def procrustes(X, Y, reflection_allowed=False):
-    """Solve for rotation that minimises ||X - RY||_F """
-
-    # optimum rotation matrix of Y
-    R = orthogonal_procrustes(X, Y)[0]
-
-    # does the current solution use a reflection?
-    reflection = np.linalg.det(R) < 0
+# def optimal_rotation(X, Y):
+#     """Optimal rotation between orthogonal coordinate frames X and Y"""
     
-    if reflection_allowed and reflection:
-        R = np.zeros_like(R)
-       
-    return R
+#     XtY = X.T@Y
+#     n = XtY[0].shape[0]
+#     U, _, Vt = np.linalg.svd(XtY)
+#     UVt = U @ Vt
+#     if abs(1.0 - np.linalg.det(UVt)) < 1e-10:
+#         return UVt
+#     # UVt is in O(n) but not SO(n), which is easily corrected.
+#     J = np.append(np.ones(n - 1), -1)
+#     return (U * J) @ Vt
 
 
 # =============================================================================
@@ -712,14 +662,14 @@ def scalar_diffusion(x, t, method='matrix_exp', par=None):
         NotImplementedError
     
     
-def vector_diffusion(x, t, method='spectral', par=None, normalise=False):
+def vector_diffusion(x, t, method='spectral', Lc=None, normalise=False):
     n, d = x.shape[0], x.shape[1]
     
     if method=='spectral':
-        assert len(par['Lc'])==2, 'Lc must be a tuple of eigenvalues, eigenvectors!'
-        nd = par['Lc'][0].shape[0]
+        assert len(Lc)==2, 'Lc must be a tuple of eigenvalues, eigenvectors!'
+        nd = Lc[0].shape[0]
     else:
-        nd = par['Lc'].shape[0]
+        nd = Lc.shape[0]
     
     assert (n*d % nd)==0, \
         'Data dimension must be an integer multiple of the dimensions \
@@ -727,15 +677,15 @@ def vector_diffusion(x, t, method='spectral', par=None, normalise=False):
         
     #vector diffusion with connection Laplacian
     out = x.view(nd, -1)
-    out = scalar_diffusion(out, t, method, par['Lc'])
+    out = scalar_diffusion(out, t, method, Lc)
     out = out.view(x.shape)
     
-    if normalise:
-        assert par['L'] is not None, 'Need Laplacian for normalised diffusion!'
-        x_abs = x.norm(dim=-1, p=2, keepdim=True)
-        out_abs = scalar_diffusion(x_abs, t, method, par['L'])
-        ind = scalar_diffusion(torch.ones(x.shape[0],1), t, method, par['L'])
-        out = out*out_abs/(ind*out.norm(dim=-1, p=2, keepdim=True))
+    # if normalise:
+    #     assert par['L'] is not None, 'Need Laplacian for normalised diffusion!'
+    #     x_abs = x.norm(dim=-1, p=2, keepdim=True)
+    #     out_abs = scalar_diffusion(x_abs, t, method, par['L'])
+    #     ind = scalar_diffusion(torch.ones(x.shape[0],1), t, method, par['L'])
+    #     out = out*out_abs/(ind*out.norm(dim=-1, p=2, keepdim=True))
         
     return out
     
@@ -759,6 +709,8 @@ def compute_eigendecomposition(A, k=2, eps=1e-8):
     
     if A is None:
         return None
+    
+    A = A.to_dense()
     
     # Compute the eigenbasis
     failcount = 0

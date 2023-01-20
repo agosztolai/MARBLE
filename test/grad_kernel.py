@@ -39,8 +39,6 @@ for i, ga in enumerate(gauges):
     Rot.append(R)
     gauges[i] = R@ga
     
-y = geometry.coordinate_transform(y,gauges)
-
 K = geometry.gradient_op(data.pos, data.edge_index, gauges)
 grad = AnisoConv()
 der = grad(y, data.edge_index, (len(y),len(y)), K)

@@ -2,14 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import torch
 import sys
 from MARBLE import plotting, utils, geometry
 from MARBLE.layers import Diffusion
+import matplotlib.pyplot as plt
 
 def main():
     
     #parameters
-    n = 512
     k = 0.4
     tau0 = 1
     
@@ -24,22 +25,39 @@ def main():
     data.x = geometry.project_to_gauges(data.x, gauges)
     data.x = data.x/2
     
-    R = geometry.compute_connections(gauges, data.edge_index, processes=1)
+    R = geometry.compute_connections(gauges, data.edge_index, dim_man=2)
     L = geometry.compute_laplacian(data)
     Lc = geometry.compute_connection_laplacian(data, R)
     
-    diffusion = Diffusion(L, Lc, tau0=tau0)
-    data.x = diffusion(data.x, method='matrix_exp', normalise=True)
+    ind = np.arange(220).reshape(20,11)[:,5]
+    g = gauges[...,2][ind]
+    
+    diffusion = Diffusion(tau0=tau0)
+    data.x = diffusion(data.x, L, Lc=Lc, method='matrix_exp', normalise=True)
  
     #plot
     ax = plotting.fields(data, alpha=1)
+    ax[0].plot(x[:,0].reshape(20,11)[:,5],
+               x[:,1].reshape(20,11)[:,5],
+               x[:,2].reshape(20,11)[:,5])
     
-    # data.x = gauges[...,0]/2
-    # ax = plotting.fields(data, ax=ax, c='k')
-    # data.x = gauges[...,1]/2
-    # ax = plotting.fields(data, ax=ax, c='k')
-    # data.x = gauges[...,2]/2
-    # ax = plotting.fields(data, ax=ax, c='k')
+    data.x = gauges[...,0]/2
+    plotting.fields(data, color='k')
+    # plt.savefig('gauge1.svg')
+    
+    data.x = gauges[...,1]/2
+    plotting.fields(data, color='k')
+    # plt.savefig('gauge2.svg')
+    
+    
+    data.x = gauges[...,2]/2
+    plotting.fields(data, color='k')
+    # plt.savefig('gauge3.svg')
+    
+    vectors_on_meridian = torch.zeros_like(gauges[...,2])
+    vectors_on_meridian[ind] = gauges[...,2][ind]
+    data.x = vectors_on_meridian
+    plotting.fields(data, color='k')
     
 
 def f(x):
@@ -47,7 +65,7 @@ def f(x):
 
 
 def sphere():
-    u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
+    u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:11j]
     x = np.cos(u)*np.sin(v)
     y = np.sin(u)*np.sin(v)
     z = np.cos(v)

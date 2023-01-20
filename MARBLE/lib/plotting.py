@@ -257,7 +257,8 @@ def neighbourhoods(data,
         geometry.cluster(data) or postprocessing(data)!'
     
     vector = True if data.x.shape[1] > 1 else False
-    nc = data.clusters['n_clusters']
+    clusters = data.clusters
+    nc = clusters['n_clusters']
     fig = plt.figure(figsize=figsize, constrained_layout=True)
     outer = gridspec.GridSpec(int(np.ceil(nc/cols)), cols, wspace=0.2, hspace=0.2, figure=fig)
     
@@ -297,7 +298,7 @@ def neighbourhoods(data,
 
         for j, G in enumerate(graphs):
             
-            label_i = data.clusters['labels'][n_nodes[j]:n_nodes[j+1]]==i
+            label_i = clusters['labels'][n_nodes[j]:n_nodes[j+1]]==i
             label_i = np.where(label_i)[0]
             if not list(label_i):
                 continue

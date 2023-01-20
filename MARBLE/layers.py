@@ -7,7 +7,6 @@ from torch.nn.functional import normalize
 
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn import MLP
-import torch_geometric.utils as tgu
 
 from .lib import geometry as g
 from .lib import utils
@@ -47,17 +46,8 @@ def setup_layers(model):
               bias=par['bias']
               )
     
-    if par['autoencoder']:
-        dec = MLP(channel_list=channel_list[::-1],
-                  dropout=par['dropout'],
-                  norm=par['batch_norm'],
-                  bias=par['bias']
-                  )
-    else:
-        dec = None
-    
-    model.diffusion, model.grad, model.inner_products, model.enc, model.dec = \
-        diffusion, grad, inner_products, enc, dec
+    model.diffusion, model.grad, model.inner_products, model.enc = \
+        diffusion, grad, inner_products, enc
         
     return model
 
@@ -103,22 +93,27 @@ class AnisoConv(MessagePassing):
         
     def forward(self, x, edge_index, size, kernels, R=None):
         
+        edge_index = edge_index[[1,0], :]
+        size = (size[1], size[0])
+        
         if R is not None:
-            n, _, _, dim = R.shape
-            R = R.swapaxes(1,2).reshape(n*dim, n*dim) #make block matrix
+            dim = len(kernels)
             size = (size[0]*dim, size[1]*dim)
-            edge_index = expand_adjacenecy_matrix(edge_index, dim)
+            edge_index = utils.expand_edge_index(edge_index, dim)
             
         #apply kernels
         out = []
         for K in utils.to_list(kernels):
             if R is not None:
+                # K = torch.sparse_coo_tensor(edge_index, 
+                #                             K.values().repeat_interleave(dim*dim))
                 K = torch.kron(K, torch.ones((dim,dim), device=x.device))
                 K *= R
                 
             #transpose to change from source to target
-            K = utils.to_SparseTensor(edge_index, size, value=K.t())
-            out.append(self.propagate(K.t(), x=x))
+            K = utils.to_SparseTensor(edge_index, size, value=K)
+            
+            out.append(self.propagate(K, x=x))
             
         #[[dx1/du, dx2/du], [dx1/dv, dx2/dv]] -> [dx1/du, dx1/dv, dx2/du, dx2/dv]
         out = torch.stack(out, axis=2)
@@ -145,17 +140,6 @@ class AnisoConv(MessagePassing):
         x = K_t.matmul(x, reduce=self.aggr)
             
         return x.view(-1, dim)
-    
-    
-def expand_adjacenecy_matrix(edge_index, dim):
-    """When using rotations, we replace nodes by vector spaces so
-       need to expand adjacency matrix from nxn -> n*dimxn*dim matrices"""
-       
-    adj = tgu.to_dense_adj(edge_index)[0]
-    adj = adj.repeat_interleave(dim, dim=1).repeat_interleave(dim, dim=0)
-    edge_index = tgu.sparse.dense_to_sparse(adj)[0]
-    
-    return edge_index
 
     
 class InnerProductFeatures(nn.Module):

@@ -6,7 +6,7 @@ from .lib import geometry as g
 def preprocessing(data, 
                   frac_geodesic_nb=2.0, 
                   var_explained=0.9,
-                  diffusion_method='spectral', 
+                  diffusion_method=None, 
                   vector=True):
     """
     Compute geometric objects used later: local gauges, Levi-Civita connections
@@ -30,10 +30,10 @@ def preprocessing(data,
 
     """
     
-    dim_emb = data.pos.shape[1]
+    n, dim_emb = data.pos.shape
     dim_signal = data.x.shape[1]
     print('---- Embedding dimension: {}'.format(dim_emb))
-    print('---- Signal dimension: {}'.format(dim_signal))
+    print('---- Signal dimension: {}\n'.format(dim_signal))
     
     #disable vector computations if 1) signal is scalar or 2) embedding dimension
     #is <= 2. In case 2), either M=R^2 (manifold is whole space) or case 1).
@@ -46,6 +46,8 @@ def preprocessing(data,
     elif dim_emb<=2:
         print('\nEmbedding dimension <= 2, so manifold computations are disabled!')
         local_gauge = False
+    elif dim_emb!=dim_signal:
+        print('\nEmbedding dimension /= signal dimension, so manifold computations are disabled!')
     else:
         local_gauge = True
         
@@ -58,9 +60,12 @@ def preprocessing(data,
         gauges, Sigma = g.compute_gauges(data, local_gauge, n_nb)
         print('\nCould not compute gauges (possibly data is too sparse or the \
               number of neighbours is too small) Manifold computations are disabled!')
-                
+            
     #Laplacian
     L = g.compute_laplacian(data)
+    
+    #kernels 
+    kernels = g.gradient_op(data.pos, data.edge_index, gauges)
     
     #connections
     if local_gauge:
@@ -71,27 +76,20 @@ def preprocessing(data,
                  before settling on a value\n')
         
         if dim_man<dim_emb:
-            R = g.compute_connections(gauges, data.edge_index, dim_man)
+            R = g.compute_connections(gauges, data.edge_index)
             Lc = g.compute_connection_laplacian(data, R)
         else:
             R, Lc = None, None
             print('\nEmbedding dimension = manifold dimension, so manifold computations are disabled!')
-                
     else:
-        R, Lc = None, None
+        R, Lc, gauges = None, None, None
         
     if diffusion_method == 'spectral':
         L = g.compute_eigendecomposition(L)
         Lc = g.compute_eigendecomposition(Lc)
-        
-    #kernels 
-    #Working with global gauges is good enough here because local
-    #gauges would introduce the need for coordinate transforms. We only need
-    #to ensure that the signal and its componentwise derivatives live in the 
-    #same vector space (the tangent space of M) so we can take inner products.
-    gauges, _ = g.compute_gauges(data, False, n_nb)
-    kernels = g.gradient_op(data.pos, data.edge_index, gauges)
+    else:
+        L, Lc = None, None
     
-    data.R, data.kernels, data.L, data.Lc = R, kernels, L, Lc
+    data.R, data.kernels, data.L, data.Lc, data.gauges = R, kernels, L, Lc, gauges
         
     return data

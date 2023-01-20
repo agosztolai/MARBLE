@@ -13,6 +13,7 @@ from pathlib import Path
 
 from torch_geometric.transforms import RandomNodeSplit
 from torch_geometric.data import Data, Batch
+import torch_geometric.utils as tgu
 from torch_sparse import SparseTensor
 
 import multiprocessing
@@ -121,14 +122,21 @@ def check_parameters(par, data):
                       
     assert par['order'] > 0, "Derivative order must be at least 1!"
     
-    if par['vec_norm']:         
+    if par['vec_norm']:
         assert data.x.shape[1] > 1, 'Using vec_norm=True is \
-        not permitted for scalar signals'
+            not permitted for scalar signals'
+        
+    if hasattr(data, 'gauges'):
+        assert par['inner_product_features'] == True, 'Local gauges found. \
+            Set inner_product_features=True!'
+        
+    if par['diffusion']:
+        assert hasattr(data, 'L'), 'No Laplacian found. Compute it in preprocessing()!'
         
     pars = ['batch_size', 'epochs', 'lr', 'momentum', 'autoencoder', 'order', \
             'inner_product_features', 'dim_signal', 'dim_emb', \
             'frac_sampled_nb', 'dropout', 'n_lin_layers', 'diffusion', \
-            'hidden_channels', 'out_channels', 'bias', 'vec_norm', 'batch_norm', \
+            'hidden_channels', 'out_channels', 'bias', 'batch_norm', 'vec_norm', \
             'seed', 'n_sampled_nb', 'processes']
         
     for p in par.keys():
@@ -175,23 +183,25 @@ def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
     return result
 
 
-def move_to_gpu(*args):
-    """Move variables to gpu"""
+def move_to_gpu(model, data, adjs=None):
+    """Move stuff to gpu"""
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     
-    out = []
-    for i, arg in enumerate(args):
-        if arg is None:
-            out.append(None)
-        elif isinstance(arg, (list, tuple)):
-            if arg[0] is None:
-                out.append(None)
-            else:
-                out.append([a.to(device) for a in arg])
-        else:
-            out.append(arg.to(device))
+    assert hasattr(data, 'kernels'), \
+        'It seems that data is not preprocessed. Run preprocess(data)!'
+    
+    model = model.to(device)
+    x = data.x.to(device)
+    L = data.L.to(device) if hasattr(data, 'L') else None
+    Lc = data.Lc.to(device) if hasattr(data, 'Lc') else None
+    kernels = [K.to(device) for K in data.kernels]
+    R = data.R.to(device) if hasattr(data, 'R') else None
             
-    return out
+    if adjs is None:
+        return model, x, L, Lc, kernels, R
+    else:
+        adjs = [adj.to(device) for adj in adjs]
+        return model, x, L, Lc, kernels, R, adjs
 
 
 # =============================================================================
@@ -271,6 +281,47 @@ class EdgeIndex(NamedTuple):
         e_id = self.e_id.to(*args, **kwargs) if self.e_id is not None else None
         return EdgeIndex(edge_index, e_id, self.size)
     
+
+def expand_index(ind, dim):
+    """Interleave dim incremented copies of ind"""
+    
+    n = len(ind)
+    ind = [ind*dim+i for i in range(dim)]
+    ind = torch.hstack(ind).view(dim, n).t().flatten()
+    
+    return ind
+
+
+def expand_edge_index(edge_index, dim):
+    """When using rotations, we replace nodes by vector spaces so
+       need to expand adjacency matrix from nxn -> n*dimxn*dim matrices"""
+       
+    n = edge_index.shape[1]
+    ind = [torch.tensor([i,j]) for i in range(dim) for j in range(dim)]
+    edge_index = [edge_index*dim+i.unsqueeze(1) for i in ind]
+    edge_index = torch.stack(edge_index, dim=2).view(2,n*len(ind))
+    
+    return edge_index
+
+
+def tile_tensor(tensor, dim):
+    """Enlarge nxn tensor to d*dim x n*dim block matrix. Effectively
+    computing a sparse version of torch.kron(K, torch.ones((dim,dim)))"""
+    
+    edge_index = tensor.indices()
+    edge_index = expand_edge_index(edge_index, dim)
+    return torch.sparse_coo_tensor(edge_index, 
+                                   tensor.values().repeat_interleave(dim*dim)) 
+
+
+def restrict_to_batch(tensor, idx):
+    """Restrict tensor to current batch"""
+    
+    if len(idx)==1:
+        return torch.index_select(tensor, 0, idx[0]).coalesce()
+    elif len(idx)==2:
+        tensor = torch.index_select(tensor, 0, idx[0])
+        return torch.index_select(tensor, 1, idx[1]).coalesce()
 
 # =============================================================================
 # Statistics

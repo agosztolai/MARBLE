@@ -11,13 +11,13 @@ def main():
     #parameters
     n = 512
     k = 15
-    n_clusters = 15
+    n_clusters = 20
     
-    par = {'epochs': 50, #optimisation epochs
-           'order': 2, #order of derivatives
+    par = {'epochs': 60, #optimisation epochs
+           'order': 1, #order of derivatives
            'hidden_channels': 16, #number of internal dimensions in MLP
            'out_channels': 3,
-           'inner_product_features': False,
+           'inner_product_features': True,
            }
     
     #evaluate functions
@@ -45,7 +45,7 @@ def main():
     
     #plot
     titles=['Linear left','Linear right','Vortex right','Vortex left']
-    plotting.fields(data, titles=titles, col=2)
+    plotting.fields(data, titles=titles, col=2, width=3, scale=10, view=[70,20])
     # plt.savefig('../results/fields.svg')
     plotting.embedding(data, data.y.numpy(),titles=titles)
     # plt.savefig('../results/embedding.svg')

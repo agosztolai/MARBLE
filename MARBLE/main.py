@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
-import numpy as np
 
 import torch
 import torch.nn as nn
@@ -11,7 +10,7 @@ import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from datetime import datetime
 
-from .lib import utils
+from .lib import utils, geometry
 from . import layers, dataloader
 
 
@@ -19,10 +18,6 @@ from . import layers, dataloader
 class net(nn.Module):
     def __init__(self, data, **kwargs):
         super(net, self).__init__()
-        
-        assert all(hasattr(data, attr) for attr in ['kernels', 'L']), \
-            'It seems that data is not preprocessed. Run preprocess(data) \
-            before initialising network!'
         
         self.par = utils.parse_parameters(data, kwargs)
         self = layers.setup_layers(self)      
@@ -46,10 +41,6 @@ class net(nn.Module):
         are the target nodes, i.e, x = concat[x_target, x_other]."""
         
         x = data.x
-        
-        #parse parameters
-        if n_id is None:
-            n_id = np.arange(len(x))
 
         #diffusion
         if self.par['diffusion']:
@@ -57,21 +48,34 @@ class net(nn.Module):
             x = self.diffusion(x, data.L, Lc=Lc, method='spectral')
         
         #restrict to current batch n_id
-        x = x[n_id] 
+        n_id = torch.arange(len(x)) if n_id is None else n_id
+                    
         kernels = [K[n_id,:][:,n_id] for K in data.kernels]
-        R = data.R[n_id,...][:,n_id,...] if hasattr(data, 'R') else None
-
-        #gradients
-        if self.par['vec_norm']:
-            out = [F.normalize(x, dim=-1, p=2)]
+            # block_n_id = utils.expand_index(n_id, len(data.kernels))
+            # R = data.R[block_n_id,:][:,block_n_id] 
+            
+        # kernels = [utils.restrict_to_batch(K, [n_id,n_id]) for K in data.kernels]
+        # R = utils.restrict_to_batch(data.R, [block_n_id,block_n_id]) if hasattr(data, 'R') else None
+        
+        #local gauges
+        if hasattr(data, 'gauges'):
+            x = geometry.map_to_local_gauges(x[n_id], data.gauges[n_id])
+            R = data.R[n_id,...][:,n_id,...]
+            n, _, _, d = R.shape
+            R = R.swapaxes(1,2).reshape(n*d, n*d)#.to_sparse()
         else:
-            out = [x]
+            x, R = x[n_id], None
+    
+        if self.par['vec_norm']:
+            x = F.normalize(x, dim=-1, p=2)
+            
+        #gradients
+        out = [x]
         for i, (edge_index, _, size) in enumerate(adjs):
             x = self.grad[i](x, edge_index, size, kernels, R)
             out.append(x)
             
-        #take target nodes
-        out = [o[:size[1]] for o in out]
+        out = [o[:size[1]] for o in out] #take target nodes
             
         #inner products
         if self.par['inner_product_features']:
@@ -80,10 +84,8 @@ class net(nn.Module):
             out = torch.cat(out, axis=1)     
                     
         emb = self.enc(out)
-        if self.par['autoencoder']:
-            return emb, out, self.dec(emb)
-        else:
-            return emb, None, None
+        
+        return emb
     
     
     def evaluate(self, data):
@@ -94,11 +96,10 @@ class net(nn.Module):
             adjs = utils.to_list(adjs) * self.par['order']
             
             #load to gpu if possible
-            Lc = data.Lc if hasattr(data, 'Lc') else None
-            R = data.R if hasattr(data, 'R') else None
-            adjs, data.x, data.L, data.Lc, data.kernels, data.R = \
-                utils.move_to_gpu(adjs, data.x, data.L, Lc, data.kernels, R)
-            emb, _, _ = self.forward(data, None, adjs)
+            model, data.x, data.L, data.Lc, data.kernels, data.R, adjs = \
+                utils.move_to_gpu(self, data, adjs)
+            
+            emb = self.forward(data, None, adjs)
             data.emb = emb.detach().cpu()
             data.x = data.x.detach().cpu()
             
@@ -121,8 +122,8 @@ class net(nn.Module):
             _, n_id, adjs = batch
             adjs = [adj.to(data.x.device) for adj in utils.to_list(adjs)]
                         
-            enc_out, out, dec_out = self.forward(data, n_id, adjs)
-            loss = self.loss(enc_out, out, dec_out)
+            emb = self.forward(data, n_id, adjs)
+            loss = self.loss(emb)
             cum_loss += float(loss)
             
             if optimizer is not None:
@@ -138,14 +139,9 @@ class net(nn.Module):
         
         print('\n---- Training network ...')
         
-        assert all(hasattr(data, attr) for attr in ['kernels', 'L']), \
-            'It seems that data is not preprocessed. Run preprocess(data) before training!'
-        
         #load to gpu if possible
-        Lc = data.Lc if hasattr(data, 'Lc') else None
-        R = data.R if hasattr(data, 'R') else None
         self, data.x, data.L, data.Lc, data.kernels, data.R = \
-            utils.move_to_gpu(self, data.x, data.L, Lc, data.kernels, R)
+            utils.move_to_gpu(self, data)
         
         #initialise logger and optimiser
         writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
@@ -204,22 +200,11 @@ class net(nn.Module):
 class loss_fun(nn.Module):
     def __init__(self):
         super().__init__()
-        self.mse = nn.MSELoss()
-        self.lamb = nn.Parameter(torch.tensor(0.5))
 
-    def forward(self, out, *args):
-        
-        with torch.no_grad():
-            self.lamb.data = torch.clamp(self.lamb, min=1e-8, max=1-1e-8)
-    
+    def forward(self, out):
+            
         z, z_pos, z_neg = out.split(out.size(0) // 3, dim=0)
         pos_loss = F.logsigmoid((z * z_pos).sum(-1)).mean()
         neg_loss = F.logsigmoid(-(z * z_neg).sum(-1)).mean()
         
-        if args[0] is None:
-            return -pos_loss -neg_loss
-        
-        x, _, _ = args[0].split(out.size(0) // 3, dim=0)
-        xhat, _, _ = args[1].split(out.size(0) // 3, dim=0)
-        
-        return self.lamb*self.mse(x, xhat) + (1-self.lamb)*(-pos_loss -neg_loss)
+        return -pos_loss -neg_loss
