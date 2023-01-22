@@ -33,7 +33,7 @@ class net(nn.Module):
                 layer.reset_parameters()
         
         
-    def forward(self, data, n_id=None, adjs=None):
+    def forward(self, data, n_id, adjs=None):
         """Forward pass. 
         Messages are passed to a set target nodes (current batch) from source
         nodes. The source nodes and target nodes form a bipartite graph to 
@@ -41,30 +41,22 @@ class net(nn.Module):
         are the target nodes, i.e, x = concat[x_target, x_other]."""
         
         x = data.x
+        n, d = data.x.shape
 
         #diffusion
         if self.par['diffusion']:
             Lc = data.Lc if hasattr(data, 'Lc') else None
             x = self.diffusion(x, data.L, Lc=Lc, method='spectral')
-        
-        #restrict to current batch n_id
-        n_id = torch.arange(len(x)) if n_id is None else n_id
-                    
-        kernels = [K[n_id,:][:,n_id] for K in data.kernels]
-            # block_n_id = utils.expand_index(n_id, len(data.kernels))
-            # R = data.R[block_n_id,:][:,block_n_id] 
             
-        # kernels = [utils.restrict_to_batch(K, [n_id,n_id]) for K in data.kernels]
-        # R = utils.restrict_to_batch(data.R, [block_n_id,block_n_id]) if hasattr(data, 'R') else None
-        
         #local gauges
-        if hasattr(data, 'gauges'):
-            x = geometry.map_to_local_gauges(x[n_id], data.gauges[n_id])
-            R = data.R[n_id,...][:,n_id,...]
-            n, _, _, d = R.shape
-            R = R.swapaxes(1,2).reshape(n*d, n*d)#.to_sparse()
+        x = geometry.map_to_local_gauges(x[n_id], data.gauges[n_id])   
+        
+        #restrict to current batch
+        if len(data.kernels[0]) == n*d:
+            n_id = utils.expand_index(n_id, d)
         else:
-            x, R = x[n_id], None
+            d=1
+        kernels = [utils.restrict_to_batch(K, [n_id,n_id]) for K in data.kernels]
     
         if self.par['vec_norm']:
             x = F.normalize(x, dim=-1, p=2)
@@ -72,7 +64,8 @@ class net(nn.Module):
         #gradients
         out = [x]
         for i, (edge_index, _, size) in enumerate(adjs):
-            x = self.grad[i](x, edge_index, size, kernels, R)
+            edge_index = utils.expand_edge_index(edge_index, d)
+            x = self.grad[i](x, edge_index, (size[0]*d, size[1]*d), kernels)
             out.append(x)
             
         out = [o[:size[1]] for o in out] #take target nodes
@@ -96,10 +89,10 @@ class net(nn.Module):
             adjs = utils.to_list(adjs) * self.par['order']
             
             #load to gpu if possible
-            model, data.x, data.L, data.Lc, data.kernels, data.R, adjs = \
+            model, data.x, data.L, data.Lc, data.kernels, adjs = \
                 utils.move_to_gpu(self, data, adjs)
             
-            emb = self.forward(data, None, adjs)
+            emb = self.forward(data, torch.arange(len(data.x)), adjs)
             data.emb = emb.detach().cpu()
             data.x = data.x.detach().cpu()
             
@@ -140,8 +133,7 @@ class net(nn.Module):
         print('\n---- Training network ...')
         
         #load to gpu if possible
-        self, data.x, data.L, data.Lc, data.kernels, data.R = \
-            utils.move_to_gpu(self, data)
+        self, data.x, data.L, data.Lc, data.kernels = utils.move_to_gpu(self, data)
         
         #initialise logger and optimiser
         writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
