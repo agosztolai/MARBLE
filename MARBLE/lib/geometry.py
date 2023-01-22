@@ -348,14 +348,14 @@ def gradient_op(pos, edge_index, gauges):
     for _F in F:
         Fhat = normalize(_F, dim=1, p=1)
         Fhat -= torch.diag(torch.sum(Fhat, dim=1))
-        K.append(Fhat.to_sparse())
+        K.append(Fhat)#.to_sparse())
             
     return K
 
 
-def compute_gauges(data, local=True, n_nb=10, processes=-1):
+def compute_gauges(data, local=True, n_nb=10, processes=1):
     """
-    Compute gauges, and rotation matrices of Le'vy-Civita connections.
+    Compute gauges
 
     Parameters
     ----------
@@ -363,28 +363,28 @@ def compute_gauges(data, local=True, n_nb=10, processes=-1):
     local : bool, The default is False.
     n_nb : int, Number of neighbours to use to compute gauges. Should be
     more than the number of neighbours in the knn graph. The default is 10.
-    processes: number of CPUs to use (-1 -> all)
+    processes: number of CPUs to use
 
     Returns
     -------
     gauges : (n,dim,dim) matric of orthogonal unit vectors for each node
-    Sigma : singular values
-    R : (n*dim,n*dim) connection matrices. If local=True.
+    R : (n,n,dim,dim) connection matrices. If local=True.
 
     """
     
-    n, dim = data.pos.shape
+    n = data.pos.shape[0]
+    dim = data.pos.shape[-1]
         
     if local is True:
-        gauges, Sigma, R = compute_tangent_bundle(data, 
-                                                  n_geodesic_nb=n_nb, 
-                                                  processes=processes)
-        return gauges, Sigma, R
+        gauges, Sigma = compute_tangent_bundle(data, 
+                                               n_geodesic_nb=n_nb, 
+                                               processes=processes)
+        return gauges, Sigma
     
     else:            
         gauges = torch.eye(dim)
         gauges = gauges.repeat(n,1,1)      
-        return gauges, None, None
+        return gauges, None
     
     
 def project_to_gauges(x, gauges, dim=2):
@@ -497,7 +497,8 @@ def compute_connection_laplacian(data, R, normalization='rw'):
         
     #unnormalised connection laplacian 
     #Lc(i,j) = L(i,j)*R(i,j) if (i,j)=\in E else 0
-    Lc = L*R
+    R = R.swapaxes(1,2).reshape(n*d, n*d)#.to_sparse()
+    Lc = L.to_dense()*R
     
     #normalize
     edge_index, edge_weight = PyGu.remove_self_loops(data.edge_index, data.edge_weight)
@@ -527,14 +528,6 @@ def compute_tangent_bundle(data,
     """
     Orthonormal gauges for the tangent space at each node, and connection 
     matrices between each pair of adjacent nodes.
-    
-    R is a block matrix, where the row index is the gauge we want to align to, 
-    i.e., gauges(i) = R[i,j]@gauges(j).
-    
-    R[i,j] is optimal rotation that minimises ||X - RY||_F computed by SVD:
-    X, Y = gauges[i].T, gauges[j].T
-    U, _, Vt = scipy.linalg.svd(X.T@Y)     
-    R[i,j] = U@Vt
 
     Parameters
     ----------
@@ -544,9 +537,8 @@ def compute_tangent_bundle(data,
 
     Returns
     -------
-    gauges : (nxdimxdim) Matrix containing dim unit vectors for each node.
-    Sigma : Singular valued
-    R : (n*dimnxdim) Connection matrices.
+    tangents : (nxdimxdim) Matrix containing dim unit vectors for each node.
+    R : (nxnxdimxdim) Connection matrices between all pairs of nodes.
 
     """
     X = data.pos.numpy().astype(np.float64)
@@ -569,23 +561,18 @@ def compute_tangent_bundle(data,
                               processes=processes,
                               desc="Computing gauges...")
         
-    gauges, Sigma, R = zip(*out)
-    gauges, Sigma, R = np.vstack(gauges), np.vstack(Sigma), torch.stack(R, axis=0)
-    R = torch.block_diag(*R)
+    tangents, Sigma = zip(*out)
+    tangents, Sigma = np.vstack(tangents), np.vstack(Sigma)
     
-    return utils.np2torch(gauges), utils.np2torch(Sigma), R.to_sparse()
+    return utils.np2torch(tangents), utils.np2torch(Sigma)
 
 
 def _compute_tangent_bundle(inputs, i):
     X_chunks, A_chunks, n_geodesic_nb, return_predecessors = inputs
     
-    _, _, gauges, Sigma, R = ptu_dijkstra(X_chunks[i], A_chunks[i], X_chunks[i].shape[1], n_geodesic_nb, return_predecessors)
+    _, _, tangents, Sigma, R = ptu_dijkstra(X_chunks[i], A_chunks[i], X_chunks[i].shape[1], n_geodesic_nb, return_predecessors)
     
-    n, d, _ = gauges.shape
-    R = utils.np2torch(R)
-    R = R.swapaxes(1,2).reshape(n*d,n*d)
-    
-    return gauges, Sigma, R
+    return tangents, Sigma
 
     
 def compute_connections(gauges, edge_index, processes=-1):
@@ -616,11 +603,8 @@ def compute_connections(gauges, edge_index, processes=-1):
         
     for l, (i,j) in enumerate(edge_index.T):
         R[i,j,...] = _R[l].T
-        
-    R = utils.np2torch(R)
-    R = R.swapaxes(1,2).reshape(n*d,n*d)
       
-    return R.to_sparse()
+    return utils.np2torch(R)
 
 
 def _procrustes(gauges, edge_index):

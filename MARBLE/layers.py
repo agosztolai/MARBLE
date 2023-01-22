@@ -91,13 +91,29 @@ class AnisoConv(MessagePassing):
         
         self.vec_norm = vec_norm
         
-    def forward(self, x, edge_index, size, kernels):  
+    def forward(self, x, edge_index, size, kernels, R=None):
+        
+        edge_index = edge_index[[1,0], :]
+        size = (size[1], size[0])
+        
+        if R is not None:
+            dim = len(kernels)
+            size = (size[0]*dim, size[1]*dim)
+            edge_index = utils.expand_edge_index(edge_index, dim)
+            
+        #apply kernels
         out = []
         for K in utils.to_list(kernels):
-            K = K.to_dense()
+            if R is not None:
+                # K = torch.sparse_coo_tensor(edge_index, 
+                #                             K.values().repeat_interleave(dim*dim))
+                K = torch.kron(K, torch.ones((dim,dim), device=x.device))
+                K *= R
+                
             #transpose to change from source to target
-            K = utils.to_SparseTensor(edge_index, size, value=K.t())
-            out.append(self.propagate(K.t(), x=x))
+            K = utils.to_SparseTensor(edge_index, size, value=K)
+            
+            out.append(self.propagate(K, x=x))
             
         #[[dx1/du, dx2/du], [dx1/dv, dx2/dv]] -> [dx1/du, dx1/dv, dx2/du, dx2/dv]
         out = torch.stack(out, axis=2)

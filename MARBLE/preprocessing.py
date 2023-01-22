@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from .lib import geometry as g
-from .lib import utils
 
 def preprocessing(data, 
                   frac_geodesic_nb=2.0, 
@@ -55,10 +54,10 @@ def preprocessing(data,
     #gauges
     n_nb = int(data.degree*frac_geodesic_nb)
     try:
-        gauges, Sigma, _ = g.compute_gauges(data, local_gauge, n_nb)
+        gauges, Sigma = g.compute_gauges(data, local_gauge, n_nb)
     except:
         local_gauge = False
-        gauges, _, _ = g.compute_gauges(data, local_gauge, n_nb)
+        gauges, Sigma = g.compute_gauges(data, local_gauge, n_nb)
         print('\nCould not compute gauges (possibly data is too sparse or the \
               number of neighbours is too small) Manifold computations are disabled!')
             
@@ -79,13 +78,11 @@ def preprocessing(data,
         if dim_man<dim_emb:
             R = g.compute_connections(gauges, data.edge_index)
             Lc = g.compute_connection_laplacian(data, R)
-            kernels = [utils.tile_tensor(K, dim_emb) for K in kernels]
-            kernels = [K*R for K in kernels]
         else:
             R, Lc = None, None
             print('\nEmbedding dimension = manifold dimension, so manifold computations are disabled!')
     else:
-        R, Lc = None, None
+        R, Lc, gauges = None, None, None
         
     if diffusion_method == 'spectral':
         L = g.compute_eigendecomposition(L)
@@ -93,6 +90,6 @@ def preprocessing(data,
     else:
         L, Lc = None, None
     
-    data.kernels, data.L, data.Lc, data.gauges = kernels, L, Lc, gauges
+    data.R, data.kernels, data.L, data.Lc, data.gauges = R, kernels, L, Lc, gauges
         
     return data
