@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import torch
 from .lib import geometry as g
 from .lib import utils
 
@@ -55,10 +56,10 @@ def preprocessing(data,
     #gauges
     n_nb = int(data.degree*frac_geodesic_nb)
     try:
-        gauges, Sigma, _ = g.compute_gauges(data, local_gauge, n_nb)
+        gauges, Sigma, R = g.compute_tangent_bundle(data, n_geodesic_nb=n_nb)
     except:
         local_gauge = False
-        gauges, _, _ = g.compute_gauges(data, local_gauge, n_nb)
+        gauges = torch.eye(dim_emb).repeat(n,1,1) 
         print('\nCould not compute gauges (possibly data is too sparse or the \
               number of neighbours is too small) Manifold computations are disabled!')
             
@@ -77,7 +78,7 @@ def preprocessing(data,
                  before settling on a value\n')
         
         if dim_man<dim_emb:
-            R = g.compute_connections(gauges, data.edge_index)
+            # R = g.compute_connections(gauges, data.edge_index)
             Lc = g.compute_connection_laplacian(data, R)
             kernels = [utils.tile_tensor(K, dim_emb) for K in kernels]
             kernels = [K*R for K in kernels]

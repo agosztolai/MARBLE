@@ -263,6 +263,11 @@ cdef _parallel_transport_dijkstra(
         raise MemoryError("Failed to allocate memory in _dijkstra_undirected")
 
     for i in range(N):
+        
+        for j in range(d):
+            for k in range(d):
+                if j==k:
+                    R[i,i,j,k] = 1.0
 
         # initialize nodes
         for k in range(N):
@@ -350,7 +355,8 @@ cdef _parallel_transport_dijkstra(
                     for k in range(0, d):
                         temp = 0
                         for p in range(0, D):
-                            temp += jTangent[p, k] * iTangentPred[p, q]
+                            # temp += jTangent[p, k] * iTangentPred[p, q]
+                            temp +=  jTangent[k, p] * iTangentPred[q, p]
                         TtT[k, q] = temp
 
                 # U, S, VT = SVD(TtT)
@@ -388,6 +394,7 @@ cdef _parallel_transport_dijkstra(
                         temp = 0
                         for l in range(0, d):
                             temp += U[k, l] * VT[l, q]
+                            # temp += VT[l, k] * U[q, l]
                         R[i,j,k,q] = temp
 
             # Standard Dijkstra: process neighbors of j

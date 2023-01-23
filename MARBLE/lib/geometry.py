@@ -351,40 +351,6 @@ def gradient_op(pos, edge_index, gauges):
         K.append(Fhat.to_sparse())
             
     return K
-
-
-def compute_gauges(data, local=True, n_nb=10, processes=-1):
-    """
-    Compute gauges, and rotation matrices of Le'vy-Civita connections.
-
-    Parameters
-    ----------
-    data : pytorch geometric data object containing .pos and .edge_index
-    local : bool, The default is False.
-    n_nb : int, Number of neighbours to use to compute gauges. Should be
-    more than the number of neighbours in the knn graph. The default is 10.
-    processes: number of CPUs to use (-1 -> all)
-
-    Returns
-    -------
-    gauges : (n,dim,dim) matric of orthogonal unit vectors for each node
-    Sigma : singular values
-    R : (n*dim,n*dim) connection matrices. If local=True.
-
-    """
-    
-    n, dim = data.pos.shape
-        
-    if local is True:
-        gauges, Sigma, R = compute_tangent_bundle(data, 
-                                                  n_geodesic_nb=n_nb, 
-                                                  processes=processes)
-        return gauges, Sigma, R
-    
-    else:            
-        gauges = torch.eye(dim)
-        gauges = gauges.repeat(n,1,1)      
-        return gauges, None, None
     
     
 def project_to_gauges(x, gauges, dim=2):
@@ -519,10 +485,9 @@ def compute_connection_laplacian(data, R, normalization='rw'):
     return Lc
 
 
-def compute_tangent_bundle(data, 
+def compute_tangent_bundle(data,
                            n_geodesic_nb=10,
                            processes=1, 
-                           chunk=512,
                            return_predecessors=True):
     """
     Orthonormal gauges for the tangent space at each node, and connection 
@@ -546,30 +511,28 @@ def compute_tangent_bundle(data,
     -------
     gauges : (nxdimxdim) Matrix containing dim unit vectors for each node.
     Sigma : Singular valued
-    R : (n*dimnxdim) Connection matrices.
+    R : (n*dimxn*dim) Connection matrices.
 
     """
     X = data.pos.numpy().astype(np.float64)
     A = PyGu.to_scipy_sparse_matrix(data.edge_index).tocsr()
     
     #make chunks for data processing
-    slices = data._slice_dict['x']
+    sl = data._slice_dict['x']
         
-    n_chunks, X_chunks, A_chunks = len(slices)-1, [], []
-    for i in range(n_chunks):
-            X_ = X[slices[i]:slices[i+1]]
-            A_ = A[slices[i]:slices[i+1],:][:,slices[i]:slices[i+1]]
-            X_chunks.append(X_)
-            A_chunks.append(A_)
+    n = len(sl)-1
+    X = [X[sl[i]:sl[i+1]] for i in range(n)]
+    A = [A[sl[i]:sl[i+1],:][:,sl[i]:sl[i+1]] for i in range(n)]
         
-    inputs = [X_chunks, A_chunks, n_geodesic_nb, return_predecessors]
+    inputs = [X, A, n_geodesic_nb, return_predecessors]
     out = utils.parallel_proc(_compute_tangent_bundle, 
-                              range(n_chunks), 
+                              range(n), 
                               inputs,
                               processes=processes,
-                              desc="Computing gauges...")
+                              desc="Computing tangent bundle...")
         
     gauges, Sigma, R = zip(*out)
+    R = [R_.swapaxes(1,2).reshape(R_.shape[0]*R_.shape[-1],R_.shape[0]*R_.shape[-1]) for R_ in R]
     gauges, Sigma, R = np.vstack(gauges), np.vstack(Sigma), torch.stack(R, axis=0)
     R = torch.block_diag(*R)
     
@@ -581,57 +544,55 @@ def _compute_tangent_bundle(inputs, i):
     
     _, _, gauges, Sigma, R = ptu_dijkstra(X_chunks[i], A_chunks[i], X_chunks[i].shape[1], n_geodesic_nb, return_predecessors)
     
-    n, d, _ = gauges.shape
     R = utils.np2torch(R)
-    R = R.swapaxes(1,2).reshape(n*d,n*d)
     
     return gauges, Sigma, R
 
     
-def compute_connections(gauges, edge_index, processes=-1):
-    """
-    Find smallest rotations R between gauges pairs. It is assumed that the first 
-    row of edge_index is what we want to align to, i.e., 
-    gauges(edge_index[0]) = R[edge_index[0],edge_index[1],...]@gauges(edge_index[1]).
+# def compute_connections(gauges, edge_index, processes=-1):
+#     """
+#     Find smallest rotations R between gauges pairs. It is assumed that the first 
+#     row of edge_index is what we want to align to, i.e., 
+#     gauges(edge_index[0]) = R[edge_index[0],edge_index[1],...]@gauges(edge_index[1]).
 
-    Parameters
-    ----------
-    gauges : (n,d,d) matrix of orthogonal unit vectors for each node
-    edge_index : (2x|E|) Matrix of edge indices
-    processes : number of processors to use (-1 -> all)
+#     Parameters
+#     ----------
+#     gauges : (n,d,d) matrix of orthogonal unit vectors for each node
+#     edge_index : (2x|E|) Matrix of edge indices
+#     processes : number of processors to use (-1 -> all)
 
-    Returns
-    -------
-    R : (n,n,dim,dim) matrix of rotation matrices
+#     Returns
+#     -------
+#     R : (n,n,dim,dim) matrix of rotation matrices
 
-    """
-    n, d, k = gauges.shape
-    R = np.zeros([n,n,d,d])
+#     """
+#     n, d, k = gauges.shape
+#     R = np.zeros([n,n,d,d])
             
-    _R = utils.parallel_proc(_procrustes, 
-                             edge_index.T, 
-                             gauges,
-                             processes=processes,
-                             desc="Computing connections...")
+#     _R = utils.parallel_proc(_procrustes, 
+#                               edge_index.T, 
+#                               gauges,
+#                               processes=processes,
+#                               desc="Computing connections...")
         
-    for l, (i,j) in enumerate(edge_index.T):
-        R[i,j,...] = _R[l].T
+#     for l, (i,j) in enumerate(edge_index.T):
+#         R[i,j,...] = _R[l]
         
-    R = utils.np2torch(R)
-    R = R.swapaxes(1,2).reshape(n*d,n*d)
+#     R = utils.np2torch(R)
+#     R = R.swapaxes(1,2).reshape(n*d,n*d)
       
-    return R.to_sparse()
+#     return R.to_sparse()
 
 
-def _procrustes(gauges, edge_index):
-    """Solve for optimal rotation that minimises ||X - RY||_F """
+# def _procrustes(gauges, edge_index):
+#     """Solve for optimal rotation that minimises ||X - RY||_F """
     
-    i, j = edge_index
-    X, Y = gauges[i].T, gauges[j].T
+#     i, j = edge_index
+#     X, Y = gauges[i].T, gauges[j].T
 
-    U, _, Vt = scipy.linalg.svd(X.T@Y)
+#     U, _, Vt = scipy.linalg.svd(X.T@Y)
     
-    return U@Vt
+#     return U@Vt
 
 
 # def optimal_rotation(X, Y):
