@@ -297,15 +297,19 @@ def expand_edge_index(edge_index, dim=1):
     """When using rotations, we replace nodes by vector spaces so
        need to expand adjacency matrix from nxn -> n*dimxn*dim matrices"""
        
-    edge_index = edge_index.to('cpu')
+    dev = edge_index.device
+    if dev!='cpu':
+        edge_index = edge_index.to('cpu')
        
     n = edge_index.shape[1]
     ind = [torch.tensor([i,j]) for i in range(dim) for j in range(dim)]
     edge_index = [edge_index*dim+i.unsqueeze(1) for i in ind]
     edge_index = torch.stack(edge_index, dim=2).view(2,n*len(ind))
     
-    print(device)
-    return edge_index.to(device)
+    if dev!='cpu':
+        edge_index.to(dev)
+        
+    return edge_index
 
 
 def tile_tensor(tensor, dim):
