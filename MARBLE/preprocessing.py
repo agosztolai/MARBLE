@@ -54,14 +54,15 @@ def preprocessing(data,
         local_gauge = True
         
     #gauges
-    n_nb = int(data.degree*frac_geodesic_nb)
-    try:
-        gauges, Sigma, R = g.compute_tangent_bundle(data, n_geodesic_nb=n_nb)
-    except:
-        local_gauge = False
+    if local_gauge:
+        n_nb = int(data.degree*frac_geodesic_nb)
+        try:
+            gauges, Sigma, R = g.compute_tangent_bundle(data, n_geodesic_nb=n_nb)
+        except:
+            raise Exception('\nCould not compute gauges (possibly data is too sparse or the \
+                  number of neighbours is too small)')
+    else:
         gauges = torch.eye(dim_emb).repeat(n,1,1) 
-        print('\nCould not compute gauges (possibly data is too sparse or the \
-              number of neighbours is too small) Manifold computations are disabled!')
             
     #Laplacian
     L = g.compute_laplacian(data)
