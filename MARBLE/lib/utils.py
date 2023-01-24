@@ -23,6 +23,8 @@ from tqdm import tqdm
 from . import geometry
 from MARBLE import preprocessing
 
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
 
 def construct_dataset(pos, 
                       features, 
@@ -185,7 +187,6 @@ def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
 
 def move_to_gpu(model, data, adjs=None):
     """Move stuff to gpu"""
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     
     assert hasattr(data, 'kernels'), \
         'It seems that data is not preprocessed. Run preprocess(data)!'
@@ -296,12 +297,14 @@ def expand_edge_index(edge_index, dim=1):
     """When using rotations, we replace nodes by vector spaces so
        need to expand adjacency matrix from nxn -> n*dimxn*dim matrices"""
        
+    dim = dim.to('cpu')
+       
     n = edge_index.shape[1]
     ind = [torch.tensor([i,j]) for i in range(dim) for j in range(dim)]
     edge_index = [edge_index*dim+i.unsqueeze(1) for i in ind]
     edge_index = torch.stack(edge_index, dim=2).view(2,n*len(ind))
     
-    return edge_index
+    return edge_index.to(device)
 
 
 def tile_tensor(tensor, dim):
