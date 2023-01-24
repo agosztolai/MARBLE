@@ -317,6 +317,8 @@ def tile_tensor(tensor, dim):
 def restrict_to_batch(tensor, idx):
     """Restrict tensor to current batch"""
     
+    idx = idx.to(tensor.device)
+    
     if len(idx)==1:
         return torch.index_select(tensor, 0, idx[0]).coalesce()
     elif len(idx)==2:
