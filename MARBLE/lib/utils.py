@@ -304,6 +304,7 @@ def expand_edge_index(edge_index, dim=1):
     edge_index = [edge_index*dim+i.unsqueeze(1) for i in ind]
     edge_index = torch.stack(edge_index, dim=2).view(2,n*len(ind))
     
+    print(device)
     return edge_index.to(device)
 
 
