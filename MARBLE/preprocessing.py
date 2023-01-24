@@ -9,7 +9,8 @@ def preprocessing(data,
                   frac_geodesic_nb=2.0, 
                   var_explained=0.9,
                   diffusion_method=None, 
-                  vector=True):
+                  vector=True,
+                  n_workers=1):
     """
     Compute geometric objects used later: local gauges, Levi-Civita connections
     gradient kernels, scalar and connection laplacians.
@@ -56,7 +57,7 @@ def preprocessing(data,
     #gauges
     n_nb = int(data.degree*frac_geodesic_nb)
     try:
-        gauges, Sigma, R = g.compute_tangent_bundle(data, n_geodesic_nb=n_nb)
+        gauges, Sigma, R = g.compute_tangent_bundle(data, n_geodesic_nb=n_nb, n_workers=n_workers)
     except:
         local_gauge = False
         gauges = torch.eye(dim_emb).repeat(n,1,1) 

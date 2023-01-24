@@ -32,7 +32,8 @@ def construct_dataset(pos,
                       k=10, 
                       stop_crit=0.0, 
                       number_of_resamples=1,
-                      vector=True):
+                      vector=True,
+                      n_workers=1):
     """Construct PyG dataset from node positions and features"""
                 
     pos = [torch.tensor(p).float() for p in to_list(pos)]
@@ -82,7 +83,7 @@ def construct_dataset(pos,
     split = RandomNodeSplit(split='train_rest', num_val=0.1, num_test=0.1)
     split(batch)
     
-    batch = preprocessing.preprocessing(batch, vector)
+    batch = preprocessing.preprocessing(batch, vector, n_workers=n_workers)
     
     return batch
 
