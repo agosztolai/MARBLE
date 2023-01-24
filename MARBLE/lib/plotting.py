@@ -222,6 +222,8 @@ def embedding(data,
         
     ax.set_axis_off()
     
+    plt.colorbar(cbar)
+    
     return ax
 
 
