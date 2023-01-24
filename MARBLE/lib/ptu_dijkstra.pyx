@@ -393,8 +393,8 @@ cdef _parallel_transport_dijkstra(
                     for k in range(0, d):
                         temp = 0
                         for l in range(0, d):
-                            temp += U[k, l] * VT[l, q]
-                            # temp += VT[l, k] * U[q, l]
+                            # temp += U[k, l] * VT[l, q]
+                            temp += VT[l, k] * U[q, l]
                         R[i,j,k,q] = temp
 
             # Standard Dijkstra: process neighbors of j
