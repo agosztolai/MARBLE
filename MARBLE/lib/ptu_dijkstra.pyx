@@ -389,13 +389,14 @@ cdef _parallel_transport_dijkstra(
                                 temp += jTangent[p, k] * U[k, l] * VT[l, q]
                         iTangent[j, p, q] = temp
                       
-                for q in range(d):
-                    for k in range(0, d):
-                        temp = 0
-                        for l in range(0, d):
-                            # temp += U[k, l] * VT[l, q]
-                            temp += VT[l, k] * U[q, l]
-                        R[i,j,k,q] = temp
+                if j in csr_indices[csr_indptr[i]:csr_indptr[i+1]]:
+                    for q in range(d):
+                        for k in range(0, d):
+                            temp = 0
+                            for l in range(0, d):
+                                # temp += U[k, l] * VT[l, q]
+                                temp += VT[l, k] * U[q, l]
+                            R[i,j,k,q] = temp
 
             # Standard Dijkstra: process neighbors of j
             for k in range(csr_indptr[j], csr_indptr[j + 1]):
