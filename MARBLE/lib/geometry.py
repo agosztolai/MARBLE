@@ -487,7 +487,7 @@ def compute_connection_laplacian(data, R, normalization='rw'):
 
 def compute_tangent_bundle(data,
                            n_geodesic_nb=10,
-                           processes=1, 
+                           n_workers=1, 
                            return_predecessors=True):
     """
     Orthonormal gauges for the tangent space at each node, and connection 
@@ -528,7 +528,7 @@ def compute_tangent_bundle(data,
     out = utils.parallel_proc(_compute_tangent_bundle, 
                               range(n), 
                               inputs,
-                              processes=processes,
+                              processes=n_workers,
                               desc="Computing tangent bundle...")
         
     gauges, Sigma, R = zip(*out)

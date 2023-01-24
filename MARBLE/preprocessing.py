@@ -9,7 +9,8 @@ def preprocessing(data,
                   frac_geodesic_nb=2.0, 
                   var_explained=0.9,
                   diffusion_method=None, 
-                  vector=True):
+                  vector=True,
+                  n_workers=1):
     """
     Compute geometric objects used later: local gauges, Levi-Civita connections
     gradient kernels, scalar and connection laplacians.
