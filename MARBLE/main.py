@@ -91,7 +91,7 @@ class net(nn.Module):
             adjs = utils.to_list(adjs) * self.par['order']
             
             #load to gpu if possible
-            model, data.x, data.L, data.Lc, data.kernels, adjs = \
+            model, data.x, data.L, data.Lc, data.kernels, data.gauges, adjs = \
                 utils.move_to_gpu(self, data, adjs)
             
             emb = self.forward(data, torch.arange(len(data.x)), adjs)
@@ -135,7 +135,7 @@ class net(nn.Module):
         print('\n---- Training network ...')
         
         #load to gpu if possible
-        self, data.x, data.L, data.Lc, data.kernels = utils.move_to_gpu(self, data)
+        self, data.x, data.L, data.Lc, data.kernels, data.gauges = utils.move_to_gpu(self, data)
         
         #initialise logger and optimiser
         writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))

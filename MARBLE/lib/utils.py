@@ -195,12 +195,13 @@ def move_to_gpu(model, data, adjs=None):
     L = data.L.to(device) if hasattr(data, 'L') else None
     Lc = data.Lc.to(device) if hasattr(data, 'Lc') else None
     kernels = [K.to(device) for K in data.kernels]
+    gauges = data.gauges.to(device)
             
     if adjs is None:
-        return model, x, L, Lc, kernels
+        return model, x, L, Lc, kernels, gauges
     else:
         adjs = [adj.to(device) for adj in adjs]
-        return model, x, L, Lc, kernels, adjs
+        return model, x, L, Lc, kernels, gauges, adjs
 
 
 # =============================================================================
