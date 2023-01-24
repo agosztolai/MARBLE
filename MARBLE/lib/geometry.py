@@ -458,7 +458,7 @@ def compute_connection_laplacian(data, R, normalization='rw'):
     L = compute_laplacian(data, normalization=None).to_sparse()
     
     #rearrange into block form (kron(L, ones(d,d)))
-    edge_index = utils.expand_edge_index(L.indices(), d)
+    edge_index = utils.expand_edge_index(L.indices(), dim=d)
     L = torch.sparse_coo_tensor(edge_index, L.values().repeat_interleave(d*d))
         
     #unnormalised connection laplacian 
@@ -533,8 +533,7 @@ def compute_tangent_bundle(data,
         
     gauges, Sigma, R = zip(*out)
     R = [R_.swapaxes(1,2).reshape(R_.shape[0]*R_.shape[-1],R_.shape[0]*R_.shape[-1]) for R_ in R]
-    gauges, Sigma, R = np.vstack(gauges), np.vstack(Sigma), torch.stack(R, axis=0)
-    R = torch.block_diag(*R)
+    gauges, Sigma, R = np.vstack(gauges), np.vstack(Sigma), torch.block_diag(*R)
     
     return utils.np2torch(gauges), utils.np2torch(Sigma), R.to_sparse()
 
@@ -576,7 +575,7 @@ def _compute_tangent_bundle(inputs, i):
 #                               desc="Computing connections...")
         
 #     for l, (i,j) in enumerate(edge_index.T):
-#         R[i,j,...] = _R[l]
+#         R[i,j,...] = _R[l].T
         
 #     R = utils.np2torch(R)
 #     R = R.swapaxes(1,2).reshape(n*d,n*d)

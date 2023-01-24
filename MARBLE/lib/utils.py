@@ -222,10 +222,10 @@ def to_SparseTensor(edge_index, size=None, value=None):
     adj : adjacency matrix in SparseTensor format
 
     """    
-    if value is not None:
-        value = value[edge_index[0], edge_index[1]]
+    if value is None:
+        value = torch.ones(edge_index.shape[1])
     if size is None:
-        size = (edge_index.max()+1, edge_index.max()+1)
+        size = (int(edge_index.max())+1, int(edge_index.max())+1)
         
     adj = SparseTensor(row=edge_index[0], 
                        col=edge_index[1], 
@@ -291,7 +291,7 @@ def expand_index(ind, dim):
     return ind
 
 
-def expand_edge_index(edge_index, dim):
+def expand_edge_index(edge_index, dim=1):
     """When using rotations, we replace nodes by vector spaces so
        need to expand adjacency matrix from nxn -> n*dimxn*dim matrices"""
        
@@ -308,7 +308,7 @@ def tile_tensor(tensor, dim):
     computing a sparse version of torch.kron(K, torch.ones((dim,dim)))"""
     
     edge_index = tensor.indices()
-    edge_index = expand_edge_index(edge_index, dim)
+    edge_index = expand_edge_index(edge_index, dim=dim)
     return torch.sparse_coo_tensor(edge_index, 
                                    tensor.values().repeat_interleave(dim*dim)) 
 

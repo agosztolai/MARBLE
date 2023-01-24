@@ -91,12 +91,11 @@ class AnisoConv(MessagePassing):
         
         self.vec_norm = vec_norm
         
-    def forward(self, x, edge_index, size, kernels):  
+    def forward(self, x, edge_index, kernels):  
         out = []
         for K in utils.to_list(kernels):
-            K = K.to_dense()
-            #transpose to change from source to target
-            K = utils.to_SparseTensor(edge_index, size, value=K.t())
+            K = utils.to_SparseTensor(K.indices(), value=K.values()).t()
+            K = K[torch.arange(edge_index[0].max()+1), torch.arange(edge_index[1].max()+1)]
             out.append(self.propagate(K.t(), x=x))
             
         #[[dx1/du, dx2/du], [dx1/dv, dx2/dv]] -> [dx1/du, dx1/dv, dx2/du, dx2/dv]

@@ -48,7 +48,7 @@ def main():
     plotting.fields(data, titles=titles, col=2, width=3, scale=10, view=[70,20])
     # plt.savefig('../results/fields.svg')
     plotting.embedding(data, data.y.numpy(),titles=titles)
-    plt.savefig('../results/embedding.svg')
+    # plt.savefig('../results/embedding.svg')
     plotting.histograms(data, titles=titles)
     # plt.savefig('../results/histogram.svg')
     plotting.neighbourhoods(data)

@@ -52,7 +52,7 @@ class net(nn.Module):
         x = geometry.map_to_local_gauges(x[n_id], data.gauges[n_id])   
         
         #restrict to current batch
-        if len(data.kernels[0]) == n*d:
+        if data.kernels[0].size(0) == n*d:
             n_id = utils.expand_index(n_id, d)
         else:
             d=1
@@ -65,7 +65,7 @@ class net(nn.Module):
         out = [x]
         for i, (edge_index, _, size) in enumerate(adjs):
             edge_index = utils.expand_edge_index(edge_index, d)
-            x = self.grad[i](x, edge_index, (size[0]*d, size[1]*d), kernels)
+            x = self.grad[i](x, edge_index, kernels)
             out.append(x)
             
         out = [o[:size[1]] for o in out] #take target nodes
@@ -85,7 +85,9 @@ class net(nn.Module):
         """Forward pass @ evaluation (no minibatches)"""            
         with torch.no_grad():
             size = (data.x.shape[0], data.x.shape[0])
-            adjs = utils.EdgeIndex(data.edge_index, None, size)
+            adjs = utils.EdgeIndex(data.edge_index, 
+                                   torch.arange(data.edge_index.shape[1]), 
+                                   size)
             adjs = utils.to_list(adjs) * self.par['order']
             
             #load to gpu if possible

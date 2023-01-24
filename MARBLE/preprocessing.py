@@ -82,6 +82,8 @@ def preprocessing(data,
             Lc = g.compute_connection_laplacian(data, R)
             kernels = [utils.tile_tensor(K, dim_emb) for K in kernels]
             kernels = [K*R for K in kernels]
+            # kernels = [utils.to_SparseTensor(K.indices(), value=K.values()) 
+            #            for K in kernels]
         else:
             R, Lc = None, None
             print('\nEmbedding dimension = manifold dimension, so manifold computations are disabled!')
