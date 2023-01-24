@@ -32,6 +32,7 @@ def construct_dataset(pos,
                       k=10, 
                       stop_crit=0.0, 
                       number_of_resamples=1,
+                      n_workers=1,
                       vector=True):
     """Construct PyG dataset from node positions and features"""
                 
@@ -82,7 +83,7 @@ def construct_dataset(pos,
     split = RandomNodeSplit(split='train_rest', num_val=0.1, num_test=0.1)
     split(batch)
     
-    batch = preprocessing.preprocessing(batch, vector=vector)
+    batch = preprocessing.preprocessing(batch, vector=vector, n_workers=n_workers)
     
     return batch
 
