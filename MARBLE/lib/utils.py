@@ -82,7 +82,7 @@ def construct_dataset(pos,
     split = RandomNodeSplit(split='train_rest', num_val=0.1, num_test=0.1)
     split(batch)
     
-    batch = preprocessing.preprocessing(batch, vector)
+    batch = preprocessing.preprocessing(batch, vector=vector)
     
     return batch
 

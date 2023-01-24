@@ -33,7 +33,7 @@ def main():
         y[i] = new_endpoint - x[i]
         
     #construct PyG data object
-    data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
+    data = utils.construct_dataset(x, y, graph_type='cknn', k=k, vector=False)
     
     #train model
     model = net(data, **par)
