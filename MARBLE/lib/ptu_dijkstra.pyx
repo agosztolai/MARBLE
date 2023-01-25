@@ -28,8 +28,7 @@ ctypedef np.int32_t ITYPE_t
 def ptu_dijkstra(X,
                  csgraph,
                  d,
-                 K,
-                 return_predecessors=False):
+                 K):
     """
     Parallel Transport Dijkstra algorithm using Fibonacci Heaps
 
@@ -49,23 +48,10 @@ def ptu_dijkstra(X,
         neighbors in ambient D dimensional space. Geodesic neighborhood of
         point x is used to compute local tangent space to the data manifold at
         x.
-    return_predecessors : bool, optional
-        If True, return the size (N, N) predecesor matrix
 
     Returns
     -------
-    dist_matrix : numpy matrix
-        The (N, N) matrix of geodesic distances between points of X, that sample
-        a d-dimensional manifold S. These distances are computed using parallel
-        transport unfolding algorithm.
-    predecessors : numpy matrix
-        Returned only if return_predecessors == True.
-        The (N, N) matrix of predecessors, which can be used to reconstruct
-        the shortest paths.  Row i of the predecessor matrix contains
-        information on the shortest paths from point i: each entry
-        predecessors[i, j] gives the index of the previous node in the
-        path from point i to point j.  If no path exists between point
-        i and j, then predecessors[i, j] = -1
+
 
     Notes
     -----
@@ -108,7 +94,6 @@ def ptu_dijkstra(X,
     predecessors.fill(-1)
     tangents = np.empty((N, D, d), dtype=DTYPE)
     Sigma = np.empty((N, d), dtype=DTYPE)
-    R = np.empty(shape=[N, N, d, d], dtype=DTYPE)
 
 
     # symmetrize the graph
@@ -117,6 +102,10 @@ def ptu_dijkstra(X,
     graph_data = symmetrized_graph.data
     graph_indices = symmetrized_graph.indices
     graph_indptr = symmetrized_graph.indptr
+    
+    e = len(graph_indices)
+    
+    R = np.empty(shape=[e, d, d], dtype=DTYPE)
 
     tangents_status = _geodesic_neigborhood_tangents(
             X,
@@ -141,7 +130,6 @@ def ptu_dijkstra(X,
             graph_data,
             graph_indices,
             graph_indptr,
-            ptu_dists,
             tangents,
             predecessors,
             R,
@@ -149,47 +137,12 @@ def ptu_dijkstra(X,
             D_t,
             d_t
         )
-        if return_predecessors:
-            return ptu_dists, predecessors, tangents, Sigma, R
-        return ptu_dists, None, tangents, Sigma, R
+
+        return tangents, Sigma, R
     else:
         raise RuntimeError(
             'Local tangent space approximation failed'
         )
-
-
-@cython.boundscheck(False)
-cdef _dijkstra_scan_heap(FibonacciHeap *heap,
-                         FibonacciNode *v,
-                         FibonacciNode *nodes,
-                         const double[:] csr_weights,
-                         const int[:] csr_indices,
-                         const int[:] csr_indptr,
-                         int[:, :] pred,
-                         int return_pred,
-                         int i):
-    cdef:
-        unsigned int k, j_source, j_current
-        ITYPE_t j
-        DTYPE_t next_val
-        FibonacciNode *current_node
-
-    for j in range(csr_indptr[v.index], csr_indptr[v.index + 1]):
-        j_current = csr_indices[j]
-        current_node = &nodes[j_current]
-        if current_node.state != SCANNED:
-            next_val = v.val + csr_weights[j]
-            if current_node.state == NOT_IN_HEAP:
-                current_node.state = IN_HEAP
-                current_node.val = next_val
-                insert_node(heap, current_node)
-                if return_pred:
-                    pred[i, j_current] = v.index
-            elif current_node.val > next_val:
-                decrease_val(heap, current_node,
-                             next_val)
-                if return_pred:
-                    pred[i, j_current] = v.index
 
 
 @cython.boundscheck(False)
@@ -201,10 +154,9 @@ cdef _parallel_transport_dijkstra(
             double[:] csr_weights,
             int[:] csr_indices,
             int[:] csr_indptr,
-            double[:, :] ptu_dists,
             double[:, :, :] tangents,
             int[:, :] pred,
-            double[:, :, :, :] R,
+            double[:, :, :] R,
             int N,
             int D,
             int d
@@ -223,13 +175,8 @@ cdef _parallel_transport_dijkstra(
         Indices of sparce csr proximity graph matrix.
     csr_indptr: array (int)
         Index pointers of sparce csr proximity graph matrix.
-    ptu_dists: matrix
-        [Output] Matrix of (N, N) pairwise geodesic distances between points of
-        pointset X (geodesic with repect to manifold S).
     tangents: 3 dimensional tensor
         Collection of N local tangent space bases of size (D, d).
-    pred: matrix
-        [Output] [N, N] Matrix of Dijkstra algorithm predecessors.
     N: int
         Number of points in dataset X.
     D: int
@@ -238,126 +185,25 @@ cdef _parallel_transport_dijkstra(
         Dimension of manifold S that is sampled by X.
     """
     cdef:
-        int i, k, l, p, q, j, pred_j, k_current
+        int i, k, p, q, j, count
         int info, lwork = 6*d
-        double edge_norm, temp, next_val, path_norm, projected_edge_norm
+        double temp
 
-        np.ndarray[DTYPE_t, ndim=3] iTangent = np.empty(shape=[N, D, d], dtype=DTYPE)
-        np.ndarray[DTYPE_t, ndim=2] jTangent = np.empty(shape=[D, d], dtype=DTYPE)
-        np.ndarray[DTYPE_t, ndim=2] iTangentPred = np.empty(shape=[D, d], dtype=DTYPE)
-        np.ndarray[DTYPE_t, ndim=2] graph_dists = np.empty(shape=[N, N], dtype=DTYPE)
-        np.ndarray[DTYPE_t, ndim=2] iUnfolding = np.empty(shape=[N, d], dtype=DTYPE)
-        np.ndarray[DTYPE_t, ndim=1] projected_edge = np.zeros(shape=d, dtype=DTYPE)
         np.ndarray[DTYPE_t, ndim=1] Work = np.empty(shape=[lwork], dtype=DTYPE)
         np.ndarray[DTYPE_t, ndim=2] TtT = np.empty(shape=[d, d], dtype=DTYPE, order='F')
         np.ndarray[DTYPE_t, ndim=2] U = np.empty(shape=[d, d], dtype=DTYPE, order='F')
         np.ndarray[DTYPE_t, ndim=2] VT = np.empty(shape=[d, d], dtype=DTYPE, order='F')
         np.ndarray[DTYPE_t, ndim=1] S = np.empty(shape=d, dtype=DTYPE)
 
-        FibonacciHeap heap
-        FibonacciNode *v
-        FibonacciNode *nodes = <FibonacciNode*> malloc(N * sizeof(FibonacciNode))
-        FibonacciNode *current_node
-
-    if nodes == NULL:
-        raise MemoryError("Failed to allocate memory in _dijkstra_undirected")
-
+    count = 0
     for i in range(N):
-        
-        for j in range(d):
-            for k in range(d):
-                if j==k:
-                    R[i,i,j,k] = 1.0
-
-        # initialize nodes
-        for k in range(N):
-            initialize_node(&nodes[k], k)
-
-        # initialize tangent at i that every other tangent will be aligned to
-        for p in range(0, D):
-            for q in range(0, d):
-                iTangent[i, p, q] = tangents[i, p, q]
-
-        # initialize the matrix of geodesics from i to all other points
-        # unfolded into d-dimensional tangent space centered at i
-        for p in range(0, N):
-            for q in range(0, d):
-                iUnfolding[p, q] = 0
-
-        # initialize parallel transport distances
-        ptu_dists[i, i] = 0
-
-        # initialize Dijkstra graph distances
-        graph_dists[i, i] = 0
-
-        # initialize predecessors
-        pred[i, i] = -1
-
-        # initialize Fibonacci heap
-        heap.min_node = NULL
-        insert_node(&heap, &nodes[i])
-
-        # start Dijkstra algorithm
-        while heap.min_node:
-            v = remove_min(&heap)
-            v.state = SCANNED
-            j = v.index
-            pred_j = pred[i, j]
-            graph_dists[i, j] = v.val
-
-            if pred_j != -1:
-                # jTangent is tangent space to node j unaligned to tangent space
-                # at node i. iTangentPred is tangent space to node preceding j
-                # aligned to tangent space at node i.
-                for p in range(0, D):
-                    for q in range(0, d):
-                        jTangent[p, q] = tangents[j, p, q]
-                        iTangentPred[p, q] = iTangent[pred_j, p, q]
-
+        for j in csr_indices[csr_indptr[i]:csr_indptr[i+1]]:
                 for p in range(d):
-                    projected_edge[p] = 0
-
-                # projected_edge = (X[j] - X[pred_j])^T * iTangentPred
-                # edge_norm = ||X[j] - X[pred_j]||_2
-                edge_norm = 0
-                for p in range(D):
-                    temp = X[j, p] - X[pred_j, p]
-                    edge_norm += temp * temp
                     for q in range(d):
-                        projected_edge[q] += temp * iTangentPred[p, q]
-                edge_norm = sqrt(edge_norm)
-
-                # projected_edge_norm = ||projected_edge||_2
-                projected_edge_norm = 0
-                for q in range(0, d):
-                    projected_edge_norm += projected_edge[q] * projected_edge[q]
-                projected_edge_norm = sqrt(projected_edge_norm)
-
-                # tweak the length of projected edge to eliminate shrinking
-                # and add it to the unwrapped path from i to predecessor of j.
-                path_norm = 0
-                for q in range(0, d):
-                    projected_edge[q] = (
-                        edge_norm / projected_edge_norm * projected_edge[q]
-                    )
-                    projected_edge[q] += iUnfolding[pred_j, q]
-                    iUnfolding[j, q] = projected_edge[q]
-                    path_norm += projected_edge[q] * projected_edge[q]
-                path_norm = sqrt(path_norm)
-
-                # eucledian length of the unfolded path from i to j is the
-                # parallel transport approximation of geodesic distance between
-                # points i and j
-                ptu_dists[i, j] = path_norm
-
-                # TtT = jTangent^T iTangentPred
-                for q in range(0, d):
-                    for k in range(0, d):
                         temp = 0
-                        for p in range(0, D):
-                            # temp += jTangent[p, k] * iTangentPred[p, q]
-                            temp +=  jTangent[k, p] * iTangentPred[q, p]
-                        TtT[k, q] = temp
+                        for k in range(d):
+                            temp += tangents[i, p, k] * tangents[j, q, k]
+                        TtT[p, q] = temp
 
                 # U, S, VT = SVD(TtT)
                 # see LAPACK docs for details
@@ -378,48 +224,13 @@ cdef _parallel_transport_dijkstra(
                     &info
                 )
 
-                # iTangent[j, :, :] = jTangent * U * VT
-                # this is a tangent space at node j that is aligned to tangent
-                # space at node i
-                for p in range(D):
+                for p in range(d):
                     for q in range(d):
                         temp = 0
-                        for k in range(0, d):
-                            for l in range(0, d):
-                                temp += jTangent[p, k] * U[k, l] * VT[l, q]
-                        iTangent[j, p, q] = temp
-                      
-                if j in csr_indices[csr_indptr[i]:csr_indptr[i+1]]:
-                    for q in range(d):
-                        for k in range(0, d):
-                            temp = 0
-                            for l in range(0, d):
-                                # temp += U[k, l] * VT[l, q]
-                                temp += VT[l, k] * U[q, l]
-                            R[i,j,k,q] = temp
-
-            # Standard Dijkstra: process neighbors of j
-            for k in range(csr_indptr[j], csr_indptr[j + 1]):
-                k_current = csr_indices[k]
-                current_node = &nodes[k_current]
-                if current_node.state != SCANNED:
-                    next_val = v.val + csr_weights[k]
-                    if current_node.state == NOT_IN_HEAP:
-                        current_node.state = IN_HEAP
-                        current_node.val = next_val
-                        insert_node(&heap, current_node)
-                        pred[i, k_current] = v.index
-                    elif current_node.val > next_val:
-                        decrease_val(&heap, current_node,
-                                     next_val)
-                        pred[i, k_current] = v.index
-
-            # this function can be used instead, but it has slighly worse timing
-            # _dijkstra_scan_heap(&heap, v, nodes,
-            #                     csr_weights, csr_indices, csr_indptr,
-            #                     pred, return_pred, i)
-
-    free(nodes)
+                        for k in range(d):
+                             temp += U[p, k] * VT[k, q]
+                        R[count,p,q] = temp
+                count += 1
 
 
 @cython.boundscheck(False)

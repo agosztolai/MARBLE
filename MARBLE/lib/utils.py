@@ -294,6 +294,20 @@ def expand_index(ind, dim):
     return ind
 
 
+def to_block_diag(sp_tensors):
+    
+    ind = [t.indices() for t in sp_tensors]
+    val = [t.values() for t in sp_tensors]
+
+    for i in range(1,len(sp_tensors)):
+        ind[i] += ind[i-1][:,[-1]]+1
+        
+    ind = torch.hstack(ind)
+    val = torch.hstack(val)
+
+    return torch.sparse_coo_tensor(ind, val)
+    
+        
 def expand_edge_index(edge_index, dim=1):
     """When using rotations, we replace nodes by vector spaces so
        need to expand adjacency matrix from nxn -> n*dimxn*dim matrices"""

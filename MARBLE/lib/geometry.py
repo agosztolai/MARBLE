@@ -487,8 +487,8 @@ def compute_connection_laplacian(data, R, normalization='rw'):
 
 def compute_tangent_bundle(data,
                            n_geodesic_nb=10,
-                           n_workers=1, 
-                           return_predecessors=True):
+                           n_workers=1
+                           ):
     """
     Orthonormal gauges for the tangent space at each node, and connection 
     matrices between each pair of adjacent nodes.
@@ -505,7 +505,6 @@ def compute_tangent_bundle(data,
     ----------
     data : Pytorch geometric data object.
     n_geodesic_nb : number of geodesic neighbours. The default is 10.
-    return_predecessors : bool. The default is True.
 
     Returns
     -------
@@ -524,7 +523,7 @@ def compute_tangent_bundle(data,
     X = [X[sl[i]:sl[i+1]] for i in range(n)]
     A = [A[sl[i]:sl[i+1],:][:,sl[i]:sl[i+1]] for i in range(n)]
         
-    inputs = [X, A, n_geodesic_nb, return_predecessors]
+    inputs = [X, A, n_geodesic_nb]
     out = utils.parallel_proc(_compute_tangent_bundle, 
                               range(n), 
                               inputs,
@@ -532,19 +531,21 @@ def compute_tangent_bundle(data,
                               desc="Computing tangent bundle...")
         
     gauges, Sigma, R = zip(*out)
-    R = [R_.swapaxes(1,2).reshape(R_.shape[0]*R_.shape[-1],R_.shape[0]*R_.shape[-1]) for R_ in R]
-    gauges, Sigma, R = np.vstack(gauges), np.vstack(Sigma), torch.block_diag(*R)
+    gauges, Sigma, R = np.vstack(gauges), np.vstack(Sigma), utils.to_block_diag(R)
     
-    return utils.np2torch(gauges), utils.np2torch(Sigma), R.to_sparse()
+    return utils.np2torch(gauges), utils.np2torch(Sigma), R
 
 
 def _compute_tangent_bundle(inputs, i):
-    X_chunks, A_chunks, n_geodesic_nb, return_predecessors = inputs
+    X_chunks, A_chunks, n_geodesic_nb = inputs
     
-    _, _, gauges, Sigma, R = ptu_dijkstra(X_chunks[i], A_chunks[i], X_chunks[i].shape[1], n_geodesic_nb, return_predecessors)
+    gauges, Sigma, R = ptu_dijkstra(X_chunks[i], A_chunks[i], X_chunks[i].shape[1], n_geodesic_nb)
     
-    R = utils.np2torch(R)
-    
+    edge_index = np.vstack([A_chunks[i].tocoo().row, A_chunks[i].tocoo().col])
+    edge_index = torch.tensor(edge_index)
+    edge_index = utils.expand_edge_index(edge_index, dim=R.shape[-1])
+    R = torch.sparse_coo_tensor(edge_index, R.flatten(), dtype=torch.float32).coalesce()
+        
     return gauges, Sigma, R
 
     
