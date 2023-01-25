@@ -32,6 +32,7 @@ def construct_dataset(pos,
                       stop_crit=0.0, 
                       number_of_resamples=1,
                       dim_man=None,
+                      n_nodes=None,
                       n_workers=1,
                       vector=True):
     """Construct PyG dataset from node positions and features"""
@@ -53,7 +54,8 @@ def construct_dataset(pos,
             #even sampling of points
             start_idx = torch.randint(low=0, high=len(p), size=(1,))
             sample_ind, _ = geometry.furthest_point_sampling(p, 
-                                                             stop_crit=stop_crit, 
+                                                             stop_crit=stop_crit,
+                                                             N=n_nodes,
                                                              start_idx=start_idx)
             p, f = p[sample_ind], f[sample_ind]
             
