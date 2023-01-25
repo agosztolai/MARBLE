@@ -31,7 +31,7 @@ def construct_dataset(pos,
                       k=10, 
                       stop_crit=0.0, 
                       number_of_resamples=1,
-                      dim_man=None,
+                      proj_man=None,
                       n_nodes=None,
                       n_workers=1,
                       vector=True):
@@ -87,7 +87,7 @@ def construct_dataset(pos,
     
     batch = preprocessing.preprocessing(batch, 
                                         vector=vector, 
-                                        dim_man=dim_man, 
+                                        proj_man=proj_man, 
                                         n_workers=n_workers)
     
     return batch
