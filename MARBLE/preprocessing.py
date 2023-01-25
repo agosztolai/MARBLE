@@ -8,7 +8,8 @@ from .lib import utils
 def preprocessing(data, 
                   frac_geodesic_nb=2.0, 
                   var_explained=0.9,
-                  diffusion_method=None, 
+                  diffusion_method=None,
+                  dim_man=False,
                   vector=True,
                   n_workers=1):
     """
@@ -73,19 +74,19 @@ def preprocessing(data,
     
     #connections
     if local_gauge:
-        dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
+        m = g.manifold_dimension(Sigma, frac_explained=var_explained)
         
         print('\n---- Manifold dimension: {}'.format(dim_man))
         print('\nManifold dimension can decrease with more data. Try smaller values of stop_crit\
                  before settling on a value\n')
         
-        if dim_man<dim_emb:
-            # R = g.compute_connections(gauges, data.edge_index)
+        if m<dim_emb:
             Lc = g.compute_connection_laplacian(data, R)
             kernels = [utils.tile_tensor(K, dim_emb) for K in kernels]
             kernels = [K*R for K in kernels]
-            # kernels = [utils.to_SparseTensor(K.indices(), value=K.values()) 
-            #            for K in kernels]
+            if dim_man:
+                kernels = [utils.restrict_dimension(kernels[i], dim_emb, m) for i in range(m)]
+                data.dim_man = dim_man
         else:
             R, Lc = None, None
             print('\nEmbedding dimension = manifold dimension, so manifold computations are disabled!')

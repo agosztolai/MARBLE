@@ -13,7 +13,6 @@ from pathlib import Path
 
 from torch_geometric.transforms import RandomNodeSplit
 from torch_geometric.data import Data, Batch
-import torch_geometric.utils as tgu
 from torch_sparse import SparseTensor
 
 import multiprocessing
@@ -32,6 +31,7 @@ def construct_dataset(pos,
                       k=10, 
                       stop_crit=0.0, 
                       number_of_resamples=1,
+                      dim_man=None,
                       n_workers=1,
                       vector=True):
     """Construct PyG dataset from node positions and features"""
@@ -83,7 +83,10 @@ def construct_dataset(pos,
     split = RandomNodeSplit(split='train_rest', num_val=0.1, num_test=0.1)
     split(batch)
     
-    batch = preprocessing.preprocessing(batch, vector=vector, n_workers=n_workers)
+    batch = preprocessing.preprocessing(batch, 
+                                        vector=vector, 
+                                        dim_man=dim_man, 
+                                        n_workers=n_workers)
     
     return batch
 
@@ -99,6 +102,9 @@ def parse_parameters(data, kwargs):
     
     par['dim_signal'] = data.x.shape[1]
     par['dim_emb'] = data.pos.shape[1]
+    
+    if hasattr(data, 'dim_man'):
+        par['dim_man'] = data.dim_man
     
     #merge dictionaries without duplications
     for key in par.keys():
@@ -137,7 +143,7 @@ def check_parameters(par, data):
         assert hasattr(data, 'L'), 'No Laplacian found. Compute it in preprocessing()!'
         
     pars = ['batch_size', 'epochs', 'lr', 'momentum', 'autoencoder', 'order', \
-            'inner_product_features', 'dim_signal', 'dim_emb', \
+            'inner_product_features', 'dim_signal', 'dim_emb', 'dim_man',\
             'frac_sampled_nb', 'dropout', 'n_lin_layers', 'diffusion', \
             'hidden_channels', 'out_channels', 'bias', 'batch_norm', 'vec_norm', \
             'seed', 'n_sampled_nb', 'processes']
@@ -337,16 +343,27 @@ def tile_tensor(tensor, dim):
                                    tensor.values().repeat_interleave(dim*dim)) 
 
 
-def restrict_to_batch(tensor, idx):
+def restrict_dimension(sp_tensor, d, m):
+    """Limit the dimension of the tensor"""
+    n = sp_tensor.size(0)
+    idx = torch.ones(n)
+    for i in range(m,d):
+        idx[m::d] = 0      
+    idx = torch.where(idx)[0]
+    sp_tensor = torch.index_select(sp_tensor, 0, idx).coalesce()
+    return torch.index_select(sp_tensor, 1, idx).coalesce()
+    
+
+def restrict_to_batch(sp_tensor, idx):
     """Restrict tensor to current batch"""
     
-    idx = [i.to(tensor.device) for i in idx]
+    idx = [i.to(sp_tensor.device) for i in idx]
     
     if len(idx)==1:
-        return torch.index_select(tensor, 0, idx[0]).coalesce()
+        return torch.index_select(sp_tensor, 0, idx[0]).coalesce()
     elif len(idx)==2:
-        tensor = torch.index_select(tensor, 0, idx[0])
-        return torch.index_select(tensor, 1, idx[1]).coalesce()
+        sp_tensor = torch.index_select(sp_tensor, 0, idx[0])
+        return torch.index_select(sp_tensor, 1, idx[1]).coalesce()
 
 # =============================================================================
 # Statistics

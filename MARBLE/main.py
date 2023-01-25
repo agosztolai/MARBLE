@@ -42,6 +42,8 @@ class net(nn.Module):
         
         x = data.x
         n, d = data.x.shape
+        if hasattr(data, 'dim_man'):
+            d = data.dim_man
 
         #diffusion
         if self.par['diffusion']:
@@ -49,7 +51,7 @@ class net(nn.Module):
             x = self.diffusion(x, data.L, Lc=Lc, method='spectral')
             
         #local gauges
-        x = geometry.map_to_local_gauges(x[n_id], data.gauges[n_id])   
+        x = geometry.map_to_local_gauges(x[n_id], data.gauges[n_id], d)   
         
         #restrict to current batch
         if data.kernels[0].size(0) == n*d:

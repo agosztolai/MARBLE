@@ -16,7 +16,9 @@ def setup_layers(model):
     
     par = model.par
     
-    s, e, o = par['dim_signal'], par['dim_emb'], par['order']
+    s, d, o = par['dim_signal'], par['dim_emb'], par['order']
+    if 'dim_man' in par.keys():
+        s = d = par['dim_man']
     
     #diffusion
     diffusion = Diffusion()
@@ -25,7 +27,7 @@ def setup_layers(model):
     grad = nn.ModuleList(AnisoConv(par['vec_norm']) for i in range(o))
         
     #cumulated number of channels after gradient features
-    cum_channels = s*(1-e**(o+1))//(1-e)
+    cum_channels = s*(1-d**(o+1))//(1-d)
     if par['inner_product_features']:
         cum_channels //= s
         if s==1:
