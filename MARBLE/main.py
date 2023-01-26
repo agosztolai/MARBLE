@@ -58,7 +58,11 @@ class net(nn.Module):
             n_id = utils.expand_index(n_id, d)
         else:
             d=1
-        kernels = [utils.restrict_to_batch(K, [n_id,n_id]) for K in data.kernels]
+        #kernels = [utils.restrict_to_batch(K, [n_id,n_id]) for K in data.kernels]
+        kernels = [K[n_id,n_id] for K in data.kernels]
+
+        #if not self.par['kernels_to_gpu']:
+           # kernels = [K.to(x.device) for K in kernels]
     
         if self.par['vec_norm']:
             x = F.normalize(x, dim=-1, p=2)
@@ -92,10 +96,13 @@ class net(nn.Module):
                                    size)
             adjs = utils.to_list(adjs) * self.par['order']
             
+            #data.kernels = [K for K in utils.to_list(data.kernels)]
+
             #load to gpu if possible
             model, data.x, data.L, data.Lc, data.kernels, data.gauges, adjs = \
                 utils.move_to_gpu(self, data, adjs)
-            
+                
+               
             emb = self.forward(data, torch.arange(len(data.x)), adjs)
             data.emb = emb.detach().cpu()
             data.x = data.x.detach().cpu()
@@ -136,9 +143,14 @@ class net(nn.Module):
         
         print('\n---- Training network ...')
         
+        data.kernels = [utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()).t() for K in utils.to_list(data.kernels)]
+        
         #load to gpu if possible
         self, data.x, data.L, data.Lc, data.kernels, data.gauges = utils.move_to_gpu(self, data)
         
+        # load kernels to gpu as sparse tensors
+        # data.kernels = [utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()).t().to(data.x.device) for K in utils.to_list(data.kernels)]
+            
         #initialise logger and optimiser
         writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
         train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
