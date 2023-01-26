@@ -11,6 +11,7 @@ def preprocessing(data,
                   diffusion_method=None,
                   proj_man=False,
                   vector=True,
+                  compute_cl=False,
                   n_workers=1):
     """
     Compute geometric objects used later: local gauges, Levi-Civita connections
@@ -81,12 +82,17 @@ def preprocessing(data,
                  before settling on a value\n')
         
         if dim_man<dim_emb:
-            Lc = g.compute_connection_laplacian(data, R)
             kernels = [utils.tile_tensor(K, dim_emb) for K in kernels]
             kernels = [K*R for K in kernels]
             if proj_man:
                 kernels = [utils.restrict_dimension(kernels[i], dim_emb, dim_man) for i in range(dim_man)]
                 data.dim_man = dim_man
+                
+            if compute_cl:
+                Lc = g.compute_connection_laplacian(data, R)
+            else:
+                Lc = None
+                
         else:
             R, Lc = None, None
             print('\nEmbedding dimension = manifold dimension, so manifold computations are disabled!')

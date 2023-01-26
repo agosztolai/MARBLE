@@ -58,11 +58,7 @@ class net(nn.Module):
             n_id = utils.expand_index(n_id, d)
         else:
             d=1
-        #kernels = [utils.restrict_to_batch(K, [n_id,n_id]) for K in data.kernels]
         kernels = [K[n_id,n_id] for K in data.kernels]
-
-        #if not self.par['kernels_to_gpu']:
-           # kernels = [K.to(x.device) for K in kernels]
     
         if self.par['vec_norm']:
             x = F.normalize(x, dim=-1, p=2)

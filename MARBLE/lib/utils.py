@@ -33,6 +33,7 @@ def construct_dataset(pos,
                       number_of_resamples=1,
                       proj_man=None,
                       n_nodes=None,
+                      compute_cl=False,
                       n_workers=1,
                       vector=True):
     """Construct PyG dataset from node positions and features"""
@@ -88,6 +89,7 @@ def construct_dataset(pos,
     batch = preprocessing.preprocessing(batch, 
                                         vector=vector, 
                                         proj_man=proj_man, 
+                                        compute_cl=compute_cl,
                                         n_workers=n_workers)
     
     return batch
