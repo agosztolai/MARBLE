@@ -85,7 +85,7 @@ def preprocessing(data,
             kernels = [utils.tile_tensor(K, dim_emb) for K in kernels]
             kernels = [K*R for K in kernels]
             if proj_man:
-                kernels = [utils.restrict_dimension(kernels[i], dim_emb, dim_man) for i in range(m)]
+                kernels = [utils.restrict_dimension(kernels[i], dim_emb, dim_man) for i in range(dim_man)]
                 data.dim_man = dim_man
         else:
             R, Lc = None, None
