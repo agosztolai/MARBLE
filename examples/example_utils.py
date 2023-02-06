@@ -163,18 +163,10 @@ def spiking_data(file = '../data/conditions_spiking_data.mat'):
     pickle.dump(rates, open('../data/rate_data.pkl','wb'))
     
     
-def generate_trajectories(net, n_conds, n_traj):
-    stim1_begin, stim1_end, stim2_begin, stim2_end, decision = 25, 50, 200, 225, 275
-    epochs = [0, stim1_begin, stim1_end, stim2_begin, stim2_end, decision]
-    gain = np.logspace(1,0,n_conds)
-    
-    input = torch.zeros(n_conds, decision, 2)
-    for i, g in enumerate(gain):
-        input[i, stim1_begin:stim1_end, 0] = g
-        input[i, stim2_begin:stim2_end, 0] = g
+def generate_trajectories(net, input, epochs, n_traj):
     
     traj = []
-    for i in range(n_conds):
+    for i in range(len(input)):
         conds = []
         for k in range(n_traj):
             #net.h0.data = torch.rand(size=net.h0.data.shape) #random ic
@@ -185,4 +177,4 @@ def generate_trajectories(net, n_conds, n_traj):
             
         traj.append(conds)
         
-    return traj
+    return traj, input
