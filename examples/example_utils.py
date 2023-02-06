@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 from sklearn.neighbors import KDTree
 from scipy.spatial.transform import Rotation as R
 
@@ -160,3 +161,28 @@ def spiking_data(file = '../data/conditions_spiking_data.mat'):
         rates[cond] = np.stack(rates_trial, axis=0)
         
     pickle.dump(rates, open('../data/rate_data.pkl','wb'))
+    
+    
+def generate_trajectories(net, n_conds, n_traj):
+    stim1_begin, stim1_end, stim2_begin, stim2_end, decision = 25, 50, 200, 225, 275
+    epochs = [0, stim1_begin, stim1_end, stim2_begin, stim2_end, decision]
+    gain = np.logspace(1,0,n_conds)
+    
+    input = torch.zeros(n_conds, decision, 2)
+    for i, g in enumerate(gain):
+        input[i, stim1_begin:stim1_end, 0] = g
+        input[i, stim2_begin:stim2_end, 0] = g
+    
+    traj = []
+    for i in range(n_conds):
+        conds = []
+        for k in range(n_traj):
+            #net.h0.data = torch.rand(size=net.h0.data.shape) #random ic
+            _, traj_ = net(input[i].unsqueeze(0))
+            traj_ = traj_.squeeze().detach().numpy()
+            traj_epoch = [traj_[e:epochs[j+1]] for j, e in enumerate(epochs[:-1])]
+            conds.append(traj_epoch)
+            
+        traj.append(conds)
+        
+    return traj
