@@ -2,9 +2,10 @@ import numpy as np
 import torch
 from sklearn.neighbors import KDTree
 from scipy.spatial.transform import Rotation as R
+import matplotlib.pyplot as plt
 
 from MARBLE import utils, geometry, plotting
-
+from RNN_scripts import dms
 
 """Some functions that are used for the exampels"""
 
@@ -178,3 +179,29 @@ def generate_trajectories(net, input, epochs, n_traj):
         traj.append(conds)
         
     return traj, input
+
+
+def plot_experiment(net, input, traj, epochs, traj_to_show=1):
+    fig, ax = plt.subplots(4, 5, figsize=(25, 20))
+    idx = np.floor(np.linspace(0, len(input)-1, 4))
+    for i in range(4):
+        for j, e in enumerate(epochs[:-1]):
+            dms.plot_field(net, input[int(idx[i]), e], ax[i][j], sizes=1.3)
+            epoch = [c[j] for c in traj[i]]
+            dms.plot_trajectories(net, epoch, ax[i][j], c='#C30021', n_traj=traj_to_show)
+            if j>0:
+                epoch = [c[j-1] for c in traj[i]]
+                dms.plot_trajectories(net, epoch, ax[i][j], c='#C30021', style='--', n_traj=traj_to_show)
+    
+    ax[0][0].set_title('Fix')
+    ax[0][1].set_title('Stim 1')
+    ax[0][2].set_title('Delay')
+    ax[0][3].set_title('Stim 2')
+    ax[0][4].set_title('Decision')
+    
+    for i in range(4):
+        ax[i][0].set_ylabel('$\kappa_2$')
+    for i in range(5):
+        ax[3][i].set_xlabel('$\kappa_1$')
+        
+    fig.subplots_adjust(hspace=.1, wspace=.1)
