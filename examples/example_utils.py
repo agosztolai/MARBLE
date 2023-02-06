@@ -178,7 +178,7 @@ def generate_trajectories(net, input, epochs, n_traj):
             
         traj.append(conds)
         
-    return traj, input
+    return traj
 
 
 def plot_experiment(net, input, traj, epochs, traj_to_show=1):
