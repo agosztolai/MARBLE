@@ -130,6 +130,9 @@ def plot_phase_portrait(pos, vel, ax=None, node_feature=None, style='>', lw=2, s
     return ax
 
 
+# =============================================================================
+# For spiking data example
+# =============================================================================
 def spiking_data(file = '../data/conditions_spiking_data.mat'):
     
     #data is a matrix with shape (trials, conditions)
@@ -164,6 +167,9 @@ def spiking_data(file = '../data/conditions_spiking_data.mat'):
     pickle.dump(rates, open('../data/rate_data.pkl','wb'))
     
     
+# =============================================================================
+# For the RNN example    
+# =============================================================================
 def generate_trajectories(net, input, epochs, n_traj):
     
     traj = []
