@@ -205,3 +205,50 @@ def plot_experiment(net, input, traj, epochs, traj_to_show=1):
         ax[3][i].set_xlabel('$\kappa_1$')
         
     fig.subplots_adjust(hspace=.1, wspace=.1)
+    
+    
+def aggregate_data(net, traj, epochs, transient=10, pca_dim=3):
+    from sklearn.decomposition import PCA
+
+    n_conds = len(traj)
+    n_epochs = len(epochs)-1
+    n_traj = len(traj[0])
+    
+    #fit PCA to all data
+    pos, vel = [], []
+    for i in range(n_conds): #conditions
+        for k in range(n_epochs): 
+            for j in range(n_traj): #trajectories
+                pos.append(traj[i][j][k][:transient])
+                
+    manifold = PCA(n_components=pca_dim).fit(np.vstack(pos))
+    
+    m1 = net.m[:,0].detach().numpy()
+    m2 = net.m[:,1].detach().numpy()
+        
+    #aggregate data under baseline condition (no input)
+    pos, vel = [], []
+    for i in range(n_conds): #conditions  
+        pos_, vel_ = [], []
+        for k in [0, 2, 4]:
+            for j in range(n_traj): #trajectories
+                pos_proj = manifold.transform(traj[i][j][k][:transient])
+                pos_.append(pos_proj[:-1]) #stack trajectories
+                vel_.append(np.diff(pos_proj, axis=0)) #compute differences
+                           
+        pos_, vel_ = np.vstack(pos_), np.vstack(vel_) #stack trajectories
+        pos.append(pos_)
+        vel.append(vel_)
+            
+    #aggregate data under stimulated condition
+    for i in range(n_conds): #conditions 
+        pos_, vel_ = [], []
+        for k in [1, 3]:        
+            for j in range(n_traj): #trajectories
+                pos_proj = manifold.transform(traj[i][j][k][:transient])
+                pos_.append(pos_proj[:-1])
+                vel_.append(np.diff(pos_proj, axis=0))
+                    
+        pos_, vel_ = np.vstack(pos_), np.vstack(vel_) #stack trajectories
+        pos.append(pos_)
+        vel.append(vel_)
