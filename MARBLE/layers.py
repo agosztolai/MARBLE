@@ -11,6 +11,8 @@ from torch_geometric.nn import MLP
 from .lib import geometry as g
 from .lib import utils
 
+from torch_sparse import SparseTensor
+
 
 def setup_layers(model):
     
@@ -96,7 +98,11 @@ class AnisoConv(MessagePassing):
     def forward(self, x, edge_index, kernels):  
         out = []
         for K in utils.to_list(kernels):
-            K = K[torch.arange(edge_index[0].max()+1), torch.arange(edge_index[1].max()+1)]            
+            K = K.t() #transpose because edge_index is from target to source
+            if isinstance(K, SparseTensor):
+                K = K[torch.arange(edge_index[0].max()+1),:][:,torch.arange(edge_index[1].max()+1)]
+            else:
+                K = utils.to_SparseTensor(edge_index, value=K)
             out.append(self.propagate(K.t(), x=x))
             
         #[[dx1/du, dx2/du], [dx1/dv, dx2/dv]] -> [dx1/du, dx1/dv, dx2/du, dx2/dv]

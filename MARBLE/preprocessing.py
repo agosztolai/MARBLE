@@ -12,7 +12,8 @@ def preprocessing(data,
                   proj_man=False,
                   vector=True,
                   compute_cl=False,
-                  n_workers=1):
+                  n_workers=1,
+                  sparse_kernel=True):
     """
     Compute geometric objects used later: local gauges, Levi-Civita connections
     gradient kernels, scalar and connection laplacians.
@@ -105,6 +106,11 @@ def preprocessing(data,
     else:
         L, Lc = None, None
     
+    if sparse_kernel:
+        kernels = [utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels]
+    else: 
+        kernels = [K.to_dense() for K in kernels]
+
     data.kernels, data.L, data.Lc, data.gauges = kernels, L, Lc, gauges
         
     return data

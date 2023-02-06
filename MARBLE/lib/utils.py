@@ -238,7 +238,7 @@ def to_SparseTensor(edge_index, size=None, value=None):
     if value is None:
         value = torch.ones(edge_index.shape[1])
     if size is None:
-        size = (int(edge_index.max())+1, int(edge_index.max())+1)
+        size = (int(edge_index[0].max())+1, int(edge_index[1].max())+1)
         
     adj = SparseTensor(row=edge_index[0], 
                        col=edge_index[1], 

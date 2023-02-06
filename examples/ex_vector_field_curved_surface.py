@@ -41,7 +41,7 @@ def main():
     
     #evaluate model on data
     data = model.evaluate(data)
-    data = postprocessing(data, n_clusters=n_clusters, cluster_typ='kmeans')
+    data = postprocessing(data, n_clusters=n_clusters, cluster_typ='kmeans', sparse_kernel=False)
     
     #plot
     titles=['Linear left','Linear right','Vortex right','Vortex left']
