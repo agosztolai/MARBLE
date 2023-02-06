@@ -258,3 +258,5 @@ def aggregate_data(net, traj, epochs, transient=10, pca_dim=3):
         pos_, vel_ = np.vstack(pos_), np.vstack(vel_) #stack trajectories
         pos.append(pos_)
         vel.append(vel_)
+        
+    return pos, vel
