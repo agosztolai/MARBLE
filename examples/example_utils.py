@@ -213,8 +213,7 @@ def plot_experiment(net, input, traj, epochs, traj_to_show=1):
     fig.subplots_adjust(hspace=.1, wspace=.1)
     
     
-def aggregate_data(net, traj, epochs, transient=10, pca_dim=3):
-    from sklearn.decomposition import PCA
+def aggregate_data(net, traj, epochs, transient=10):
 
     n_conds = len(traj)
     n_epochs = len(epochs)-1
@@ -226,9 +225,7 @@ def aggregate_data(net, traj, epochs, transient=10, pca_dim=3):
         for k in range(n_epochs): 
             for j in range(n_traj): #trajectories
                 pos.append(traj[i][j][k][:transient])
-                
-    manifold = PCA(n_components=pca_dim).fit(np.vstack(pos))
-    
+                    
     m1 = net.m[:,0].detach().numpy()
     m2 = net.m[:,1].detach().numpy()
         
@@ -238,7 +235,8 @@ def aggregate_data(net, traj, epochs, transient=10, pca_dim=3):
         pos_, vel_ = [], []
         for k in [0, 2, 4]:
             for j in range(n_traj): #trajectories
-                pos_proj = manifold.transform(traj[i][j][k][:transient])
+                pos_proj = traj[i][j][k][:transient]
+                pos_proj = np.vstack([pos_proj@m1, pos_proj@m2]).T
                 pos_.append(pos_proj[:-1]) #stack trajectories
                 vel_.append(np.diff(pos_proj, axis=0)) #compute differences
                            
@@ -251,7 +249,8 @@ def aggregate_data(net, traj, epochs, transient=10, pca_dim=3):
         pos_, vel_ = [], []
         for k in [1, 3]:        
             for j in range(n_traj): #trajectories
-                pos_proj = manifold.transform(traj[i][j][k][:transient])
+                pos_proj = traj[i][j][k][:transient]
+                pos_proj = np.vstack([pos_proj@m1, pos_proj@m2]).T
                 pos_.append(pos_proj[:-1])
                 vel_.append(np.diff(pos_proj, axis=0))
                     
