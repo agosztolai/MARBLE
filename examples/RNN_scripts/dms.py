@@ -1,10 +1,10 @@
 from math import floor, sqrt
 import numpy as np
 import torch
-from modules import loss_mse
-import ranktwo as ranktwo
+from .modules import loss_mse
+from .ranktwo import plot_field, plot_field_noscalings
 import matplotlib.pyplot as plt
-from helpers import map_device, remove_axes
+from .helpers import map_device, remove_axes
 
 # task constants
 deltaT = 20.
@@ -177,9 +177,9 @@ def plot_field(net, input, ax, sizes=1., rect=(-5, 5, -4, 4), scalings=False):
     xmin, xmax, ymin, ymax = rect
 
     if scalings:
-        ranktwo.plot_field(net, m1, m2, xmin, xmax, ymin, ymax, input=input, ax=ax, sizes=sizes)
+        plot_field(net, m1, m2, xmin, xmax, ymin, ymax, input=input, ax=ax, sizes=sizes)
     else:
-        ranktwo.plot_field_noscalings(net, m1, m2, xmin, xmax, ymin, ymax, input=input, ax=ax, sizes=sizes)
+        plot_field_noscalings(net, m1, m2, xmin, xmax, ymin, ymax, input=input, ax=ax, sizes=sizes)
             
     remove_axes(ax)
 

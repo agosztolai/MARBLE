@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
+from mayavi.mlab import quiver3d
 
 import seaborn as sns
 
@@ -222,7 +223,8 @@ def embedding(data,
         
     ax.set_axis_off()
     
-    plt.colorbar(cbar)
+    if cbar is not None:
+        plt.colorbar(cbar)
     
     return ax
 
@@ -543,9 +545,9 @@ def trajectories(X,
         if '-' in style:
             if isinstance(c, (list, tuple)):
                 for i in range(len(X)-2):
-                    ax.plot(X[i:i+2,0], X[i:i+2,1], X[i:i+2,2], c=c[i], linewidth=lw, markersize=ms, alpha=alpha)
+                    ax.plot(X[i:i+2,0], X[i:i+2,1], X[i:i+2,2], c=c[i], linewidth=lw, markersize=ms, alpha=alpha, zorder=3)
             else:
-                ax.plot(X[:,0], X[:,1], X[:,2], c=c, linewidth=lw, markersize=ms, alpha=alpha)
+                ax.plot(X[:,0], X[:,1], X[:,2], c=c, linewidth=lw, markersize=ms, alpha=alpha, zorder=3)
         if '>' in style:
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
