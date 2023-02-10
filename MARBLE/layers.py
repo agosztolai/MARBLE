@@ -11,8 +11,6 @@ from torch_geometric.nn import MLP
 from .lib import geometry as g
 from .lib import utils
 
-from torch_sparse import SparseTensor
-
 
 def setup_layers(model):
     
