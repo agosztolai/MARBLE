@@ -1,8 +1,11 @@
 import numpy as np
 import torch
+import pickle
+import os
 from sklearn.neighbors import KDTree
 from scipy.spatial.transform import Rotation as R
 import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
 
 from MARBLE import utils, geometry, plotting
 from RNN_scripts import dms
@@ -170,8 +173,12 @@ def spiking_data(file = '../data/conditions_spiking_data.mat'):
 # =============================================================================
 # For the RNN example    
 # =============================================================================
-def generate_trajectories(net, input, epochs, n_traj):
+def generate_trajectories(net, input, epochs, n_traj, fname='./outputs/RNN_trajectories.pkl'):
     
+    if fname is not None:
+        if os.path.exists(fname):
+            return pickle.load(open(fname,'rb'))
+        
     traj = []
     for i in range(len(input)):
         conds = []
@@ -183,6 +190,8 @@ def generate_trajectories(net, input, epochs, n_traj):
             conds.append(traj_epoch)
             
         traj.append(conds)
+        
+    pickle.dump(traj,open(fname,'wb'))
         
     return traj
 
@@ -220,14 +229,16 @@ def aggregate_data(net, traj, epochs, transient=10):
     n_traj = len(traj[0])
     
     #fit PCA to all data
-    pos, vel = [], []
+    pos = []
     for i in range(n_conds): #conditions
         for k in range(n_epochs): 
             for j in range(n_traj): #trajectories
                 pos.append(traj[i][j][k][:transient])
                     
-    m1 = net.m[:,0].detach().numpy()
-    m2 = net.m[:,1].detach().numpy()
+    # m1 = net.m[:,0].detach().numpy()
+    # m2 = net.m[:,1].detach().numpy()
+    pca = PCA(n_components=3)
+    pca.fit(np.vstack(pos))
         
     #aggregate data under baseline condition (no input)
     pos, vel = [], []
@@ -236,7 +247,8 @@ def aggregate_data(net, traj, epochs, transient=10):
         for k in [0, 2, 4]:
             for j in range(n_traj): #trajectories
                 pos_proj = traj[i][j][k][:transient]
-                pos_proj = np.vstack([pos_proj@m1, pos_proj@m2]).T
+                pos_proj = pca.transform(pos_proj)
+                # pos_proj = np.vstack([pos_proj@m1, pos_proj@m2]).T
                 pos_.append(pos_proj[:-1]) #stack trajectories
                 vel_.append(np.diff(pos_proj, axis=0)) #compute differences
                            
@@ -245,17 +257,18 @@ def aggregate_data(net, traj, epochs, transient=10):
         vel.append(vel_)
             
     #aggregate data under stimulated condition
-    for i in range(n_conds): #conditions 
-        pos_, vel_ = [], []
-        for k in [1, 3]:        
-            for j in range(n_traj): #trajectories
-                pos_proj = traj[i][j][k][:transient]
-                pos_proj = np.vstack([pos_proj@m1, pos_proj@m2]).T
-                pos_.append(pos_proj[:-1])
-                vel_.append(np.diff(pos_proj, axis=0))
+    # for i in range(n_conds): #conditions 
+    #     pos_, vel_ = [], []
+    #     for k in [1, 3]:        
+    #         for j in range(n_traj): #trajectories
+    #             pos_proj = traj[i][j][k][:transient]
+    #             pos_proj = pca.transform(pos_proj)
+    #             # pos_proj = np.vstack([pos_proj@m1, pos_proj@m2]).T
+    #             pos_.append(pos_proj[:-1])
+    #             vel_.append(np.diff(pos_proj, axis=0))
                     
-        pos_, vel_ = np.vstack(pos_), np.vstack(vel_) #stack trajectories
-        pos.append(pos_)
-        vel.append(vel_)
+    #     pos_, vel_ = np.vstack(pos_), np.vstack(vel_) #stack trajectories
+    #     pos.append(pos_)
+    #     vel.append(vel_)
         
     return pos, vel

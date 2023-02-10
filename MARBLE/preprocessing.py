@@ -6,7 +6,7 @@ from .lib import geometry as g
 from .lib import utils
 
 def preprocessing(data, 
-                  frac_geodesic_nb=2.0, 
+                  n_geodesic_nb=2.0, 
                   var_explained=0.9,
                   diffusion_method=None,
                   proj_man=False,
@@ -21,7 +21,7 @@ def preprocessing(data,
     Parameters
     ----------
     data : pytorch geometric data object
-    frac_geodesic_nb: fraction of geodesic neighbours (relative to node degree) 
+    n_geodesic_nb: number of geodesic neighbours to fit the gauges to
     to map to tangent space
     var_explained: fraction of variance explained by the local gauges
     diffusion: 'spectral' or 'matrix_exp'
@@ -59,9 +59,8 @@ def preprocessing(data,
         
     #gauges
     if local_gauge:
-        n_nb = int(data.degree*frac_geodesic_nb)
         try:
-            gauges, Sigma, R = g.compute_tangent_bundle(data, n_geodesic_nb=n_nb)
+            gauges, Sigma, R = g.compute_tangent_bundle(data, n_geodesic_nb=n_geodesic_nb)
         except:
             raise Exception('\nCould not compute gauges (possibly data is too sparse or the \
                   number of neighbours is too small)')
@@ -103,14 +102,9 @@ def preprocessing(data,
     if diffusion_method == 'spectral':
         L = g.compute_eigendecomposition(L)
         Lc = g.compute_eigendecomposition(Lc)
-    else:
-        L, Lc = None, None
+        
+    kernels = [utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels]
     
-    if sparse_kernel:
-        kernels = [utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels]
-    else: 
-        kernels = [K.to_dense() for K in kernels]
-
     data.kernels, data.L, data.Lc, data.gauges = kernels, L, Lc, gauges
         
     return data

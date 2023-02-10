@@ -28,8 +28,9 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 def construct_dataset(pos, 
                       features, 
                       graph_type='cknn', 
-                      k=10, 
-                      stop_crit=0.0, 
+                      k=10,
+                      n_geodesic_nb=10,
+                      stop_crit=0.0,
                       number_of_resamples=1,
                       proj_man=None,
                       n_nodes=None,
@@ -90,7 +91,8 @@ def construct_dataset(pos,
                                         vector=vector, 
                                         proj_man=proj_man, 
                                         compute_cl=compute_cl,
-                                        n_workers=n_workers)
+                                        n_workers=n_workers,
+                                        n_geodesic_nb=n_geodesic_nb)
     
     return batch
 

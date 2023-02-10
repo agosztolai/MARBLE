@@ -18,22 +18,20 @@ def main():
     y = f(x) #evaluated functions
     
     #construct PyG data object
-    data = utils.construct_dataset(x, y, graph_type='radius', k=k)
+    data = utils.construct_dataset(x, y, graph_type='radius', k=k, n_geodesic_nb=10, proj_man=True, compute_cl=True)
     
-    gauges, _ = geometry.compute_gauges(data, n_nb=20, processes=1)
+    #test the connection computation
+    data.x = geometry.map_to_local_gauges(data.x, data.gauges, 3) 
+    gauges, Sigma, R = geometry.compute_tangent_bundle(data, n_geodesic_nb=10)
     
-    data.x = geometry.project_to_gauges(data.x, gauges)
+    gauges, L, Lc = data.gauges, data.L, data.Lc
+    
     data.x = data.x/2
     
-    R = geometry.compute_connections(gauges, data.edge_index, dim_man=2)
-    L = geometry.compute_laplacian(data)
-    Lc = geometry.compute_connection_laplacian(data, R)
+    # diffusion = Diffusion(tau0=tau0)
+    # data.x = diffusion(data.x, L, Lc=Lc, method='matrix_exp', normalise=True)
     
     ind = np.arange(220).reshape(20,11)[:,5]
-    g = gauges[...,2][ind]
-    
-    diffusion = Diffusion(tau0=tau0)
-    data.x = diffusion(data.x, L, Lc=Lc, method='matrix_exp', normalise=True)
  
     #plot
     ax = plotting.fields(data, alpha=1)
@@ -48,7 +46,6 @@ def main():
     data.x = gauges[...,1]/2
     plotting.fields(data, color='k')
     # plt.savefig('gauge2.svg')
-    
     
     data.x = gauges[...,2]/2
     plotting.fields(data, color='k')
