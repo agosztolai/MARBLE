@@ -202,7 +202,8 @@ cdef _parallel_transport_dijkstra(
                     for q in range(d):
                         temp = 0
                         for k in range(d):
-                            temp += tangents[i, p, k] * tangents[j, q, k]
+                            # temp += tangents[i, p, k] * tangents[j, q, k]
+                            temp += tangents[i, k, p] * tangents[j, k, q]
                         TtT[p, q] = temp
 
                 # U, S, VT = SVD(TtT)
@@ -228,8 +229,8 @@ cdef _parallel_transport_dijkstra(
                     for q in range(d):
                         temp = 0
                         for k in range(d):
-                            temp += VT[k, p] * U[q, k]
-                            # temp += U[p, k] * VT[k, q]
+                            # temp += VT[k, p] * U[q, k]
+                            temp += U[p, k] * VT[k, q]
                         R[count,p,q] = temp
                 count += 1
 

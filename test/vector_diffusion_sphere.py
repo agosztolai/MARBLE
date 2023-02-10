@@ -18,14 +18,18 @@ def main():
     y = f(x) #evaluated functions
     
     #construct PyG data object
-    data = utils.construct_dataset(x, y, graph_type='radius', k=k, n_geodesic_nb=10, compute_cl=True)
+    data = utils.construct_dataset(x, y, graph_type='radius', k=k, n_geodesic_nb=10, proj_man=True, compute_cl=True)
+    
+    #test the connection computation
+    data.x = geometry.map_to_local_gauges(data.x, data.gauges, 3) 
+    gauges, Sigma, R = geometry.compute_tangent_bundle(data, n_geodesic_nb=10)
     
     gauges, L, Lc = data.gauges, data.L, data.Lc
     
     data.x = data.x/2
     
-    diffusion = Diffusion(tau0=tau0)
-    data.x = diffusion(data.x, L, Lc=Lc, method='matrix_exp', normalise=True)
+    # diffusion = Diffusion(tau0=tau0)
+    # data.x = diffusion(data.x, L, Lc=Lc, method='matrix_exp', normalise=True)
     
     ind = np.arange(220).reshape(20,11)[:,5]
  

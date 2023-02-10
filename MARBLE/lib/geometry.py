@@ -319,7 +319,7 @@ def neighbour_vectors(pos, edge_index, normalise=False):
     return nvec
 
 
-def map_to_local_gauges(x, gauges, d):
+def map_to_local_gauges(x, gauges, d=None):
     """Transform signal into local coordinates"""
     
     gauges = gauges[:,:,:d]

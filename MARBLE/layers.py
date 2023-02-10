@@ -99,10 +99,7 @@ class AnisoConv(MessagePassing):
         out = []
         for K in utils.to_list(kernels):
             K = K.t() #transpose because edge_index is from target to source
-            if isinstance(K, SparseTensor):
-                K = K[torch.arange(edge_index[0].max()+1),:][:,torch.arange(edge_index[1].max()+1)]
-            else:
-                K = utils.to_SparseTensor(edge_index, value=K)
+            K = K[torch.arange(edge_index[0].max()+1),:][:,torch.arange(edge_index[1].max()+1)]
             out.append(self.propagate(K.t(), x=x))
             
         #[[dx1/du, dx2/du], [dx1/dv, dx2/dv]] -> [dx1/du, dx1/dv, dx2/du, dx2/dv]

@@ -103,11 +103,8 @@ def preprocessing(data,
         L = g.compute_eigendecomposition(L)
         Lc = g.compute_eigendecomposition(Lc)
         
-    if sparse_kernel:
-        kernels = [utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels]
-    else: 
-        kernels = [K.to_dense() for K in kernels]
-
+    kernels = [utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels]
+    
     data.kernels, data.L, data.Lc, data.gauges = kernels, L, Lc, gauges
         
     return data
