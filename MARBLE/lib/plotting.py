@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
-from mayavi.mlab import quiver3d
 
 import seaborn as sns
 
