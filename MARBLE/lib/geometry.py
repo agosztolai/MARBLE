@@ -620,7 +620,9 @@ def scalar_diffusion(x, t, method='matrix_exp', par=None):
         x = x.unsqueeze(1)
     
     if method == 'matrix_exp':
-        return torch.matrix_exp(-t*par).mm(x)
+        if par.is_sparse:
+            par = par.to_dense()
+        return torch.matrix_exp(-t*par.to_dense()).mm(x)
     
     if method == 'spectral':
         assert isinstance(par, (list, tuple)) and len(par)==2, 'For spectral method, par must be a tuple of \

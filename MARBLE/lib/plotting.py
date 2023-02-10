@@ -97,9 +97,9 @@ def fields(data,
             ax = plot_arrows(pos, signal, ax, c, scale=scale, width=width)
                 
         if plot_gauges and (gauges is not None):
-            ax = plot_arrows(pos, gauges[...,0]/5, ax, 'k')
-            ax = plot_arrows(pos, gauges[...,1]/5, ax, 'k')
-            ax = plot_arrows(pos, gauges[...,2]/5, ax, 'k')
+            ax = plot_arrows(pos, gauges[...,0], ax, 'k', scale=scale)
+            ax = plot_arrows(pos, gauges[...,1], ax, 'k', scale=scale)
+            ax = plot_arrows(pos, gauges[...,2], ax, 'k', scale=scale)
 
         if titles is not None:
             ax.set_title(titles[i])
