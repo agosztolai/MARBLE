@@ -9,11 +9,9 @@ def preprocessing(data,
                   n_geodesic_nb=2.0, 
                   var_explained=0.9,
                   diffusion_method=None,
-                  proj_man=False,
                   vector=True,
                   compute_cl=False,
-                  n_workers=1,
-                  sparse_kernel=True):
+                  n_workers=1):
     """
     Compute geometric objects used later: local gauges, Levi-Civita connections
     gradient kernels, scalar and connection laplacians.
@@ -60,7 +58,7 @@ def preprocessing(data,
     #gauges
     if local_gauge:
         try:
-            gauges, Sigma, R = g.compute_tangent_bundle(data, n_geodesic_nb=n_geodesic_nb)
+            gauges, Sigma = g.compute_gauges(data, n_geodesic_nb=n_geodesic_nb)
         except:
             raise Exception('\nCould not compute gauges (possibly data is too sparse or the \
                   number of neighbours is too small)')
@@ -70,41 +68,33 @@ def preprocessing(data,
     #Laplacian
     L = g.compute_laplacian(data)
     
-    #kernels 
-    kernels = g.gradient_op(data.pos, data.edge_index, gauges)
-    
-    #connections
     if local_gauge:
         dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
         
-        print('\n---- Manifold dimension: {}'.format(dim_man))
-        print('\nManifold dimension can decrease with more data. Try smaller values of stop_crit\
-                 before settling on a value\n')
+        print('\n---- Manifold dimension: {}\n'.format(dim_man))
         
-        if dim_man<dim_emb:
-            kernels = [utils.tile_tensor(K, dim_emb) for K in kernels]
-            kernels = [K*R for K in kernels]
-            if proj_man:
-                kernels = [utils.restrict_dimension(kernels[i], dim_emb, dim_man) for i in range(dim_man)]
-                data.dim_man = dim_man
+        gauges = gauges[:,:,:dim_man]
+        R = g.compute_connections(data, gauges)
+        
+        kernels = g.gradient_op(data.pos, data.edge_index, gauges)
+        kernels = [utils.tile_tensor(K, dim_man) for K in kernels]
+        kernels = [K*R for K in kernels]
+        data.dim_man = dim_man
                 
-            if compute_cl:
-                Lc = g.compute_connection_laplacian(data, R)
-            else:
-                Lc = None
-                
+        if compute_cl:
+            Lc = g.compute_connection_laplacian(data, R)
         else:
-            R, Lc = None, None
-            print('\nEmbedding dimension = manifold dimension, so manifold computations are disabled!')
+            Lc = None
+                
     else:
-        R, Lc = None, None
+        kernels = g.gradient_op(data.pos, data.edge_index, gauges)
+        Lc = None
         
     if diffusion_method == 'spectral':
         L = g.compute_eigendecomposition(L)
         Lc = g.compute_eigendecomposition(Lc)
         
-    kernels = [utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels]
-    
-    data.kernels, data.L, data.Lc, data.gauges = kernels, L, Lc, gauges
+    data.kernels = [utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels]
+    data.L, data.Lc, data.gauges = L, Lc, gauges
         
     return data

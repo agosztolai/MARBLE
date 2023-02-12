@@ -3,7 +3,6 @@
 
 import torch
 import numpy as np
-import scipy
 import scipy.sparse as sp
 
 import torch_geometric.utils as PyGu
@@ -20,7 +19,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 import umap
 
-from ptu_dijkstra import ptu_dijkstra
+from ptu_dijkstra import tangent_frames, connections
 import ot
 
 from . import utils
@@ -319,11 +318,9 @@ def neighbour_vectors(pos, edge_index, normalise=False):
     return nvec
 
 
-def map_to_local_gauges(x, gauges, d=None):
+def map_to_local_gauges(x, gauges):
     """Transform signal into local coordinates"""
-    
-    gauges = gauges[:,:,:d]
-    
+        
     return torch.einsum('aij,ai->aj', gauges, x)
 
 
@@ -362,6 +359,9 @@ def project_to_gauges(x, gauges, dim=2):
     
 def manifold_dimension(Sigma, frac_explained=0.9):
     """Estimate manifold dimension based on singular vectors"""
+    
+    if frac_explained==1.0:
+        return Sigma.shape[1]
     
     Sigma **= 2
     Sigma /= Sigma.sum(1, keepdim=True)
@@ -487,7 +487,8 @@ def compute_connection_laplacian(data, R, normalization='rw'):
     return Lc
 
 
-def compute_tangent_bundle(data,
+def compute_gauges(data,
+                           dim_man=None,
                            n_geodesic_nb=10,
                            n_workers=1
                            ):
@@ -524,91 +525,80 @@ def compute_tangent_bundle(data,
     n = len(sl)-1
     X = [X[sl[i]:sl[i+1]] for i in range(n)]
     A = [A[sl[i]:sl[i+1],:][:,sl[i]:sl[i+1]] for i in range(n)]
+    
+    if dim_man is None:
+        dim_man = X[0].shape[1]
         
-    inputs = [X, A, n_geodesic_nb]
-    out = utils.parallel_proc(_compute_tangent_bundle, 
+    inputs = [X, A, dim_man, n_geodesic_nb]
+    out = utils.parallel_proc(_compute_gauges, 
                               range(n), 
                               inputs,
                               processes=n_workers,
-                              desc="Computing tangent bundle...")
+                              desc="Computing tangent spaces...")
         
-    gauges, Sigma, R = zip(*out)
-    gauges, Sigma, R = np.vstack(gauges), np.vstack(Sigma), utils.to_block_diag(R)
+    gauges, Sigma = zip(*out)
+    gauges, Sigma = np.vstack(gauges), np.vstack(Sigma)
     
-    return utils.np2torch(gauges), utils.np2torch(Sigma), R
+    return utils.np2torch(gauges), utils.np2torch(Sigma)
 
 
-def _compute_tangent_bundle(inputs, i):
-    X_chunks, A_chunks, n_geodesic_nb = inputs
+def _compute_gauges(inputs, i):
+    X_chunks, A_chunks, dim_man, n_geodesic_nb = inputs
     
-    gauges, Sigma, R = ptu_dijkstra(X_chunks[i], A_chunks[i], X_chunks[i].shape[1], n_geodesic_nb)
+    gauges, Sigma = tangent_frames(X_chunks[i], A_chunks[i], dim_man, n_geodesic_nb)
+            
+    return gauges, Sigma
+
+    
+def compute_connections(data, gauges, n_workers=1):
+    """
+    Find smallest rotations R between gauges pairs. It is assumed that the first 
+    row of edge_index is what we want to align to, i.e., 
+    gauges(i) = gauges(j)@R[i,j].T
+
+    Parameters
+    ----------
+    data : Pytorch geometric data object.
+    gauges : (n,d,d) matrix of orthogonal unit vectors for each node
+
+    Returns
+    -------
+    R : (n*dim,n*dim) matrix of rotation matrices
+
+    """
+    
+    gauges = np.array(gauges, dtype=np.float64)
+    A = PyGu.to_scipy_sparse_matrix(data.edge_index).tocsr()
+    
+    #make chunks for data processing
+    sl = data._slice_dict['x']
+    dim_man = gauges.shape[-1]
+        
+    n = len(sl)-1
+    gauges = [gauges[sl[i]:sl[i+1]] for i in range(n)]
+    A = [A[sl[i]:sl[i+1],:][:,sl[i]:sl[i+1]] for i in range(n)]
+        
+    inputs = [gauges, A, dim_man]
+    out = utils.parallel_proc(_compute_connections, 
+                              range(n), 
+                              inputs,
+                              processes=n_workers,
+                              desc="Computing connections...")
+    
+    return utils.to_block_diag(out)
+
+
+def _compute_connections(inputs, i):
+    gauges_chunks, A_chunks, dim_man = inputs
+    
+    R = connections(gauges_chunks[i], A_chunks[i], dim_man)
     
     edge_index = np.vstack([A_chunks[i].tocoo().row, A_chunks[i].tocoo().col])
     edge_index = torch.tensor(edge_index)
     edge_index = utils.expand_edge_index(edge_index, dim=R.shape[-1])
     R = torch.sparse_coo_tensor(edge_index, R.flatten(), dtype=torch.float32).coalesce()
         
-    return gauges, Sigma, R
-
-    
-# def compute_connections(gauges, edge_index, processes=-1):
-#     """
-#     Find smallest rotations R between gauges pairs. It is assumed that the first 
-#     row of edge_index is what we want to align to, i.e., 
-#     gauges(edge_index[0]) = R[edge_index[0],edge_index[1],...]@gauges(edge_index[1]).
-
-#     Parameters
-#     ----------
-#     gauges : (n,d,d) matrix of orthogonal unit vectors for each node
-#     edge_index : (2x|E|) Matrix of edge indices
-#     processes : number of processors to use (-1 -> all)
-
-#     Returns
-#     -------
-#     R : (n,n,dim,dim) matrix of rotation matrices
-
-#     """
-#     n, d, k = gauges.shape
-#     R = np.zeros([n,n,d,d])
-            
-#     _R = utils.parallel_proc(_procrustes, 
-#                               edge_index.T, 
-#                               gauges,
-#                               processes=processes,
-#                               desc="Computing connections...")
-        
-#     for l, (i,j) in enumerate(edge_index.T):
-#         R[i,j,...] = _R[l].T
-        
-#     R = utils.np2torch(R)
-#     R = R.swapaxes(1,2).reshape(n*d,n*d)
-      
-#     return R.to_sparse()
-
-
-# def _procrustes(gauges, edge_index):
-#     """Solve for optimal rotation that minimises ||X - RY||_F """
-    
-#     i, j = edge_index
-#     X, Y = gauges[i].T, gauges[j].T
-
-#     U, _, Vt = scipy.linalg.svd(X.T@Y)
-    
-#     return U@Vt
-
-
-# def optimal_rotation(X, Y):
-#     """Optimal rotation between orthogonal coordinate frames X and Y"""
-    
-#     XtY = X.T@Y
-#     n = XtY[0].shape[0]
-#     U, _, Vt = np.linalg.svd(XtY)
-#     UVt = U @ Vt
-#     if abs(1.0 - np.linalg.det(UVt)) < 1e-10:
-#         return UVt
-#     # UVt is in O(n) but not SO(n), which is easily corrected.
-#     J = np.append(np.ones(n - 1), -1)
-#     return (U * J) @ Vt
+    return R
 
 
 # =============================================================================

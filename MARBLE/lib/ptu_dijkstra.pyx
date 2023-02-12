@@ -1,4 +1,6 @@
 """
+Contains modified scripts from the ptu_dijkstra algorithm.
+
 The Fibbonacci Heap data structure and several components related to Dijkstra's
 standard algorithm were adopted from `scipy.sparse.csgraph._shortest_path.pyx`,
 authored and copywrited by Jake Vanderplas  -- <vanderplas@astro.washington.edu>
@@ -25,12 +27,12 @@ ITYPE = np.int32
 ctypedef np.int32_t ITYPE_t
 
 
-def ptu_dijkstra(X,
+def tangent_frames(X,
                  csgraph,
                  d,
                  K):
     """
-    Parallel Transport Dijkstra algorithm using Fibonacci Heaps
+    Algorithm for tangent frame computation.
 
     Parameters
     ----------
@@ -51,7 +53,6 @@ def ptu_dijkstra(X,
 
     Returns
     -------
-
 
     Notes
     -----
@@ -87,14 +88,11 @@ def ptu_dijkstra(X,
         warnings.warn("Graph has negative weights: \
                       negative distances are not allowed.")
 
-    # initialize ptu distances, predecessors, and tangent spaces
+    # initialize ptu distances, and tangent spaces
     ptu_dists = np.zeros((N, N), dtype=DTYPE)
     ptu_dists.fill(np.inf)
-    predecessors = np.empty((N, N), dtype=ITYPE)
-    predecessors.fill(-1)
     tangents = np.empty((N, D, d), dtype=DTYPE)
     Sigma = np.empty((N, d), dtype=DTYPE)
-
 
     # symmetrize the graph
     csgraphT = csgraph.T.tocsr()
@@ -104,8 +102,6 @@ def ptu_dijkstra(X,
     graph_indptr = symmetrized_graph.indptr
     
     e = len(graph_indices)
-    
-    R = np.empty(shape=[e, d, d], dtype=DTYPE)
 
     tangents_status = _geodesic_neigborhood_tangents(
             X,
@@ -124,25 +120,76 @@ def ptu_dijkstra(X,
             'Local tangent space approximation failed, at least one geodesic '
             'neighborhood does not span d-dimensional space'
         )
-    elif tangents_status == 1:
-        _parallel_transport_dijkstra(
-            X,
-            graph_data,
+
+    return tangents, Sigma
+        
+        
+def connections(tangents,
+                csgraph,
+                d):
+    """
+    Algorithm for tangent frame computation.
+
+    Parameters
+    ----------
+    tangents
+    csgraph : sparse matrix
+        Distance weighted proximity graph of pointset X
+    d : int
+        Dimension of the manifold S
+
+    Returns
+    -------
+    
+
+    Notes
+    -----
+    The input csgraph is symmetrized first.
+    """
+    N = tangents.shape[0]
+    D = tangents.shape[1]
+    cdef ITYPE_t N_t = N
+    cdef ITYPE_t D_t = D
+    cdef ITYPE_t d_t = d
+
+    if D < d:
+        raise ValueError(
+            "Embedding dimension must be less or equal to the ambient "
+            "dimension of input data"
+        )
+
+    csgraph = validate_graph(csgraph, directed=True, dtype=DTYPE,
+                             dense_output=False)
+
+    if np.any(csgraph.data < 0):
+        warnings.warn("Graph has negative weights: \
+                      negative distances are not allowed.")
+
+    # initialize ptu distances, and tangent spaces
+    ptu_dists = np.zeros((N, N), dtype=DTYPE)
+    ptu_dists.fill(np.inf)
+
+    # symmetrize the graph
+    csgraphT = csgraph.T.tocsr()
+    symmetrized_graph = csgraph.maximum(csgraphT)
+    graph_data = symmetrized_graph.data
+    graph_indices = symmetrized_graph.indices
+    graph_indptr = symmetrized_graph.indptr
+    
+    e = len(graph_indices)
+    R = np.empty(shape=[e, d, d], dtype=DTYPE)
+
+    _parallel_transport_dijkstra(
             graph_indices,
             graph_indptr,
             tangents,
-            predecessors,
             R,
             N_t,
             D_t,
             d_t
-        )
+    )
 
-        return tangents, Sigma, R
-    else:
-        raise RuntimeError(
-            'Local tangent space approximation failed'
-        )
+    return R
 
 
 @cython.boundscheck(False)
@@ -150,12 +197,9 @@ def ptu_dijkstra(X,
 @cython.nonecheck(False)
 @cython.cdivision(True)
 cdef _parallel_transport_dijkstra(
-            double[:, :] X,
-            double[:] csr_weights,
             int[:] csr_indices,
             int[:] csr_indptr,
             double[:, :, :] tangents,
-            int[:, :] pred,
             double[:, :, :] R,
             int N,
             int D,
@@ -165,12 +209,6 @@ cdef _parallel_transport_dijkstra(
     Performs parallel transport Dijkstra pairwise distance estimation.
 
     Parameters:
-    X: matrix
-        The (N, D) matrix of N input data points in D dimensional space sampling
-        a lower dimensional manifold S.
-    csr_weights: array
-        Values of sparse csr distance weighted adjacency matrix
-        representing proximity graph of pointset X.
     csr_indices: array (int)
         Indices of sparce csr proximity graph matrix.
     csr_indptr: array (int)
@@ -201,8 +239,7 @@ cdef _parallel_transport_dijkstra(
                 for p in range(d):
                     for q in range(d):
                         temp = 0
-                        for k in range(d):
-                            # temp += tangents[i, p, k] * tangents[j, q, k]
+                        for k in range(D):
                             temp += tangents[i, k, p] * tangents[j, k, q]
                         TtT[p, q] = temp
 
@@ -229,7 +266,6 @@ cdef _parallel_transport_dijkstra(
                     for q in range(d):
                         temp = 0
                         for k in range(d):
-                            # temp += VT[k, p] * U[q, k]
                             temp += U[p, k] * VT[k, q]
                         R[count,p,q] = temp
                 count += 1
