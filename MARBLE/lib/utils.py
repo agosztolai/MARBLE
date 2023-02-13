@@ -35,11 +35,17 @@ def construct_dataset(pos,
                       n_nodes=None,
                       compute_cl=False,
                       n_workers=1,
-                      vector=True):
+                      vector=True,
+                      dim_man=None,
+                      labels=None,):
+    
     """Construct PyG dataset from node positions and features"""
                 
     pos = [torch.tensor(p).float() for p in to_list(pos)]
     
+    if not labels:
+        labels = np.linspace(0,len(pos)-1,len(pos))
+
     if features is not None:
         features = [torch.tensor(x).float() for x in to_list(features)]
         num_node_features = features[0].shape[1]
@@ -72,7 +78,7 @@ def construct_dataset(pos,
                          edge_weight=edge_weight,
                          num_nodes = n,
                          num_node_features = num_node_features,
-                         y = torch.ones(n, dtype=int)*i
+                         y = torch.ones(n, dtype=int)*labels[i]
                          )
         
             data_list.append(data_)
@@ -90,7 +96,8 @@ def construct_dataset(pos,
                                         vector=vector, 
                                         compute_cl=compute_cl,
                                         n_workers=n_workers,
-                                        n_geodesic_nb=n_geodesic_nb)
+                                        n_geodesic_nb=n_geodesic_nb,
+                                        dim_man=dim_man)
     
     return batch
 
@@ -215,6 +222,27 @@ def move_to_gpu(model, data, adjs=None):
         adjs = [adj.to(device) for adj in adjs]
         return model, x, L, Lc, kernels, gauges, adjs
 
+
+def detach_from_gpu(model, data, adjs=None):
+    """detach stuff from gpu"""
+    
+    assert hasattr(data, 'kernels'), \
+        'It seems that data is not preprocessed. Run preprocess(data)!'
+    
+    model = model.to(device)
+    x = data.x.detach().cpu()
+    L = data.L.detach().cpu() if hasattr(data, 'L') else None
+    Lc = data.Lc.detach().cpu() if hasattr(data, 'Lc') else None
+    kernels = [K.detach().cpu() for K in data.kernels]
+    gauges = data.gauges.detach().cpu()
+            
+    if adjs is None:
+        return model, x, L, Lc, kernels, gauges
+    else:
+        for i, adj in enumerate(adjs):
+            adjs[i] = [adj[0].detach().cpu(), adj[1].detach().cpu(), adj[2]]
+        return model, x, L, Lc, kernels, gauges, adjs
+    
 
 # =============================================================================
 # Conversions

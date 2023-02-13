@@ -11,6 +11,7 @@ def preprocessing(data,
                   diffusion_method=None,
                   vector=True,
                   compute_cl=False,
+                  dim_man=None,
                   n_workers=1):
     """
     Compute geometric objects used later: local gauges, Levi-Civita connections
@@ -69,7 +70,9 @@ def preprocessing(data,
     L = g.compute_laplacian(data)
     
     if local_gauge:
-        dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
+        
+        if not dim_man:
+            dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
         
         print('\n---- Manifold dimension: {}\n'.format(dim_man))
         

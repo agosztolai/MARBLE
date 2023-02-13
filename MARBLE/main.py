@@ -90,16 +90,22 @@ class net(nn.Module):
                                    size)
             adjs = utils.to_list(adjs) * self.par['order']
             
-            #data.kernels = [K for K in utils.to_list(data.kernels)]
-
+            try:
+                data.kernels = [utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()).t() for K in utils.to_list(data.kernels)]
+            except:
+                pass
+        
             #load to gpu if possible
             model, data.x, data.L, data.Lc, data.kernels, data.gauges, adjs = \
                 utils.move_to_gpu(self, data, adjs)
                 
                
             emb = self.forward(data, torch.arange(len(data.x)), adjs)
+            
+            model, data.x, data.L, data.Lc, data.kernels, data.gauges, adjs = \
+                utils.detach_from_gpu(self, data, adjs)
+            
             data.emb = emb.detach().cpu()
-            data.x = data.x.detach().cpu()
             
             return data
                 

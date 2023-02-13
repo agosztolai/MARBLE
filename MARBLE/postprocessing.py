@@ -5,6 +5,7 @@ from .lib import plotting
 from .lib import geometry as g
 import numpy as np
 import matplotlib.pyplot as plt
+import torch
 
 def postprocessing(data,
                    cluster_typ='kmeans', 
@@ -23,33 +24,56 @@ def postprocessing(data,
     
     """
 
-    emb = data.emb
+    if type(data) is list:
+        emb = np.vstack([d.emb for d in data])
+    else:
+        emb = data.emb
+        
     
     #k-means cluster
     clusters = g.cluster(emb, cluster_typ, n_clusters, seed)
     clusters = g.relabel_by_proximity(clusters)
-    clusters['slices'] = data._slice_dict['x']
     
-    if data.number_of_resamples>1:
-        clusters['slices'] = clusters['slices'][::data.number_of_resamples]
+    if type(data) is list:
+        slices = [d._slice_dict['x'] for i, d  in enumerate(data)]
+        for i in range(1,len(slices)):
+            slices[i] = slices[i] + slices[i-1][-1]
+        clusters['slices'] = torch.unique(torch.cat(slices))
+    else:
+        clusters['slices'] = data._slice_dict['x']
+        
+        if data.number_of_resamples>1:
+            clusters['slices'] = clusters['slices'][::data.number_of_resamples]      
+    #clusters['slices'] = data._slice_dict['x']
+    
+
+
     
     #compute distances between clusters
     dist, gamma, cdist = g.compute_histogram_distances(clusters)
     
     #embed into 2D via t-SNE for visualisation
-    emb = np.vstack([emb, clusters['centroids']])
-    emb, manifold = g.embed(emb, embed_typ, manifold)  
-    emb, clusters['centroids'] = emb[:-clusters['n_clusters']], emb[-clusters['n_clusters']:]
+    emb_2d = np.vstack([emb, clusters['centroids']])
+    emb_2d, manifold = g.embed(emb_2d, embed_typ, manifold)  
+    emb_2d, clusters['centroids'] = emb_2d[:-clusters['n_clusters']], emb_2d[-clusters['n_clusters']:]
     
-    #store everything in data
-    data.emb_2d = emb
-    data.manifold = manifold
-    data.clusters = clusters
-    data.dist = dist
-    data.gamma = gamma
-    data.cdist = cdist
+
+    #store everything in data    
+    if type(data) is list:
+        data_ = data[0]
+        data_.emb = emb
+        data_.y = torch.cat([d.y for d  in data])
+    else:
+        data_ = data
+        
+    data_.emb_2d = emb_2d
+    data_.manifold = manifold
+    data_.clusters = clusters
+    data_.dist = dist
+    data_.gamma = gamma
+    data_.cdist = cdist
     
-    return data
+    return data_
 
 
 def compare_attractors(data, source_target):
