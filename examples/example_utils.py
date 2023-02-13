@@ -196,12 +196,12 @@ def generate_trajectories(net, input, epochs, n_traj, fname='./outputs/RNN_traje
     return traj
 
 
-def plot_experiment(net, input, traj, epochs, traj_to_show=1):
+def plot_experiment(net, input, traj, epochs, rect=(-8, 8, -6, 6), traj_to_show=1):
     fig, ax = plt.subplots(4, 5, figsize=(25, 20))
     idx = np.floor(np.linspace(0, len(input)-1, 4))
     for i in range(4):
         for j, e in enumerate(epochs[:-1]):
-            dms.plot_field(net, input[int(idx[i]), e], ax[i][j], sizes=1.3)
+            dms.plot_field(net, input[int(idx[i]), e], ax[i][j], rect=rect, sizes=1.3)
             epoch = [c[j] for c in traj[i]]
             dms.plot_trajectories(net, epoch, ax[i][j], c='#C30021', n_traj=traj_to_show)
             if j>0:
