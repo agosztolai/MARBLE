@@ -173,7 +173,7 @@ def spiking_data(file = '../data/conditions_spiking_data.mat'):
 # =============================================================================
 # For the RNN example    
 # =============================================================================
-def generate_trajectories(net, input, epochs, n_traj, fname='./outputs/RNN_trajectories.pkl'):
+def generate_trajectories(net, input=None, epochs=None, n_traj=None, fname='./outputs/RNN_trajectories.pkl'):
     
     if fname is not None:
         if os.path.exists(fname):
