@@ -37,7 +37,7 @@ def construct_dataset(pos,
                       n_workers=1,
                       vector=True,
                       dim_man=None,
-                      labels=None,):
+                      labels=None):
     
     """Construct PyG dataset from node positions and features"""
                 
@@ -334,11 +334,13 @@ def expand_index(ind, dim):
 
 def to_block_diag(sp_tensors):
     
+    sizes = [torch.tensor(t.size()).unsqueeze(1) for t in sp_tensors]
     ind = [t.indices() for t in sp_tensors]
     val = [t.values() for t in sp_tensors]
 
     for i in range(1,len(sp_tensors)):
-        ind[i] += ind[i-1][:,[-1]]+1
+        for j in range(i):
+            ind[i] += sizes[j]
         
     ind = torch.hstack(ind)
     val = torch.hstack(val)

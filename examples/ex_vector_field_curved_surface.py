@@ -10,12 +10,11 @@ def main():
     
     #parameters
     n = 512
-    k = 15
     n_clusters = 20
     
     par = {'epochs': 70, #optimisation epochs
            'order': 1, #order of derivatives
-           'hidden_channels': 16, #number of internal dimensions in MLP
+           'hidden_channels': 32, #number of internal dimensions in MLP
            'out_channels': 3,
            'inner_product_features': True,
            }
@@ -33,25 +32,29 @@ def main():
         y[i] = new_endpoint - x[i]
         
     #construct PyG data object
-    data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
+    data = utils.construct_dataset(x, y, 
+                                   graph_type='cknn', 
+                                   k=15, 
+                                   n_geodesic_nb=30, 
+                                   vector=True)
     
     #train model
-    model = net(data, **par)
-    model.run_training(data)
+    # model = net(data, **par)
+    # model.run_training(data)
     
-    #evaluate model on data
-    data = model.evaluate(data)
-    data = postprocessing(data, n_clusters=n_clusters, cluster_typ='kmeans')
+    # #evaluate model on data
+    # data = model.evaluate(data)
+    # data = postprocessing(data, n_clusters=n_clusters, cluster_typ='kmeans')
     
     #plot
     titles=['Linear left','Linear right','Vortex right','Vortex left']
-    plotting.fields(data, titles=titles, col=2, width=3, scale=10, view=[70,20])
+    plotting.fields(data, titles=titles, col=2, width=3, scale=10, view=[0,40], plot_gauges=True)
     # plt.savefig('../results/fields.svg')
-    plotting.embedding(data, data.y.numpy(),titles=titles)
-    # plt.savefig('../results/embedding.svg')
-    plotting.histograms(data, titles=titles)
-    # plt.savefig('../results/histogram.svg')
-    plotting.neighbourhoods(data)
+    # plotting.embedding(data, data.y.numpy(),titles=titles)
+    # # plt.savefig('../results/embedding.svg')
+    # plotting.histograms(data, titles=titles)
+    # # plt.savefig('../results/histogram.svg')
+    # plotting.neighbourhoods(data)
     # plt.savefig('../results/neighbourhoods.svg')
     
 def f0(x):
