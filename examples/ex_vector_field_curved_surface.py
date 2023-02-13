@@ -34,7 +34,7 @@ def main():
     #construct PyG data object
     data = utils.construct_dataset(x, y,
                                    graph_type='cknn',
-                                   k=15,
+                                   k=10,
                                    n_geodesic_nb=30,
                                    vector=True)
     
