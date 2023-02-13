@@ -29,32 +29,32 @@ def main():
         end_point = p + v
         new_endpoint = parabola(end_point[:,0], end_point[:,1])
         x[i] = parabola(p[:,0], p[:,1])
-        y[i] = new_endpoint - x[i]
+        y[i] = (new_endpoint - x[i])/np.linalg.norm(new_endpoint - x[i])*np.linalg.norm(v)
         
     #construct PyG data object
-    data = utils.construct_dataset(x, y, 
-                                   graph_type='cknn', 
-                                   k=15, 
-                                   n_geodesic_nb=30, 
+    data = utils.construct_dataset(x, y,
+                                   graph_type='cknn',
+                                   k=15,
+                                   n_geodesic_nb=30,
                                    vector=True)
     
     #train model
-    # model = net(data, **par)
-    # model.run_training(data)
+    model = net(data, **par)
+    model.run_training(data)
     
     # #evaluate model on data
-    # data = model.evaluate(data)
-    # data = postprocessing(data, n_clusters=n_clusters, cluster_typ='kmeans')
+    data = model.evaluate(data)
+    data = postprocessing(data, n_clusters=n_clusters, cluster_typ='kmeans')
     
     #plot
     titles=['Linear left','Linear right','Vortex right','Vortex left']
     plotting.fields(data, titles=titles, col=2, width=3, scale=10, view=[0,40], plot_gauges=True)
     # plt.savefig('../results/fields.svg')
-    # plotting.embedding(data, data.y.numpy(),titles=titles)
-    # # plt.savefig('../results/embedding.svg')
-    # plotting.histograms(data, titles=titles)
-    # # plt.savefig('../results/histogram.svg')
-    # plotting.neighbourhoods(data)
+    plotting.embedding(data, data.y.numpy(),titles=titles)
+    # plt.savefig('../results/embedding.svg')
+    plotting.histograms(data, titles=titles)
+    # plt.savefig('../results/histogram.svg')
+    plotting.neighbourhoods(data)
     # plt.savefig('../results/neighbourhoods.svg')
     
 def f0(x):

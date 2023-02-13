@@ -138,7 +138,7 @@ class net(nn.Module):
         return cum_loss/len(loader), optimizer
     
     
-    def run_training(self, data, save=True, loadpath=None):
+    def run_training(self, data, save=True, loadpath=None, use_best=False):
         """Network training"""
         
         print('\n---- Training network ...')
@@ -184,8 +184,9 @@ class net(nn.Module):
                 checkpoint['epoch'] = epoch+epoch0
                 print(' *', end="")
         
-        self.load_state_dict(checkpoint['model_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        if use_best:
+            self.load_state_dict(checkpoint['model_state_dict'])
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         
         test_loss, _ = self.batch_loss(data, test_loader)
         print('\nFinal test loss: {:.4f}'.format(test_loss))
