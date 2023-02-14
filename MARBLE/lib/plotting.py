@@ -170,7 +170,8 @@ def embedding(data,
               titles=None,
               ax=None,
               alpha=0.3,
-              s=5):
+              s=5,
+              axes_visible=False):
     """
     Plot embeddings.
 
@@ -228,7 +229,8 @@ def embedding(data,
     if titles is not None:
         ax.legend(loc='upper right')
         
-    ax.set_axis_off()
+    if not axes_visible:
+        ax.set_axis_off()
     
     if cbar is not None:
         plt.colorbar(cbar)
