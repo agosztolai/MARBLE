@@ -146,14 +146,10 @@ def check_parameters(par, data):
         assert data.x.shape[1] > 1, 'Using vec_norm=True is \
             not permitted for scalar signals'
         
-    if hasattr(data, 'gauges'):
-        assert par['inner_product_features'] == True, 'Local gauges found. \
-            Set inner_product_features=True!'
-        
     if par['diffusion']:
         assert hasattr(data, 'L'), 'No Laplacian found. Compute it in preprocessing()!'
         
-    pars = ['batch_size', 'epochs', 'lr', 'momentum', 'autoencoder', 'order', \
+    pars = ['batch_size', 'epochs', 'lr', 'momentum', 'order', \
             'inner_product_features', 'dim_signal', 'dim_emb', 'dim_man',\
             'frac_sampled_nb', 'dropout', 'n_lin_layers', 'diffusion', \
             'hidden_channels', 'out_channels', 'bias', 'batch_norm', 'vec_norm', \

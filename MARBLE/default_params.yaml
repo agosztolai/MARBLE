@@ -3,7 +3,6 @@ batch_size : 64 #batch size
 epochs : 20, #optimisation epochs
 lr: 0.01 #learning rate
 momentum: 0.9 #momentum
-autoencoder: False
 diffusion: False
 
 #manifold/signal parameters
