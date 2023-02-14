@@ -161,8 +161,8 @@ def plot_trajectories(net, trajectories, ax, n_traj=2, style='-', c='C0', interv
     m2 = net.m[:,1].detach().numpy()
     
     for j in range(n_traj):
-        proj1 = trajectories[j] @ m1# / net.hidden_size
-        proj2 = trajectories[j] @ m2 #/ net.hidden_size
+        proj1 = trajectories[j] @ m1 / net.hidden_size
+        proj2 = trajectories[j] @ m2 / net.hidden_size
         
         if interval[1] != 0:
             ax.plot(proj1[:interval[0]],
