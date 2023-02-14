@@ -137,7 +137,7 @@ def to_support_net(net, z, take_means=False):
 
     # if new_size is None:
     new_size = net.hidden_size
-    old_size = net.hidden_size
+    old_size = 1#net.hidden_size
     # if scaling:
     #     old_size = net.hidden_size
     # else:

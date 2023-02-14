@@ -182,7 +182,7 @@ def generate_trajectories(net, input=None, epochs=None, n_traj=None, fname='./ou
     traj = []
     for i in range(len(input)):
         conds = []
-        for k in range(n_traj):
+        for _ in range(n_traj):
             #net.h0.data = torch.rand(size=net.h0.data.shape) #random ic
             _, traj_ = net(input[i].unsqueeze(0))
             traj_ = traj_.squeeze().detach().numpy()

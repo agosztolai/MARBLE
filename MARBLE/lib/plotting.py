@@ -171,7 +171,8 @@ def embedding(data,
               ax=None,
               alpha=0.3,
               s=5,
-              axes_visible=False):
+              axes_visible=False,
+              cmap='coolwarm'):
     """
     Plot embeddings.
 
@@ -203,7 +204,7 @@ def embedding(data,
             idx = np.random.choice(np.arange(len(labels)), size=1000)
             emb, labels = emb[idx], labels[idx]
 
-    color, cbar = set_colors(labels)
+    color, cbar = set_colors(labels, cmap)
     
     if labels is None:
         labels = np.ones(emb.shape[0])
@@ -669,7 +670,7 @@ def set_axes(ax, lims=None, padding=0.1, off=True):
     return ax
 
 
-def set_colors(color):
+def set_colors(color, cmap='coolwarm'):
     
     if color is None:
         return 'k', None
@@ -677,7 +678,7 @@ def set_colors(color):
         assert isinstance(color, (list, tuple, np.ndarray))
         
     if isinstance(color[0], (float, np.floating)):
-        cmap = sns.color_palette("coolwarm", as_cmap=True)
+        cmap = sns.color_palette(cmap, as_cmap=True)
         norm = plt.cm.colors.Normalize(-np.max(np.abs(color)), np.max(np.abs(color)))        
         colors = [cmap(norm(np.array(c).flatten())) for c in color]
    
