@@ -141,8 +141,8 @@ def to_support_net(net, z, new_size=None, take_means=False, scaling=False):
     #     old_size = net.hidden_size
     # else:
     #     old_size = 1
-    m_means = torch.from_numpy(means[:, :rank]).t() * sqrt(old_size) #/ sqrt(new_size)
-    n_means = torch.from_numpy(means[:, rank: 2*rank]).t() * sqrt(old_size) #/ sqrt(new_size)
+    m_means = torch.from_numpy(means[:, :rank]).t() / sqrt(old_size) #/ sqrt(new_size)
+    n_means = torch.from_numpy(means[:, rank: 2*rank]).t() / sqrt(old_size) #/ sqrt(new_size)
     wi_means = torch.from_numpy(means[:, 2*rank: 2*rank + net.input_size]).t()
 
     for i in range(n_components):
@@ -150,12 +150,12 @@ def to_support_net(net, z, new_size=None, take_means=False, scaling=False):
         G = covariances[i]
         X_reduced = gram_factorization(G)
         for k in range(rank):
-            m_init[k, i] = torch.from_numpy(X_reduced[k]) * sqrt(old_size) #/ sqrt(new_size)
-            n_init[k, i] = torch.from_numpy(X_reduced[rank + k]) * sqrt(old_size) #/ sqrt(new_size)
+            m_init[k, i] = torch.from_numpy(X_reduced[k]) / sqrt(old_size) #/ sqrt(new_size)
+            n_init[k, i] = torch.from_numpy(X_reduced[rank + k]) / sqrt(old_size) #/ sqrt(new_size)
         for k in range(net.input_size):
             wi_init[k, i] = torch.from_numpy(X_reduced[2 * rank + k])
         for k in range(net.output_size):
-            wo_init[k, i] = torch.from_numpy(X_reduced[2 * rank + net.input_size + k]) * old_size #/ new_size
+            wo_init[k, i] = torch.from_numpy(X_reduced[2 * rank + net.input_size + k]) / old_size #/ new_size
 
     net2 = SupportLowRankRNN(net.input_size, new_size, net.output_size, net.noise_std, net.alpha, rank, n_components,
                              weights, basis_dim, m_init, n_init, wi_init, wo_init, m_means, n_means, wi_means)
