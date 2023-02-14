@@ -222,7 +222,7 @@ def plot_experiment(net, input, traj, epochs, rect=(-8, 8, -6, 6), traj_to_show=
     fig.subplots_adjust(hspace=.1, wspace=.1)
     
     
-def aggregate_data(net, traj, epochs, transient=10):
+def aggregate_data(traj, epochs, transient=10):
 
     n_conds = len(traj)
     n_epochs = len(epochs)-1
