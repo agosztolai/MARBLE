@@ -138,7 +138,7 @@ class net(nn.Module):
         return cum_loss/len(loader), optimizer
     
     
-    def run_training(self, data, save=True, loadpath=None, use_best=False):
+    def run_training(self, data, save=True, loadpath=None, use_best=True):
         """Network training"""
         
         print('\n---- Training network ...')
