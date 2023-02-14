@@ -167,7 +167,7 @@ def histograms(data, titles=None, col=2, figsize=(10,10), save=None):
         
 def embedding(data, 
               labels=None, 
-              titles=None, 
+              titles=None,
               ax=None,
               alpha=0.3,
               s=5):
@@ -176,20 +176,24 @@ def embedding(data,
 
     Parameters
     ----------
-    emb : nx2 matrix of embedded points
+    data : PyG data object with attribute emb or nxdim matrix of embedded points
+        with dim=2 or 3
     labels : list of increasing integer node labels
     clusters : sklearn cluster object
     titles : list of titles
 
     """
     
-    if hasattr(data, 'emb_2d'):
-        emb = data.emb_2d
+    if hasattr(data, 'emb'):
+        emb = data.emb
     else:
         emb = data
     
+    dim = emb.shape[1]
+    assert dim in [2,3], 'Embedding dimension is {} which cannot be displayed.'.format(dim)
+    
     if ax is None:
-        fig, ax = create_axis(2)
+        fig, ax = create_axis(dim)
     
     if labels is not None:
         assert emb.shape[0]==len(labels)
@@ -211,10 +215,15 @@ def embedding(data,
         ind = np.where(np.array(labels)==typ)[0]
         title = titles[i] if titles is not None else str(typ)
         c = np.array(color)[ind] if not isinstance(color, str) else color
-        ax.scatter(emb[ind,0], emb[ind,1], c=c, alpha=alpha, s=s, label=title)
+        
+        if dim == 2:
+            ax.scatter(emb[ind,0], emb[ind,1], c=c, alpha=alpha, s=s, label=title)
+        elif dim == 3:
+            ax.scatter(emb[ind,0], emb[ind,1], emb[ind,2], c=c, alpha=alpha, s=s, label=title)
     
-    if hasattr(data, 'clusters'):
-        voronoi(data.clusters, ax)
+    if dim == 2:
+        if hasattr(data, 'clusters'):
+            voronoi(data.clusters, ax)
     
     if titles is not None:
         ax.legend(loc='upper right')

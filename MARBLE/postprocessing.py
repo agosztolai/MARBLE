@@ -18,20 +18,20 @@ def postprocessing(data,
     
     Returns
     -------
-    data : PyG data object containing .emb attribute, a nx2 matrix of embedded data
+    data : PyG data object containing .out attribute, a nx2 matrix of embedded data
     clusters : sklearn cluster object
     dist : cxc matrix of pairwise distances where c is the number of clusters
     
     """
 
     if type(data) is list:
-        emb = np.vstack([d.emb for d in data])
+        out = np.vstack([d.out for d in data])
     else:
-        emb = data.emb
+        out = data.out
         
     
     #k-means cluster
-    clusters = g.cluster(emb, cluster_typ, n_clusters, seed)
+    clusters = g.cluster(out, cluster_typ, n_clusters, seed)
     clusters = g.relabel_by_proximity(clusters)
     
     if type(data) is list:
@@ -53,20 +53,20 @@ def postprocessing(data,
     dist, gamma, cdist = g.compute_histogram_distances(clusters)
     
     #embed into 2D via t-SNE for visualisation
-    emb_2d = np.vstack([emb, clusters['centroids']])
-    emb_2d, manifold = g.embed(emb_2d, embed_typ, manifold)  
-    emb_2d, clusters['centroids'] = emb_2d[:-clusters['n_clusters']], emb_2d[-clusters['n_clusters']:]
+    emb = np.vstack([out, clusters['centroids']])
+    emb, manifold = g.embed(emb, embed_typ, manifold)  
+    emb, clusters['centroids'] = emb[:-clusters['n_clusters']], emb[-clusters['n_clusters']:]
     
 
     #store everything in data    
     if type(data) is list:
         data_ = data[0]
-        data_.emb = emb
+        data_.emb = out
         data_.y = torch.cat([d.y for d  in data])
     else:
         data_ = data
         
-    data_.emb_2d = emb_2d
+    data_.emb = emb
     data_.manifold = manifold
     data_.clusters = clusters
     data_.dist = dist
@@ -78,7 +78,7 @@ def postprocessing(data,
 
 def compare_attractors(data, source_target):
     
-    assert all(hasattr(data, attr) for attr in ['emb_2d', 'gamma', 'clusters', 'cdist']), \
+    assert all(hasattr(data, attr) for attr in ['emb', 'gamma', 'clusters', 'cdist']), \
         'It looks like postprocessing has not been run...'
     
     s, t = source_target
@@ -93,7 +93,7 @@ def compare_attractors(data, source_target):
     _, ax = plt.subplots(1, 3, figsize=(10,5))
     
     #plot embedding of all points in gray
-    plotting.embedding(data.emb_2d, ax=ax[0], alpha=0.05)
+    plotting.embedding(data.emb, ax=ax[0], alpha=0.05)
     
     #get gamma matrix for the given source-target pair
     gammadist = data.gamma[s,t,...]

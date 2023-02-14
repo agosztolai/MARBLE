@@ -100,12 +100,12 @@ class net(nn.Module):
                 utils.move_to_gpu(self, data, adjs)
                 
                
-            emb = self.forward(data, torch.arange(len(data.x)), adjs)
+            out = self.forward(data, torch.arange(len(data.x)), adjs)
             
             model, data.x, data.L, data.Lc, data.kernels, data.gauges, adjs = \
                 utils.detach_from_gpu(self, data, adjs)
             
-            data.emb = emb.detach().cpu()
+            data.out = out.detach().cpu()
             
             return data
                 
