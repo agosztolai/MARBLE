@@ -128,7 +128,7 @@ def cluster(x, cluster_typ='meanshift', n_clusters=15, seed=0):
     return clusters
 
 
-def embed(x, embed_typ='umap', manifold=None):
+def embed(x, embed_typ='umap', dim_emb=2, manifold=None):
     """
     Embed data to 2D space.
 
@@ -164,13 +164,13 @@ def embed(x, embed_typ='umap', manifold=None):
         
     elif embed_typ == 'MDS':
         if manifold is not None:
-            raise Exception('t-SNE cannot fit on existing manifold')
+            raise Exception('MDS cannot fit on existing manifold')
             
-        emb = MDS(n_components=2, n_init=20, dissimilarity='precomputed').fit_transform(x)
+        emb = MDS(n_components=dim_emb, n_init=20, dissimilarity='precomputed').fit_transform(x)
         
     elif embed_typ == 'PCA':
         if manifold is None:
-            manifold = PCA(n_components=2).fit(x)
+            manifold = PCA(n_components=dim_emb).fit(x)
         
         emb = manifold.transform(x)
         
