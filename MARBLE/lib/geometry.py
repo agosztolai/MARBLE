@@ -340,7 +340,9 @@ def gradient_op(pos, edge_index, gauges):
     
     """
     
+    print('neighbours')
     nvec = neighbour_vectors(pos, edge_index, normalise=False) #(nxnxdim)
+    print('project gauges')
     F = project_gauge_to_neighbours(nvec, gauges)
     
     K = []
