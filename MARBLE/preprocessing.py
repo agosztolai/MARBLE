@@ -66,7 +66,6 @@ def preprocessing(data,
     else:
         gauges = torch.eye(dim_emb).repeat(n,1,1) 
             
-    print('laplacian')
     #Laplacian
     L = g.compute_laplacian(data)
     
@@ -91,7 +90,6 @@ def preprocessing(data,
             Lc = None
                 
     else:
-        print('kernels')
         kernels = g.gradient_op(data.pos, data.edge_index, gauges)
         Lc = None
         
@@ -99,7 +97,6 @@ def preprocessing(data,
         L = g.compute_eigendecomposition(L)
         Lc = g.compute_eigendecomposition(Lc)
         
-    print('convert')
     data.kernels = [utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels]
     data.L, data.Lc, data.gauges = L, Lc, gauges
         
