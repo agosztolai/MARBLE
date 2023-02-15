@@ -336,10 +336,9 @@ def gradient_op(pos, edge_index, gauges):
     
     """
     
-    print('neighbours')
     nvec = neighbour_vectors(pos, edge_index, normalise=False) #(nxnxdim)
     print('project')
-    F = project_gauge_to_neighbours(nvec, gauges)
+    F = project_gauge_to_neighbours(nvec, gauges, edge_index)
     
     K = []
     for _F in F:
@@ -372,7 +371,7 @@ def manifold_dimension(Sigma, frac_explained=0.9):
     return int(dim_man)
 
 
-def project_gauge_to_neighbours(nvec, gauges):
+def project_gauge_to_neighbours(nvec, gauges, edge_index):
     """
     Project the gauge vectors to local edge vectors.
     
@@ -390,6 +389,12 @@ def project_gauge_to_neighbours(nvec, gauges):
     #inner product over last dim of nvec and second dim of gauges
     #batch over first dims (a) and leave last broadcast over last dim of gauges (c)
     proj = torch.einsum('abi,aic->abc', nvec, gauges)
+    
+    # proj = []
+    # ei, ej = edge_index[0], edge_index[1]
+    # for i in range(gauges.shape[-1]):
+    #     proj_ = nvec[:,:,i] gauges[:,:,i]
+    #     proj.append(proj_)
         
     return [proj[...,i] for i in range(proj.shape[-1])] #split into a list
 
