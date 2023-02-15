@@ -336,8 +336,7 @@ def gradient_op(pos, edge_index, gauges):
     
     """
     
-    nvec = neighbour_vectors(pos, edge_index, normalise=False) #(nxnxdim)
-    print('project')
+    nvec = neighbour_vectors(pos, edge_index) #(nxnxdim)
     F = project_gauge_to_neighbours(nvec, gauges, edge_index)
     
     K = []
@@ -389,12 +388,6 @@ def project_gauge_to_neighbours(nvec, gauges, edge_index):
     #inner product over last dim of nvec and second dim of gauges
     #batch over first dims (a) and leave last broadcast over last dim of gauges (c)
     proj = torch.einsum('abi,aic->abc', nvec, gauges)
-    
-    # proj = []
-    # ei, ej = edge_index[0], edge_index[1]
-    # for i in range(gauges.shape[-1]):
-    #     proj_ = nvec[:,:,i] gauges[:,:,i]
-    #     proj.append(proj_)
         
     return [proj[...,i] for i in range(proj.shape[-1])] #split into a list
 
