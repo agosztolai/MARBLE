@@ -160,6 +160,10 @@ class net(nn.Module):
         else:
             checkpoint = {}
             epoch0 = 0
+            
+        if save:
+            if not os.path.exists('./outputs'):
+                os.makedirs('./outputs')
         
         best_loss = -1
         for epoch in range(self.par['epochs']):
@@ -179,27 +183,28 @@ class net(nn.Module):
                 
             if best_loss==-1 or (val_loss<best_loss):
                 best_loss = val_loss 
-                checkpoint['model_state_dict'] = self.state_dict()
-                checkpoint['optimizer_state_dict'] = optimizer.state_dict()
-                checkpoint['epoch'] = epoch+epoch0
                 print(' *', end="")
-        
-        if use_best:
-            self.load_state_dict(checkpoint['model_state_dict'])
-            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+                if save:
+                    torch.save({
+                            'epoch': epoch+epoch0,
+                            'model_state_dict': self.state_dict(),
+                            'optimizer_state_dict': optimizer.state_dict(),
+                            }, './outputs/best_model.pth')
         
         test_loss, _ = self.batch_loss(data, test_loader)
         print('\nFinal test loss: {:.4f}'.format(test_loss))
         
         if save:
-            if not os.path.exists('./outputs'):
-                os.makedirs('./outputs')
             torch.save({
-                    'epoch': epoch,
+                    'epoch': epoch+epoch0,
                     'model_state_dict': self.state_dict(),
                     'optimizer_state_dict': optimizer.state_dict(),
-                    }, './outputs/best_model.pth')
+                    }, './outputs/last_model.pth')
         
+        if use_best:
+            self.load_state_dict(checkpoint['model_state_dict'])
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
 
 class loss_fun(nn.Module):
     def __init__(self):
