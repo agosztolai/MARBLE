@@ -303,14 +303,10 @@ def neighbour_vectors(pos, edge_index, normalise=False):
     """
     
     n, dim = pos.shape
+    nvec = torch.zeros(n,n,dim)
     
-    nvec = pos.repeat(n,1,1)
-    nvec = nvec - nvec.swapaxes(0,1) #nvec[i,j] = xj - xi
-    
-    mask = torch.zeros([n,n],dtype=bool)
-    mask[edge_index[0], edge_index[1]] = 1
-    mask = mask.unsqueeze(2).repeat(1,1,dim)
-    nvec[~mask] = 0
+    for (i,j) in edge_index.T:
+        nvec[i,j,:] = pos[j] - pos[i]
     
     if normalise:
         nvec = normalize(nvec, dim=-1, p=2)
