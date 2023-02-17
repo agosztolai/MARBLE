@@ -184,6 +184,8 @@ class net(nn.Module):
             if best_loss==-1 or (val_loss<best_loss):
                 best_loss = val_loss 
                 print(' *', end="")
+                checkpoint['model_state_dict'] = self.state_dict()
+                checkpoint['optimizer_state_dict'] = optimizer.state_dict()
                 if save:
                     torch.save({
                             'epoch': epoch+epoch0,

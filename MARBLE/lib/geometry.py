@@ -286,7 +286,7 @@ def compute_histogram_distances(clusters):
 # =============================================================================
 # Manifold operations
 # =============================================================================
-def neighbour_vectors(pos, edge_index, normalise=False):
+def neighbour_vectors(pos, edge_index):
     """
     Local out-going edge vectors around each node.
 
@@ -294,7 +294,6 @@ def neighbour_vectors(pos, edge_index, normalise=False):
     ----------
     pos : (nxdim) Matrix of node positions
     edge_index : (2x|E|) Matrix of edge indices
-    normalise : If True then normalise neighbour vectors
 
     Returns
     -------
@@ -308,9 +307,8 @@ def neighbour_vectors(pos, edge_index, normalise=False):
     ei, ej = edge_index[0], edge_index[1]
     nvec[ei,ej,:] = pos[ej] - pos[ei]
     
-    if normalise:
-        nvec = normalize(nvec, dim=-1, p=2)
-    
+    # nvec = torch.sparse_coo_tensor(edge_index, nvec[ei,ej,:], [n, n, dim])
+        
     return nvec
 
 
@@ -384,12 +382,14 @@ def project_gauge_to_neighbours(nvec, gauges, edge_index):
     list of (nxn) torch tensors of projected components
     
     """
-            
-    #inner product over last dim of nvec and second dim of gauges
-    #batch over first dims (a) and leave last broadcast over last dim of gauges (c)
-    proj = torch.einsum('abi,aic->abc', nvec, gauges)
+    
+    n, _, d = gauges.shape
+    ei, ej = edge_index[0], edge_index[1]
+    projij = torch.einsum('bi,bic->bc', nvec[ei,ej,:], gauges[ei])
+    proj = torch.zeros(n,n,d)
+    proj[ei,ej,:] = projij
         
-    return [proj[...,i] for i in range(proj.shape[-1])] #split into a list
+    return [proj[...,i] for i in range(d)] #split into a list
 
 
 def fit_graph(x, graph_type='cknn', par=1):
