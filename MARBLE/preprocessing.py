@@ -80,7 +80,7 @@ def preprocessing(data,
         gauges = gauges[:,:,:dim_man]
         R = g.compute_connections(data, gauges)
         
-        print('\n---- Computing kernels ... ')
+        print('\n---- Computing kernels ... ', end="")
         kernels = g.gradient_op(data.pos, data.edge_index, gauges)
         kernels = [utils.tile_tensor(K, dim_man) for K in kernels]
         kernels = [K*R for K in kernels]

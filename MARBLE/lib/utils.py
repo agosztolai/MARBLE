@@ -92,12 +92,12 @@ def construct_dataset(pos,
     split = RandomNodeSplit(split='train_rest', num_val=0.1, num_test=0.1)
     split(batch)
     
-    batch = preprocessing.preprocessing(batch, 
-                                        vector=vector, 
-                                        compute_cl=compute_cl,
-                                        n_workers=n_workers,
-                                        n_geodesic_nb=n_geodesic_nb,
-                                        dim_man=dim_man)
+    # batch = preprocessing.preprocessing(batch, 
+    #                                     vector=vector, 
+    #                                     compute_cl=compute_cl,
+    #                                     n_workers=n_workers,
+    #                                     n_geodesic_nb=n_geodesic_nb,
+    #                                     dim_man=dim_man)
     
     return batch
 
