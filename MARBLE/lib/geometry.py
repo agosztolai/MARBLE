@@ -350,7 +350,6 @@ def gradient_op(pos, edge_index, gauges):
     nvec = neighbour_vectors(pos, edge_index)
     F = project_gauge_to_neighbours(nvec, gauges, edge_index)
     
-    print('normalize')
     K = []
     for _F in F:
         _F.data = _F.data / np.repeat(np.add.reduceat(np.abs(_F.data), _F.indptr[:-1]), np.diff(_F.indptr))
@@ -358,7 +357,6 @@ def gradient_op(pos, edge_index, gauges):
         _F = _F.tocoo()
         K.append(torch.sparse_coo_tensor(np.vstack([_F.row,_F.col]), _F.data.data))
             
-    print('done')
     return K
 
 
