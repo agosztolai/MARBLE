@@ -326,7 +326,7 @@ def project_gauge_to_neighbours(nvec, gauges, edge_index):
     ei = edge_index[0]
     proj = torch.einsum('bi,bic->bc', nvec, gauges[ei])
     
-    proj = [torch.sparse_coo_tensor(edge_index, proj[:,i], [n, n]) for i in range(d)]
+    proj = [sp.coo_matrix((proj[:,i],(edge_index)), [n, n]).tocsr() for i in range(d)]
         
     return proj
 
@@ -347,17 +347,16 @@ def gradient_op(pos, edge_index, gauges):
     
     """
     
-    print('nvec')
-    nvec = neighbour_vectors(pos, edge_index) #(nxnxdim)
-    print('proj')
+    nvec = neighbour_vectors(pos, edge_index)
     F = project_gauge_to_neighbours(nvec, gauges, edge_index)
     
     print('normalize')
     K = []
     for _F in F:
-        Fhat = normalize(_F.to_dense(), dim=1, p=1)
-        Fhat -= torch.diag(torch.sum(Fhat, dim=1))
-        K.append(Fhat.to_sparse())
+        _F.data = _F.data / np.repeat(np.add.reduceat(np.abs(_F.data), _F.indptr[:-1]), np.diff(_F.indptr))
+        _F -= sp.diags(np.array(_F.sum(1)).flatten())
+        _F = _F.tocoo()
+        K.append(torch.sparse_coo_tensor(np.vstack([_F.row,_F.col]), _F.data.data))
             
     print('done')
     return K
