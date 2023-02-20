@@ -297,25 +297,38 @@ def neighbour_vectors(pos, edge_index):
 
     Returns
     -------
-    nvec : (nxnxdim) Matrix of neighbourhood vectors.
+    nvec : (|E|xdim) Matrix of neighbourhood vectors.
 
     """
-    
-    n, dim = pos.shape
-    nvec = torch.zeros(n,n,dim)
-    
-    ei, ej = edge_index[0], edge_index[1]
-    nvec[ei,ej,:] = pos[ej] - pos[ei]
-    
-    # nvec = torch.sparse_coo_tensor(edge_index, nvec[ei,ej,:], [n, n, dim])
         
+    ei, ej = edge_index[0], edge_index[1]
+    nvec = pos[ej] - pos[ei]
+            
     return nvec
 
 
-def map_to_local_gauges(x, gauges):
-    """Transform signal into local coordinates"""
+def project_gauge_to_neighbours(nvec, gauges, edge_index):
+    """
+    Project the gauge vectors to local edge vectors.
+    
+    Parameters
+    ----------
+    nvec : (|E|xdim) Matrix of neighbourhood vectors.
+    local_gauge : dimxnxdim torch tensor, if None, global gauge is generated
+
+    Returns
+    -------
+    list of (nxn) torch tensors of projected components
+    
+    """
+    
+    n, _, d = gauges.shape
+    ei = edge_index[0]
+    proj = torch.einsum('bi,bic->bc', nvec, gauges[ei])
+    
+    proj = [torch.sparse_coo_tensor(edge_index, proj[:,i], [n, n]) for i in range(d)]
         
-    return torch.einsum('aij,ai->aj', gauges, x)
+    return proj
 
 
 def gradient_op(pos, edge_index, gauges):
@@ -334,17 +347,36 @@ def gradient_op(pos, edge_index, gauges):
     
     """
     
+    print('nvec')
     nvec = neighbour_vectors(pos, edge_index) #(nxnxdim)
+    print('proj')
     F = project_gauge_to_neighbours(nvec, gauges, edge_index)
     
+    print('normalize')
     K = []
     for _F in F:
-        Fhat = normalize(_F, dim=1, p=1)
+        Fhat = normalize(_F.to_dense(), dim=1, p=1)
         Fhat -= torch.diag(torch.sum(Fhat, dim=1))
         K.append(Fhat.to_sparse())
             
+    print('done')
     return K
+
+
+def normalize_sparse_matrix(sp_tensor):
     
+    row_sum = sp_tensor.sum(axis=1)
+    row_sum[row_sum == 0] = 1  # to avoid divide by zero
+    sp_tensor = sp_tensor.multiply(1. / row_sum)
+    
+    return sp_tensor
+    
+
+def map_to_local_gauges(x, gauges):
+    """Transform signal into local coordinates"""
+        
+    return torch.einsum('aij,ai->aj', gauges, x)
+
     
 def project_to_gauges(x, gauges, dim=2):
     coeffs = torch.einsum('bij,bi->bj', gauges, x)
@@ -366,30 +398,6 @@ def manifold_dimension(Sigma, frac_explained=0.9):
     print('\nFraction of variance explained: ', var_exp)
     
     return int(dim_man)
-
-
-def project_gauge_to_neighbours(nvec, gauges, edge_index):
-    """
-    Project the gauge vectors to local edge vectors.
-    
-    Parameters
-    ----------
-    nvec : (nxnxdim) Matrix of neighbourhood vectors.
-    local_gauge : dimxnxdim torch tensor, if None, global gauge is generated
-
-    Returns
-    -------
-    list of (nxn) torch tensors of projected components
-    
-    """
-    
-    n, _, d = gauges.shape
-    ei, ej = edge_index[0], edge_index[1]
-    projij = torch.einsum('bi,bic->bc', nvec[ei,ej,:], gauges[ei])
-    proj = torch.zeros(n,n,d)
-    proj[ei,ej,:] = projij
-        
-    return [proj[...,i] for i in range(d)] #split into a list
 
 
 def fit_graph(x, graph_type='cknn', par=1):
