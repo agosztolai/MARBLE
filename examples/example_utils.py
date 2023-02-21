@@ -239,7 +239,7 @@ def plot_ellipse(ax, w, color='silver', std_factor=1):
     return ax
     
     
-def aggregate_data(traj, epochs, transient=10):
+def aggregate_data(traj, epochs, transient=10, only_stim=False):
 
     n_conds = len(traj)
     n_epochs = len(epochs)-1
@@ -269,19 +269,20 @@ def aggregate_data(traj, epochs, transient=10):
         pos_, vel_ = np.vstack(pos_), np.vstack(vel_) #stack trajectories
         pos.append(pos_)
         vel.append(vel_)
-            
-    #aggregate data under stimulated condition
-    for i in range(n_conds): #conditions 
-        pos_, vel_ = [], []
-        for k in [1, 3]:        
-            for j in range(n_traj): #trajectories
-                pos_proj = traj[i][j][k][transient:]
-                pos_proj = pca.transform(pos_proj)
-                pos_.append(pos_proj[:-1])
-                vel_.append(np.diff(pos_proj, axis=0))
-                    
-        pos_, vel_ = np.vstack(pos_), np.vstack(vel_) #stack trajectories
-        pos.append(pos_)
-        vel.append(vel_)
+      
+    if not only_stim:
+        #aggregate data under stimulated condition
+        for i in range(n_conds): #conditions 
+            pos_, vel_ = [], []
+            for k in [1, 3]:        
+                for j in range(n_traj): #trajectories
+                    pos_proj = traj[i][j][k][transient:]
+                    pos_proj = pca.transform(pos_proj)
+                    pos_.append(pos_proj[:-1])
+                    vel_.append(np.diff(pos_proj, axis=0))
+                        
+            pos_, vel_ = np.vstack(pos_), np.vstack(vel_) #stack trajectories
+            pos.append(pos_)
+            vel.append(vel_)
         
     return pos, vel
