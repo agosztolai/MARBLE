@@ -222,19 +222,18 @@ def plot_experiment(net, input, traj, epochs, rect=(-8, 8, -6, 6), traj_to_show=
     fig.subplots_adjust(hspace=.1, wspace=.1)
     
     
-def plot_ellipse(ax, w):
+def plot_ellipse(ax, w, color='silver', std_factor=1):
     X = np.array([w[:, 0], w[:, 1]]).T
     cov = X.T @ X / X.shape[0]
     eigvals, eigvecs = np.linalg.eig(cov)
     v1 = eigvecs[:, 0]
     angle = np.arctan(v1[1] / v1[0])
     angle = angle * 180 / np.pi
-    std_factor = 1
     ax.add_artist(Ellipse(xy=[0, 0], 
                           angle=angle,
                           width=np.sqrt(eigvals[0]) * 2 * std_factor, 
                           height=np.sqrt(eigvals[1]) * 2 * std_factor, 
-                          fill=True, fc='silver', ec='black', lw=1, zorder=-1))
+                          fill=True, fc=color, ec='black', lw=1, zorder=-1))
     
     return ax
     
@@ -252,8 +251,6 @@ def aggregate_data(traj, epochs, transient=10):
             for j in range(n_traj): #trajectories
                 pos.append(traj[i][j][k][transient:])
                     
-    # m1 = net.m[:,0].detach().numpy()
-    # m2 = net.m[:,1].detach().numpy()
     pca = PCA(n_components=3)
     pca.fit(np.vstack(pos))
         
@@ -265,7 +262,6 @@ def aggregate_data(traj, epochs, transient=10):
             for j in range(n_traj): #trajectories
                 pos_proj = traj[i][j][k][transient:]
                 pos_proj = pca.transform(pos_proj)
-                # pos_proj = np.vstack([pos_proj@m1, pos_proj@m2]).T
                 pos_.append(pos_proj[:-1]) #stack trajectories
                 vel_.append(np.diff(pos_proj, axis=0)) #compute differences
                            
@@ -280,7 +276,6 @@ def aggregate_data(traj, epochs, transient=10):
             for j in range(n_traj): #trajectories
                 pos_proj = traj[i][j][k][transient:]
                 pos_proj = pca.transform(pos_proj)
-                # pos_proj = np.vstack([pos_proj@m1, pos_proj@m2]).T
                 pos_.append(pos_proj[:-1])
                 vel_.append(np.diff(pos_proj, axis=0))
                     
