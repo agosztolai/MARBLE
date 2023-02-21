@@ -233,7 +233,7 @@ def aggregate_data(traj, epochs, transient=10):
     for i in range(n_conds): #conditions
         for k in range(n_epochs): 
             for j in range(n_traj): #trajectories
-                pos.append(traj[i][j][k][:transient])
+                pos.append(traj[i][j][k][transient:])
                     
     # m1 = net.m[:,0].detach().numpy()
     # m2 = net.m[:,1].detach().numpy()
@@ -246,7 +246,7 @@ def aggregate_data(traj, epochs, transient=10):
         pos_, vel_ = [], []
         for k in [0, 2, 4]:
             for j in range(n_traj): #trajectories
-                pos_proj = traj[i][j][k][:transient]
+                pos_proj = traj[i][j][k][transient:]
                 pos_proj = pca.transform(pos_proj)
                 # pos_proj = np.vstack([pos_proj@m1, pos_proj@m2]).T
                 pos_.append(pos_proj[:-1]) #stack trajectories
@@ -261,7 +261,7 @@ def aggregate_data(traj, epochs, transient=10):
         pos_, vel_ = [], []
         for k in [1, 3]:        
             for j in range(n_traj): #trajectories
-                pos_proj = traj[i][j][k][:transient]
+                pos_proj = traj[i][j][k][transient:]
                 pos_proj = pca.transform(pos_proj)
                 # pos_proj = np.vstack([pos_proj@m1, pos_proj@m2]).T
                 pos_.append(pos_proj[:-1])

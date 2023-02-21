@@ -92,7 +92,7 @@ def preprocessing(data,
             Lc = None
                 
     else:
-        print('\n---- Computing kernels ... ')
+        print('\n---- Computing kernels ... ', end="")
         kernels = g.gradient_op(data.pos, data.edge_index, gauges)
         print('Done ')
         Lc = None
