@@ -1,10 +1,10 @@
 import numpy as np
-import torch
 import pickle
 import os
 from sklearn.neighbors import KDTree
 from scipy.spatial.transform import Rotation as R
 import matplotlib.pyplot as plt
+from matplotlib.patches import Ellipse
 from sklearn.decomposition import PCA
 
 from MARBLE import utils, geometry, plotting
@@ -220,6 +220,23 @@ def plot_experiment(net, input, traj, epochs, rect=(-8, 8, -6, 6), traj_to_show=
         ax[3][i].set_xlabel('$\kappa_1$')
         
     fig.subplots_adjust(hspace=.1, wspace=.1)
+    
+    
+def plot_ellipse(ax, w):
+    X = np.array([w[:, 0], w[:, 1]]).T
+    cov = X.T @ X / X.shape[0]
+    eigvals, eigvecs = np.linalg.eig(cov)
+    v1 = eigvecs[:, 0]
+    angle = np.arctan(v1[1] / v1[0])
+    angle = angle * 180 / np.pi
+    std_factor = 1
+    ax.add_artist(Ellipse(xy=[0, 0], 
+                          angle=angle,
+                          width=np.sqrt(eigvals[0]) * 2 * std_factor, 
+                          height=np.sqrt(eigvals[1]) * 2 * std_factor, 
+                          fill=True, fc='silver', ec='black', lw=1, zorder=-1))
+    
+    return ax
     
     
 def aggregate_data(traj, epochs, transient=10):
