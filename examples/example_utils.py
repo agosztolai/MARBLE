@@ -233,8 +233,8 @@ def plot_ellipse(ax, w, color='silver', std_factor=1):
                           angle=angle,
                           width=np.sqrt(eigvals[0]) * 2 * std_factor, 
                           height=np.sqrt(eigvals[1]) * 2 * std_factor, 
-                          fill=True, fc=color, ec='black', lw=1, zorder=-1,
-                          alpha=0.5))
+                          fill=True, fc=color, ec='black', lw=1, zorder=10,
+                          alpha=0.2))
     
     return ax
     
