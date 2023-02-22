@@ -6,7 +6,7 @@ from sklearn.neighbors import KDTree
 from scipy.spatial.transform import Rotation as R
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
-from sklearn.decomposition import PCA
+from sklearn.decomposition import FastICA
 
 from MARBLE import utils, geometry, plotting
 from RNN_scripts import dms, clustering, modules
@@ -316,7 +316,7 @@ def aggregate_data(traj, epochs, transient=10, only_stim=False):
             for j in range(n_traj): #trajectories
                 pos.append(traj[i][j][k][transient:])
                     
-    pca = PCA(n_components=3)
+    pca = FastICA(n_components=3)
     pca.fit(np.vstack(pos))
         
     #aggregate data under baseline condition (no input)
