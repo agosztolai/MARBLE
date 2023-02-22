@@ -73,16 +73,18 @@ def preprocessing(data,
         
         if not dim_man:
             dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
+        data.dim_man = dim_man
         
-        print('\n---- Manifold dimension: {}\n'.format(dim_man))
+        print('\n---- Manifold dimension: {}'.format(dim_man))
         
         gauges = gauges[:,:,:dim_man]
         R = g.compute_connections(data, gauges)
         
+        print('\n---- Computing kernels ... ', end="")
         kernels = g.gradient_op(data.pos, data.edge_index, gauges)
         kernels = [utils.tile_tensor(K, dim_man) for K in kernels]
         kernels = [K*R for K in kernels]
-        data.dim_man = dim_man
+        print('Done ')
                 
         if compute_cl:
             Lc = g.compute_connection_laplacian(data, R)
@@ -90,7 +92,9 @@ def preprocessing(data,
             Lc = None
                 
     else:
+        print('\n---- Computing kernels ... ', end="")
         kernels = g.gradient_op(data.pos, data.edge_index, gauges)
+        print('Done ')
         Lc = None
         
     if diffusion_method == 'spectral':

@@ -377,6 +377,7 @@ def tile_tensor(tensor, dim):
     """Enlarge nxn tensor to d*dim x n*dim block matrix. Effectively
     computing a sparse version of torch.kron(K, torch.ones((dim,dim)))"""
     
+    tensor = tensor.coalesce()
     edge_index = tensor.indices()
     edge_index = expand_edge_index(edge_index, dim=dim)
     return torch.sparse_coo_tensor(edge_index, 

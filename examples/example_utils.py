@@ -1,14 +1,15 @@
 import numpy as np
-import torch
 import pickle
+import torch
 import os
 from sklearn.neighbors import KDTree
 from scipy.spatial.transform import Rotation as R
 import matplotlib.pyplot as plt
+from matplotlib.patches import Ellipse
 from sklearn.decomposition import PCA
 
 from MARBLE import utils, geometry, plotting
-from RNN_scripts import dms
+from RNN_scripts import dms, clustering, modules
 
 """Some functions that are used for the exampels"""
 
@@ -222,7 +223,87 @@ def plot_experiment(net, input, traj, epochs, rect=(-8, 8, -6, 6), traj_to_show=
     fig.subplots_adjust(hspace=.1, wspace=.1)
     
     
-def aggregate_data(traj, epochs, transient=10):
+def sample_network(net, f):
+    
+    n_pops = 2
+    seed = 0
+    z, _ = clustering.gmm_fit(net, n_pops, algo='bayes', random_state=seed)
+    net_sampled = clustering.to_support_net(net, z)
+    
+    if os.path.exists(f):
+        z, state = torch.load(f)
+        net_sampled.load_state_dict(state)
+    else: 
+        x_train, y_train, mask_train, x_val, y_val, mask_val = dms.generate_dms_data(1000)
+        modules.train(net_sampled, x_train, y_train, mask_train, 20, lr=1e-6, resample=True, keep_best=True, clip_gradient=1)
+    
+    return z, net_sampled
+    
+
+def load_network(f):
+    
+    noise_std = 5e-2
+    alpha = 0.2
+    hidden_size=500
+
+    load = torch.load(f, map_location='cpu')
+    
+    if len(load)==2:
+        z, state = load
+    else:
+        state = load
+        z = None
+    
+    net = modules.LowRankRNN(2, hidden_size, 1, noise_std, alpha, rank=2)
+    net.load_state_dict(state)
+    net.svd_reparametrization()
+    
+    return z, net
+    
+    
+def plot_ellipse(ax, w, color='silver', std_factor=1):
+    X = np.array([w[:, 0], w[:, 1]]).T
+    cov = X.T @ X / X.shape[0]
+    eigvals, eigvecs = np.linalg.eig(cov)
+    v1 = eigvecs[:, 0]
+    angle = np.arctan(v1[1] / v1[0])
+    angle = angle * 180 / np.pi
+    ax.add_artist(Ellipse(xy=[0, 0], 
+                          angle=angle,
+                          width=np.sqrt(eigvals[0]) * 2 * std_factor, 
+                          height=np.sqrt(eigvals[1]) * 2 * std_factor, 
+                          fill=True, fc=color, ec=color, lw=1,
+                          alpha=0.4))
+    
+    return ax
+    
+
+def plot_coefficients(net, z=None):
+    if z is None:
+        n_pops=2
+        z, _ = clustering.gmm_fit(net, n_pops, algo='bayes', random_state=0)
+    
+    m1 = net.m[:,0].detach().numpy()
+    n1 = net.n[:,0].detach().numpy() 
+    m2 = net.m[:,1].detach().numpy()
+    n2 = net.n[:,1].detach().numpy() 
+    wi1 = net.wi[0].detach().numpy()
+    wi2 = net.wi[1].detach().numpy()
+    
+    fig, ax = plt.subplots(1, 4, figsize=(12, 2))
+    
+    colors = ['#364285', '#E5BA52']
+    n_pops = 2 
+    clustering.pop_scatter_linreg(wi1, wi2, z, n_pops, colors=colors, ax=ax[0])
+    plot_ellipse(ax[0], np.array([wi1[z.astype(bool)], wi2[z.astype(bool)]]).T, std_factor=3, color=colors[1])
+    plot_ellipse(ax[0], np.array([wi1[~z.astype(bool)], wi2[~z.astype(bool)]]).T, std_factor=3, color=colors[0])
+    
+    clustering.pop_scatter_linreg(m1, m2, z, n_pops, colors=colors, ax=ax[1])
+    clustering.pop_scatter_linreg(n1, n2, z, n_pops, colors=colors, ax=ax[2])
+    clustering.pop_scatter_linreg(m1, n1, z, n_pops, colors=colors, ax=ax[3])
+
+    
+def aggregate_data(traj, epochs, transient=10, only_stim=False):
 
     n_conds = len(traj)
     n_epochs = len(epochs)-1
@@ -233,37 +314,34 @@ def aggregate_data(traj, epochs, transient=10):
     for i in range(n_conds): #conditions
         for k in range(n_epochs): 
             for j in range(n_traj): #trajectories
-                pos.append(traj[i][j][k][:transient])
+                pos.append(traj[i][j][k][transient:])
                     
-    # m1 = net.m[:,0].detach().numpy()
-    # m2 = net.m[:,1].detach().numpy()
     pca = PCA(n_components=3)
     pca.fit(np.vstack(pos))
         
     #aggregate data under baseline condition (no input)
     pos, vel = [], []
-    for i in range(n_conds): #conditions  
-        pos_, vel_ = [], []
-        for k in [0, 2, 4]:
-            for j in range(n_traj): #trajectories
-                pos_proj = traj[i][j][k][:transient]
-                pos_proj = pca.transform(pos_proj)
-                # pos_proj = np.vstack([pos_proj@m1, pos_proj@m2]).T
-                pos_.append(pos_proj[:-1]) #stack trajectories
-                vel_.append(np.diff(pos_proj, axis=0)) #compute differences
-                           
-        pos_, vel_ = np.vstack(pos_), np.vstack(vel_) #stack trajectories
-        pos.append(pos_)
-        vel.append(vel_)
-            
+    if not only_stim:
+        for i in range(n_conds): #conditions  
+            pos_, vel_ = [], []
+            for k in [0, 2, 4]:
+                for j in range(n_traj): #trajectories
+                    pos_proj = traj[i][j][k][transient:]
+                    pos_proj = pca.transform(pos_proj)
+                    pos_.append(pos_proj[:-1]) #stack trajectories
+                    vel_.append(np.diff(pos_proj, axis=0)) #compute differences
+                               
+            pos_, vel_ = np.vstack(pos_), np.vstack(vel_) #stack trajectories
+            pos.append(pos_)
+            vel.append(vel_)
+      
     #aggregate data under stimulated condition
     for i in range(n_conds): #conditions 
         pos_, vel_ = [], []
         for k in [1, 3]:        
             for j in range(n_traj): #trajectories
-                pos_proj = traj[i][j][k][:transient]
+                pos_proj = traj[i][j][k][transient:]
                 pos_proj = pca.transform(pos_proj)
-                # pos_proj = np.vstack([pos_proj@m1, pos_proj@m2]).T
                 pos_.append(pos_proj[:-1])
                 vel_.append(np.diff(pos_proj, axis=0))
                     
