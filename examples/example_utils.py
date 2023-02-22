@@ -225,22 +225,22 @@ def plot_experiment(net, input, traj, epochs, rect=(-8, 8, -6, 6), traj_to_show=
     
 def sample_network(net, f):
     
-    if os.path.exists(f):
-        z, net_sampled = load_network(f, type='SupportLowRankRNN')
-    else:
-        n_pops = 2
-        seed = 0
-        z, _ = clustering.gmm_fit(net, n_pops, algo='bayes', random_state=seed)
+    n_pops = 2
+    seed = 0
+    z, _ = clustering.gmm_fit(net, n_pops, algo='bayes', random_state=seed)
+    net_sampled = clustering.to_support_net(net, z)
     
-        net_sampled = clustering.to_support_net(net, z)
-        
+    if os.path.exists(f):
+        z, state = torch.load(f)
+        net_sampled.load_state_dict(state)
+    else: 
         x_train, y_train, mask_train, x_val, y_val, mask_val = dms.generate_dms_data(1000)
         modules.train(net_sampled, x_train, y_train, mask_train, 20, lr=1e-6, resample=True, keep_best=True, clip_gradient=1)
     
     return z, net_sampled
     
 
-def load_network(f, type='LowRankRNN'):
+def load_network(f):
     
     noise_std = 5e-2
     alpha = 0.2
@@ -254,11 +254,7 @@ def load_network(f, type='LowRankRNN'):
         state = load
         z = None
     
-    if type=='LowRankRnn':
-        net = modules.LowRankRNN(2, hidden_size, 1, noise_std, alpha, rank=2)
-    elif type=='SupportLowRankRNN':
-        net = modules.SupportLowRankRNN(2, hidden_size, 1, noise_std, alpha, rank=2)
-        
+    net = modules.LowRankRNN(2, hidden_size, 1, noise_std, alpha, rank=2)
     net.load_state_dict(state)
     net.svd_reparametrization()
     
