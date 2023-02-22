@@ -277,6 +277,27 @@ def plot_ellipse(ax, w, color='silver', std_factor=1):
     
     return ax
     
+
+def plot_coefficients(net, z):
+    m1 = net.m[:,0].detach().numpy()
+    n1 = net.n[:,0].detach().numpy() 
+    m2 = net.m[:,1].detach().numpy()
+    n2 = net.n[:,1].detach().numpy() 
+    wi1 = net.wi[0].detach().numpy()
+    wi2 = net.wi[1].detach().numpy()
+    
+    fig, ax = plt.subplots(1, 4, figsize=(12, 4))
+    
+    colors = ['#364285', '#E5BA52']
+    n_pops = 2 
+    clustering.pop_scatter_linreg(wi1, wi2, z, n_pops, colors=colors, ax=ax[0])
+    plot_ellipse(ax[0,0], np.array([wi1[z.astype(bool)], wi2[z.astype(bool)]]).T, std_factor=3, color=colors[1])
+    plot_ellipse(ax[0,0], np.array([wi1[~z.astype(bool)], wi2[~z.astype(bool)]]).T, std_factor=3, color=colors[0])
+    
+    clustering.pop_scatter_linreg(m1, m2, z, n_pops, colors=colors, ax=ax[1])
+    clustering.pop_scatter_linreg(n1, n2, z, n_pops, colors=colors, ax=ax[2])
+    clustering.pop_scatter_linreg(m1, n1, z, n_pops, colors=colors, ax=ax[3])
+
     
 def aggregate_data(traj, epochs, transient=10, only_stim=False):
 
