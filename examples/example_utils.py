@@ -291,8 +291,8 @@ def plot_coefficients(net, z):
     colors = ['#364285', '#E5BA52']
     n_pops = 2 
     clustering.pop_scatter_linreg(wi1, wi2, z, n_pops, colors=colors, ax=ax[0])
-    plot_ellipse(ax[0,0], np.array([wi1[z.astype(bool)], wi2[z.astype(bool)]]).T, std_factor=3, color=colors[1])
-    plot_ellipse(ax[0,0], np.array([wi1[~z.astype(bool)], wi2[~z.astype(bool)]]).T, std_factor=3, color=colors[0])
+    plot_ellipse(ax[0], np.array([wi1[z.astype(bool)], wi2[z.astype(bool)]]).T, std_factor=3, color=colors[1])
+    plot_ellipse(ax[0], np.array([wi1[~z.astype(bool)], wi2[~z.astype(bool)]]).T, std_factor=3, color=colors[0])
     
     clustering.pop_scatter_linreg(m1, m2, z, n_pops, colors=colors, ax=ax[1])
     clustering.pop_scatter_linreg(n1, n2, z, n_pops, colors=colors, ax=ax[2])
