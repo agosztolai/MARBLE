@@ -286,7 +286,7 @@ def plot_coefficients(net, z):
     wi1 = net.wi[0].detach().numpy()
     wi2 = net.wi[1].detach().numpy()
     
-    fig, ax = plt.subplots(1, 4, figsize=(12, 4))
+    fig, ax = plt.subplots(1, 4, figsize=(12, 2))
     
     colors = ['#364285', '#E5BA52']
     n_pops = 2 
