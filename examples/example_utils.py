@@ -278,7 +278,11 @@ def plot_ellipse(ax, w, color='silver', std_factor=1):
     return ax
     
 
-def plot_coefficients(net, z):
+def plot_coefficients(net, z=None):
+    if z is None:
+        n_pops=2
+        z, _ = clustering.gmm_fit(net, n_pops, algo='bayes', random_state=0)
+    
     m1 = net.m[:,0].detach().numpy()
     n1 = net.n[:,0].detach().numpy() 
     m2 = net.m[:,1].detach().numpy()
