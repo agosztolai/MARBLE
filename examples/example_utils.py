@@ -226,7 +226,7 @@ def plot_experiment(net, input, traj, epochs, rect=(-8, 8, -6, 6), traj_to_show=
 def sample_network(net, f):
     
     if os.path.exists(f):
-        z, net_sampled = load_network(f)
+        z, net_sampled = load_network(f, type='SupportLowRankRNN')
     else:
         n_pops = 2
         seed = 0
