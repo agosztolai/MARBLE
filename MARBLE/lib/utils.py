@@ -207,7 +207,12 @@ def move_to_gpu(model, data, adjs=None):
     
     model = model.to(device)
     x = data.x.to(device)
-    L = data.L.to(device) if hasattr(data, 'L') else None
+    
+    if hasattr(data, 'L'):
+        L = [l.to(device) for l in data.L]
+    else:
+        L = None
+        
     Lc = data.Lc.to(device) if hasattr(data, 'Lc') else None
     kernels = [K.to(device) for K in data.kernels]
     gauges = data.gauges.to(device)
@@ -227,7 +232,12 @@ def detach_from_gpu(model, data, adjs=None):
     
     model = model.to(device)
     x = data.x.detach().cpu()
-    L = data.L.detach().cpu() if hasattr(data, 'L') else None
+    
+    if hasattr(data, 'L'):
+        L = [l.detach().cpu() for l in data.L]
+    else:
+        L = None
+        
     Lc = data.Lc.detach().cpu() if hasattr(data, 'Lc') else None
     kernels = [K.detach().cpu() for K in data.kernels]
     gauges = data.gauges.detach().cpu()

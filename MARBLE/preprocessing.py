@@ -8,7 +8,7 @@ from .lib import utils
 def preprocessing(data, 
                   n_geodesic_nb=2.0, 
                   var_explained=0.9,
-                  diffusion_method=None,
+                  diffusion_method='spectral',
                   vector=True,
                   compute_cl=False,
                   dim_man=None,
