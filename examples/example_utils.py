@@ -233,6 +233,9 @@ def sample_network(net, f):
         z, _ = clustering.gmm_fit(net, n_pops, algo='bayes', random_state=seed)
     
         net_sampled = clustering.to_support_net(net, z)
+        
+        x_train, y_train, mask_train, x_val, y_val, mask_val = dms.generate_dms_data(1000)
+        modules.train(net_sampled, x_train, y_train, mask_train, 20, lr=1e-6, resample=True, keep_best=True, clip_gradient=1)
     
     return z, net_sampled
     
@@ -243,11 +246,19 @@ def load_network(f):
     alpha = 0.2
     hidden_size=500
 
-    net =  modules.LowRankRNN(2, hidden_size, 1, noise_std, alpha, rank=2)
-    net.load_state_dict(torch.load(f, map_location='cpu'))
+    load = torch.load(f, map_location='cpu')
+    
+    if len(load)==2:
+        z, state = load
+    else:
+        state = load
+        z = None
+    
+    net = modules.LowRankRNN(2, hidden_size, 1, noise_std, alpha, rank=2)
+    net.load_state_dict(state)
     net.svd_reparametrization()
     
-    return net
+    return z, net
     
     
 def plot_ellipse(ax, w, color='silver', std_factor=1):
