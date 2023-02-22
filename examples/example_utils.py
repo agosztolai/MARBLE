@@ -1,5 +1,6 @@
 import numpy as np
 import pickle
+import torch
 import os
 from sklearn.neighbors import KDTree
 from scipy.spatial.transform import Rotation as R
@@ -8,7 +9,7 @@ from matplotlib.patches import Ellipse
 from sklearn.decomposition import PCA
 
 from MARBLE import utils, geometry, plotting
-from RNN_scripts import dms
+from RNN_scripts import dms, clustering, modules
 
 """Some functions that are used for the exampels"""
 
@@ -220,6 +221,33 @@ def plot_experiment(net, input, traj, epochs, rect=(-8, 8, -6, 6), traj_to_show=
         ax[3][i].set_xlabel('$\kappa_1$')
         
     fig.subplots_adjust(hspace=.1, wspace=.1)
+    
+    
+def sample_network(net, f):
+    
+    if os.path.exists(f):
+        z, net_sampled = load_network(f)
+    else:
+        n_pops = 2
+        seed = 0
+        z, _ = clustering.gmm_fit(net, n_pops, algo='bayes', random_state=seed)
+    
+        net_sampled = clustering.to_support_net(net, z)
+    
+    return z, net_sampled
+    
+
+def load_network(f):
+    
+    noise_std = 5e-2
+    alpha = 0.2
+    hidden_size=500
+
+    net =  modules.LowRankRNN(2, hidden_size, 1, noise_std, alpha, rank=2)
+    net.load_state_dict(torch.load(f, map_location='cpu'))
+    net.svd_reparametrization()
+    
+    return net
     
     
 def plot_ellipse(ax, w, color='silver', std_factor=1):
