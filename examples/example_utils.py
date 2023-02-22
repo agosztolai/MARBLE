@@ -240,7 +240,7 @@ def sample_network(net, f):
     return z, net_sampled
     
 
-def load_network(f):
+def load_network(f, type='LowRankRNN'):
     
     noise_std = 5e-2
     alpha = 0.2
@@ -254,7 +254,11 @@ def load_network(f):
         state = load
         z = None
     
-    net = modules.LowRankRNN(2, hidden_size, 1, noise_std, alpha, rank=2)
+    if type=='LowRankRnn':
+        net = modules.LowRankRNN(2, hidden_size, 1, noise_std, alpha, rank=2)
+    elif type=='SupportLowRankRNN':
+        net = modules.SupportLowRankRNN(2, hidden_size, 1, noise_std, alpha, rank=2)
+        
     net.load_state_dict(state)
     net.svd_reparametrization()
     
