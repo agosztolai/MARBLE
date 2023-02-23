@@ -236,6 +236,7 @@ def sample_network(net, f):
     else: 
         x_train, y_train, mask_train, x_val, y_val, mask_val = dms.generate_dms_data(1000)
         modules.train(net_sampled, x_train, y_train, mask_train, 20, lr=1e-6, resample=True, keep_best=True, clip_gradient=1)
+        torch.save([z, net_sampled.state_dict()], f)
     
     return z, net_sampled
     
