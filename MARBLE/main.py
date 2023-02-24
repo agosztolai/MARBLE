@@ -176,9 +176,9 @@ class net(nn.Module):
                   .format(epoch, train_loss, val_loss, scheduler._last_lr[0]), end="")
                 
             if best_loss==-1 or (val_loss<best_loss):
+                outdir = self.save_model(outdir, best=True)
                 best_loss = val_loss 
                 print(' *', end="")
-                outdir = self.save_model(outdir, best=True)
         
         test_loss = self.batch_loss(data, test_loader)
         print('\nFinal test loss: {:.4f}'.format(test_loss))
