@@ -7,6 +7,8 @@ from sklearn.neighbors import KDTree
 from scipy.spatial.transform import Rotation as R
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
+from matplotlib.colors import LightSource
+
 from sklearn.decomposition import PCA
 
 from MARBLE import utils, geometry, plotting
@@ -193,6 +195,21 @@ def parabola(X, Y, alpha=0.05):
     Z = -(alpha*X)**2 -(alpha*Y)**2
     
     return np.column_stack([X.flatten(), Y.flatten(), Z.flatten()])
+
+
+def plot_parabola(ax):
+    x = y = np.arange(-3.0, 3.0, 0.05)
+    X, Y = np.meshgrid(x, y)
+    xyz = np.array(parabola(np.ravel(X), np.ravel(Y)))
+    ls = LightSource(azdeg=30,altdeg=30)
+    rgb = ls.shade(xyz[:,2].reshape(X.shape)-0.1, plt.cm.gray)
+    
+    ax.plot_surface(xyz[:,0].reshape(X.shape), xyz[:,1].reshape(X.shape), xyz[:,2].reshape(X.shape)-0.02, 
+                    color='gray', 
+                    shade=True,
+                    lightsource=ls,
+                    facecolors=rgb
+                   )
 
     
 # =============================================================================
