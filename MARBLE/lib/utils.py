@@ -152,6 +152,8 @@ def check_parameters(par, data):
     if par['diffusion']:
         assert hasattr(data, 'L'), 'No Laplacian found. Compute it in preprocessing()!'
         
+    assert data.local_gauges==par['inner_product_features'], 'Local gauges detected, so >>inner_product_features<< most be True'
+        
     pars = ['batch_size', 'epochs', 'lr', 'momentum', 'order', \
             'inner_product_features', 'dim_signal', 'dim_emb', 'dim_man',\
             'frac_sampled_nb', 'dropout', 'n_lin_layers', 'diffusion', \
