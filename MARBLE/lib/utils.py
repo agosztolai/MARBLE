@@ -35,6 +35,7 @@ def construct_dataset(pos,
                       number_of_resamples=1,
                       n_nodes=None,
                       compute_cl=False,
+                      var_explained=0.9,
                       n_workers=1,
                       vector=True,
                       dim_man=None,
@@ -98,6 +99,7 @@ def construct_dataset(pos,
                                         compute_cl=compute_cl,
                                         n_workers=n_workers,
                                         n_geodesic_nb=n_geodesic_nb,
+                                        var_explained=var_explained,
                                         dim_man=dim_man)
     
     return batch

@@ -29,7 +29,7 @@ class net(nn.Module):
         utils.print_settings(self)
         
         self.optimizer = opt.SGD(self.parameters(), lr=self.par['lr'], momentum=self.par['momentum'])
-        self.writer = SummaryWriter()
+        self.writer = SummaryWriter('./log/')
         
         if loadpath is not None:
             self.load_model(loadpath)

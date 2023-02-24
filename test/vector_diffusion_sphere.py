@@ -5,7 +5,7 @@ import numpy as np
 import torch
 import sys
 from MARBLE import plotting, utils, geometry
-from MARBLE.layers import Diffusion
+from MARBLE.layers import Diffusion, AnisoConv
 import matplotlib.pyplot as plt
 
 def main():
@@ -18,17 +18,18 @@ def main():
     y = f(x) #evaluated functions
     
     #construct PyG data object
-    data = utils.construct_dataset(x, y, graph_type='radius', k=k, n_geodesic_nb=10, proj_man=True, compute_cl=True)
+    data = utils.construct_dataset(x, y, graph_type='radius', k=k, n_geodesic_nb=10, var_explained=0.9, compute_cl=True)
     
     #test the connection computation
-    data.x = geometry.map_to_local_gauges(data.x, data.gauges, 3) 
-    gauges, Sigma, R = geometry.compute_tangent_bundle(data, n_geodesic_nb=10)
+    data.x = geometry.map_to_local_gauges(data.x, data.gauges, length_correction=True) 
+    R = geometry.compute_connections(data, data.gauges)
     
     gauges, L, Lc = data.gauges, data.L, data.Lc
     
     data.x = data.x/2
     
     # diffusion = Diffusion(tau0=tau0)
+    grad = AnisoConv()
     # data.x = diffusion(data.x, L, Lc=Lc, method='matrix_exp', normalise=True)
     
     ind = np.arange(220).reshape(20,11)[:,5]
@@ -41,15 +42,12 @@ def main():
     
     data.x = gauges[...,0]/2
     plotting.fields(data, color='k')
-    # plt.savefig('gauge1.svg')
     
     data.x = gauges[...,1]/2
     plotting.fields(data, color='k')
-    # plt.savefig('gauge2.svg')
     
     data.x = gauges[...,2]/2
     plotting.fields(data, color='k')
-    # plt.savefig('gauge3.svg')
     
     vectors_on_meridian = torch.zeros_like(gauges[...,2])
     vectors_on_meridian[ind] = gauges[...,2][ind]
