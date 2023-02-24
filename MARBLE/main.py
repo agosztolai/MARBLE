@@ -29,6 +29,8 @@ class net(nn.Module):
         utils.print_settings(self)
         
         self.optimizer = opt.SGD(self.parameters(), lr=self.par['lr'], momentum=self.par['momentum'])
+        self.writer = SummaryWriter("./log/")
+        
         if loadpath is not None:
             self.load_model(loadpath)
         
@@ -153,12 +155,13 @@ class net(nn.Module):
         
         print('\n---- Training network ...')
                 
-        #load to gpu if possible
+        #load to gpu (if possible)
         self, data.x, data.L, data.Lc, data.kernels, data.gauges = utils.move_to_gpu(self, data)
         
-        #initialise logger
-        writer = SummaryWriter("./log/" + self.time)
+        #data loader
         train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
+        
+        #training scheduler
         scheduler = opt.lr_scheduler.ReduceLROnPlateau(self.optimizer)
         
         best_loss = -1
@@ -170,8 +173,8 @@ class net(nn.Module):
             val_loss = self.batch_loss(data, val_loader)
             scheduler.step(train_loss)
             
-            writer.add_scalar('Loss/train', train_loss, epoch)
-            writer.add_scalar('Loss/validation', val_loss, epoch)
+            self.writer.add_scalar('Loss/train', train_loss, epoch)
+            self.writer.add_scalar('Loss/validation', val_loss, epoch)
             print("\nEpoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}, lr: {:.4f}" \
                   .format(epoch, train_loss, val_loss, scheduler._last_lr[0]), end="")
                 
@@ -181,6 +184,8 @@ class net(nn.Module):
                 print(' *', end="")
         
         test_loss = self.batch_loss(data, test_loader)
+        self.writer.add_scalar('Loss/test', test_loss)
+        self.writer.close()
         print('\nFinal test loss: {:.4f}'.format(test_loss))
         
         self.save_model(outdir, best=False)
