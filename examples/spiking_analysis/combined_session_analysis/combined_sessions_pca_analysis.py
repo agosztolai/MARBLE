@@ -40,7 +40,7 @@ def main():
     rm_outliers = True
     filter_data = False
     pca_n = 4
-    plot = True
+    plot = False
     
     pos = []
 
@@ -78,22 +78,7 @@ def main():
     pos = [[] for u in range(len(conditions))]
     vel = [[] for u in range(len(conditions))]      
       
-    # loop over each daydef analyse():
-        
-        with open('./outputs/all_data.pkl', 'rb') as handle:
-            all_data = pickle.load(handle)
-            
-        distance_matrices = []
-        for data in all_data:
-            distance_matrices.append(data[0].dist)
-            
-        emb_MDS, _ = geometry.embed(np.dstack(distance_matrices).mean(2), embed_typ = 'MDS')
-        plt.figure()
-        plt.scatter(emb_MDS[:,0],emb_MDS[:,1],c=np.tile(np.linspace(0,6,7),[4,1]).flatten())
-        
-        plt.figure()
-        plt.imshow(np.dstack(distance_matrices).mean(2)); plt.colorbar()  
-        
+    # loop over each day
     for day in days:
      
         # loop over conditions
@@ -139,14 +124,14 @@ def main():
 
     # construct data for marble
     data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=40, stop_crit=0.05, 
-                                   n_nodes=1000, n_workers=1, n_geodesic_nb=10, compute_cl=True, vector=False)
+                                   n_nodes=2000, n_workers=1, n_geodesic_nb=10, compute_cl=True, vector=False)
     
     os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2"
+    os.environ["CUDA_VISIBLE_DEVICES"]="1"
     
     par = {'epochs': 100, #optimisation epochs
            'order': 2, #order of derivatives
-           'hidden_channels': 60, #number of internal dimensions in MLP
+           'hidden_channels': 80, #number of internal dimensions in MLP
            'out_channels': 3,
            'inner_product_features': False,
            'vec_norm': False,
@@ -165,44 +150,36 @@ def main():
         emb_MDS, _ = geometry.embed(data.dist, embed_typ = 'MDS')
         plt.figure()
         plt.scatter(emb_MDS[:,0],emb_MDS[:,1],c=np.linspace(0,6,7))
-        plt.savefig('./outputs/mds_embedding.png')
-
+        
         plt.figure()
         plt.imshow(data.dist); plt.colorbar()  
-        plt.savefig('./outputs/distance_matrix.png')
-
+        
         plt.figure()
         plotting.embedding(data, data.y.numpy())
-        plt.savefig('./outputs/node_embedding.png')
-
 
     with open('./outputs/data.pkl', 'wb') as handle:
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
                     
-            
-
+     
+    
     return
-
-# def analyse():
-#     import matplotlib.pyplot as plt
-#     from MARBLE import geometry
-#     import numpy as np
-#     import pickle
     
-#     with open('./outputs/data.pkl', 'rb') as handle:
-#         data = pickle.load(open('./outputs/data.pkl', 'rb'))    
+def analyse():
 
     
-#     emb_MDS, _ = geometry.embed(data.dist, embed_typ = 'MDS')
-#     plt.figure()
-#     plt.scatter(emb_MDS[:,0],emb_MDS[:,1],c=np.linspace(0,6,7))
-#     plt.savefig('./outputs/embedding.png')
+    with open('./outputs/data.pkl', 'rb') as handle:
+        all_data = pickle.load(handle)    
+
+        
+    emb_MDS, _ = geometry.embed(data.dist, embed_typ = 'MDS')
+    plt.figure()
+    plt.scatter(emb_MDS[:,0],emb_MDS[:,1],c=np.linspace(0,6,7))
+    plt.savefig('./outputs/embedding.png')
+
     
-    
-#     plt.figure()
-#     plt.imshow(data.dist); plt.colorbar()  
-#     plt.savefig('./outputs/distance_matrix.png')
-    
+    plt.figure()
+    plt.imshow(data.dist); plt.colorbar()  
+    plt.savefig('./outputs/distance_matrix.png')
 
 
 def get_vector_array(coords):
@@ -227,5 +204,4 @@ def remove_outliers(pos, vel):
 
 if __name__ == '__main__':
     sys.exit(main())
-
 
