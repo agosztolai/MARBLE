@@ -16,15 +16,21 @@ from . import layers, dataloader
 
 """Main network"""
 class net(nn.Module):
-    def __init__(self, data, **kwargs):
+    def __init__(self, data, loadpath=None, **kwargs):
         super(net, self).__init__()
         
+        self.epoch = 0
+        self.time = datetime.now().strftime("%Y%m%d-%H%M%S")
         self.par = utils.parse_parameters(data, kwargs)
         self = layers.setup_layers(self)      
         self.loss = loss_fun()       
         self.reset_parameters()
         
         utils.print_settings(self)
+        
+        self.optimizer = opt.SGD(self.parameters(), lr=self.par['lr'], momentum=self.par['momentum'])
+        if loadpath is not None:
+            self.load_model(loadpath)
         
         
     def reset_parameters(self):
@@ -110,16 +116,18 @@ class net(nn.Module):
             return data
                 
 
-    def batch_loss(self, data, loader, optimizer=None):
+    def batch_loss(self, data, loader, train=False):
         """Loop over minibatches provided by loader function.
         
         Parameters
         ----------
         x : (nxdim) feature matrix
         loader : dataloader object from dataloader.py
-        optimizer : pytorch optimiser
         
         """
+        
+        if train: #training mode (enables dropout in MLP)
+            self.train()
         
         cum_loss = 0
         for batch in loader:
@@ -130,15 +138,17 @@ class net(nn.Module):
             loss = self.loss(emb)
             cum_loss += float(loss)
             
-            if optimizer is not None:
-                optimizer.zero_grad() #zero gradients, otherwise accumulates
+            if hasattr(self, 'optimizer'):
+                self.optimizer.zero_grad() #zero gradients, otherwise accumulates
                 loss.backward() #backprop
-                optimizer.step()
+                self.optimizer.step()
                 
-        return cum_loss/len(loader), optimizer
+        self.eval()
+                
+        return cum_loss/len(loader)
     
     
-    def run_training(self, data, save=True, loadpath=None, use_best=True):
+    def run_training(self, data, outdir=None, use_best=True):
         """Network training"""
         
         print('\n---- Training network ...')
@@ -146,66 +156,68 @@ class net(nn.Module):
         #load to gpu if possible
         self, data.x, data.L, data.Lc, data.kernels, data.gauges = utils.move_to_gpu(self, data)
         
-        #initialise logger and optimiser
-        writer = SummaryWriter("./log/" + datetime.now().strftime("%Y%m%d-%H%M%S"))
+        #initialise logger
+        writer = SummaryWriter("./log/" + self.time)
         train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
-        optimizer = opt.SGD(self.parameters(), lr=self.par['lr'], momentum=self.par['momentum'])
-        scheduler = opt.lr_scheduler.ReduceLROnPlateau(optimizer)
-        
-        if loadpath is not None:
-            checkpoint = torch.load(loadpath)
-            self.load_state_dict(checkpoint['model_state_dict'])
-            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-            epoch0 = checkpoint['epoch']
-        else:
-            checkpoint = {}
-            epoch0 = 0
-            
-        if save:
-            if not os.path.exists('./outputs'):
-                os.makedirs('./outputs')
+        scheduler = opt.lr_scheduler.ReduceLROnPlateau(self.optimizer)
         
         best_loss = -1
         for epoch in range(self.par['epochs']):
             
-            self.train() #training mode
-            train_loss, optimizer = self.batch_loss(data, train_loader, optimizer)
+            epoch = self.epoch + epoch + 1
             
-            self.eval() #testing mode (disables dropout in MLP)
-            val_loss, _ = self.batch_loss(data, val_loader)
+            train_loss = self.batch_loss(data, train_loader, train=True)
+            val_loss = self.batch_loss(data, val_loader)
             scheduler.step(train_loss)
             
             writer.add_scalar('Loss/train', train_loss, epoch)
             writer.add_scalar('Loss/validation', val_loss, epoch)
-            lr = scheduler._last_lr[0]
             print("\nEpoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}, lr: {:.4f}" \
-                  .format(epoch+epoch0+1, train_loss, val_loss, lr), end="")
+                  .format(epoch, train_loss, val_loss, scheduler._last_lr[0]), end="")
                 
             if best_loss==-1 or (val_loss<best_loss):
+                outdir = self.save_model(outdir, best=True)
                 best_loss = val_loss 
                 print(' *', end="")
-                checkpoint['model_state_dict'] = self.state_dict()
-                checkpoint['optimizer_state_dict'] = optimizer.state_dict()
-                if save:
-                    torch.save({
-                            'epoch': epoch+epoch0,
-                            'model_state_dict': self.state_dict(),
-                            'optimizer_state_dict': optimizer.state_dict(),
-                            }, './outputs/best_model.pth')
         
-        test_loss, _ = self.batch_loss(data, test_loader)
+        test_loss = self.batch_loss(data, test_loader)
         print('\nFinal test loss: {:.4f}'.format(test_loss))
         
-        if save:
-            torch.save({
-                    'epoch': epoch+epoch0,
-                    'model_state_dict': self.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    }, './outputs/last_model.pth')
+        self.save_model(outdir, best=False)
         
         if use_best:
-            self.load_state_dict(checkpoint['model_state_dict'])
-            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            self.load_model(os.path.join(outdir, 'best_model.pth'))
+            
+            
+    def load_model(self, loadpath):
+        
+        checkpoint = torch.load(loadpath)
+        self.epoch = checkpoint['epoch']
+        self.load_state_dict(checkpoint['model_state_dict'])
+        if hasattr(self, 'optimizer'):
+            self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+                                
+
+    def save_model(self, outdir=None, best=False):
+        
+        if outdir is None:
+            outdir = './outputs/'   
+             
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
+                
+        checkpoint = {'epoch': self.epoch,
+                      'model_state_dict': self.state_dict(),
+                      'optimizer_state_dict': self.optimizer.state_dict(),
+                      'time': self.time
+                     }
+        
+        if best:
+            torch.save(checkpoint, os.path.join(outdir,'best_model.pth'))
+        else:
+            torch.save(checkpoint, os.path.join(outdir,'last_model.pth'))
+            
+        return outdir
 
 
 class loss_fun(nn.Module):
