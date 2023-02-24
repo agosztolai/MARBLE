@@ -415,14 +415,19 @@ def fit_graph(x, graph_type='cknn', par=1):
         edge_index = cknneighbors_graph(x, n_neighbors=par, delta=1.0).tocoo()
         edge_index = np.vstack([edge_index.row,edge_index.col])
         edge_index = utils.np2torch(edge_index, dtype='double')
+        
     elif graph_type=='knn':
         edge_index = knn_graph(x, k=par)
         edge_index = PyGu.add_self_loops(edge_index)[0]
+        
     elif graph_type=='radius':
         edge_index = radius_graph(x, r=par)
         edge_index = PyGu.add_self_loops(edge_index)[0]
+        
     else:
         NotImplementedError
+        
+    assert is_connected(edge_index), 'Graph is not connected! Try increasing k.'
     
     edge_index = PyGu.to_undirected(edge_index)
     pdist = torch.nn.PairwiseDistance(p=2)
@@ -430,6 +435,13 @@ def fit_graph(x, graph_type='cknn', par=1):
     edge_weight = 1/edge_weight
     
     return edge_index, edge_weight
+
+
+def is_connected(edge_index):
+    adj = torch.sparse_coo_tensor(edge_index,torch.ones(edge_index.shape[1]))
+    deg = torch.sparse.sum(adj, 0).values()
+    
+    return (deg>1).all()
 
 
 def compute_laplacian(data, normalization="rw"):
