@@ -79,7 +79,7 @@ def main():
         pca.fit(pos)        
       
         # time periods
-        time_periods = [(0,14),(5,9),(10,15)]
+        time_periods = [(0,4),(5,9),(10,15)]
          
       
         # create empty list of lists for each condition
@@ -131,7 +131,7 @@ def main():
             pos, vel = remove_outliers(pos, vel)
 
         # construct data for marble
-        data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=40, stop_crit=0.05, 
+        data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=40, stop_crit=0.01, 
                                        n_nodes=100, n_workers=1, n_geodesic_nb=5, compute_cl=True, vector=False)
         
         
