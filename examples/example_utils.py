@@ -2,6 +2,7 @@ import numpy as np
 import pickle
 import torch
 import os
+import sys
 from sklearn.neighbors import KDTree
 from scipy.spatial.transform import Rotation as R
 import matplotlib.pyplot as plt
@@ -10,6 +11,11 @@ from sklearn.decomposition import PCA
 
 from MARBLE import utils, geometry, plotting
 from RNN_scripts import dms, clustering, modules
+
+from DE_library import simulate_trajectories
+
+sys.path.append("./RNN_scripts")
+
 
 """Some functions that are used for the exampels"""
 
@@ -172,6 +178,25 @@ def spiking_data(file = '../data/conditions_spiking_data.mat'):
     
     
 # =============================================================================
+# Van der Pol example
+# =============================================================================
+def simulate_vanderpol(mu, X0, t):
+    p, v = simulate_trajectories('vanderpol', X0, t, par = {'mu': mu})
+    pos, vel = [], []
+    for p_, v_ in zip(p,v):
+        ind = reject_outliers(p_, v_)
+        pos.append(p_[ind])
+        vel.append(v_[ind])
+        
+    return pos, vel
+
+def parabola(X, Y, alpha=0.05):
+    Z = -(alpha*X)**2 -(alpha*Y)**2
+    
+    return np.column_stack([X.flatten(), Y.flatten(), Z.flatten()])
+
+    
+# =============================================================================
 # For the RNN example    
 # =============================================================================
 def generate_trajectories(net, input=None, epochs=None, n_traj=None, fname='./outputs/RNN_trajectories.pkl'):
@@ -319,7 +344,7 @@ def aggregate_data(traj, epochs, transient=10, only_stim=False):
                     
     pca = PCA(n_components=3)
     pca.fit(np.vstack(pos))
-    print(pca.explained_variance_ratio_)
+    print('Explained variance: ', pca.explained_variance_ratio_)
         
     #aggregate data under baseline condition (no input)
     pos, vel = [], []
