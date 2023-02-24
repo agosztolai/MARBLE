@@ -175,7 +175,7 @@ class net(nn.Module):
             
             self.writer.add_scalar('Loss/train', train_loss, epoch)
             self.writer.add_scalar('Loss/validation', val_loss, epoch)
-            self.writer.close()
+            self.writer.flush()
             print("\nEpoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}, lr: {:.4f}" \
                   .format(epoch, train_loss, val_loss, scheduler._last_lr[0]), end="")
                 
@@ -186,7 +186,7 @@ class net(nn.Module):
         
         test_loss = self.batch_loss(data, test_loader)
         self.writer.add_scalar('Loss/test', test_loss)
-        
+        self.writer.close()
         print('\nFinal test loss: {:.4f}'.format(test_loss))
         
         self.save_model(outdir, best=False)
