@@ -10,11 +10,10 @@ from matplotlib.patches import Ellipse
 from sklearn.decomposition import PCA
 
 from MARBLE import utils, geometry, plotting
+sys.path.append("./RNN_scripts")
 from RNN_scripts import dms, clustering, modules
 
 from DE_library import simulate_trajectories
-
-sys.path.append("./RNN_scripts")
 
 
 """Some functions that are used for the exampels"""
