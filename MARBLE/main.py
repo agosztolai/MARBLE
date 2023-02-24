@@ -178,12 +178,12 @@ class net(nn.Module):
             if best_loss==-1 or (val_loss<best_loss):
                 best_loss = val_loss 
                 print(' *', end="")
-                self.save_model(best=True, outpath=outpath)
+                self.save_model(outpath, best=True)
         
         test_loss = self.batch_loss(data, test_loader)
         print('\nFinal test loss: {:.4f}'.format(test_loss))
         
-        self.save_model(best=False, outpath=outpath)
+        self.save_model(outpath, best=False)
         
         if use_best:
             self.load_model(loadpath=outpath)
@@ -201,7 +201,7 @@ class net(nn.Module):
             self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
                                 
 
-    def save_model(self, best=False, outpath=None):
+    def save_model(self, outpath=None, best=False):
         
         if outpath is None:
             outpath = './outputs/'   
