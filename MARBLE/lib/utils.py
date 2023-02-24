@@ -23,6 +23,7 @@ from . import geometry
 from MARBLE import preprocessing
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+torch.manual_seed(0)
 
 
 def construct_dataset(pos, 

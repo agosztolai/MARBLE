@@ -148,7 +148,7 @@ class net(nn.Module):
         return cum_loss/len(loader)
     
     
-    def run_training(self, data, outpath=None, use_best=True):
+    def run_training(self, data, outdir=None, use_best=True):
         """Network training"""
         
         print('\n---- Training network ...')
@@ -178,36 +178,33 @@ class net(nn.Module):
             if best_loss==-1 or (val_loss<best_loss):
                 best_loss = val_loss 
                 print(' *', end="")
-                self.save_model(outpath, best=True)
+                outdir = self.save_model(outdir, best=True)
         
         test_loss = self.batch_loss(data, test_loader)
         print('\nFinal test loss: {:.4f}'.format(test_loss))
         
-        self.save_model(outpath, best=False)
+        self.save_model(outdir, best=False)
         
         if use_best:
-            self.load_model(loadpath=outpath)
+            self.load_model(os.path.join(outdir, 'best_model.pth'))
             
             
-    def load_model(self, loadpath, best=True):
+    def load_model(self, loadpath):
         
-        if best:
-            checkpoint = torch.load(os.path.join(loadpath,'best_model.pth'))
-        else:
-            checkpoint = torch.load(os.path.join(loadpath,'last_model.pth'))
+        checkpoint = torch.load(loadpath)
         self.epoch = checkpoint['epoch']
         self.load_state_dict(checkpoint['model_state_dict'])
         if hasattr(self, 'optimizer'):
             self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
                                 
 
-    def save_model(self, outpath=None, best=False):
+    def save_model(self, outdir=None, best=False):
         
-        if outpath is None:
-            outpath = './outputs/'   
+        if outdir is None:
+            outdir = './outputs/'   
              
-        if not os.path.exists(outpath):
-                os.makedirs(outpath)
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
                 
         checkpoint = {'epoch': self.epoch,
                       'model_state_dict': self.state_dict(),
@@ -216,11 +213,11 @@ class net(nn.Module):
                      }
         
         if best:
-            torch.save(checkpoint, os.path.join(outpath,'best_model.pth'))
+            torch.save(checkpoint, os.path.join(outdir,'best_model.pth'))
         else:
-            torch.save(checkpoint, os.path.join(outpath,'last_model.pth'))
-    
-        return checkpoint
+            torch.save(checkpoint, os.path.join(outdir,'last_model.pth'))
+            
+        return outdir
 
 
 class loss_fun(nn.Module):

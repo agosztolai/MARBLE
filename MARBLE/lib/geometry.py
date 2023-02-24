@@ -153,12 +153,14 @@ def embed(x, embed_typ='umap', dim_emb=2, manifold=None):
         if manifold is not None:
             raise Exception('t-SNE cannot fit on existing manifold')
             
-        emb = TSNE(init='random',learning_rate='auto').fit_transform(x)
+        emb = TSNE(init='random',
+                   learning_rate='auto',
+                   random_state=0).fit_transform(x)
             
     elif embed_typ == 'umap':
         x = StandardScaler().fit_transform(x)
         if manifold is None:
-            manifold = umap.UMAP().fit(x)
+            manifold = umap.UMAP(random_state=0).fit(x)
             
         emb = manifold.transform(x)
         
@@ -166,7 +168,10 @@ def embed(x, embed_typ='umap', dim_emb=2, manifold=None):
         if manifold is not None:
             raise Exception('MDS cannot fit on existing manifold')
             
-        emb = MDS(n_components=dim_emb, n_init=20, dissimilarity='precomputed').fit_transform(x)
+        emb = MDS(n_components=dim_emb, 
+                  n_init=20, 
+                  dissimilarity='precomputed', 
+                  random_state=0).fit_transform(x)
         
     elif embed_typ == 'PCA':
         if manifold is None:
