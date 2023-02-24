@@ -319,6 +319,7 @@ def aggregate_data(traj, epochs, transient=10, only_stim=False):
                     
     pca = PCA(n_components=3)
     pca.fit(np.vstack(pos))
+    print(pca.explained_variance_ratio_)
         
     #aggregate data under baseline condition (no input)
     pos, vel = [], []
