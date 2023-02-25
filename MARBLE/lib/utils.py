@@ -252,7 +252,6 @@ def detach_from_gpu(model, data, adjs=None):
     else:
         Lc = None        
 
-    Lc = data.Lc.detach().cpu() if hasattr(data, 'Lc') else None
     kernels = [K.detach().cpu() for K in data.kernels]
     gauges = data.gauges.detach().cpu()
             
