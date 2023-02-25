@@ -43,21 +43,21 @@ def preprocessing(data,
     #disable vector computations if 1) signal is scalar or 2) embedding dimension
     #is <= 2. In case 2), either M=R^2 (manifold is whole space) or case 1).
     if not vector:
-        local_gauge=False
+        local_gauges=False
         print('\nVector computations are disabled')
     elif dim_signal==1:
         print('\nSignal dimension is 1, so manifold computations are disabled!')
-        local_gauge = False
+        local_gauges = False
     elif dim_emb<=2:
         print('\nEmbedding dimension <= 2, so manifold computations are disabled!')
-        local_gauge = False
+        local_gauges = False
     elif dim_emb!=dim_signal:
         print('\nEmbedding dimension /= signal dimension, so manifold computations are disabled!')
     else:
-        local_gauge = True
+        local_gauges = True
         
     #gauges
-    if local_gauge:
+    if local_gauges:
         try:
             gauges, Sigma = g.compute_gauges(data, n_geodesic_nb=n_geodesic_nb)
         except:
@@ -69,7 +69,7 @@ def preprocessing(data,
     #Laplacian
     L = g.compute_laplacian(data)
     
-    if local_gauge:
+    if local_gauges:
         
         if not dim_man:
             dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
@@ -102,6 +102,6 @@ def preprocessing(data,
         Lc = g.compute_eigendecomposition(Lc)
         
     data.kernels = [utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels]
-    data.L, data.Lc, data.gauges = L, Lc, gauges
+    data.L, data.Lc, data.gauges, data.local_gauges = L, Lc, gauges, local_gauges
         
     return data

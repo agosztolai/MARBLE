@@ -10,8 +10,6 @@ from torch_geometric.nn import knn_graph, radius_graph
 from torch_scatter import scatter_add
 from cknn import cknneighbors_graph
 
-from torch.nn.functional import normalize
-
 from sklearn.cluster import KMeans, MeanShift
 from sklearn.metrics import pairwise_distances
 from sklearn.manifold import TSNE, MDS
@@ -357,7 +355,8 @@ def gradient_op(pos, edge_index, gauges):
     
     K = []
     for _F in F:
-        _F.data = _F.data / np.repeat(np.add.reduceat(np.abs(_F.data), _F.indptr[:-1]), np.diff(_F.indptr))
+        norm = np.repeat(np.add.reduceat(np.abs(_F.data), _F.indptr[:-1]), np.diff(_F.indptr))
+        _F.data /= norm
         _F -= sp.diags(np.array(_F.sum(1)).flatten())
         _F = _F.tocoo()
         K.append(torch.sparse_coo_tensor(np.vstack([_F.row,_F.col]), _F.data.data))
@@ -374,10 +373,17 @@ def normalize_sparse_matrix(sp_tensor):
     return sp_tensor
     
 
-def map_to_local_gauges(x, gauges):
+def map_to_local_gauges(x, gauges, length_correction=False):
     """Transform signal into local coordinates"""
+    
+    proj = torch.einsum('aij,ai->aj', gauges, x)
+    
+    if length_correction:
+        norm_x = x.norm(p=2, dim=1, keepdim=True)
+        norm_proj = proj.norm(p=2, dim=1, keepdim=True)
+        proj = proj/norm_proj*norm_x
         
-    return torch.einsum('aij,ai->aj', gauges, x)
+    return proj
 
     
 def project_to_gauges(x, gauges, dim=2):
@@ -406,16 +412,22 @@ def fit_graph(x, graph_type='cknn', par=1):
     """Fit graph to node positions"""
     
     if graph_type=='cknn':
-        ckng = cknneighbors_graph(x, n_neighbors=par, delta=1.0)
-        ckng += sp.eye(ckng.shape[0])
-        edge_index = np.vstack(ckng.nonzero())
+        edge_index = cknneighbors_graph(x, n_neighbors=par, delta=1.0).tocoo()
+        edge_index = np.vstack([edge_index.row,edge_index.col])
         edge_index = utils.np2torch(edge_index, dtype='double')
+        
     elif graph_type=='knn':
         edge_index = knn_graph(x, k=par)
+        edge_index = PyGu.add_self_loops(edge_index)[0]
+        
     elif graph_type=='radius':
         edge_index = radius_graph(x, r=par)
+        edge_index = PyGu.add_self_loops(edge_index)[0]
+        
     else:
         NotImplementedError
+        
+    assert is_connected(edge_index), 'Graph is not connected! Try increasing k.'
     
     edge_index = PyGu.to_undirected(edge_index)
     pdist = torch.nn.PairwiseDistance(p=2)
@@ -423,6 +435,13 @@ def fit_graph(x, graph_type='cknn', par=1):
     edge_weight = 1/edge_weight
     
     return edge_index, edge_weight
+
+
+def is_connected(edge_index):
+    adj = torch.sparse_coo_tensor(edge_index,torch.ones(edge_index.shape[1]))
+    deg = torch.sparse.sum(adj, 0).values()
+    
+    return (deg>1).all()
 
 
 def compute_laplacian(data, normalization="rw"):
@@ -460,7 +479,8 @@ def compute_connection_laplacian(data, R, normalization='rw'):
 
     """
     
-    n, d = data.x.shape
+    n = data.x.shape[0]
+    d = R.size()[0]//n
     
     #unnormalised (combinatorial) laplacian, to be normalised later
     L = compute_laplacian(data, normalization=None).to_sparse()

@@ -35,6 +35,7 @@ def construct_dataset(pos,
                       number_of_resamples=1,
                       n_nodes=None,
                       compute_cl=False,
+                      var_explained=0.9,
                       n_workers=1,
                       vector=True,
                       dim_man=None,
@@ -98,6 +99,7 @@ def construct_dataset(pos,
                                         compute_cl=compute_cl,
                                         n_workers=n_workers,
                                         n_geodesic_nb=n_geodesic_nb,
+                                        var_explained=var_explained,
                                         dim_man=dim_man)
     
     return batch
@@ -149,6 +151,8 @@ def check_parameters(par, data):
         
     if par['diffusion']:
         assert hasattr(data, 'L'), 'No Laplacian found. Compute it in preprocessing()!'
+        
+    assert data.local_gauges==par['inner_product_features'], 'Local gauges detected, so >>inner_product_features<< most be True'
         
     pars = ['batch_size', 'epochs', 'lr', 'momentum', 'order', \
             'inner_product_features', 'dim_signal', 'dim_emb', 'dim_man',\

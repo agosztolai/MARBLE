@@ -2,14 +2,21 @@ import numpy as np
 import pickle
 import torch
 import os
+import sys
 from sklearn.neighbors import KDTree
 from scipy.spatial.transform import Rotation as R
 import matplotlib.pyplot as plt
 from matplotlib.patches import Ellipse
+from matplotlib.colors import LightSource
+
 from sklearn.decomposition import PCA
 
 from MARBLE import utils, geometry, plotting
+sys.path.append("./RNN_scripts")
 from RNN_scripts import dms, clustering, modules
+
+from DE_library import simulate_trajectories
+
 
 """Some functions that are used for the exampels"""
 
@@ -172,6 +179,40 @@ def spiking_data(file = '../data/conditions_spiking_data.mat'):
     
     
 # =============================================================================
+# Van der Pol example
+# =============================================================================
+def simulate_vanderpol(mu, X0, t):
+    p, v = simulate_trajectories('vanderpol', X0, t, par = {'mu': mu})
+    pos, vel = [], []
+    for p_, v_ in zip(p,v):
+        ind = reject_outliers(p_, v_)
+        pos.append(p_[ind])
+        vel.append(v_[ind])
+        
+    return pos, vel
+
+def parabola(X, Y, alpha=0.05):
+    Z = -(alpha*X)**2 -(alpha*Y)**2
+    
+    return np.column_stack([X.flatten(), Y.flatten(), Z.flatten()])
+
+
+def plot_parabola(ax):
+    x = y = np.arange(-3.0, 3.0, 0.05)
+    X, Y = np.meshgrid(x, y)
+    xyz = np.array(parabola(np.ravel(X), np.ravel(Y)))
+    ls = LightSource(azdeg=30,altdeg=30)
+    rgb = ls.shade(xyz[:,2].reshape(X.shape)-0.1, plt.cm.gray)
+    
+    ax.plot_surface(xyz[:,0].reshape(X.shape), xyz[:,1].reshape(X.shape), xyz[:,2].reshape(X.shape)-0.02, 
+                    color='gray', 
+                    shade=True,
+                    lightsource=ls,
+                    facecolors=rgb
+                   )
+
+    
+# =============================================================================
 # For the RNN example    
 # =============================================================================
 def generate_trajectories(net, input=None, epochs=None, n_traj=None, fname='./outputs/RNN_trajectories.pkl'):
@@ -319,6 +360,7 @@ def aggregate_data(traj, epochs, transient=10, only_stim=False):
                     
     pca = PCA(n_components=3)
     pca.fit(np.vstack(pos))
+    print('Explained variance: ', pca.explained_variance_ratio_)
         
     #aggregate data under baseline condition (no input)
     pos, vel = [], []

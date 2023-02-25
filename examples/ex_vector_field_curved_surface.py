@@ -35,7 +35,7 @@ def main():
     data = utils.construct_dataset(x, y,
                                    graph_type='cknn',
                                    k=10,
-                                   n_geodesic_nb=30,
+                                   n_geodesic_nb=20,
                                    vector=True)
     
     #train model
