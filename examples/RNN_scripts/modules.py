@@ -4,7 +4,9 @@ MAIN FILE
 Definition of network classes, training functionality.
 """
 
-from .helpers import gram_schmidt_pt
+import sys
+sys.path.append("./RNN_scripts")
+from helpers import gram_schmidt_pt
 import torch.nn as nn
 from math import sqrt, floor
 import random
