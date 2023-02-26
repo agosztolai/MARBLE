@@ -80,7 +80,8 @@ def construct_dataset(pos,
                          edge_weight=edge_weight,
                          num_nodes = n,
                          num_node_features = num_node_features,
-                         y = torch.ones(n, dtype=int)*labels[i]
+                         y = torch.ones(n, dtype=int)*labels[i],
+                         sample_ind = sample_ind,
                          )
         
             data_list.append(data_)
