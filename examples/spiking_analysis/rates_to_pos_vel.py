@@ -27,7 +27,7 @@ def main():
     pos, vel = remove_outliers(pos, vel)
     
 
-    with open('../outputs/spiking_data/dataobject.pkl', 'wb') as handle:
+    with open('../outputs/spiking_data/data_pos_vel.pkl', 'wb') as handle:
         pickle.dump([pos, vel], handle, protocol=pickle.HIGHEST_PROTOCOL)
         
         
