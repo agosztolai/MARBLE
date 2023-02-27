@@ -91,15 +91,14 @@ def main():
                 
                 # extract vectors between coordinates
                 vel[c].append(get_vector_array(trial))
+                
+        # remove outliers
+        if rm_outliers:
+            pos, vel = remove_outliers(pos[c], vel[c])    
                         
     # stack the trials within each condition
     pos = [np.vstack(u) for u in pos] # trials x time x channels
     vel = [np.vstack(u) for u in vel] # trials x time x channels
-    
-   
-    # remove outliers
-    if rm_outliers:
-        pos, vel = remove_outliers(pos, vel)    
     
 
     with open('../outputs/spiking_data/dataobject.pkl', 'wb') as handle:
