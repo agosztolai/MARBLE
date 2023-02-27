@@ -14,6 +14,8 @@ from sklearn.decomposition import PCA#, KernelPCA
 from sklearn.neighbors import LocalOutlierFactor
 from tqdm import tqdm
 
+from MARBLE import utils
+
 #%%   
 
 def main():        
@@ -26,9 +28,17 @@ def main():
     pos, vel = compute_velocity(rates, pca)
     pos, vel = remove_outliers(pos, vel)
     
+    
+    days, conditions = list(rates.keys()), list(rates[0].keys())
+    pos = [p for p_c in pos for p in p_c]
+    vel = [v for v_c in vel for v in v_c]
+    
+    data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=20, stop_crit=0.03, 
+                               n_geodesic_nb=10, compute_cl=False, vector=False)
+    
 
     with open('../outputs/spiking_data/data_pos_vel.pkl', 'wb') as handle:
-        pickle.dump([pos, vel], handle, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump([data, days, conditions], handle, protocol=pickle.HIGHEST_PROTOCOL)
         
         
 def start_at_gocue(rates, t = 500):
