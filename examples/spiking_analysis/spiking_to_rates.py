@@ -21,11 +21,14 @@ def main():
                                 data,
                                 processes=-1,
                                 desc="Converting spikes to rates...")
-    
-    rates = dict(rates)
+        
+    all_rates = {}
+    for i, rates_day in enumerate(rates):
+        all_rates[i] = rates_day
+        
     
     with open('../outputs/spiking_data/rate_data.pkl', 'wb') as handle:
-        pickle.dump(rates, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(all_rates, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
         
 def spikes_to_rates(data, d):
