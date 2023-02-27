@@ -2,7 +2,7 @@
 #SBATCH --job-name spiking_to_rates # Name for your job
 #SBATCH --ntasks 12              # Number of (cpu) tasks
 #SBATCH --time 120             # Runtime in minutes.
-#SBATCH --mem 20000             # Reserve 10 GB RAM for the job
+#SBATCH --mem 50000             # Reserve 10 GB RAM for the job
 #SBATCH --partition cpu         # Partition to submit ('gpu' or 'cpu')
 #SBATCH --qos staff             # QOS ('staff' or 'students')
 #SBATCH --output myjob-%j.txt       # Standard out goes to this file
