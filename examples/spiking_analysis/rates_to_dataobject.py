@@ -18,10 +18,9 @@ from MARBLE import utils
 #%%   
 
 def main():        
-    """ fitting model for each day """    
-
+    
     # instantaneous rate data
-    rates =  pickle.load(open('..outputs/spiking_data/rate_data.pkl','rb'))       
+    rates =  pickle.load(open('../outputs/spiking_data/rate_data.pkl','rb'))       
 
     # definingf the set of conditions     
     conditions=['DownLeft','Left','UpLeft','Up','UpRight','Right','DownRight']    
@@ -92,10 +91,7 @@ def main():
                 
                 # extract vectors between coordinates
                 vel[c].append(get_vector_array(trial))
-                
-   
-    # plt.quiver(pos[0][1][:,0],pos[0][1][:,1],vel[0][1][:,0],vel[0][1][:,1], angles='xy')
-        
+                        
     # stack the trials within each condition
     pos = [np.vstack(u) for u in pos] # trials x time x channels
     vel = [np.vstack(u) for u in vel] # trials x time x channels
@@ -110,7 +106,7 @@ def main():
                                    n_geodesic_nb=10, compute_cl=True, vector=False)
     
 
-    with open('./outputs/dataobject.pkl', 'wb') as handle:
+    with open('../outputs/spiking_data/dataobject.pkl', 'wb') as handle:
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
                         
 
