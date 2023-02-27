@@ -78,13 +78,17 @@ def compute_velocity(rates, pca):
             trials = rates[d][c]   
                        
             # loop over all trials
+            _pos, _vel = [], []
             for t in trials:
                 p = pca.transform(t.T)
                 v = np.diff(p, axis=0)
                 p = p[:-1,:]
                 
-                pos[i].append(p)
-                vel[i].append(v)
+                _pos.append(p)
+                _vel.append(v)
+                
+            pos[i] = _pos
+            vel[i] = _vel
     
     return pos, vel
 
