@@ -37,7 +37,7 @@ def main():
                                n_geodesic_nb=10, compute_cl=False, vector=False)
     
 
-    with open('../outputs/spiking_data/data_pos_vel.pkl', 'wb') as handle:
+    with open('../outputs/spiking_data/data_dataobject.pkl', 'wb') as handle:
         pickle.dump([data, days, conditions], handle, protocol=pickle.HIGHEST_PROTOCOL)
         
         
