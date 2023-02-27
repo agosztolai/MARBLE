@@ -87,8 +87,8 @@ def compute_velocity(rates, pca):
                 _pos.append(p)
                 _vel.append(v)
                 
-            pos[i] = _pos
-            vel[i] = _vel
+            pos[i] = np.vstack(_pos)
+            vel[i] = np.vstack(_vel)
     
     return pos, vel
 
