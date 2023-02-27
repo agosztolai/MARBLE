@@ -6,14 +6,12 @@ import matplotlib.pyplot as plt
 
 import neo
 from elephant.statistics import instantaneous_rate
-from elephant.kernels import GaussianKernel, ExponentialKernel
+from elephant.kernels import GaussianKernel
 from quantities import ms
 
 from MARBLE import utils
 
 import mat73
-
-from tqdm import tqdm
 
 import pickle
 
@@ -28,7 +26,7 @@ def main():
     rates = utils.parallel_proc(spikes_to_rates, 
                               range(len(data)), 
                               data,
-                              processes=-1,
+                              processes=1,
                               desc="Converting spikes to rates...")
     
     with open('../outputs/spiking_data/rate_data.pkl', 'wb') as handle:
