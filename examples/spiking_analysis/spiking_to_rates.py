@@ -34,6 +34,7 @@ def main():
     with open('../outputs/spiking_data/rate_data.pkl', 'wb') as handle:
         pickle.dump(rates, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+        
 def spikes_to_rates(data, d):
     """
     Converts matlab spiking data into instantaneous rates in a suitable format for further analysis
