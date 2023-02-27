@@ -104,15 +104,13 @@ def _remove_outliers(pos, vel):
     """  function for removing outliers """
     clf = LocalOutlierFactor(n_neighbors=10)        
     # remove positional outliers
-    for i,v in enumerate(pos):
-        outliers = clf.fit_predict(v)
-        vel[i] = vel[i][outliers==1]
-        pos[i] = pos[i][outliers==1]            
+    outliers = clf.fit_predict(pos)
+    vel = vel[outliers==1]
+    pos = pos[outliers==1]            
     # remove velocity outliers
-    for i,v in enumerate(vel):
-        outliers = clf.fit_predict(v)
-        vel[i] = vel[i][outliers==1]
-        pos[i] = pos[i][outliers==1]         
+    outliers = clf.fit_predict(vel)
+    vel = vel[outliers==1]
+    pos = pos[outliers==1]         
     return pos, vel
 
 
