@@ -67,7 +67,10 @@ def preprocessing(data,
         gauges = torch.eye(dim_emb).repeat(n,1,1) 
             
     #Laplacian
-    L = g.compute_laplacian(data)
+    if compute_cl:
+        L = g.compute_laplacian(data)
+    else:
+        L = None
     
     if local_gauges:
         
