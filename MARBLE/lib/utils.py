@@ -56,9 +56,12 @@ def construct_dataset(pos,
         
     if stop_crit==0.0:
         number_of_resamples=1
-        
+                
+    from time import time
+    
     data_list = []
     for i, (p, f) in enumerate(zip(pos, features)):
+        t = time()
         for j in range(number_of_resamples):
             #even sampling of points
             start_idx = torch.randint(low=0, high=len(p), size=(1,))
@@ -85,6 +88,7 @@ def construct_dataset(pos,
                          )
         
             data_list.append(data_)
+            print(time()-t)
         
     #collate datasets
     batch = Batch.from_data_list(data_list)
@@ -104,6 +108,40 @@ def construct_dataset(pos,
                                         dim_man=dim_man)
     
     return batch
+
+
+# def sample_and_fit_manifold(inputs, i):
+    
+#     pos, features, par = input[0], input[1], input[2]
+#     p, f = pos[i], features[i]
+#     for i, (p, f) in enumerate(zip(pos, features)):
+#         #even sampling of points
+#         start_idx = torch.randint(low=0, high=len(p), size=(1,))
+#         sample_ind, _ = geometry.furthest_point_sampling(p, 
+#                                                          stop_crit=stop_crit,
+#                                                          N=n_nodes,
+#                                                          start_idx=start_idx)
+#         p, f = p[sample_ind], f[sample_ind]
+            
+#         #fit graph to point cloud
+#         edge_index, edge_weight = geometry.fit_graph(p, 
+#                                                      graph_type=graph_type, 
+#                                                      par=k
+#                                                      )
+#         n = len(p)  
+#         data_ = Data(pos=p, #positions
+#                      x=f, #features
+#                      edge_index=edge_index,
+#                      edge_weight=edge_weight,
+#                      num_nodes = n,
+#                      num_node_features = num_node_features,
+#                      y = torch.ones(n, dtype=int)*labels[i],
+#                      sample_ind = sample_ind,
+#                      )
+        
+#         data_list.append(data_)
+    
+#     return data
 
 
 # =============================================================================
