@@ -33,7 +33,7 @@ def main():
     pos = [p for p_c in pos for p in p_c]
     vel = [v for v_c in vel for v in v_c]
     
-    data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=20, stop_crit=0.03, 
+    data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=20, stop_crit=0.04, 
                                n_geodesic_nb=10, compute_cl=False, vector=False)
     
 
