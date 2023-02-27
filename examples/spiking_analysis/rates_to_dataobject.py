@@ -12,7 +12,7 @@ from sklearn.decomposition import PCA#, KernelPCA
 # from sklearn.manifold import LocallyLinearEmbedding, SpectralEmbedding, MDS
 
 from sklearn.neighbors import LocalOutlierFactor
-
+from tqdm import tqdm
 from MARBLE import utils
 
 #%%   
@@ -35,7 +35,7 @@ def main():
     pos = []
 
     # loop over each day
-    for day in days:
+    for day in tqdm(days):
      
         # loop over conditions
         for c, cond in enumerate(conditions):
@@ -65,7 +65,7 @@ def main():
     vel = [[] for u in range(len(conditions))]      
       
     # loop over each day
-    for day in days:
+    for day in tqdm(days):
      
         # loop over conditions
         for c, cond in enumerate(conditions):
