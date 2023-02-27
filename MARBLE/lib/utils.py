@@ -82,8 +82,8 @@ def construct_dataset(pos,
 
 def sample_and_fit_manifold(inputs, i):
     
-    pos, features, labels, par = inputs[0], inputs[1], inputs[2], inputs[3]
-    p, f = pos[i], features[i]
+    labels, par = inputs[2], inputs[3]
+    p, f = inputs[0][i], inputs[1][i]
         
     #even sampling of points
     start_idx = torch.randint(low=0, high=len(p), size=(1,))
@@ -103,7 +103,7 @@ def sample_and_fit_manifold(inputs, i):
                 edge_index=edge_index,
                 edge_weight=edge_weight,
                 num_nodes = n,
-                num_node_features = features[0].shape[1],
+                num_node_features = f.shape[1],
                 y = torch.ones(n, dtype=int)*labels[i],
                 sample_ind = sample_ind,
                 )
