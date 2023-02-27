@@ -36,7 +36,7 @@ def main():
     
     print('Done')
     
-    data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=20, stop_crit=0.03, n_workers=4,
+    data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=20, stop_crit=0.03, n_workers=1,
                                    n_geodesic_nb=10, compute_cl=False, vector=False)
     
 
