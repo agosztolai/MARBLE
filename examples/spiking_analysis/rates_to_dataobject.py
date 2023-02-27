@@ -13,7 +13,6 @@ from sklearn.decomposition import PCA#, KernelPCA
 
 from sklearn.neighbors import LocalOutlierFactor
 from tqdm import tqdm
-from MARBLE import utils
 
 #%%   
 
@@ -99,15 +98,11 @@ def main():
    
     # remove outliers
     if rm_outliers:
-        pos, vel = remove_outliers(pos, vel)
-
-    # construct data for marble
-    data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=40, stop_crit=0.05, 
-                                   n_geodesic_nb=10, compute_cl=True, vector=False)
+        pos, vel = remove_outliers(pos, vel)    
     
 
     with open('../outputs/spiking_data/dataobject.pkl', 'wb') as handle:
-        pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump([pos, vel], handle, protocol=pickle.HIGHEST_PROTOCOL)
                         
 
 def get_vector_array(coords):
