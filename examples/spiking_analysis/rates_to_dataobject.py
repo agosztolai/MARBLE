@@ -21,95 +21,86 @@ def main():
     # instantaneous rate data
     rates =  pickle.load(open('../outputs/spiking_data/rate_data.pkl','rb'))       
 
-    # definingf the set of conditions     
-    conditions=['DownLeft','Left','UpLeft','Up','UpRight','Right','DownRight']    
+    rates = start_at_gocue(rates, t = 500)
+    pca = fit_pca(rates, pca_n = 3)
+    pos, vel = compute_velocity(rates, pca)
+    pos, vel = remove_outliers(pos, vel)
     
-    # list of days
-    days = rates.keys()
+
+    with open('../outputs/spiking_data/dataobject.pkl', 'wb') as handle:
+        pickle.dump([pos, vel], handle, protocol=pickle.HIGHEST_PROTOCOL)
+        
+        
+def start_at_gocue(rates, t = 500):
     
-    # define some parameters
-    rm_outliers = True
-    pca_n = 3
+    days, conditions = rates.keys(), rates[0].keys()
+    
+    for d in days:
+        for c in conditions:
+            rates[d][c] = rates[d][c][:,:,t:]
+        
+    return rates
+                       
+        
+def fit_pca(rates, pca_n = 3):
+    
+    days, conditions = rates.keys(), rates[0].keys()
     
     pos = []
-
-    # loop over each day
-    for day in tqdm(days):
-     
-        # loop over conditions
-        for c, cond in enumerate(conditions):
-            
-            # go cue at 500ms 
-            data = rates[day][cond][:,:,500:]           
-                       
-            # loop over all trials
-            for t in range(data.shape[0]):
-                
-                # extra trial
-                trial = data[t,:,:] 
-                
-                # transform to time x channels
-                trial = trial.T
-                
-                # take all points except last
-                pos.append(trial)
+    for d in days:
+        for c in conditions:
+            trials = rates[d][c]
+            for t in trials:
+                pos.append(t.T)
                 
     # fit pca
     pca = PCA(n_components=pca_n)
     pca.fit(np.vstack(pos))
     print(pca.explained_variance_ratio_)
     
+    return pca
+
+
+def compute_velocity(rates, pca):
+    
+    days, conditions = rates.keys(), rates[0].keys()
+    
     # create empty list of lists for each condition
     pos = [[] for u in range(len(conditions))]
     vel = [[] for u in range(len(conditions))]      
       
     # loop over each day
-    for day in tqdm(days):
+    for d in days:
      
         # loop over conditions
-        for c, cond in enumerate(conditions):
+        for i, c in enumerate(conditions):
             
-            # go cue at 500ms (500ms / 50ms bin = 10)
-            # only take rates from bin 10 onwards
-            data = rates[day][cond][:,:,10:]           
+            trials = rates[d][c]   
                        
             # loop over all trials
-            for t in range(data.shape[0]):
+            for t in trials:
+                p = pca.transform(t.T)
+                v = np.diff(p, axis=0)
+                p = p[:-1,:]
                 
-                # extra trial
-                trial = data[t,:,:]
-                
-                # transform to time x channels
-                trial = trial.T
-                
-                # embed in fitted pca space
-                trial = pca.transform(trial)
-                
-                # take all points except last
-                pos[c].append(trial[:-1,:])
-                
-                # extract vectors between coordinates
-                vel[c].append(get_vector_array(trial))
-                
-        # remove outliers
-        if rm_outliers:
-            pos[c], vel[c] = remove_outliers(pos[c], vel[c])    
-                        
-    # stack the trials within each condition
-    pos = [np.vstack(u) for u in pos] # trials x time x channels
-    vel = [np.vstack(u) for u in vel] # trials x time x channels
+                pos[i].append(p)
+                vel[i].append(v)
     
+    return pos, vel
 
-    with open('../outputs/spiking_data/dataobject.pkl', 'wb') as handle:
-        pickle.dump([pos, vel], handle, protocol=pickle.HIGHEST_PROTOCOL)
-                        
-
-def get_vector_array(coords):
-    """ function for defining the vector features from each array of coordinates """
-    diff = np.diff(coords, axis=0)
-    return diff
 
 def remove_outliers(pos, vel):
+        
+    for i, (p_day, v_day) in tqdm(enumerate(zip(pos, vel))): 
+        for j, (p, v) in enumerate(zip(p_day, v_day)):
+    
+            p, v = _remove_outliers(p. v)
+            pos[i][j], vel[i][j] = p, v
+    
+    return pos, vel
+
+
+def _remove_outliers(pos, vel):
     """  function for removing outliers """
     clf = LocalOutlierFactor(n_neighbors=10)        
     # remove positional outliers
@@ -123,6 +114,7 @@ def remove_outliers(pos, vel):
         vel[i] = vel[i][outliers==1]
         pos[i] = pos[i][outliers==1]         
     return pos, vel
+
 
 if __name__ == '__main__':
     sys.exit(main())
