@@ -2,8 +2,6 @@ import numpy as np
 
 import sys
 
-import matplotlib.pyplot as plt
-
 import neo
 from elephant.statistics import instantaneous_rate
 from elephant.kernels import GaussianKernel
@@ -33,16 +31,14 @@ def main():
         pickle.dump(rates, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
         
-def spikes_to_rates(data, d):
+def spikes_to_rates(data_day, d):
     """
     Converts matlab spiking data into instantaneous rates in a suitable format for further analysis
     """
     
     # defining conditions by their ordering (this was how it was ordered in matlab script)
     conditions = ['DownLeft','Left','UpLeft','Up','UpRight','Right','DownRight']
-    
-    data_day = data[d] #daily session 
-        
+            
     # define empty dictionary for each day
     rates = {}
         
