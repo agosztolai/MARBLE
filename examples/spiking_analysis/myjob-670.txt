@@ -1,0 +1,21 @@
+[0.31895829 0.08622799 0.07282044]
+0it [00:00, ?it/s]1it [00:08,  8.99s/it]2it [00:17,  8.90s/it]3it [00:26,  8.96s/it]4it [00:35,  8.70s/it]5it [00:44,  8.80s/it]6it [00:52,  8.76s/it]7it [01:01,  8.71s/it]7it [01:01,  8.78s/it]
+---- Embedding dimension: 3
+---- Signal dimension: 3
+
+
+Vector computations are disabled
+Traceback (most recent call last):
+  File "/net/lts2gdk0/mnt/scratch/lts2/gosztolai/MARBLE/examples/spiking_analysis/rates_to_dataobject.py", line 132, in <module>
+    sys.exit(main())
+  File "/net/lts2gdk0/mnt/scratch/lts2/gosztolai/MARBLE/examples/spiking_analysis/rates_to_dataobject.py", line 36, in main
+    data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=20, stop_crit=0.03, 
+  File "/mnt/scratch/lts2/gosztolai/MARBLE/MARBLE/lib/utils.py", line 98, in construct_dataset
+    batch = preprocessing.preprocessing(batch, 
+  File "/mnt/scratch/lts2/gosztolai/MARBLE/MARBLE/preprocessing.py", line 70, in preprocessing
+    L = g.compute_laplacian(data)
+  File "/mnt/scratch/lts2/gosztolai/MARBLE/MARBLE/lib/geometry.py", line 453, in compute_laplacian
+    return PyGu.to_dense_adj(edge_index, edge_attr=edge_attr).squeeze()
+  File "/mnt/scratch/lts2/gosztolai/miniconda3/envs/MARBLE/lib/python3.9/site-packages/torch_geometric/utils/to_dense_adj.py", line 48, in to_dense_adj
+    adj = torch.zeros(size, dtype=edge_attr.dtype, device=edge_index.device)
+RuntimeError: [enforce fail at alloc_cpu.cpp:66] . DefaultCPUAllocator: can't allocate memory: you tried to allocate 155855985796 bytes. Error code 12 (Cannot allocate memory)

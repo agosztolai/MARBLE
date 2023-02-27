@@ -17,4 +17,4 @@ eval "$(conda shell.bash hook)"
 conda activate MARBLE
 
 # RUN TRAINING
-python rates_to_pos_vel.py
+python rates_to_dataobject.py
