@@ -29,7 +29,7 @@ def main():
     
     # define some parameters
     rm_outliers = True
-    pca_n = 4
+    pca_n = 3
     
     pos = []
 
@@ -57,7 +57,8 @@ def main():
                 
     # fit pca
     pca = PCA(n_components=pca_n)
-    pca.fit(np.vstack(pos))    
+    pca.fit(np.vstack(pos))
+    print(pca.explained_variance_ratio_)
     
     # create empty list of lists for each condition
     pos = [[] for u in range(len(conditions))]
