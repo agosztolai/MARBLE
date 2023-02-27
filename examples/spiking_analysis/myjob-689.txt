@@ -1,0 +1,5 @@
+Converting to vector fields...
+[0.31895829 0.086228   0.07282098 0.0543964  0.04357593]
+0it [00:00, ?it/s]1it [00:11, 11.46s/it]2it [00:22, 11.32s/it]3it [00:34, 11.55s/it]4it [00:45, 11.24s/it]5it [00:56, 11.36s/it]6it [01:08, 11.34s/it]7it [01:19, 11.32s/it]7it [01:19, 11.34s/it]
+Done
+Sample and fit manifold...:   0%|          | 0/308 [00:00<?, ?it/s]Sample and fit manifold...:   0%|          | 1/308 [00:03<19:51,  3.88s/it]Sample and fit manifold...:   1%|          | 2/308 [00:13<38:19,  7.51s/it]Sample and fit manifold...:   1%|          | 3/308 [00:24<44:47,  8.81s/it]Sample and fit manifold...:   1%|▏         | 4/308 [00:34<48:22,  9.55s/it]Sample and fit manifold...:   2%|▏         | 5/308 [00:45<49:48,  9.86s/it]slurmstepd-lts2cdk7: error: *** JOB 689 ON lts2cdk7 CANCELLED AT 2023-02-27T18:17:30 ***
