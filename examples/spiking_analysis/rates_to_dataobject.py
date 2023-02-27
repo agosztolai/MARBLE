@@ -39,9 +39,8 @@ def main():
         # loop over conditions
         for c, cond in enumerate(conditions):
             
-            # go cue at 500ms (500ms / 50ms bin = 10)
-            # only take rates from bin 10 onwards
-            data = rates[day][cond][:,:,10:]           
+            # go cue at 500ms 
+            data = rates[day][cond][:,:,500:]           
                        
             # loop over all trials
             for t in range(data.shape[0]):
@@ -94,7 +93,7 @@ def main():
                 
         # remove outliers
         if rm_outliers:
-            pos, vel = remove_outliers(pos[c], vel[c])    
+            pos[c], vel[c] = remove_outliers(pos[c], vel[c])    
                         
     # stack the trials within each condition
     pos = [np.vstack(u) for u in pos] # trials x time x channels
