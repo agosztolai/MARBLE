@@ -1,16 +1,11 @@
 import numpy as np
-
 import sys
-
 import neo
 from elephant.statistics import instantaneous_rate
 from elephant.kernels import GaussianKernel
 from quantities import ms
-
 from MARBLE import utils
-
 import mat73
-
 import pickle
 
 def main():
@@ -22,23 +17,27 @@ def main():
     data = mat73.loadmat(folder+file)['all_results']
     
     rates = utils.parallel_proc(spikes_to_rates, 
-                              range(len(data)), 
-                              data,
-                              processes=1,
-                              desc="Converting spikes to rates...")
+                                range(len(data)), 
+                                data,
+                                processes=-1,
+                                desc="Converting spikes to rates...")
+    
+    rates = dict(rates)
     
     with open('../outputs/spiking_data/rate_data.pkl', 'wb') as handle:
         pickle.dump(rates, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
         
-def spikes_to_rates(data_day, d):
+def spikes_to_rates(data, d):
     """
     Converts matlab spiking data into instantaneous rates in a suitable format for further analysis
     """
     
     # defining conditions by their ordering (this was how it was ordered in matlab script)
     conditions = ['DownLeft','Left','UpLeft','Up','UpRight','Right','DownRight']
-            
+    
+    data_day = data[d] #daily session 
+        
     # define empty dictionary for each day
     rates = {}
         
@@ -84,6 +83,8 @@ def spikes_to_rates(data_day, d):
                     
         # stack into an array of trial x channels x time
         rates[cond] = np.dstack(trial_data).transpose(2,0,1)
+        
+    return rates
            
             
 if __name__ == '__main__':
