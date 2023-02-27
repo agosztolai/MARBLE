@@ -1,0 +1,17 @@
+Converting to vector fields...
+[0.31895829 0.08622794 0.07282103 0.05440229 0.04363106]
+0it [00:00, ?it/s]1it [00:11, 11.41s/it]2it [00:22, 11.21s/it]3it [00:34, 11.41s/it]4it [00:44, 11.09s/it]5it [00:56, 11.21s/it]6it [01:07, 11.16s/it]7it [01:18, 11.12s/it]7it [01:18, 11.18s/it]
+Done
+Sample and fit manifold...:   0%|          | 0/308 [00:00<?, ?it/s]Sample and fit manifold...:   0%|          | 0/308 [00:00<?, ?it/s]
+Traceback (most recent call last):
+  File "/net/lts2gdk0/mnt/scratch/lts2/gosztolai/MARBLE/examples/spiking_analysis/rates_to_dataobject.py", line 135, in <module>
+  File "/net/lts2gdk0/mnt/scratch/lts2/gosztolai/MARBLE/examples/spiking_analysis/rates_to_dataobject.py", line 39, in main
+  File "/mnt/scratch/lts2/gosztolai/MARBLE/MARBLE/lib/utils.py", line 57, in construct_dataset
+  File "/mnt/scratch/lts2/gosztolai/MARBLE/MARBLE/lib/utils.py", line 203, in parallel_proc
+  File "/mnt/scratch/lts2/gosztolai/miniconda3/envs/MARBLE/lib/python3.9/site-packages/tqdm/std.py", line 1195, in __iter__
+  File "/mnt/scratch/lts2/gosztolai/miniconda3/envs/MARBLE/lib/python3.9/multiprocessing/pool.py", line 870, in next
+  File "/mnt/scratch/lts2/gosztolai/miniconda3/envs/MARBLE/lib/python3.9/multiprocessing/pool.py", line 537, in _handle_tasks
+  File "/mnt/scratch/lts2/gosztolai/miniconda3/envs/MARBLE/lib/python3.9/multiprocessing/connection.py", line 211, in send
+  File "/mnt/scratch/lts2/gosztolai/miniconda3/envs/MARBLE/lib/python3.9/multiprocessing/reduction.py", line 51, in dumps
+  File "/mnt/scratch/lts2/gosztolai/miniconda3/envs/MARBLE/lib/python3.9/site-packages/torch/multiprocessing/reductions.py", line 358, in reduce_storage
+RuntimeError: unable to open shared memory object </torch_668013_740231479_502> in read-write mode: Too many open files (24)
