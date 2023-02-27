@@ -94,7 +94,7 @@ def remove_outliers(pos, vel):
     for i, (p_day, v_day) in tqdm(enumerate(zip(pos, vel))): 
         for j, (p, v) in enumerate(zip(p_day, v_day)):
     
-            p, v = _remove_outliers(p. v)
+            p, v = _remove_outliers(p, v)
             pos[i][j], vel[i][j] = p, v
     
     return pos, vel
