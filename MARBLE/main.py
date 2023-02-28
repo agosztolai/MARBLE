@@ -15,12 +15,14 @@ from . import layers, dataloader
 
 from tqdm import tqdm
 
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 """Main network"""
 class net(nn.Module):
     def __init__(self, data, loadpath=None, **kwargs):
         super(net, self).__init__()
         
+        self = self.to(device)
         self.epoch = 0
         self.time = datetime.now().strftime("%Y%m%d-%H%M%S")
         self.par = utils.parse_parameters(data, kwargs)
