@@ -18,10 +18,10 @@ from MARBLE import utils
 
 #%%   
 
-def main(separate_sessions=True, stop_crit=0.03, k=20, pca_n=5, gocue=10):        
+def main(separate_sessions=True, stop_crit=0.03, k=20, pca_n=5, gocue=500):        
     
     # instantaneous rate data
-    rates =  pickle.load(open('../outputs/spiking_data/rate_data_50ms.pkl','rb'))       
+    rates =  pickle.load(open('../outputs/spiking_data/rate_data.pkl','rb'))       
 
     print('Converting to vector fields...')
     rates = start_at_gocue(rates, t = gocue)
@@ -31,7 +31,7 @@ def main(separate_sessions=True, stop_crit=0.03, k=20, pca_n=5, gocue=10):
     
     days, conditions = list(rates.keys()), list(rates[0].keys())
     
-    with open('../outputs/spiking_data/data_pos_vel_50ms.pkl', 'wb') as handle:
+    with open('../outputs/spiking_data/data_pos_vel.pkl', 'wb') as handle:
         pickle.dump([pos, vel], handle, protocol=pickle.HIGHEST_PROTOCOL)
     
     # print('Constructing data objects')
