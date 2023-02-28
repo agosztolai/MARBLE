@@ -48,9 +48,6 @@ def construct_dataset(pos,
 
     if features is not None:
         features = [torch.tensor(x).float() for x in to_list(features)]
-        
-    if stop_crit==0.0:
-        number_of_resamples=1
     
     par = {'stop_crit': stop_crit, 'graph_type': graph_type, 'k': k}
     inputs = pos, features, labels, par
@@ -63,7 +60,6 @@ def construct_dataset(pos,
     #collate datasets
     batch = Batch.from_data_list(data_list)
     batch.degree = k
-    batch.number_of_resamples=number_of_resamples
     
     #split into training/validation/test datasets
     split = RandomNodeSplit(split='train_rest', num_val=0.1, num_test=0.1)
