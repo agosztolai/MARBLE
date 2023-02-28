@@ -157,7 +157,7 @@ class net(nn.Module):
         return cum_loss/len(loader)
     
     
-    def run_training(self, data, outdir=None, use_best=True):
+    def run_training(self, data, outdir=None, use_best=True, verbose=False):
         """Network training"""
         
         print('\n---- Training network ...')
@@ -176,8 +176,8 @@ class net(nn.Module):
             
             epoch = self.epoch + epoch + 1
             
-            train_loss = self.batch_loss(data, train_loader, train=True)
-            val_loss = self.batch_loss(data, val_loader)
+            train_loss = self.batch_loss(data, train_loader, train=True, verbose=verbose)
+            val_loss = self.batch_loss(data, val_loader, verbose=verbose)
             scheduler.step(train_loss)
             
             self.writer.add_scalar('Loss/train', train_loss, epoch)
