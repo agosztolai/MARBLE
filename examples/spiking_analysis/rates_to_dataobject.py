@@ -18,7 +18,7 @@ from MARBLE import utils
 
 #%%   
 
-def main(separate_sessions=True, stop_crit=0.03, k=20, pca_n=5, gocue=500):        
+def main(separate_sessions=True, stop_crit=0.03, k=20, pca_n=5, gocue=10):        
     
     # instantaneous rate data
     rates =  pickle.load(open('../outputs/spiking_data/rate_data_50ms.pkl','rb'))       
