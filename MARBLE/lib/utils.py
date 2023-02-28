@@ -32,6 +32,8 @@ def construct_dataset(pos,
                       k=10,
                       n_geodesic_nb=10,
                       stop_crit=0.0,
+                      number_of_resamples=1,
+                      n_nodes=None,
                       compute_cl=False,
                       var_explained=0.9,
                       n_workers=1,
@@ -48,18 +50,46 @@ def construct_dataset(pos,
 
     if features is not None:
         features = [torch.tensor(x).float() for x in to_list(features)]
-    
-    par = {'stop_crit': stop_crit, 'graph_type': graph_type, 'k': k}
-    inputs = pos, features, labels, par
-    data_list = parallel_proc(sample_and_fit_manifold, 
-                              range(len(pos)), 
-                              inputs,
-                              processes=n_workers,
-                              desc="Sample and fit manifold...")
+        num_node_features = features[0].shape[1]
+    else:
+        num_node_features = None
+        
+    if stop_crit==0.0:
+        number_of_resamples=1
+        
+    data_list = []
+    for i, (p, f) in enumerate(zip(pos, features)):
+        for j in range(number_of_resamples):
+            #even sampling of points
+            start_idx = torch.randint(low=0, high=len(p), size=(1,))
+            sample_ind, _ = geometry.furthest_point_sampling(p, 
+                                                             stop_crit=stop_crit,
+                                                             N=n_nodes,
+                                                             start_idx=start_idx)
+            p, f = p[sample_ind], f[sample_ind]
+            
+            #fit graph to point cloud
+            edge_index, edge_weight = geometry.fit_graph(p, 
+                                                         graph_type=graph_type, 
+                                                         par=k
+                                                         )
+            n = len(p)  
+            data_ = Data(pos=p, #positions
+                         x=f, #features
+                         edge_index=edge_index,
+                         edge_weight=edge_weight,
+                         num_nodes = n,
+                         num_node_features = num_node_features,
+                         y = torch.ones(n, dtype=int)*labels[i],
+                         sample_ind = sample_ind,
+                         )
+        
+            data_list.append(data_)
         
     #collate datasets
     batch = Batch.from_data_list(data_list)
     batch.degree = k
+    batch.number_of_resamples=number_of_resamples
     
     #split into training/validation/test datasets
     split = RandomNodeSplit(split='train_rest', num_val=0.1, num_test=0.1)
@@ -74,37 +104,6 @@ def construct_dataset(pos,
                                         dim_man=dim_man)
     
     return batch
-
-
-def sample_and_fit_manifold(inputs, i):
-    
-    labels, par = inputs[2], inputs[3]
-    p, f = inputs[0][i], inputs[1][i]
-        
-    #even sampling of points
-    start_idx = torch.randint(low=0, high=len(p), size=(1,))
-    sample_ind, _ = geometry.furthest_point_sampling(p, 
-                                                     stop_crit=par['stop_crit'],
-                                                     start_idx=start_idx)
-    p, f = p[sample_ind], f[sample_ind]
-            
-    #fit graph to point cloud
-    edge_index, edge_weight = geometry.fit_graph(p, 
-                                                 graph_type=par['graph_type'], 
-                                                 par=par['k']
-                                                 )
-    n = len(p)  
-    data = Data(pos=p, #positions
-                x=f, #features
-                edge_index=edge_index,
-                edge_weight=edge_weight,
-                num_nodes = n,
-                num_node_features = f.shape[1],
-                y = torch.ones(n, dtype=int)*labels[i],
-                sample_ind = sample_ind,
-                )
-            
-    return data
 
 
 # =============================================================================
