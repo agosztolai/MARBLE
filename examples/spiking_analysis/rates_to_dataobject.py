@@ -18,14 +18,14 @@ from MARBLE import utils
 
 #%%   
 
-def main(separate_sessions=True, stop_crit=0.03, k=20):        
+def main(separate_sessions=True, stop_crit=0.03, k=20, pca_n=5, gocue=500):        
     
     # instantaneous rate data
     rates =  pickle.load(open('../outputs/spiking_data/rate_data.pkl','rb'))       
 
     print('Converting to vector fields...')
-    rates = start_at_gocue(rates, t = 500)
-    pca = fit_pca(rates, pca_n = 5)
+    rates = start_at_gocue(rates, t = gocue)
+    pca = fit_pca(rates, pca_n = pca_n)
     pos, vel = compute_velocity(rates, pca)
     pos, vel = remove_outliers(pos, vel)
     
