@@ -375,6 +375,9 @@ def expand_edge_index(edge_index, dim=1):
     """When using rotations, we replace nodes by vector spaces so
        need to expand adjacency matrix from nxn -> n*dimxn*dim matrices"""
        
+    if dim==1:
+        return edge_index
+    
     dev = edge_index.device
     if dev!='cpu':
         edge_index = edge_index.to('cpu')
