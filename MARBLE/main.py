@@ -15,14 +15,11 @@ from . import layers, dataloader
 
 from tqdm import tqdm
 
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
 """Main network"""
 class net(nn.Module):
     def __init__(self, data, loadpath=None, **kwargs):
         super(net, self).__init__()
         
-        self = self.to(device)
         self.epoch = 0
         self.time = datetime.now().strftime("%Y%m%d-%H%M%S")
         self.par = utils.parse_parameters(data, kwargs)
@@ -31,9 +28,6 @@ class net(nn.Module):
         self.reset_parameters()
         
         utils.print_settings(self)
-        
-        self.optimizer = opt.SGD(self.parameters(), lr=self.par['lr'], momentum=self.par['momentum'])
-        self.writer = SummaryWriter('./log/')
         
         if loadpath is not None:
             self.load_model(loadpath)
@@ -127,7 +121,7 @@ class net(nn.Module):
             return data
                 
 
-    def batch_loss(self, data, loader, train=False, verbose=False):
+    def batch_loss(self, data, loader, train=False, verbose=False, optimizer=None):
         """Loop over minibatches provided by loader function.
         
         Parameters
@@ -140,8 +134,11 @@ class net(nn.Module):
         if train: #training mode (enables dropout in MLP)
             self.train()
         
+        if verbose:
+            print('\n')
+            
         cum_loss = 0
-        for batch in tqdm(loader, disable= not verbose):
+        for batch in tqdm(loader, disable=not verbose):
             _, n_id, adjs = batch
             adjs = [adj.to(data.x.device) for adj in utils.to_list(adjs)]
                         
@@ -149,10 +146,10 @@ class net(nn.Module):
             loss = self.loss(emb)
             cum_loss += float(loss)
             
-            if hasattr(self, 'optimizer'):
-                self.optimizer.zero_grad() #zero gradients, otherwise accumulates
+            if optimizer is not None:
+                optimizer.zero_grad() #zero gradients, otherwise accumulates
                 loss.backward() #backprop
-                self.optimizer.step()
+                optimizer.step()
                 
         self.eval()
                 
@@ -169,9 +166,13 @@ class net(nn.Module):
         
         #data loader
         train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
+        optimizer = opt.SGD(self.parameters(), lr=self.par['lr'], momentum=self.par['momentum'])
+        if hasattr(self, 'optimizer_state_dict'):
+            optimizer.load_state_dict(self.optimizer_state_dict)
+        writer = SummaryWriter('./log/')
         
         #training scheduler
-        scheduler = opt.lr_scheduler.ReduceLROnPlateau(self.optimizer)
+        scheduler = opt.lr_scheduler.ReduceLROnPlateau(optimizer)
         
         best_loss = -1
         for epoch in range(self.par['epochs']):
@@ -182,23 +183,23 @@ class net(nn.Module):
             val_loss = self.batch_loss(data, val_loader, verbose=verbose)
             scheduler.step(train_loss)
             
-            self.writer.add_scalar('Loss/train', train_loss, epoch)
-            self.writer.add_scalar('Loss/validation', val_loss, epoch)
-            self.writer.flush()
-            print("Epoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}, lr: {:.4f}\n\n" \
+            writer.add_scalar('Loss/train', train_loss, epoch)
+            writer.add_scalar('Loss/validation', val_loss, epoch)
+            writer.flush()
+            print("\nEpoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}, lr: {:.4f}" \
                   .format(epoch, train_loss, val_loss, scheduler._last_lr[0]), end="")
                 
             if best_loss==-1 or (val_loss<best_loss):
-                outdir = self.save_model(outdir, best=True)
+                outdir = self.save_model(optimizer, outdir, best=True)
                 best_loss = val_loss 
                 print(' *', end="")
         
         test_loss = self.batch_loss(data, test_loader)
-        self.writer.add_scalar('Loss/test', test_loss)
-        self.writer.close()
+        writer.add_scalar('Loss/test', test_loss)
+        writer.close()
         print('\nFinal test loss: {:.4f}'.format(test_loss))
         
-        self.save_model(outdir, best=False)
+        self.save_model(optimizer, outdir, best=False)
         
         if use_best:
             self.load_model(os.path.join(outdir, 'best_model.pth'))
@@ -209,11 +210,10 @@ class net(nn.Module):
         checkpoint = torch.load(loadpath)
         self.epoch = checkpoint['epoch']
         self.load_state_dict(checkpoint['model_state_dict'])
-        if hasattr(self, 'optimizer'):
-            self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        self.optimizer_state_dict = checkpoint['optimizer_state_dict']
                                 
 
-    def save_model(self, outdir=None, best=False):
+    def save_model(self, optimizer, outdir=None, best=False):
         
         if outdir is None:
             outdir = './outputs/'   
@@ -223,7 +223,7 @@ class net(nn.Module):
                 
         checkpoint = {'epoch': self.epoch,
                       'model_state_dict': self.state_dict(),
-                      'optimizer_state_dict': self.optimizer.state_dict(),
+                      'optimizer_state_dict': optimizer.state_dict(),
                       'time': self.time
                      }
         
