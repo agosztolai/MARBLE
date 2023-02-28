@@ -54,7 +54,8 @@ class net(nn.Module):
         n, d = data.x.shape[0], data.gauges.shape[2]
         
         #local gauges
-        x = geometry.map_to_local_gauges(x[n_id], data.gauges[n_id])   
+        if self.par['inner_product_features']:
+            x = geometry.map_to_local_gauges(x[n_id], data.gauges[n_id])   
                 
         #diffusion
         if self.par['diffusion']:
