@@ -80,11 +80,16 @@ class net(nn.Module):
         if self.par['vec_norm']:
             x = F.normalize(x, dim=-1, p=2)
             
+        from time import time
         #gradients
         out = [x]
         for i, (edge_index, _, size) in enumerate(adjs):
+            t = time()
             kernels = [K[n_id[:size[1]*d], :][:, n_id[:size[0]*d]] for K in data.kernels]
+            print(time()-t)
+            t = time()
             x = self.grad[i](x, kernels)
+            print(time()-t)
             out.append(x)
             
         out = [o[:size[1]] for o in out] #take target nodes
