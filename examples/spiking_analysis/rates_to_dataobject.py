@@ -36,11 +36,11 @@ def main():
     
     print('Done')
     
-    data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=40, stop_crit=0.03, n_workers=1,
+    data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=20, stop_crit=0.03, n_workers=1,
                                    n_geodesic_nb=10, compute_cl=False, vector=False)
     
 
-    with open('../outputs/spiking_data/data_dataobject_k40.pkl', 'wb') as handle:
+    with open('../outputs/spiking_data/data_dataobject_k10.pkl', 'wb') as handle:
         pickle.dump([data, days, conditions], handle, protocol=pickle.HIGHEST_PROTOCOL)
         
         
