@@ -5,7 +5,7 @@
 #SBATCH --mem 19000             # Reserve 10 GB RAM for the job
 #SBATCH --partition gpu         # Partition to submit ('gpu' or 'cpu')
 #SBATCH --qos staff             # QOS ('staff' or 'students')
-#SBATCH --gres gpu:gtx1080:1
+#SBATCH --gres gpu:titanrtx:1
 #SBATCH --output myjob-%j.txt       # Standard out goes to this file
 #SBATCH --error myjob-%j.txt        # Standard err goes to this file
 #SBATCH --mail-user adam.gosztolai@epfl.ch

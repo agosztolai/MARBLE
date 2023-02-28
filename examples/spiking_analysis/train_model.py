@@ -17,4 +17,4 @@ par = {'epochs': 100, #optimisation epochs
     
 model = net(data, **par)
     
-model.run_training(data, use_best=True, outdir='../outputs/spiking_data/k20') 
+model.run_training(data, use_best=True, outdir='../outputs/spiking_data/k20')  
