@@ -3,6 +3,7 @@ examples/outputs/
 build/
 data/
 examples/log/
+myjob*
 *.c
 *.so
 *.pyo
