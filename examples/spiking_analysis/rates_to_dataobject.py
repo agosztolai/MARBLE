@@ -40,7 +40,7 @@ def main(separate_sessions=True, stop_crit=0.03, k=20, pca_n=5, gocue=500):
                 vel_.append(vel[j][i])
                 
             data = utils.construct_dataset(pos_, features=vel_, graph_type='cknn', k=k, stop_crit=stop_crit, n_workers=1,
-                                       n_geodesic_nb=10, compute_cl=False, vector=False)
+                                       n_geodesic_nb=10, vector=False)
             
             with open('../outputs/spiking_data/data_dataobject_session_{}.pkl'.format(i), 'wb') as handle:
                 pickle.dump([data, days, conditions], handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -49,7 +49,7 @@ def main(separate_sessions=True, stop_crit=0.03, k=20, pca_n=5, gocue=500):
         vel = [v for v_c in vel for v in v_c]
     
         data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=k, stop_crit=stop_crit, n_workers=1,
-                                       n_geodesic_nb=10, compute_cl=False, vector=False)
+                                       n_geodesic_nb=10, vector=False)
 
         with open('../outputs/spiking_data/data_dataobject_k{}.pkl'.format(k), 'wb') as handle:
             pickle.dump([data, days, conditions], handle, protocol=pickle.HIGHEST_PROTOCOL)
