@@ -3,7 +3,7 @@
 #SBATCH --ntasks 1              # Number of (cpu) tasks
 #SBATCH --time 120             # Runtime in minutes.
 #SBATCH --mem 19000             # Reserve 10 GB RAM for the job
-#SBATCH --partition cpu         # Partition to submit ('gpu' or 'cpu')
+#SBATCH --partition gpu         # Partition to submit ('gpu' or 'cpu')
 #SBATCH --qos staff             # QOS ('staff' or 'students')
 #SBATCH --gres gpu:gtx1080:1
 #SBATCH --output myjob-%j.txt       # Standard out goes to this file
