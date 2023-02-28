@@ -90,7 +90,7 @@ class net(nn.Module):
             out = torch.cat(out, axis=1)     
             
         if self.par['include_positions']:
-            out = torch.hstack([data.pos[n_id][:size[1]], out])
+            out = torch.hstack([data.pos[n_id[:size[1]]], out])
         
         emb = self.enc(out)
         
@@ -194,7 +194,7 @@ class net(nn.Module):
         test_loss = self.batch_loss(data, test_loader)
         self.writer.add_scalar('Loss/test', test_loss)
         self.writer.close()
-        print('Final test loss: {:.4f}'.format(test_loss))
+        print('\nFinal test loss: {:.4f}'.format(test_loss))
         
         self.save_model(outdir, best=False)
         
