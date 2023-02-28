@@ -18,7 +18,7 @@ from MARBLE import utils
 
 #%%   
 
-def main():        
+def main(separate_sessions=True, stop_crit=0.03, k=20):        
     
     # instantaneous rate data
     rates =  pickle.load(open('../outputs/spiking_data/rate_data.pkl','rb'))       
@@ -29,19 +29,32 @@ def main():
     pos, vel = compute_velocity(rates, pca)
     pos, vel = remove_outliers(pos, vel)
     
-    
     days, conditions = list(rates.keys()), list(rates[0].keys())
-    pos = [p for p_c in pos for p in p_c]
-    vel = [v for v_c in vel for v in v_c]
     
-    print('Done')
+    print('Constructing data objects')
+    if separate_sessions:
+        for i in range(len(days)):
+            pos_, vel_ = [], []
+            for j in range(len(conditions)):
+                pos_.append(pos[j][i])
+                vel_.append(vel[j][i])
+                
+            data = utils.construct_dataset(pos_, features=vel_, graph_type='cknn', k=k, stop_crit=stop_crit, n_workers=1,
+                                       n_geodesic_nb=10, compute_cl=False, vector=False)
+            
+            with open('../outputs/spiking_data/data_dataobject_session_{}.pkl'.format(i), 'wb') as handle:
+                pickle.dump([data, days, conditions], handle, protocol=pickle.HIGHEST_PROTOCOL)
+    else:     
+        pos = [p for p_c in pos for p in p_c]
+        vel = [v for v_c in vel for v in v_c]
     
-    data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=20, stop_crit=0.03, n_workers=1,
-                                   n_geodesic_nb=10, compute_cl=False, vector=False)
-    
+        data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=k, stop_crit=stop_crit, n_workers=1,
+                                       n_geodesic_nb=10, compute_cl=False, vector=False)
 
-    with open('../outputs/spiking_data/data_dataobject_k20.pkl', 'wb') as handle:
-        pickle.dump([data, days, conditions], handle, protocol=pickle.HIGHEST_PROTOCOL)
+        with open('../outputs/spiking_data/data_dataobject_k{}.pkl'.format(k), 'wb') as handle:
+            pickle.dump([data, days, conditions], handle, protocol=pickle.HIGHEST_PROTOCOL)
+            
+    print('Done')
         
         
 def start_at_gocue(rates, t = 500):
