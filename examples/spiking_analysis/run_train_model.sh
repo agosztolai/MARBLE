@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name spiking_to_rates # Name for your job
+#SBATCH --job-name train_model # Name for your job
 #SBATCH --ntasks 1              # Number of (cpu) tasks
 #SBATCH --time 120             # Runtime in minutes.
 #SBATCH --mem 19000             # Reserve 10 GB RAM for the job
