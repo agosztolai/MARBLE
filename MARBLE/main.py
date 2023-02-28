@@ -55,23 +55,16 @@ class net(nn.Module):
         
         #local gauges
         if self.par['inner_product_features']:
-            x = geometry.map_to_local_gauges(x[n_id], data.gauges[n_id])   
+            x = geometry.map_to_local_gauges(x, data.gauges)   
                 
         #diffusion
-        if self.par['diffusion']:
-            
+        if self.par['diffusion']:            
             L = data.L.copy() if hasattr(data, 'L') else None
-            L[0] = L[0][n_id]; L[1] = L[1][:,n_id][n_id,:]   
-            
-            if hasattr(data, 'Lc'):
-                Lc = data.Lc.copy()
-                Lc[0] = Lc[0][n_id]; Lc[1] = Lc[1][:,n_id][n_id,:] 
-            else:
-                Lc = None
-                
+            Lc = data.Lc.copy() if hasattr(data, 'Lc') else None
             x = self.diffusion(x, L, Lc=Lc, method='spectral')
             
         #restrict to current batch
+        x = x[n_id]
         if data.kernels[0].size(0) == n*d:
             n_id = utils.expand_index(n_id, d)
         else:
