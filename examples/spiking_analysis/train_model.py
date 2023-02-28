@@ -15,6 +15,6 @@ par = {'epochs': 100, #optimisation epochs
        'diffusion': False,
        }
     
-model = net(data, **par)
+model = net(data, **par, loadpath='../outputs/spiking_data/k40/best_model.pth')
     
 model.run_training(data, use_best=True, outdir='../outputs/spiking_data/k40')  
