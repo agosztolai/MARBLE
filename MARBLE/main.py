@@ -153,7 +153,7 @@ class net(nn.Module):
                 
         self.eval()
                 
-        return cum_loss/len(loader)
+        return cum_loss/len(loader), optimizer
     
     
     def run_training(self, data, outdir=None, use_best=True, verbose=False):
@@ -179,8 +179,8 @@ class net(nn.Module):
             
             epoch = self.epoch + epoch + 1
             
-            train_loss = self.batch_loss(data, train_loader, train=True, verbose=verbose)
-            val_loss = self.batch_loss(data, val_loader, verbose=verbose)
+            train_loss, optimizer = self.batch_loss(data, train_loader, train=True, verbose=verbose, optimizer=optimizer)
+            val_loss, _ = self.batch_loss(data, val_loader, verbose=verbose)
             scheduler.step(train_loss)
             
             writer.add_scalar('Loss/train', train_loss, epoch)
@@ -194,7 +194,7 @@ class net(nn.Module):
                 best_loss = val_loss 
                 print(' *', end="")
         
-        test_loss = self.batch_loss(data, test_loader)
+        test_loss, _ = self.batch_loss(data, test_loader)
         writer.add_scalar('Loss/test', test_loss)
         writer.close()
         print('\nFinal test loss: {:.4f}'.format(test_loss))
