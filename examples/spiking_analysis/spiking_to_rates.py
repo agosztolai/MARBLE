@@ -27,7 +27,7 @@ def main():
         all_rates[i] = rates_day
         
     
-    with open('../outputs/spiking_data/rate_data.pkl', 'wb') as handle:
+    with open('../outputs/spiking_data/rate_data_50ms.pkl', 'wb') as handle:
         pickle.dump(all_rates, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
         
@@ -73,7 +73,7 @@ def spikes_to_rates(data, d):
                     # get rates
                     gk = GaussianKernel(100*ms) # increase this for smoother signals (previously used auto)
                     # ek = ExponentialKernel(100*ms) # assymetric kernel and not smooth output
-                    inst_rate = instantaneous_rate(st, kernel=gk, sampling_period=1*ms).magnitude
+                    inst_rate = instantaneous_rate(st, kernel=gk, sampling_period=50*ms).magnitude
                         
                     # append into list
                     inst_rates.append(inst_rate)
