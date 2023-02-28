@@ -83,6 +83,8 @@ class net(nn.Module):
             
             kernels = [torch.sparse_coo_tensor(torch.vstack([K.coo()[0], K.coo()[1]]), K.coo()[2]).to('cuda:0') for K in data.kernels]
             t = time()
+            print(kernels[0].device)
+            print(n_id[:size[1]*d].device)
             kernels = [torch.index_select(torch.index_select(K, 0, n_id[:size[1]*d]), 1, n_id[:size[0]*d]) for K in kernels]
             kernels = [utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels]
             print(time()-t)
