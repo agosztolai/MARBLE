@@ -408,11 +408,11 @@ def manifold_dimension(Sigma, frac_explained=0.9):
     return int(dim_man)
 
 
-def fit_graph(x, graph_type='cknn', par=1):
+def fit_graph(x, graph_type='cknn', par=1, delta=1.0):
     """Fit graph to node positions"""
     
     if graph_type=='cknn':
-        edge_index = cknneighbors_graph(x, n_neighbors=par, delta=1.0).tocoo()
+        edge_index = cknneighbors_graph(x, n_neighbors=par, delta=delta).tocoo()
         edge_index = np.vstack([edge_index.row,edge_index.col])
         edge_index = utils.np2torch(edge_index, dtype='double')
         
