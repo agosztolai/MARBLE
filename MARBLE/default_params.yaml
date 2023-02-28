@@ -4,6 +4,7 @@ epochs : 20, #optimisation epochs
 lr: 0.01 #learning rate
 momentum: 0.9 #momentum
 diffusion: False
+include_positions: False
 
 #manifold/signal parameters
 order: 2 #order to which to compute the directional derivatives

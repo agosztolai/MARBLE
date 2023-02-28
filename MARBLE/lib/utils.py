@@ -160,7 +160,7 @@ def check_parameters(par, data):
             'inner_product_features', 'dim_signal', 'dim_emb', 'dim_man',\
             'frac_sampled_nb', 'dropout', 'n_lin_layers', 'diffusion', \
             'hidden_channels', 'out_channels', 'bias', 'batch_norm', 'vec_norm', \
-            'seed', 'n_sampled_nb', 'processes']
+            'seed', 'n_sampled_nb', 'processes', 'include_positions']
         
     for p in par.keys():
         assert p in pars, 'Unknown specified parameter {}!'.format(p)
@@ -214,6 +214,7 @@ def move_to_gpu(model, data, adjs=None):
     
     model = model.to(device)
     x = data.x.to(device)
+    pos = data.pos.to(device)
     
     if hasattr(data, 'L'):
         L = [l.to(device) for l in data.L]
@@ -229,10 +230,10 @@ def move_to_gpu(model, data, adjs=None):
     gauges = data.gauges.to(device)
             
     if adjs is None:
-        return model, x, L, Lc, kernels, gauges
+        return model, x, pos, L, Lc, kernels, gauges
     else:
         adjs = [adj.to(device) for adj in adjs]
-        return model, x, L, Lc, kernels, gauges, adjs
+        return model, x, pos, L, Lc, kernels, gauges, adjs
 
 
 def detach_from_gpu(model, data, adjs=None):
@@ -243,6 +244,7 @@ def detach_from_gpu(model, data, adjs=None):
     
     model = model.to(device)
     x = data.x.detach().cpu()
+    pos = data.pos.detach().cpu()
     
     if hasattr(data, 'L'):
         L = [l.detach().cpu() for l in data.L]
@@ -258,11 +260,11 @@ def detach_from_gpu(model, data, adjs=None):
     gauges = data.gauges.detach().cpu()
             
     if adjs is None:
-        return model, x, L, Lc, kernels, gauges
+        return model, x, pos, L, Lc, kernels, gauges
     else:
         for i, adj in enumerate(adjs):
             adjs[i] = [adj[0].detach().cpu(), adj[1].detach().cpu(), adj[2]]
-        return model, x, L, Lc, kernels, gauges, adjs
+        return model, x, pos, L, Lc, kernels, gauges, adjs
     
 
 # =============================================================================

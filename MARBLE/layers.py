@@ -36,6 +36,9 @@ def setup_layers(model):
         inner_products = InnerProductFeatures(cum_channels, s)
     else:
         inner_products = None
+        
+    if par['include_positions']:
+        cum_channels += d
     
     #encoder
     channel_list = [cum_channels] + \

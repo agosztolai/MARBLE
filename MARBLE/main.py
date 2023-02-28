@@ -13,6 +13,8 @@ from datetime import datetime
 from .lib import utils, geometry
 from . import layers, dataloader
 
+from tqdm import tqdm
+
 
 """Main network"""
 class net(nn.Module):
@@ -93,7 +95,10 @@ class net(nn.Module):
             out = self.inner_products(out)
         else:
             out = torch.cat(out, axis=1)     
-                    
+            
+        if self.par['include_positions']:
+            out = torch.hstack([data.pos[n_id][:size[1]], out])
+        
         emb = self.enc(out)
         
         return emb
@@ -114,13 +119,12 @@ class net(nn.Module):
                 pass
         
             #load to gpu if possible
-            model, data.x, data.L, data.Lc, data.kernels, data.gauges, adjs = \
+            model, data.x, data.pos, data.L, data.Lc, data.kernels, data.gauges, adjs = \
                 utils.move_to_gpu(self, data, adjs)
                 
-               
             out = self.forward(data, torch.arange(len(data.x)), adjs)
             
-            model, data.x, data.L, data.Lc, data.kernels, data.gauges, adjs = \
+            model, data.x, data.pos, data.L, data.Lc, data.kernels, data.gauges, adjs = \
                 utils.detach_from_gpu(self, data, adjs)
             
             data.out = out.detach().cpu()
@@ -142,7 +146,7 @@ class net(nn.Module):
             self.train()
         
         cum_loss = 0
-        for batch in loader:
+        for batch in tqdm(loader):
             _, n_id, adjs = batch
             adjs = [adj.to(data.x.device) for adj in utils.to_list(adjs)]
                         
@@ -166,7 +170,7 @@ class net(nn.Module):
         print('\n---- Training network ...')
                 
         #load to gpu (if possible)
-        self, data.x, data.L, data.Lc, data.kernels, data.gauges = utils.move_to_gpu(self, data)
+        self, data.x, data.pos, data.L, data.Lc, data.kernels, data.gauges = utils.move_to_gpu(self, data)
         
         #data loader
         train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
@@ -186,7 +190,7 @@ class net(nn.Module):
             self.writer.add_scalar('Loss/train', train_loss, epoch)
             self.writer.add_scalar('Loss/validation', val_loss, epoch)
             self.writer.flush()
-            print("\nEpoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}, lr: {:.4f}" \
+            print("Epoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}, lr: {:.4f}\n\n" \
                   .format(epoch, train_loss, val_loss, scheduler._last_lr[0]), end="")
                 
             if best_loss==-1 or (val_loss<best_loss):
@@ -197,7 +201,7 @@ class net(nn.Module):
         test_loss = self.batch_loss(data, test_loader)
         self.writer.add_scalar('Loss/test', test_loss)
         self.writer.close()
-        print('\nFinal test loss: {:.4f}'.format(test_loss))
+        print('Final test loss: {:.4f}'.format(test_loss))
         
         self.save_model(outdir, best=False)
         
