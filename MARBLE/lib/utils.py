@@ -34,12 +34,15 @@ def construct_dataset(pos,
                       stop_crit=0.0,
                       number_of_resamples=1,
                       n_nodes=None,
-                      compute_cl=False,
+                      compute_laplacian=False,
+                      compute_connection_laplacian=False,
                       var_explained=0.9,
                       n_workers=1,
                       vector=True,
                       dim_man=None,
-                      labels=None):
+                      labels=None,
+                      delta=1.0,
+                      ):
     
     """Construct PyG dataset from node positions and features"""
                 
@@ -71,7 +74,8 @@ def construct_dataset(pos,
             #fit graph to point cloud
             edge_index, edge_weight = geometry.fit_graph(p, 
                                                          graph_type=graph_type, 
-                                                         par=k
+                                                         par=k,
+                                                         delta=delta,
                                                          )
             n = len(p)  
             data_ = Data(pos=p, #positions
@@ -97,7 +101,8 @@ def construct_dataset(pos,
     
     batch = preprocessing.preprocessing(batch, 
                                         vector=vector, 
-                                        compute_cl=compute_cl,
+                                        compute_laplacian=compute_laplacian,
+                                        compute_connection_laplacian=compute_connection_laplacian,
                                         n_workers=n_workers,
                                         n_geodesic_nb=n_geodesic_nb,
                                         var_explained=var_explained,

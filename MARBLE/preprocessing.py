@@ -10,7 +10,8 @@ def preprocessing(data,
                   var_explained=0.9,
                   diffusion_method='spectral',
                   vector=True,
-                  compute_cl=False,
+                  compute_laplacian=False,
+                  compute_connection_laplacian=False,
                   dim_man=None,
                   n_workers=1):
     """
@@ -67,7 +68,7 @@ def preprocessing(data,
         gauges = torch.eye(dim_emb).repeat(n,1,1) 
             
     #Laplacian
-    if compute_cl:
+    if compute_laplacian:
         L = g.compute_laplacian(data)
     else:
         L = None
@@ -89,7 +90,7 @@ def preprocessing(data,
         kernels = [K*R for K in kernels]
         print('Done ')
                 
-        if compute_cl:
+        if compute_connection_laplacian:
             Lc = g.compute_connection_laplacian(data, R)
         else:
             Lc = None
