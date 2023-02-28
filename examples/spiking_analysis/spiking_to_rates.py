@@ -76,10 +76,10 @@ def spikes_to_rates(data, d):
                     inst_rate = instantaneous_rate(st, kernel=gk, sampling_period=50*ms).magnitude
                         
                     # append into list
-                    inst_rates.append(inst_rate)
+                    inst_rates.append(inst_rate.flatten())
                     
                 # stack rates back together and transpose = (channels by time)
-                inst_rates = np.hstack(inst_rates).T
+                inst_rates = np.stack(inst_rates,axis=1)
                     
                 # append rates from one trial into trial data
                 trial_data.append(inst_rates)
@@ -92,6 +92,3 @@ def spikes_to_rates(data, d):
             
 if __name__ == '__main__':
     sys.exit(main())
-
-
-
