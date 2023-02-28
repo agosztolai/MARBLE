@@ -71,13 +71,11 @@ class net(nn.Module):
                 
             x = self.diffusion(x, L, Lc=Lc, method='spectral')
             
-        
         #restrict to current batch
         if data.kernels[0].size(0) == n*d:
             n_id = utils.expand_index(n_id, d)
         else:
             d=1
-        kernels = [K[n_id, :][:, n_id] for K in data.kernels]
     
         if self.par['vec_norm']:
             x = F.normalize(x, dim=-1, p=2)
@@ -85,8 +83,8 @@ class net(nn.Module):
         #gradients
         out = [x]
         for i, (edge_index, _, size) in enumerate(adjs):
-            edge_index = utils.expand_edge_index(edge_index, d)
-            x = self.grad[i](x, edge_index, kernels)
+            kernels = [K[n_id[:size[1]*d], :][:, n_id[:size[0]*d]] for K in data.kernels]
+            x = self.grad[i](x, kernels)
             out.append(x)
             
         out = [o[:size[1]] for o in out] #take target nodes

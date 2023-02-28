@@ -96,12 +96,10 @@ class AnisoConv(MessagePassing):
         
         self.vec_norm = vec_norm
         
-    def forward(self, x, edge_index, kernels):  
+    def forward(self, x, kernels):  
         out = []
         for K in utils.to_list(kernels):
-            K = K.t() #transpose because edge_index is from target to source
-            K = K[torch.arange(edge_index[0].max()+1),:][:,torch.arange(edge_index[1].max()+1)]
-            out.append(self.propagate(K.t(), x=x))
+            out.append(self.propagate(K, x=x))
             
         #[[dx1/du, dx2/du], [dx1/dv, dx2/dv]] -> [dx1/du, dx1/dv, dx2/du, dx2/dv]
         out = torch.stack(out, axis=2)
@@ -122,7 +120,7 @@ class AnisoConv(MessagePassing):
         n, dim = x.shape
         
         if (K_t.size(dim=1) % n*dim)==0:
-            n_ch = n*dim // K_t.size(dim=1)
+            n_ch = torch.div(n*dim, K_t.size(dim=1), rounding_mode='floor')
             x = x.view(-1, n_ch)
             
         x = K_t.matmul(x, reduce=self.aggr)
