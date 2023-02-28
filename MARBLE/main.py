@@ -125,7 +125,7 @@ class net(nn.Module):
             return data
                 
 
-    def batch_loss(self, data, loader, train=False):
+    def batch_loss(self, data, loader, train=False, verbose=False):
         """Loop over minibatches provided by loader function.
         
         Parameters
@@ -139,7 +139,7 @@ class net(nn.Module):
             self.train()
         
         cum_loss = 0
-        for batch in tqdm(loader):
+        for batch in tqdm(loader, disable= not verbose):
             _, n_id, adjs = batch
             adjs = [adj.to(data.x.device) for adj in utils.to_list(adjs)]
                         
