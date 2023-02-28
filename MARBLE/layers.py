@@ -98,7 +98,7 @@ class AnisoConv(MessagePassing):
         
     def forward(self, x, kernels):  
         out = []
-        for K in utils.to_list(kernels):
+        for K in kernels:
             out.append(self.propagate(K, x=x))
             
         #[[dx1/du, dx2/du], [dx1/dv, dx2/dv]] -> [dx1/du, dx1/dv, dx2/du, dx2/dv]
