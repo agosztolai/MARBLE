@@ -133,8 +133,6 @@ def main():
                                        n_nodes=None, n_workers=1, n_geodesic_nb=10, compute_laplacian=True, vector=False)
 
         
-        os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-        os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2"
 
         #x = data.x[:100,:].numpy()
         #pos = data.pos[:100,:].numpy()

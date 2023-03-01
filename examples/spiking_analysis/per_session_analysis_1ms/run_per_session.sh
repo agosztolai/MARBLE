@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name train_model # Name for your job
 #SBATCH --ntasks 1              # Number of (cpu) tasks
-#SBATCH --time 120             # Runtime in minutes.
+#SBATCH --time 1200             # Runtime in minutes.
 #SBATCH --mem 19000             # Reserve 10 GB RAM for the job
 #SBATCH --partition gpu         # Partition to submit ('gpu' or 'cpu')
 #SBATCH --qos staff             # QOS ('staff' or 'students')
