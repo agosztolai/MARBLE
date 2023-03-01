@@ -126,15 +126,17 @@ def main():
         # remove outliers
         if rm_outliers:
             pos, vel, timepoints, condition_labels = remove_outliers(pos, vel, timepoints, condition_labels)
-
-
-        with open('../../outputs/spiking_data/data_session_{}'.format(day), 'wb') as handle:
-            pickle.dump([pos, vel], handle, protocol=pickle.HIGHEST_PROTOCOL)
             
         # construct data for marble
         data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=30, stop_crit=0.02, delta=1,
                                        n_nodes=None, n_workers=1, n_geodesic_nb=10, compute_laplacian=True, vector=False)
 
+        
+        with open('../../outputs/spiking_data/raw_data_session_{}'.format(day), 'wb') as handle:
+            pickle.dump([pos, vel], handle, protocol=pickle.HIGHEST_PROTOCOL)
+            
+        with open('../../outputs/spiking_data/data_object_session_{}'.format(day), 'wb') as handle:
+            pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
         
 
         #x = data.x[:100,:].numpy()
