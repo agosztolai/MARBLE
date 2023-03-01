@@ -153,7 +153,7 @@ def main():
         model = net(data, **par)
         
         model.run_training(data, use_best=True, outdir='../../outputs/spiking_data/session_{}'.format(day))        
-        data = model.evaluate(data)   
+        # data = model.evaluate(data)   
         
         # n_clusters = 50        
         # data = postprocessing(data, n_clusters=n_clusters)      
@@ -171,8 +171,8 @@ def main():
         # all_condition_labels.append(data.y)
         
         
-        with open('./outputs/distance_matrices_and_embeddings_1ms_test.pkl', 'wb') as handle:
-            pickle.dump([distance_matrices, embeddings, times , all_condition_labels ], handle, protocol=pickle.HIGHEST_PROTOCOL)
+        # with open('./outputs/distance_matrices_and_embeddings_1ms_test.pkl', 'wb') as handle:
+        #     pickle.dump([distance_matrices, embeddings, times , all_condition_labels ], handle, protocol=pickle.HIGHEST_PROTOCOL)
             
     if plot:
         emb_MDS, _ = geometry.embed(np.dstack(distance_matrices).mean(2), embed_typ = 'MDS')
