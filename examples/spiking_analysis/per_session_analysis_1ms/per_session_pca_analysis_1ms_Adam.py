@@ -61,26 +61,23 @@ def main():
         # loop over each condition on that day
         for c, cond in enumerate(conditions):
 
-            # go cue at 500ms (500ms / 50ms bin = 10)
-            # only take rates from bin 10 onwards
-            data = rates[day][cond][:,:,500:]
+            # go cue at 500ms 
+            data = rates[day][cond][:,500:,:]
             
             # loop over all trials
-            for t in range(0, data.shape[0]):
-                
-                # extract trial
-                trial = data[t,:,:]
+            for trial in data:
+                # store each trial as time x channels
+                pos.append(trial)
                 
                 # smooth trial over time
                 if filter_data:
                     trial = savgol_filter(trial, 9,2)
                 
                 # store each trial as time x channels
-                pos.append(trial.T)
+                pos.append(trial)
               
         # stacking all trials into a single array (time x channels)
         pos = np.vstack(pos)
-        print(pos.shape)
         
         # fit PCA to all data across all conditions on a given day simultaneously
         pca = PCA(n_components=pca_n)
@@ -96,22 +93,18 @@ def main():
         # loop over conditions
         for c, cond in enumerate(conditions):
             
-            # go cue at 500ms (500ms / 50ms bin = 10)
-            # only take rates from bin 10 onwards
-            data = rates[day][cond][:,:,np.arange(500,1200,5)]           
+            # go cue at 500ms 
+            data = rates[day][cond][:,np.arange(500,1200,5),:]           
                        
             # loop over all trials
-            for t in range(0, data.shape[0]):
-                
-                # extract trial
-                trial = data[t,:,:]
+            for trial in data:
                 
                 # smooth trial over time
                 if filter_data:
                     trial = savgol_filter(trial, 9,2)  
                 
                 # apply transformation to single trial
-                trial = pca.transform(trial.T)
+                trial = pca.transform(trial)
                 
                 # take all points except last
                 pos[c].append(trial[:-1,:])
