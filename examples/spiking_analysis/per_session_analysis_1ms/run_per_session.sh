@@ -11,7 +11,7 @@
 #SBATCH --mail-user adam.gosztolai@epfl.ch
 #SBATCH --mail-type ALL         # ALL will alert you of job beginning, completion, failure etc
            # Reserve 1 GPU for usage, can be 'teslak40', 'gtx1080', or 'titanrtx'
-#SBATCH --chdir ./per_session_analysis_1ms
+#SBATCH --chdir .
 
 # ACTIVATE ANACONDA
 eval "$(conda shell.bash hook)"
