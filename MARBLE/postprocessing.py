@@ -47,8 +47,6 @@ def postprocessing(data,
     #clusters['slices'] = data._slice_dict['x']
     
 
-
-    
     #compute distances between clusters
     dist, gamma, cdist = g.compute_histogram_distances(clusters)
     

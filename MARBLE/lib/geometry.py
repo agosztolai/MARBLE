@@ -220,7 +220,7 @@ def relabel_by_proximity(clusters):
     return clusters
 
 
-def compute_histogram_distances(clusters):
+def compute_histogram_distances(clusters=None, data=None):
     """
     Compute the distance between clustered distributions across datasets.
 
@@ -236,54 +236,53 @@ def compute_histogram_distances(clusters):
 
     """
     
-    #compute discrete measures from clusters
-    l, s = clusters['labels'], clusters['slices']
-    l = [l[s[i]:s[i+1]]+1 for i in range(len(s)-1)]
-    nc, nl = clusters['n_clusters'], len(l)
-    bins_dataset = []
-    for l_ in l: #loop over datasets
-        bins = [(l_ == i+1).sum() for i in range(nc)] #loop over clusters
-        bins = np.array(bins)
-        bins_dataset.append(bins/bins.sum())
+    if clusters is not None:
+        #compute discrete measures supported on cluster centroids
+        l, s = clusters['labels'], clusters['slices']
+        l = [l[s[i]:s[i+1]]+1 for i in range(len(s)-1)]
+        nc, nl = clusters['n_clusters'], len(l)
+        bins_dataset = []
+        for l_ in l: #loop over datasets
+            bins = [(l_ == i+1).sum() for i in range(nc)] #loop over clusters
+            bins = np.array(bins)
+            bins_dataset.append(bins/bins.sum())
+            
+        pdists = pairwise_distances(clusters['centroids'])
+            
+    elif data is not None:
+        #compute empirical measures from datapoints
+        s = data._slice_dict['x']
+        nl = len(s)-1
+        
+        bins_dataset = []
+        for i in range(nl):
+            mu = np.ones(s[i+1]-s[i]) / (s[i+1]-s[i])
+            bins_dataset.append(mu)
+            
+        pdists = pairwise_distances(data.emb)
+    else:
+        raise Exception('No input provided.')
     
     #compute distance between measures
     dist = np.zeros([nl, nl])
     gamma = np.zeros([nl, nl, nc, nc])
-    centroid_distances = pairwise_distances(clusters['centroids'])
+    
     for i in range(nl):
         for j in range(i+1, nl):
-            dist[i,j] = ot.emd2(bins_dataset[i], bins_dataset[j], centroid_distances)
+            mu, nu = bins_dataset[i], bins_dataset[j]
+            
+            if clusters is not None:
+                dxy = pdists
+            elif data is not None:
+                dxy = pdists[s[i]:s[i+1], s[j]:s[j+1]]
+            
+            dist[i,j] = ot.emd2(mu, nu, dxy)
             dist[j,i] = dist[i,j]
-            gamma[i,j,...] = ot.emd(bins_dataset[i], bins_dataset[j], centroid_distances)
+            
+            gamma[i,j,...] = ot.emd(mu, nu, dxy)
             gamma[j,i,...] = gamma[i,j,...]
-                        
-    return dist, gamma, centroid_distances
-
-# def compute_distribution_distances(data, return_OT_matrix=True):
-    
-#     pdists = pairwise_distances(data.emb)
-#     s = data._slice_dict['x']
-#     nl = len(s)-1
-    
-#     dist = np.zeros([nl, nl])
-#     gamma = [[[] for n in range(nl)] for n in range(nl)]
-#     for i in range(nl):
-#         for j in range(i+1, nl):
-#             mu = np.ones(s[i+1]-s[i]); 
-#             mu /= len(mu)
-#             nu = np.ones(s[j+1]-s[j])
-#             nu /= len(nu)
-#             dxy = pdists[s[i]:s[i+1], s[j]:s[j+1]]
-#             dist[i,j] = ot.emd2(mu, nu, dxy)
-#             dist[j,i] = dist[i,j]
-#             if return_OT_matrix:
-#                 gamma[i][j].append(ot.emd(mu, nu, dxy))
-#                 gamma[j][i].append(gamma[i][j])
-                
-#     if return_OT_matrix:
-#         return dist, gamma
-#     else:
-#         return dist
+                       
+    return dist, gamma, pdists
 
 
 # =============================================================================
