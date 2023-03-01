@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 #!/bin/bash
 #SBATCH --job-name train_model # Name for your job
 #SBATCH --ntasks 1              # Number of (cpu) tasks
