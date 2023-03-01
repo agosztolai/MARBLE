@@ -53,7 +53,7 @@ def main():
     all_condition_labels = [];
     
     # loop over each day
-    for day in list(days)[0]:
+    for day in days:
         
         # first stack all trials from that day together and fit pca
         print(day)
