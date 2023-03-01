@@ -48,7 +48,7 @@ def postprocessing(data,
     
 
     #compute distances between clusters
-    dist, gamma, cdist = g.compute_histogram_distances(clusters)
+    dist, gamma, cdist = g.compute_distribution_distances(clusters)
     
     #embed into 2D via t-SNE for visualisation
     emb = np.vstack([out, clusters['centroids']])

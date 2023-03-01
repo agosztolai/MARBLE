@@ -220,7 +220,7 @@ def relabel_by_proximity(clusters):
     return clusters
 
 
-def compute_histogram_distances(clusters=None, data=None):
+def compute_distribution_distances(clusters=None, data=None):
     """
     Compute the distance between clustered distributions across datasets.
 
