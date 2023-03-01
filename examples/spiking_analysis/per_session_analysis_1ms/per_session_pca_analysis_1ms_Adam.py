@@ -80,6 +80,7 @@ def main():
               
         # stacking all trials into a single array (time x channels)
         pos = np.vstack(pos)
+        print(pos.shape)
         
         # fit PCA to all data across all conditions on a given day simultaneously
         pca = PCA(n_components=pca_n)
