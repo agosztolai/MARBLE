@@ -30,7 +30,7 @@ def main():
     """ fitting model for each day + pca embedding """    
     
     # instantaneous rate data
-    rates = pickle.load(open('../../outputs/rate_data_1ms.pkl','rb'))       
+    rates = pickle.load(open('../../outputs/spiking_data/rate_data_1ms.pkl','rb'))       
 
     # definingf the set of conditions     
     conditions=['DownLeft','Left','UpLeft','Up','UpRight','Right','DownRight']    
