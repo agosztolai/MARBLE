@@ -247,7 +247,8 @@ def compute_distribution_distances(clusters=None, data=None):
             bins = np.array(bins)
             bins_dataset.append(bins/bins.sum())
             
-        pdists = pairwise_distances(clusters['centroids'])
+        cdists = pairwise_distances(clusters['centroids'])
+        gamma = np.zeros([nl, nl, nc, nc])
             
     elif data is not None:
         #compute empirical measures from datapoints
@@ -257,7 +258,7 @@ def compute_distribution_distances(clusters=None, data=None):
         bins_dataset = []
         for i in range(nl):
             mu = np.ones(s[i+1]-s[i]) / (s[i+1]-s[i])
-            bins_dataset.append(mu)
+            bins_dataset.append(np.array(mu))
             
         pdists = pairwise_distances(data.emb)
     else:
@@ -265,24 +266,23 @@ def compute_distribution_distances(clusters=None, data=None):
     
     #compute distance between measures
     dist = np.zeros([nl, nl])
-    gamma = np.zeros([nl, nl, nc, nc])
-    
     for i in range(nl):
         for j in range(i+1, nl):
             mu, nu = bins_dataset[i], bins_dataset[j]
             
-            if clusters is not None:
-                dxy = pdists
-            elif data is not None:
-                dxy = pdists[s[i]:s[i+1], s[j]:s[j+1]]
+            if data is not None:
+                cdists = pdists[s[i]:s[i+1], s[j]:s[j+1]]
             
-            dist[i,j] = ot.emd2(mu, nu, dxy)
+            dist[i,j] = ot.emd2(mu, nu, cdists)
             dist[j,i] = dist[i,j]
             
-            gamma[i,j,...] = ot.emd(mu, nu, dxy)
-            gamma[j,i,...] = gamma[i,j,...]
+            if clusters is not None:
+                gamma[i,j,...] = ot.emd(mu, nu, cdists)
+                gamma[j,i,...] = gamma[i,j,...]
+            else:
+                gamma = None
                        
-    return dist, gamma, pdists
+    return dist, gamma
 
 
 # =============================================================================

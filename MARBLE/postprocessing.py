@@ -29,7 +29,13 @@ def postprocessing(data,
     else:
         out = data.out
         
-    
+    if type(data) is list:
+        data_ = data[0]
+        data_.emb = out
+        data_.y = torch.cat([d.y for d  in data])
+    else:
+        data_ = data
+        
     #k-means cluster
     clusters = g.cluster(out, cluster_typ, n_clusters, seed)
     clusters = g.relabel_by_proximity(clusters)
@@ -46,30 +52,20 @@ def postprocessing(data,
             clusters['slices'] = clusters['slices'][::data.number_of_resamples]      
     #clusters['slices'] = data._slice_dict['x']
     
-
-    #compute distances between clusters
-    dist, gamma, cdist = g.compute_distribution_distances(clusters)
-    
     #embed into 2D via t-SNE for visualisation
     emb = np.vstack([out, clusters['centroids']])
     emb, manifold = g.embed(emb, embed_typ, manifold)  
     emb, clusters['centroids'] = emb[:-clusters['n_clusters']], emb[-clusters['n_clusters']:]
-    
-
-    #store everything in data    
-    if type(data) is list:
-        data_ = data[0]
-        data_.emb = out
-        data_.y = torch.cat([d.y for d  in data])
-    else:
-        data_ = data
-        
     data_.emb = emb
+    
+    #compute distances between clusters
+    dist, gamma = g.compute_distribution_distances(data=data)
+
+    #store everything in data 
     data_.manifold = manifold
     data_.clusters = clusters
     data_.dist = dist
     data_.gamma = gamma
-    data_.cdist = cdist
     
     return data_
 
