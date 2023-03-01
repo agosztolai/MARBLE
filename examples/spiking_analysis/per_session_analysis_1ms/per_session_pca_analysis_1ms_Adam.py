@@ -127,8 +127,11 @@ def main():
         if rm_outliers:
             pos, vel, timepoints, condition_labels = remove_outliers(pos, vel, timepoints, condition_labels)
 
-        # construct data for marble
 
+        with open('../../outputs/spiking_data/data_session_{}'.format(day), 'wb') as handle:
+            pickle.dump([pos, vel], handle, protocol=pickle.HIGHEST_PROTOCOL)
+            
+        # construct data for marble
         data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=30, stop_crit=0.02, delta=1,
                                        n_nodes=None, n_workers=1, n_geodesic_nb=10, compute_laplacian=True, vector=False)
 
@@ -168,9 +171,6 @@ def main():
         # times.append(timepoints)
         # all_condition_labels.append(data.y)
         
-        
-        # with open('./outputs/distance_matrices_and_embeddings_1ms_test.pkl', 'wb') as handle:
-        #     pickle.dump([distance_matrices, embeddings, times , all_condition_labels ], handle, protocol=pickle.HIGHEST_PROTOCOL)
             
     if plot:
         emb_MDS, _ = geometry.embed(np.dstack(distance_matrices).mean(2), embed_typ = 'MDS')
