@@ -18,4 +18,4 @@ eval "$(conda shell.bash hook)"
 conda activate MARBLE
 
 # RUN TRAINING
-python per_session_pca_analysis_1ms.py
+python per_session_pca_analysis_1ms_Adam.py
