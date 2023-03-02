@@ -34,9 +34,6 @@ def main():
     
     # instantaneous rate data
     rates = pickle.load(open('../../outputs/spiking_data/rate_data_1ms.pkl','rb'))       
-
-    # definingf the set of conditions     
-    conditions=['DownLeft','Left','UpLeft','Up','UpRight','Right','DownRight']    
     
     # list of days
     days = rates.keys()
@@ -65,13 +62,6 @@ def main():
         
         with open('../../outputs/spiking_data/data_object_session_{}.pkl'.format(day), 'wb') as handle:
             pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        
-
-        # # extracting the time points associated with data
-        # for c,cond in enumerate(conditions):
-        #     time = timepoints[c]
-        #     time = time[data.sample_ind[data.y==c]]
-        #     timepoints[c] = time
 
 
 
