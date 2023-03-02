@@ -58,7 +58,8 @@ def postprocessing(data,
         #embed into 2D via t-SNE for visualisation
         emb = np.vstack([out, clusters['centroids']])
         emb, data_.manifold = g.embed(emb, embed_typ, manifold)  
-        data_.emb, data_.clusters['centroids'] = emb[:-clusters['n_clusters']], emb[-clusters['n_clusters']:]
+        data_.emb, clusters['centroids'] = emb[:-clusters['n_clusters']], emb[-clusters['n_clusters']:]
+        data_.clusters = clusters
                 
     else:
         data_.emb = out
