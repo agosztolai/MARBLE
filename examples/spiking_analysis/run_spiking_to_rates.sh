@@ -8,6 +8,7 @@
 #SBATCH --output myjob-%j.txt       # Standard out goes to this file
 #SBATCH --error myjob-%j.txt        # Standard err goes to this file
 #SBATCH --mail-user adam.gosztolai@epfl.ch
+#SBATCH --nodelist lts2cdk7
 #SBATCH --mail-type ALL         # ALL will alert you of job beginning, completion, failure etc
            # Reserve 1 GPU for usage, can be 'teslak40', 'gtx1080', or 'titanrtx'
 #SBATCH --chdir . 

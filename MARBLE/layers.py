@@ -9,7 +9,6 @@ from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.nn import MLP
 
 from .lib import geometry as g
-from .lib import utils
 
 
 def setup_layers(model):

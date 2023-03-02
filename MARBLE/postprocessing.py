@@ -10,7 +10,7 @@ import torch
 def postprocessing(data,
                    cluster_typ='kmeans', 
                    embed_typ='umap', 
-                   n_clusters=15, 
+                   n_clusters=None, 
                    manifold=None,
                    seed=0):
     """
@@ -29,36 +29,6 @@ def postprocessing(data,
     else:
         out = data.out
         
-    
-    #k-means cluster
-    clusters = g.cluster(out, cluster_typ, n_clusters, seed)
-    clusters = g.relabel_by_proximity(clusters)
-    
-    if type(data) is list:
-        slices = [d._slice_dict['x'] for i, d  in enumerate(data)]
-        for i in range(1,len(slices)):
-            slices[i] = slices[i] + slices[i-1][-1]
-        clusters['slices'] = torch.unique(torch.cat(slices))
-    else:
-        clusters['slices'] = data._slice_dict['x']
-        
-        if data.number_of_resamples>1:
-            clusters['slices'] = clusters['slices'][::data.number_of_resamples]      
-    #clusters['slices'] = data._slice_dict['x']
-    
-
-
-    
-    #compute distances between clusters
-    dist, gamma, cdist = g.compute_histogram_distances(clusters)
-    
-    #embed into 2D via t-SNE for visualisation
-    emb = np.vstack([out, clusters['centroids']])
-    emb, manifold = g.embed(emb, embed_typ, manifold)  
-    emb, clusters['centroids'] = emb[:-clusters['n_clusters']], emb[-clusters['n_clusters']:]
-    
-
-    #store everything in data    
     if type(data) is list:
         data_ = data[0]
         data_.emb = out
@@ -66,12 +36,35 @@ def postprocessing(data,
     else:
         data_ = data
         
-    data_.emb = emb
-    data_.manifold = manifold
-    data_.clusters = clusters
-    data_.dist = dist
-    data_.gamma = gamma
-    data_.cdist = cdist
+    if n_clusters is not None:
+        #k-means cluster
+        clusters = g.cluster(out, cluster_typ, n_clusters, seed)
+        clusters = g.relabel_by_proximity(clusters)
+    
+        if type(data) is list:
+            slices = [d._slice_dict['x'] for i, d  in enumerate(data)]
+            for i in range(1,len(slices)):
+                slices[i] = slices[i] + slices[i-1][-1]
+            clusters['slices'] = torch.unique(torch.cat(slices))
+        else:
+            clusters['slices'] = data._slice_dict['x']
+            
+            if data.number_of_resamples>1:
+                clusters['slices'] = clusters['slices'][::data.number_of_resamples]      
+                
+        #compute distances between clusters
+        data_.dist, data_.gamma = g.compute_distribution_distances(clusters=clusters)
+    
+        #embed into 2D via t-SNE for visualisation
+        emb = np.vstack([out, clusters['centroids']])
+        emb, data_.manifold = g.embed(emb, embed_typ, manifold)  
+        data_.emb, clusters['centroids'] = emb[:-clusters['n_clusters']], emb[-clusters['n_clusters']:]
+        data_.clusters = clusters
+                
+    else:
+        data_.emb = out
+        data_.dist, _ = g.compute_distribution_distances(data=data)
+        data_.emb, data_.manifold = g.embed(out, embed_typ, manifold)
     
     return data_
 
