@@ -102,7 +102,7 @@ def preprocessing(data,
         Lc = None
         
     if diffusion_method == 'spectral':
-        print('\n---- Computing eigendecomposition ... ', end="")
+        print('---- Computing eigendecomposition ... ', end="")
         L = g.compute_eigendecomposition(L, k=n_evec)
         Lc = g.compute_eigendecomposition(Lc, k=n_evec)
         print('Done ')

@@ -10,7 +10,7 @@ def main():
     
     #parameters
     n = 512
-    k = 15
+    k = 20
     n_clusters = 15
     
     par = {'epochs': 50, #optimisation epochs

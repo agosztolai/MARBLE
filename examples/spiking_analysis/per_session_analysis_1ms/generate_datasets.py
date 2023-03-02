@@ -130,7 +130,14 @@ def main():
         # construct data for marble
         data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=30, stop_crit=0.02,
                                        n_geodesic_nb=10, compute_laplacian=True, vector=False)
-
+        
+        # extracting the time points associated with data
+        for c,cond in enumerate(conditions):
+            time = timepoints[c]
+            time = time[data.sample_ind[data.y==c]]
+            timepoints[c] = time
+        
+        data.time = timepoints
         
         with open('../../outputs/spiking_data/raw_data_session_{}.pkl'.format(day), 'wb') as handle:
             pickle.dump([pos, vel, timepoints, condition_labels], handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -138,32 +145,6 @@ def main():
         with open('../../outputs/spiking_data/data_object_session_{}.pkl'.format(day), 'wb') as handle:
             pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
         
-
-        # par = {'epochs': 150, #optimisation epochs
-        #        'order': 2, #order of derivatives
-        #        'hidden_channels': 100, #number of internal dimensions in MLP
-        #        'out_channels': 6,
-        #        'inner_product_features': False,
-        #        'vec_norm': False,
-        #        'diffusion': True,
-        #       }
-        
-        # model = net(data, **par)
-        
-        # model.run_training(data, use_best=True, outdir='../../outputs/spiking_data/session_{}'.format(day))        
-        # data = model.evaluate(data)   
-        
-        # n_clusters = 50        
-        # data = postprocessing(data, n_clusters=n_clusters)      
-        
-
-        # # extracting the time points associated with data
-        # for c,cond in enumerate(conditions):
-        #     time = timepoints[c]
-        #     time = time[data.sample_ind[data.y==c]]
-        #     timepoints[c] = time
-
-
 
 # def analyse():
     

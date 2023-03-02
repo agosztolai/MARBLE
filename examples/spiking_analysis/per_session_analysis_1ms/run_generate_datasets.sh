@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name train_model # Name for your job
+#SBATCH --job-name generate_datasets # Name for your job
 #SBATCH --ntasks 1              # Number of (cpu) tasks
 #SBATCH --time 1200             # Runtime in minutes.
 #SBATCH --mem 19000             # Reserve 10 GB RAM for the job
@@ -18,4 +18,4 @@ eval "$(conda shell.bash hook)"
 conda activate MARBLE
 
 # RUN TRAINING
-python per_session_pca_analysis_1ms_Adam.py
+python generate_datasets.py
