@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name generate_datasets # Name for your job
+#SBATCH --job-name train_models # Name for your job
 #SBATCH --ntasks 1              # Number of (cpu) tasks
 #SBATCH --time 1200             # Runtime in minutes.
 #SBATCH --mem 19000             # Reserve 10 GB RAM for the job
