@@ -103,8 +103,10 @@ def preprocessing(data,
         Lc = None
         
     if diffusion_method == 'spectral':
+        print('\n---- Computing eigendecomposition ... ', end="")
         L = g.compute_eigendecomposition(L, k=n_evec)
         Lc = g.compute_eigendecomposition(Lc, k=n_evec)
+        print('Done ')
         
     data.kernels = [utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels]
     data.L, data.Lc, data.gauges, data.local_gauges = L, Lc, gauges, local_gauges
