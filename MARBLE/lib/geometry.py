@@ -4,7 +4,6 @@
 import torch
 import numpy as np
 import scipy.sparse as sp
-import scipy.sparse.csgraph as scg
 
 import torch_geometric.utils as PyGu
 from torch_geometric.nn import knn_graph, radius_graph
@@ -221,14 +220,7 @@ def relabel_by_proximity(clusters):
     return clusters
 
 
-def compute_distance_geodesic(adj):
-    """Geodesic distance matrix."""
-    return scg.floyd_warshall(adj)
-
-
-def compute_distribution_distances(clusters=None, 
-                                   data=None, 
-                                   geodesic_distance=True):
+def compute_distribution_distances(clusters=None, data=None):
     """
     Compute the distance between clustered distributions across datasets.
 
@@ -269,10 +261,6 @@ def compute_distribution_distances(clusters=None,
             mu /= len(mu)
             bins_dataset.append(mu)
             
-        edge_index = fit_graph(data.emb, graph_type='knn', par=10)[0]
-        edge_weight = neighbour_vectors(data.emb, edge_index).norm(dim=1)
-        adj = PyGu.to_dense_adj(edge_index, edge_attr=edge_weight)[0]
-        pdists = compute_distance_geodesic(adj.to_sparse())
         pdists = pairwise_distances(data.emb)
     else:
         raise Exception('No input provided.')
