@@ -61,6 +61,7 @@ def postprocessing(data,
         data_.emb, data_.clusters['centroids'] = emb[:-clusters['n_clusters']], emb[-clusters['n_clusters']:]
                 
     else:
+        data_.emb = out
         data_.dist, _ = g.compute_distribution_distances(data=data)
         data_.emb, data_.manifold = g.embed(out, embed_typ, manifold)
     
