@@ -128,8 +128,8 @@ def main():
         condition_labels = [np.hstack(u) for u in condition_labels]   
             
         # construct data for marble
-        data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=30, stop_crit=0.02, delta=1, n_evec=16,
-                                       n_nodes=None, n_workers=1, n_geodesic_nb=10, compute_laplacian=True, vector=False)
+        data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=30, stop_crit=0.02,
+                                       n_geodesic_nb=10, compute_laplacian=True, vector=False)
 
         
         with open('../../outputs/spiking_data/raw_data_session_{}.pkl'.format(day), 'wb') as handle:

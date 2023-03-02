@@ -13,8 +13,7 @@ def preprocessing(data,
                   vector=True,
                   compute_laplacian=False,
                   compute_connection_laplacian=False,
-                  dim_man=None,
-                  n_workers=1):
+                  dim_man=None):
     """
     Compute geometric objects used later: local gauges, Levi-Civita connections
     gradient kernels, scalar and connection laplacians.

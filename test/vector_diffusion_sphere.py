@@ -18,7 +18,7 @@ def main():
     y = f(x) #evaluated functions
     
     #construct PyG data object
-    data = utils.construct_dataset(x, y, graph_type='radius', k=k, n_geodesic_nb=10, var_explained=0.9, compute_laplacian=True)
+    data = utils.construct_dataset(x, y, graph_type='radius', k=k, n_geodesic_nb=10, n_evec=200, var_explained=0.9, compute_laplacian=True)
     
     #test the connection computation
     # data.x = geometry.map_to_local_gauges(data.x, data.gauges, length_correction=True) 
