@@ -55,7 +55,7 @@ def main():
     # loop over each day
     for day in days:
         
-        if day<25:
+        if day<len(days)-1:
             continue
         
         # first stack all trials from that day together and fit pca
@@ -135,10 +135,10 @@ def main():
                                        n_nodes=None, n_workers=1, n_geodesic_nb=10, compute_laplacian=True, vector=False)
 
         
-        with open('../../outputs/spiking_data/raw_data_session_{}'.format(day), 'wb') as handle:
+        with open('../../outputs/spiking_data/raw_data_session_{}.pkl'.format(day), 'wb') as handle:
             pickle.dump([pos, vel], handle, protocol=pickle.HIGHEST_PROTOCOL)
             
-        with open('../../outputs/spiking_data/data_object_session_{}'.format(day), 'wb') as handle:
+        with open('../../outputs/spiking_data/data_object_session_{}.pkl'.format(day), 'wb') as handle:
             pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
         
 
@@ -147,18 +147,18 @@ def main():
         #plt.quiver(pos[:,0],pos[:,1],x[:,0],x[:,1], angles='xy')
 
         
-        par = {'epochs': 150, #optimisation epochs
-               'order': 2, #order of derivatives
-               'hidden_channels': 100, #number of internal dimensions in MLP
-               'out_channels': 6,
-               'inner_product_features': False,
-               'vec_norm': False,
-               'diffusion': True,
-              }
+        # par = {'epochs': 150, #optimisation epochs
+        #        'order': 2, #order of derivatives
+        #        'hidden_channels': 100, #number of internal dimensions in MLP
+        #        'out_channels': 6,
+        #        'inner_product_features': False,
+        #        'vec_norm': False,
+        #        'diffusion': True,
+        #       }
         
-        model = net(data, **par)
+        # model = net(data, **par)
         
-        model.run_training(data, use_best=True, outdir='../../outputs/spiking_data/session_{}'.format(day))        
+        # model.run_training(data, use_best=True, outdir='../../outputs/spiking_data/session_{}'.format(day))        
         # data = model.evaluate(data)   
         
         # n_clusters = 50        
