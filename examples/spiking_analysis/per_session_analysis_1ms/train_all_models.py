@@ -43,7 +43,7 @@ def main():
     for day in days:
             
         # load data for marble
-        data = pickle.load(open('../outputs/spiking_data/data_object_session_{}.pkl'.format(day),'rb'))
+        data = pickle.load(open('../../outputs/spiking_data/data_object_session_{}.pkl'.format(day),'rb'))
         
 
         par = {'epochs': 150, #optimisation epochs
