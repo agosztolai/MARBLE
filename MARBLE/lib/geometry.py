@@ -272,7 +272,7 @@ def compute_distribution_distances(clusters=None,
         edge_index = fit_graph(data.emb, graph_type='knn', par=10)[0]
         edge_weight = neighbour_vectors(data.emb, edge_index).norm(dim=1)
         adj = PyGu.to_dense_adj(edge_index, edge_attr=edge_weight)[0]
-        pdists = compute_distance_geodesic(adj)
+        pdists = compute_distance_geodesic(adj.to_sparse())
         pdists = pairwise_distances(data.emb)
     else:
         raise Exception('No input provided.')
