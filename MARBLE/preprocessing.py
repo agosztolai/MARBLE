@@ -8,6 +8,7 @@ from .lib import utils
 def preprocessing(data, 
                   n_geodesic_nb=2.0, 
                   var_explained=0.9,
+                  n_evec=2, 
                   diffusion_method='spectral',
                   vector=True,
                   compute_laplacian=False,
@@ -102,8 +103,8 @@ def preprocessing(data,
         Lc = None
         
     if diffusion_method == 'spectral':
-        L = g.compute_eigendecomposition(L)
-        Lc = g.compute_eigendecomposition(Lc)
+        L = g.compute_eigendecomposition(L, k=n_evec)
+        Lc = g.compute_eigendecomposition(Lc, k=n_evec)
         
     data.kernels = [utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels]
     data.L, data.Lc, data.gauges, data.local_gauges = L, Lc, gauges, local_gauges
