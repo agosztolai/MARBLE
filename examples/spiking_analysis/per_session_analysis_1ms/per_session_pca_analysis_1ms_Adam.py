@@ -55,9 +55,6 @@ def main():
     # loop over each day
     for day in days:
         
-        if day<len(days)-1:
-            continue
-        
         # first stack all trials from that day together and fit pca
         print(day)
         pos = []            

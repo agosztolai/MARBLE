@@ -257,8 +257,9 @@ def compute_distribution_distances(clusters=None, data=None):
         
         bins_dataset = []
         for i in range(nl):
-            mu = np.ones(s[i+1]-s[i]) / (s[i+1]-s[i])
-            bins_dataset.append(np.array(mu))
+            mu = np.ones(s[i+1]-s[i])
+            mu /= len(mu)
+            bins_dataset.append(mu)
             
         pdists = pairwise_distances(data.emb)
     else:
