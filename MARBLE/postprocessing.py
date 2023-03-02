@@ -51,21 +51,18 @@ def postprocessing(data,
             
             if data.number_of_resamples>1:
                 clusters['slices'] = clusters['slices'][::data.number_of_resamples]      
+                
+        #compute distances between clusters
+        data_.dist, data_.gamma = g.compute_distribution_distances(clusters=clusters)
     
         #embed into 2D via t-SNE for visualisation
         emb = np.vstack([out, clusters['centroids']])
-        emb, manifold = g.embed(emb, embed_typ, manifold)  
-        emb, clusters['centroids'] = emb[:-clusters['n_clusters']], emb[-clusters['n_clusters']:]
-        
-        #compute distances between clusters
-        dist, gamma = g.compute_distribution_distances(clusters=clusters)
-        
-        data_.emb, data_.manifold, data_.clusters, data_.gamma, data_.dist = emb, manifold, clusters, gamma, dist
-        
+        emb, data_.manifold = g.embed(emb, embed_typ, manifold)  
+        data_.emb, data_.clusters['centroids'] = emb[:-clusters['n_clusters']], emb[-clusters['n_clusters']:]
+                
     else:
-        data_.emb = out
-        #compute distances between point clouds
         data_.dist, _ = g.compute_distribution_distances(data=data)
+        data_.emb, data_.manifold = g.embed(out, embed_typ, manifold)
     
     return data_
 
