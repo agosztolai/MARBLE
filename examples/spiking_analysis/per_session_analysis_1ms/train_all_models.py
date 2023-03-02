@@ -48,7 +48,7 @@ def main():
 
         par = {'epochs': 150, #optimisation epochs
                'order': 2, #order of derivatives
-               'hidden_channels': 32, #number of internal dimensions in MLP
+               'hidden_channels': 64, #number of internal dimensions in MLP
                'out_channels': 8,
                'inner_product_features': False,
                'diffusion': True,
@@ -56,11 +56,11 @@ def main():
         
         model = net(data, **par)
         
-        model.run_training(data, use_best=True, outdir='../../outputs/spiking_data/session_{}'.format(day))        
+        model.run_training(data, use_best=True, outdir='../../outputs/spiking_data/session_64_{}'.format(day))        
         data = model.evaluate(data)   
         data = postprocessing(data, n_clusters=50)
         
-        with open('../../outputs/spiking_data/data_object_session_{}.pkl'.format(day), 'wb') as handle:
+        with open('../../outputs/spiking_data/session_64_{}/data_object_session_{}.pkl'.format(day,day), 'wb') as handle:
             pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 

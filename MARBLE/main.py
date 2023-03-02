@@ -21,7 +21,6 @@ class net(nn.Module):
         super(net, self).__init__()
         
         self.epoch = 0
-        self.time = datetime.now().strftime("%Y%m%d-%H%M%S")
         self.par = utils.parse_parameters(data, kwargs)
         self = layers.setup_layers(self)      
         self.loss = loss_fun()       
@@ -160,6 +159,8 @@ class net(nn.Module):
         """Network training"""
         
         print('\n---- Training network ...')
+        
+        time = datetime.now().strftime("%Y%m%d-%H%M%S")
                 
         #load to gpu (if possible)
         self, data.x, data.pos, data.L, data.Lc, data.kernels, data.gauges = utils.move_to_gpu(self, data)
@@ -190,7 +191,7 @@ class net(nn.Module):
                   .format(epoch, train_loss, val_loss, scheduler._last_lr[0]), end="")
                 
             if best_loss==-1 or (val_loss<best_loss):
-                outdir = self.save_model(optimizer, outdir, best=True)
+                outdir = self.save_model(optimizer, outdir, best=True, timestamp=time)
                 best_loss = val_loss 
                 print(' *', end="")
         
@@ -199,10 +200,10 @@ class net(nn.Module):
         writer.close()
         print('\nFinal test loss: {:.4f}'.format(test_loss))
         
-        self.save_model(optimizer, outdir, best=False)
+        self.save_model(optimizer, outdir, best=False, timestamp=time)
         
         if use_best:
-            self.load_model(os.path.join(outdir, 'best_model.pth'))
+            self.load_model(os.path.join(outdir, 'best_model_{}.pth'.format(time)))
             
             
     def load_model(self, loadpath):
@@ -213,7 +214,7 @@ class net(nn.Module):
         self.optimizer_state_dict = checkpoint['optimizer_state_dict']
                                 
 
-    def save_model(self, optimizer, outdir=None, best=False):
+    def save_model(self, optimizer, outdir=None, best=False, timestamp=""):
         
         if outdir is None:
             outdir = './outputs/'   
@@ -224,13 +225,21 @@ class net(nn.Module):
         checkpoint = {'epoch': self.epoch,
                       'model_state_dict': self.state_dict(),
                       'optimizer_state_dict': optimizer.state_dict(),
-                      'time': self.time
+                      'time': timestamp
                      }
         
         if best:
-            torch.save(checkpoint, os.path.join(outdir,'best_model.pth'))
+            fname = 'best_model_'
         else:
-            torch.save(checkpoint, os.path.join(outdir,'last_model.pth'))
+            fname = 'last_model_'
+            
+        fname += timestamp
+        fname += '.pth'
+                                
+        if best:
+            torch.save(checkpoint, os.path.join(outdir,fname))
+        else:
+            torch.save(checkpoint, os.path.join(outdir,fname))
             
         return outdir
 
