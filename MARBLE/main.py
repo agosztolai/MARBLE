@@ -17,7 +17,7 @@ from tqdm import tqdm
 
 """Main network"""
 class net(nn.Module):
-    def __init__(self, data, loadpath=None, par=None):
+    def __init__(self, data, loadpath=None, par=None, verbose=True):
         super(net, self).__init__()
         
         if loadpath is not None:
@@ -34,7 +34,8 @@ class net(nn.Module):
         self.loss = loss_fun()       
         self.reset_parameters()
         
-        utils.print_settings(self)
+        if verbose:
+            utils.print_settings(self)
         
         if loadpath is not None:
             self.load_model(loadpath)
