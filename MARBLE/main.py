@@ -21,11 +21,11 @@ class net(nn.Module):
     def __init__(self, data, loadpath=None, par=None, verbose=True):
         super(net, self).__init__()
         
-        # folder, load the latest model
-        if os.path.isdir(loadpath):
-            loadpath = max(glob.glob('best_model*'))
-        
         if loadpath is not None:
+            # folder, load the latest model
+            if os.path.isdir(loadpath):
+                loadpath = max(glob.glob('best_model*'))
+                
             self.par = torch.load(loadpath)['par']
         else:
             self.par = {}
