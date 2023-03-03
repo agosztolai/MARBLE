@@ -56,7 +56,7 @@ def main():
                'diffusion': True,
                }
         
-        model = net(data, **par)
+        model = net(data, par=par)
         
         model.run_training(data, use_best=True, outdir='../../outputs/spiking_data/session_{}'.format(day))        
         data = model.evaluate(data)   
