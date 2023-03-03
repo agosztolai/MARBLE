@@ -32,9 +32,7 @@ def main():
     # define some parameters
     pca_n = 5
     
-# =============================================================================
-#     Fit PCA coefficients
-# =============================================================================
+    # loop over each day
     for day in days:
         
         # first stack all trials from that day together and fit pca
@@ -51,38 +49,13 @@ def main():
                 # store each trial as time x channels
                 pos.append(trial)
               
-    # stacking all trials into a single array (time x channels)
-    pos = np.vstack(pos)
+        # stacking all trials into a single array (time x channels)
+        pos = np.vstack(pos)
         
-    # fit PCA to all data across all conditions on a given day simultaneously
-    pca = PCA(n_components=pca_n)
-    pca.fit(pos)     
-    print(pca.explained_variance_ratio_) 
-    
-    # loop over each day
-    for day in days:
-        
-        # first stack all trials from that day together and fit pca
-        # print(day)
-        # pos = []            
-        # # loop over each condition on that day
-        # for c, cond in enumerate(conditions):
-
-        #     # go cue at 500ms 
-        #     data = rates[day][cond][:,500:,:]
-            
-        #     # loop over all trials
-        #     for trial in data:
-        #         # store each trial as time x channels
-        #         pos.append(trial)
-              
-        # # stacking all trials into a single array (time x channels)
-        # pos = np.vstack(pos)
-        
-        # # fit PCA to all data across all conditions on a given day simultaneously
-        # pca = PCA(n_components=pca_n)
-        # pca.fit(pos)     
-        # print(pca.explained_variance_ratio_)   
+        # fit PCA to all data across all conditions on a given day simultaneously
+        pca = PCA(n_components=pca_n)
+        pca.fit(pos)     
+        print(pca.explained_variance_ratio_)   
         
         # create empty list of lists for each condition
         pos = [[] for u in range(len(conditions))]
