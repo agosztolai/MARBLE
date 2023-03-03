@@ -450,8 +450,7 @@ def compute_laplacian(data, normalization="rw"):
                            edge_weight = data.edge_weight,
                            normalization = normalization)
     
-    n = len(data.x)
-    return sp.coo_matrix((edge_attr, edge_index), [n,n])
+    return PyGu.to_dense_adj(edge_index, edge_attr=edge_attr).squeeze()
 
 
 def compute_connection_laplacian(data, R, normalization='rw'):
@@ -688,7 +687,7 @@ def vector_diffusion(x, t, method='spectral', Lc=None, normalise=False):
     return out
     
     
-def compute_eigendecomposition(A, k=128, eps=1e-8):
+def compute_eigendecomposition(A, k=64, eps=1e-8):
     """
     Eigendecomposition of a square matrix A
     
@@ -708,17 +707,14 @@ def compute_eigendecomposition(A, k=128, eps=1e-8):
     if A is None:
         return None
     
-    if k>=A.shape[0]:
-        k = A.shape[0]-1
+    A = A.to_dense()
     
-    A += sp.identity(A.shape[0])*eps
-        
     # Compute the eigenbasis
     failcount = 0
     while True:
         try:
-            evals, evecs = sp.linalg.eigsh(A, k=k) 
-            evals = np.clip(evals, a_min=0., a_max=float('inf'))
+            evals, evecs = torch.linalg.eigh(A)            
+            evals = torch.clamp(evals, min=0.)
 
             break
         except Exception as e:
@@ -727,6 +723,6 @@ def compute_eigendecomposition(A, k=128, eps=1e-8):
                 raise ValueError("failed to compute eigendecomp")
             failcount += 1
             print("--- decomp failed; adding eps ===> count: " + str(failcount))
-            A += sp.identity(A.shape[0]) * (eps * 10**failcount)
+            A += torch.eye(A.shape[0]) * (eps * 10**(failcount-1))
     
-    return torch.tensor(evals, dtype=torch.float32), torch.tensor(evecs, dtype=torch.float32)
+    return evals, evecs

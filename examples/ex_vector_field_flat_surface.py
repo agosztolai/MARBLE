@@ -26,7 +26,7 @@ def main():
     y = [f0(x[0]), f1(x[1]), f2(x[2]), f3(x[3])] #evaluated functions
         
     #construct PyG data object
-    data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
+    data = utils.construct_dataset(x, y, graph_type='cknn', k=k, compute_laplacian=True)
     
     #train model
     model = net(data, par=par)

@@ -84,7 +84,7 @@ class net(nn.Module):
         
         #gradients
         out = [x]
-        for i, (edge_index, _, size) in enumerate(adjs):
+        for i, (_, _, size) in enumerate(adjs):
             kernels = [K[n_id[:size[1]*d], :][:, n_id[:size[0]*d]] for K in data.kernels]
             
             x = self.grad[i](x, kernels)
