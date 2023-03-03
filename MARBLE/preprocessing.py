@@ -45,15 +45,15 @@ def preprocessing(data,
     #is <= 2. In case 2), either M=R^2 (manifold is whole space) or case 1).
     if not vector:
         local_gauges=False
-        print('\nVector computations are disabled')
+        print('Vector computations are disabled')
     elif dim_signal==1:
-        print('\nSignal dimension is 1, so manifold computations are disabled!')
+        print('Signal dimension is 1, so manifold computations are disabled!')
         local_gauges = False
     elif dim_emb<=2:
-        print('\nEmbedding dimension <= 2, so manifold computations are disabled!')
+        print('Embedding dimension <= 2, so manifold computations are disabled!')
         local_gauges = False
     elif dim_emb!=dim_signal:
-        print('\nEmbedding dimension /= signal dimension, so manifold computations are disabled!')
+        print('Embedding dimension /= signal dimension, so manifold computations are disabled!')
     else:
         local_gauges = True
         
