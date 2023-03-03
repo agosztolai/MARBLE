@@ -172,6 +172,7 @@ def embedding(data,
               alpha=0.3,
               s=5,
               axes_visible=False,
+              cbar_visible=True,
               cmap='coolwarm'):
     """
     Plot embeddings.
@@ -233,7 +234,7 @@ def embedding(data,
     if not axes_visible:
         ax.set_axis_off()
     
-    if cbar is not None:
+    if cbar_visible and cbar is not None:
         plt.colorbar(cbar)
     
     return ax

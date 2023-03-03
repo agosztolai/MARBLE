@@ -13,7 +13,7 @@ def main():
     k = 20
     n_clusters = 15
     
-    par = {'epochs': 2, #optimisation epochs
+    par = {'epochs': 50, #optimisation epochs
            'order': 1, #order of derivatives
            'hidden_channels': 16, #number of internal dimensions in MLP
            'out_channels': 3,
@@ -29,7 +29,7 @@ def main():
     data = utils.construct_dataset(x, y, graph_type='cknn', k=k)
     
     #train model
-    model = net(data, **par)
+    model = net(data, par=par)
     model.run_training(data)
     
     #evaluate model on data
