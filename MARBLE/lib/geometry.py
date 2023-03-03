@@ -717,7 +717,7 @@ def compute_eigendecomposition(A, k=128, eps=1e-8):
     failcount = 0
     while True:
         try:
-            evals, evecs = sp.linalg.eigsh(A) 
+            evals, evecs = sp.linalg.eigsh(A, k=k) 
             evals = np.clip(evals, a_min=0., a_max=float('inf'))
 
             break
