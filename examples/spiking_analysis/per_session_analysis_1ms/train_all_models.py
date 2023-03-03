@@ -41,6 +41,8 @@ def main():
     
     # loop over each day
     for day in days:
+        if day<16:
+            continue
             
         # load data for marble
         data = pickle.load(open('../../outputs/spiking_data/data_object_session_{}.pkl'.format(day),'rb'))
