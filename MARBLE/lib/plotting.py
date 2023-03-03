@@ -112,7 +112,7 @@ def fields(data,
             else:
                 NotImplementedError
 
-        set_axes(ax, lims=lims, off=axshow)
+        # set_axes(ax, lims=lims, off=axshow)
         
         ax_list.append(ax)
         
