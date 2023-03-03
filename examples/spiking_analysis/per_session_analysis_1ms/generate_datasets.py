@@ -95,15 +95,15 @@ def main():
         #                                n_geodesic_nb=10, compute_laplacian=True, vector=False)
         
         # extracting the time points associated with data
-        for c,cond in enumerate(conditions):
-            time = timepoints[c]
-            time = time[data.sample_ind[data.y==c]]
-            timepoints[c] = time
+        # for c,cond in enumerate(conditions):
+        #     time = timepoints[c]
+        #     time = time[data.sample_ind[data.y==c]]
+        #     timepoints[c] = time
         
         # data.time = timepoints
         
         with open('../../outputs/spiking_data/raw_data_session_{}_3D.pkl'.format(day), 'wb') as handle:
-            pickle.dump([pos, vel, timepoints, condition_labels], handle, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump([pos, vel], handle, protocol=pickle.HIGHEST_PROTOCOL)
             
         # with open('../../outputs/spiking_data/data_object_session_{}.pkl'.format(day), 'wb') as handle:
         #     pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
