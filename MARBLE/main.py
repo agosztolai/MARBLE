@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+import glob
 
 import torch
 import torch.nn as nn
@@ -19,6 +20,10 @@ from tqdm import tqdm
 class net(nn.Module):
     def __init__(self, data, loadpath=None, par=None, verbose=True):
         super(net, self).__init__()
+        
+        # folder, load the latest model
+        if os.path.isdir(loadpath):
+            loadpath = max(glob.glob('best_model*'))
         
         if loadpath is not None:
             self.par = torch.load(loadpath)['par']
