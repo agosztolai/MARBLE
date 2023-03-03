@@ -6,11 +6,7 @@ import sys
 
 from sklearn.preprocessing import StandardScaler
 
-from sklearn.decomposition import PCA, KernelPCA
-
-from sklearn.manifold import LocallyLinearEmbedding, SpectralEmbedding, MDS
-
-from sklearn.neighbors import LocalOutlierFactor
+from sklearn.decomposition import PCA
 
 from MARBLE import utils
 
@@ -102,10 +98,10 @@ def main():
         
         data.time = timepoints
         
-        with open('../../outputs/spiking_data/raw_data_session_{}.pkl'.format(day), 'wb') as handle:
+        with open('../../outputs/spiking_data/rate_data_separate_manifolds/raw_data_session_{}.pkl'.format(day), 'wb') as handle:
             pickle.dump([pos, vel, timepoints, condition_labels], handle, protocol=pickle.HIGHEST_PROTOCOL)
             
-        with open('../../outputs/spiking_data/data_object_session_{}.pkl'.format(day), 'wb') as handle:
+        with open('../../outputs/spiking_data/rate_data_separate_manifolds/data_object_session_{}.pkl'.format(day), 'wb') as handle:
             pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
