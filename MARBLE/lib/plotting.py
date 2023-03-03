@@ -27,7 +27,7 @@ def fields(data,
            col=1,
            figsize=(8,8), 
            axlim=None,
-           axshow=False,
+           axes_visible=False,
            color=None,
            alpha=0.5,
            node_size=10,
@@ -89,7 +89,8 @@ def fields(data,
               ax=ax,
               node_size=node_size,
               edge_width=0.5,
-              edge_alpha=alpha)
+              edge_alpha=alpha,
+              axes_visible=axes_visible)
         
         if vector:
             pos = d.pos.numpy()
@@ -112,7 +113,7 @@ def fields(data,
             else:
                 NotImplementedError
 
-        set_axes(ax, lims=lims, off=axshow)
+        set_axes(ax, lims=lims, axes_visible=axes_visible)
         
         ax_list.append(ax)
         
@@ -367,7 +368,7 @@ def neighbourhoods(data,
                 ax.scatter(pos[:,0], pos[:,1], c=c)
             
             ax.set_frame_on(False)
-            set_axes(ax, off=True)
+            set_axes(ax, axes_visible=False)
             fig.add_subplot(ax)
         
         
@@ -378,8 +379,9 @@ def graph(
     edge_alpha=1.,
     node_size=20,
     layout=None,
-    ax=None
-):
+    ax=None,
+    axes_visible=False
+    ):
     """Plot scalar values on graph nodes embedded in 2D or 3D."""
         
     G = nx.convert_node_labels_to_integers(G)
@@ -420,7 +422,7 @@ def graph(
         for vizedge in edge_xyz:
             ax.plot(*vizedge.T, color="tab:gray", alpha=edge_alpha, linewidth=edge_width)  
             
-    set_axes(ax, off=True)
+    set_axes(ax, axes_visible=axes_visible)
             
     return ax
 
@@ -501,7 +503,7 @@ def trajectories(X,
                  ms=5, 
                  scale=1, 
                  arrow_spacing=1,
-                 axis=True, 
+                 axes_visible=True, 
                  alpha=1.):
     """
     Plot trajectory in phase space. If multiple trajectories
@@ -564,8 +566,7 @@ def trajectories(X,
             X, V = X[skip], V[skip]
             ax = plot_arrows(X, V, ax, c, width=lw, scale=scale)
                 
-    if not axis:
-        ax = set_axes(ax, off=True)
+    ax = set_axes(ax, axes_visible=axes_visible)
                 
     return ax
 
@@ -648,7 +649,7 @@ def get_limits(ax):
     return lims
 
 
-def set_axes(ax, lims=None, padding=0.1, off=True):
+def set_axes(ax, lims=None, padding=0.1, axes_visible=True):
     
     if lims is not None:
         xlim = lims[0]
@@ -661,7 +662,7 @@ def set_axes(ax, lims=None, padding=0.1, off=True):
             zlim = lims[2]
             ax.set_zlim([zlim[0]-pad, zlim[1]+pad])
         
-    if off:
+    if not axes_visible:
         ax.set_yticklabels([])
         ax.set_xticklabels([])
         if ax.name=="3d":
