@@ -17,19 +17,22 @@ from tqdm import tqdm
 
 """Main network"""
 class net(nn.Module):
-    def __init__(self, data, loadpath=None, **kwargs):
+    def __init__(self, data, loadpath=None, par=None):
         super(net, self).__init__()
         
-        self.epoch = 0
-        self.par = utils.parse_parameters(data, kwargs)
+        if loadpath is not None:
+            self.load_model(loadpath)
+        else:     
+            self.epoch = 0
+            
+        if par is not None:
+            self.par = utils.parse_parameters(data, par)
+            
         self = layers.setup_layers(self)      
         self.loss = loss_fun()       
         self.reset_parameters()
         
         utils.print_settings(self)
-        
-        if loadpath is not None:
-            self.load_model(loadpath)
         
         
     def reset_parameters(self):
@@ -209,6 +212,8 @@ class net(nn.Module):
     def load_model(self, loadpath):
         
         checkpoint = torch.load(loadpath)
+        if 'par' in checkpoint.keys():
+            self.par = checkpoint['par']
         self.epoch = checkpoint['epoch']
         self.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer_state_dict = checkpoint['optimizer_state_dict']
@@ -225,7 +230,8 @@ class net(nn.Module):
         checkpoint = {'epoch': self.epoch,
                       'model_state_dict': self.state_dict(),
                       'optimizer_state_dict': optimizer.state_dict(),
-                      'time': timestamp
+                      'time': timestamp,
+                      'par': self.par
                      }
         
         if best:
