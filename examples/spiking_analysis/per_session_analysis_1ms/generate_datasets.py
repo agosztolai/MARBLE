@@ -103,7 +103,7 @@ def main():
         # data.time = timepoints
         
         with open('../../outputs/spiking_data/raw_data_session_{}_3D.pkl'.format(day), 'wb') as handle:
-            pickle.dump([pos, vel], handle, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump([pos, vel, timepoints, condition_labels], handle, protocol=pickle.HIGHEST_PROTOCOL)
             
         # with open('../../outputs/spiking_data/data_object_session_{}.pkl'.format(day), 'wb') as handle:
         #     pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
