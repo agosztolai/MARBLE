@@ -21,18 +21,23 @@ class net(nn.Module):
         super(net, self).__init__()
         
         if loadpath is not None:
-            self.load_model(loadpath)
-        else:     
-            self.epoch = 0
+            self.par = torch.load(loadpath)['par']
+        else:
+            self.par = {}
             
         if par is not None:
-            self.par = utils.parse_parameters(data, par)
-            
+            self.par.update(par)
+        
+        self.epoch = 0            
+        self.par = utils.parse_parameters(data, self.par)
         self = layers.setup_layers(self)      
         self.loss = loss_fun()       
         self.reset_parameters()
         
         utils.print_settings(self)
+        
+        if loadpath is not None:
+            self.load_model(loadpath)
         
         
     def reset_parameters(self):
@@ -212,8 +217,6 @@ class net(nn.Module):
     def load_model(self, loadpath):
         
         checkpoint = torch.load(loadpath)
-        if 'par' in checkpoint.keys():
-            self.par = checkpoint['par']
         self.epoch = checkpoint['epoch']
         self.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer_state_dict = checkpoint['optimizer_state_dict']
