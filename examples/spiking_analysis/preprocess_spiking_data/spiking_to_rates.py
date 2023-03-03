@@ -41,6 +41,8 @@ def spikes_to_rates(data, d):
     
     data_day = data[d] #daily session 
         
+    gk = GaussianKernel(100*ms) # increase this for smoother signals (previously used auto)
+    
     # define empty dictionary for each day
     rates = {}
         
@@ -71,7 +73,6 @@ def spikes_to_rates(data, d):
                     st = neo.SpikeTrain(spikes, units='ms', t_stop=1200)
                         
                     # get rates
-                    gk = GaussianKernel(100*ms) # increase this for smoother signals (previously used auto)
                     # ek = ExponentialKernel(100*ms) # assymetric kernel and not smooth output
                     inst_rate = instantaneous_rate(st, kernel=gk, sampling_period=1*ms).magnitude
                         

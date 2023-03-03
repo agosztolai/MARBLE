@@ -30,7 +30,7 @@ def main():
     days = rates.keys()
     
     # define some parameters
-    pca_n = 3
+    pca_n = 5
     
     # loop over each day
     for day in days:
@@ -91,22 +91,22 @@ def main():
         condition_labels = [np.hstack(u) for u in condition_labels]   
             
         # construct data for marble
-        # data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=30, stop_crit=0.02,
-        #                                n_geodesic_nb=10, compute_laplacian=True, vector=False)
+        data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=30, stop_crit=0.02,
+                                       n_geodesic_nb=10, compute_laplacian=True, vector=False)
         
         # extracting the time points associated with data
-        # for c,cond in enumerate(conditions):
-        #     time = timepoints[c]
-        #     time = time[data.sample_ind[data.y==c]]
-        #     timepoints[c] = time
+        for c,cond in enumerate(conditions):
+            time = timepoints[c]
+            time = time[data.sample_ind[data.y==c]]
+            timepoints[c] = time
         
-        # data.time = timepoints
+        data.time = timepoints
         
-        with open('../../outputs/spiking_data/raw_data_session_{}_3D.pkl'.format(day), 'wb') as handle:
+        with open('../../outputs/spiking_data/raw_data_session_{}.pkl'.format(day), 'wb') as handle:
             pickle.dump([pos, vel, timepoints, condition_labels], handle, protocol=pickle.HIGHEST_PROTOCOL)
             
-        # with open('../../outputs/spiking_data/data_object_session_{}.pkl'.format(day), 'wb') as handle:
-        #     pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        with open('../../outputs/spiking_data/data_object_session_{}.pkl'.format(day), 'wb') as handle:
+            pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def get_vector_array(coords):
