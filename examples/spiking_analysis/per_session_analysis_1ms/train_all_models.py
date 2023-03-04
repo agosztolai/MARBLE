@@ -35,7 +35,7 @@ def main():
         
         model = net(data, par=par)
         
-        model.run_training(data, use_best=True, outdir='../../outputs/spiking_data/session_64_{}'.format(day))        
+        model.run_training(data, use_best=True, outdir='../../outputs/spiking_data/rate_data_separate_manifolds/session_{}'.format(day))        
         data = model.evaluate(data)   
         data = postprocessing(data, n_clusters=50)
         
