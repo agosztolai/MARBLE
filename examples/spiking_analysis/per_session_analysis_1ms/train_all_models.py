@@ -20,6 +20,8 @@ def main():
     
     # loop over each day
     for day in days:
+        if day<28:
+            continue
 
         # load data for marble
         data = pickle.load(open('../../outputs/spiking_data/rate_data_separate_manifolds/data_object_session_{}.pkl'.format(day),'rb'))
