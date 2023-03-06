@@ -141,7 +141,7 @@ def main():
 
         # construct data for marble
         data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=30, stop_crit=0.0, delta=2.0,
-                                       n_nodes=None, n_workers=1, n_geodesic_nb=10, compute_laplacian=True, vector=False)
+                                       n_nodes=None,  n_geodesic_nb=10, compute_laplacian=True, vector=False)
         
         
         # os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
