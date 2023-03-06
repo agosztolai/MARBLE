@@ -30,8 +30,8 @@ def main():
     """ fitting model for each day + pca embedding """    
     
     # instantaneous rate data
-    rates =  pickle.load(open('../data/rate_data_20ms.pkl','rb'))       
-    trial_ids =  pickle.load(open('../data/trial_ids.pkl','rb'))       
+    rates =  pickle.load(open('../../outputs/spiking_data/rate_data_20ms.pkl','rb'))       
+    trial_ids =  pickle.load(open('../../outputs/spiking_data/trial_ids.pkl','rb'))       
 
     # definingf the set of conditions     
     conditions=['DownLeft','Left','UpLeft','Up','UpRight','Right','DownRight']    
@@ -144,8 +144,8 @@ def main():
                                        n_nodes=None, n_workers=1, n_geodesic_nb=10, compute_laplacian=True, vector=False)
         
         
-        os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-        os.environ["CUDA_VISIBLE_DEVICES"]="2"
+        # os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+        # os.environ["CUDA_VISIBLE_DEVICES"]="2"
         
         #x = data.x[:100,:].numpy()
         #pos = data.pos[:100,:].numpy()
@@ -179,7 +179,7 @@ def main():
         all_sampled_ids.append(data.sample_ind)
 
         
-        with open('./outputs/distance_matrices_and_embeddings_20ms_sc0.pkl', 'wb') as handle:
+        with open('../../outputs/spiking_data/distance_matrices_and_embeddings_20ms_sc0.pkl', 'wb') as handle:
             pickle.dump([distance_matrices, embeddings, times , all_condition_labels, all_trial_ids, all_sampled_ids], handle, protocol=pickle.HIGHEST_PROTOCOL)
             
             
