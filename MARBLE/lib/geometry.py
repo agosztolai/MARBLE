@@ -221,7 +221,7 @@ def relabel_by_proximity(clusters):
     return clusters
 
 
-def compute_distribution_distances(clusters=None, data=None):
+def compute_distribution_distances(clusters=None, data=None, slices=None):
     """
     Compute the distance between clustered distributions across datasets.
 
@@ -237,9 +237,11 @@ def compute_distribution_distances(clusters=None, data=None):
 
     """
     
+    s = slices
+    
     if clusters is not None:
         #compute discrete measures supported on cluster centroids
-        l, s = clusters['labels'], clusters['slices']
+        l = clusters['labels']
         l = [l[s[i]:s[i+1]]+1 for i in range(len(s)-1)]
         nc, nl = clusters['n_clusters'], len(l)
         bins_dataset = []
@@ -253,7 +255,6 @@ def compute_distribution_distances(clusters=None, data=None):
             
     elif data is not None:
         #compute empirical measures from datapoints
-        s = data._slice_dict['x']
         nl = len(s)-1
         
         bins_dataset = []

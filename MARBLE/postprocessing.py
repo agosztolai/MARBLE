@@ -41,19 +41,13 @@ def postprocessing(data,
         clusters = g.cluster(out, cluster_typ, n_clusters, seed)
         clusters = g.relabel_by_proximity(clusters)
     
-        if type(data) is list:
-            slices = [d._slice_dict['x'] for i, d  in enumerate(data)]
-            for i in range(1,len(slices)):
-                slices[i] = slices[i] + slices[i-1][-1]
-            clusters['slices'] = torch.unique(torch.cat(slices))
-        else:
-            clusters['slices'] = data._slice_dict['x']
+        clusters['slices'] = data._slice_dict['x']
             
-            if data.number_of_resamples>1:
-                clusters['slices'] = clusters['slices'][::data.number_of_resamples]      
+        if data.number_of_resamples>1:
+            clusters['slices'] = clusters['slices'][::data.number_of_resamples]      
                 
         #compute distances between clusters
-        data_.dist, data_.gamma = g.compute_distribution_distances(clusters=clusters)
+        data_.dist, data_.gamma = g.compute_distribution_distances(clusters=clusters, slices=clusters['slices'])
     
         #embed into 2D via t-SNE for visualisation
         emb = np.vstack([out, clusters['centroids']])
@@ -63,7 +57,7 @@ def postprocessing(data,
                 
     else:
         data_.emb = out
-        data_.dist, _ = g.compute_distribution_distances(data=data)
+        data_.dist, _ = g.compute_distribution_distances(data=data, slices=data._slice_dict['x'])
         data_.emb, data_.manifold = g.embed(out, embed_typ=embed_typ, manifold=manifold)
     
     return data_
