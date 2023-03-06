@@ -145,14 +145,14 @@ def main():
         
         
         os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-        os.environ["CUDA_VISIBLE_DEVICES"]="0"
+        os.environ["CUDA_VISIBLE_DEVICES"]="2"
         
         #x = data.x[:100,:].numpy()
         #pos = data.pos[:100,:].numpy()
         #plt.quiver(pos[:,0],pos[:,1],x[:,0],x[:,1], angles='xy')
 
         
-        par = {'epochs': 5, #optimisation epochs
+        par = {'epochs': 120, #optimisation epochs
                'order': 2, #order of derivatives
                'hidden_channels': 100, #number of internal dimensions in MLP
                'out_channels': 3,
@@ -163,7 +163,7 @@ def main():
         
         model = net(data, **par)
         
-        model.run_training(data, use_best=True)        
+        model.run_training(data, use_best=True, outdir='./outputs/out10_test/')        
         data = model.evaluate(data)   
 
  
@@ -179,7 +179,7 @@ def main():
         all_sampled_ids.append(data.sample_ind)
 
         
-        with open('./outputs/distance_matrices_and_embeddings_20ms_sc02.pkl', 'wb') as handle:
+        with open('./outputs/distance_matrices_and_embeddings_20ms_sc0.pkl', 'wb') as handle:
             pickle.dump([distance_matrices, embeddings, times , all_condition_labels, all_trial_ids, all_sampled_ids], handle, protocol=pickle.HIGHEST_PROTOCOL)
             
             
