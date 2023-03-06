@@ -161,7 +161,7 @@ def main():
                'diffusion': True,
               }
         
-        model = net(data, **par)
+        model = net(data, par=par)
         
         model.run_training(data, use_best=True)        
         data = model.evaluate(data)   
