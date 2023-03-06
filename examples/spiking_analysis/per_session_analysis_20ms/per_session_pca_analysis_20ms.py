@@ -178,13 +178,11 @@ def main():
         all_trial_ids.append(np.hstack(trial_indexes))
         all_sampled_ids.append(data.sample_ind)
 
+        with open('../../outputs/spiking_data/session_{}_20ms.pkl', 'wb') as handle:
+            pickle.dump([distance_matrices[-1], embeddings[-1], times[-1], all_condition_labels[-1], all_trial_ids[-1], all_sampled_ids[-1]], handle, protocol=pickle.HIGHEST_PROTOCOL)
         
-        with open('../../outputs/spiking_data/distance_matrices_and_embeddings_20ms_sc0.pkl', 'wb') as handle:
-            pickle.dump([distance_matrices, embeddings, times , all_condition_labels, all_trial_ids, all_sampled_ids], handle, protocol=pickle.HIGHEST_PROTOCOL)
-            
-            
-    
-    return
+    with open('../../outputs/spiking_data/session_{}_20ms.pkl', 'wb') as handle:
+        pickle.dump([distance_matrices, embeddings, times , all_condition_labels, all_trial_ids, all_sampled_ids], handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 
