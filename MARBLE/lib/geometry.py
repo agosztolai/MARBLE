@@ -158,7 +158,8 @@ def embed(x, embed_typ='umap', dim_emb=2, manifold=None):
     elif embed_typ == 'umap':
         x = StandardScaler().fit_transform(x)
         if manifold is None:
-            manifold = umap.UMAP(random_state=0).fit(x)
+            manifold = umap.UMAP(n_components=dim_emb,
+                                 random_state=0).fit(x)
             
         emb = manifold.transform(x)
         
