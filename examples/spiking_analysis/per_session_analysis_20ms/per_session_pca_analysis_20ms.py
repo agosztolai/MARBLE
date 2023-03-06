@@ -163,7 +163,7 @@ def main():
         
         model = net(data, par=par)
         
-        model.run_training(data, use_best=True)        
+        model.run_training(data, use_best=True, outdir='../../outputs/spiking_data/session_{}_20ms'.format(day))        
         data = model.evaluate(data)   
 
  
