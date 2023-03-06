@@ -27,8 +27,6 @@ def main():
     
     # define some parameters
     pca_n = 5
-    
-    # loop over each day
     for day in days:
         
         # first stack all trials from that day together and fit pca
@@ -51,7 +49,10 @@ def main():
         # fit PCA to all data across all conditions on a given day simultaneously
         pca = PCA(n_components=pca_n)
         pca.fit(pos)     
-        print(pca.explained_variance_ratio_)   
+        print(pca.explained_variance_ratio_)
+    
+    # loop over each day
+    for day in days:
         
         # create empty list of lists for each condition
         pos = [[] for u in range(len(conditions))]
@@ -87,22 +88,20 @@ def main():
         condition_labels = [np.hstack(u) for u in condition_labels]   
             
         # construct data for marble
-        data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=30, stop_crit=0.02,
-                                       n_geodesic_nb=10, compute_laplacian=True, vector=False)
+        # data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=30, stop_crit=0.02,
+        #                                n_geodesic_nb=10, compute_laplacian=True, vector=False)
         
         # extracting the time points associated with data
         for c,cond in enumerate(conditions):
             time = timepoints[c]
-            time = time[data.sample_ind[data.y==c]]
+            # time = time[data.sample_ind[data.y==c]]
             timepoints[c] = time
-        
-        data.time = timepoints
-        
-        with open('../../outputs/spiking_data/rate_data_separate_manifolds/raw_data_session_{}.pkl'.format(day), 'wb') as handle:
+                
+        with open('../../outputs/spiking_data/raw_data_session_{}.pkl'.format(day), 'wb') as handle:
             pickle.dump([pos, vel, timepoints, condition_labels], handle, protocol=pickle.HIGHEST_PROTOCOL)
             
-        with open('../../outputs/spiking_data/rate_data_separate_manifolds/data_object_session_{}.pkl'.format(day), 'wb') as handle:
-            pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        # with open('../../outputs/spiking_data/rate_data_separate_manifolds/data_object_session_{}.pkl'.format(day), 'wb') as handle:
+        #     pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 def get_vector_array(coords):
