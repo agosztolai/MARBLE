@@ -20,28 +20,28 @@ def main():
     
     # loop over each day
     for day in days:
-        if day<28:
+        if day!=39:
             continue
 
         # load data for marble
-        data = pickle.load(open('../../outputs/spiking_data/rate_data_separate_manifolds/data_object_session_{}.pkl'.format(day),'rb'))
+        data = pickle.load(open('../../outputs/spiking_data/data_object_session_{}.pkl'.format(day),'rb'))
         
 
         par = {'epochs': 150, #optimisation epochs
                'order': 2, #order of derivatives
                'hidden_channels': 32, #number of internal dimensions in MLP
-               'out_channels': 8,
+               'out_channels': 3,
                'inner_product_features': False,
                'diffusion': True,
                }
         
         model = net(data, par=par)
         
-        model.run_training(data, use_best=True, outdir='../../outputs/spiking_data/rate_data_separate_manifolds/session_{}'.format(day))        
+        model.run_training(data, use_best=True, outdir='../../outputs/spiking_data/session_{}_3Dout'.format(day))        
         data = model.evaluate(data)   
         data = postprocessing(data, n_clusters=50)
         
-        with open('../../outputs/spiking_data/rate_data_separate_manifolds/data_object_session_{}.pkl'.format(day,day), 'wb') as handle:
+        with open('../../outputs/spiking_data/data_object_session_{}_3Dout.pkl'.format(day,day), 'wb') as handle:
             pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
