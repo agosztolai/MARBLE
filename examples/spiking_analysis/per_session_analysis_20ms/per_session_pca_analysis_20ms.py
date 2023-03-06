@@ -163,7 +163,7 @@ def main():
         
         model = net(data, **par)
         
-        model.run_training(data, use_best=True, outdir='./outputs/out10_test/')        
+        model.run_training(data, use_best=True)        
         data = model.evaluate(data)   
 
  
