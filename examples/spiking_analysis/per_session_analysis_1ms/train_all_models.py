@@ -20,8 +20,6 @@ def main():
     
     # loop over each day
     for day in days:
-        if day!=39:
-            continue
 
         # load data for marble
         data = pickle.load(open('../../outputs/spiking_data/data_object_session_{}.pkl'.format(day),'rb'))
@@ -29,7 +27,7 @@ def main():
 
         par = {'epochs': 150, #optimisation epochs
                'order': 2, #order of derivatives
-               'hidden_channels': 32, #number of internal dimensions in MLP
+               'hidden_channels': 64, #number of internal dimensions in MLP
                'out_channels': 3,
                'inner_product_features': False,
                'diffusion': True,
@@ -41,7 +39,7 @@ def main():
         data = model.evaluate(data)   
         data = postprocessing(data, n_clusters=50)
         
-        with open('../../outputs/spiking_data/data_object_session_{}_3Dout.pkl'.format(day,day), 'wb') as handle:
+        with open('../../outputs/spiking_data/data_object_session_{}_3Dout.pkl'.format(day), 'wb') as handle:
             pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
