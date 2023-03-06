@@ -15,6 +15,7 @@ from sklearn.metrics import pairwise_distances
 from sklearn.manifold import TSNE, MDS
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KDTree
 import umap
 
 from ptu_dijkstra import tangent_frames, connections
@@ -437,6 +438,71 @@ def fit_graph(x, graph_type='cknn', par=1, delta=1.0):
     edge_weight = 1/edge_weight
     
     return edge_index, edge_weight
+
+
+# def find_nn(X, ind_query=None, nn=1, r=None, theiler=10, n_jobs=-1):
+#     """
+#     Find nearest neighbors of a point on the manifold
+
+#     Parameters
+#     ----------
+#     ind_query : 2d np array, list[2d np array]
+#         Index of points whose neighbors are needed.
+#     x : nxd array (dimensions are columns!)
+#         Coordinates of n points on a manifold in d-dimensional space.
+#     nn : int, optional
+#         Number of nearest neighbors. The default is 1.
+#     theiler : int
+#         Theiler exclusion. Do not include the points immediately before or 
+#         after in time the query point as neighbours.
+#     n_jobs : int, optional
+#         Number of processors to use. The default is all.
+        
+#     Returns
+#     -------
+#     dist : list[list]
+#         Distance of nearest neighbors.
+#     ind : list[list]
+#         Index of nearest neighbors.
+
+#     """
+    
+#     if ind_query is None:
+#         ind_query = np.arange(len(X))
+#     elif isinstance(ind_query, list):
+#         ind_query = np.vstack(ind_query)
+    
+#     #Fit neighbor estimator object
+#     kdt = KDTree(X, leaf_size=30, metric='euclidean')
+    
+#     inputs = [kdt, X, r, nn, theiler]
+#     ind = utils.parallel_proc(nb_query, 
+#                         ind_query, 
+#                         inputs, 
+#                         desc="Computing neighbours...")
+        
+#     return ind
+
+
+# def nb_query(inputs, i):
+    
+#     kdt, X, r, nn, theiler  = inputs
+    
+#     x_query = X[i]
+#     if r is not None:
+#         ind, dist = kdt.query_radius(x_query, r=r, return_distance=True, sort_results=True)
+#         ind = ind[0]
+#         dist = dist[0]
+#     else:
+#         # apparently, the outputs are reversed here compared to query_radius()
+#         _, ind = kdt.query(x_query, k=nn+2*theiler+1)
+        
+#     #Theiler exclusion (points immediately before or after are not useful neighbours)
+#     ind = ind[np.abs(ind-i)>theiler][:nn]
+    
+#     # edges = np.vstack()
+                
+#     return ind
 
 
 def is_connected(edge_index):
