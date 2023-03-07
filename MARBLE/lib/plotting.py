@@ -255,7 +255,9 @@ def neighbourhoods(data,
                    color=None,
                    plot_graph=False,
                    figsize=(15, 20),
-                   fontsize=20):
+                   fontsize=20,
+                   width=0.025,
+                   scale=1):
     """
     For each clustered neighbourhood type, draw one sample neighbourhood 
     from each dataset and plot.
@@ -363,7 +365,7 @@ def neighbourhoods(data,
                 pos, manifold = embed(pos, embed_typ='PCA')
                 signal = embed(signal, embed_typ='PCA', manifold=manifold)[0]
             if vector:
-                ax = plot_arrows(pos, signal, ax, c, width=0.025, scale=1) 
+                ax = plot_arrows(pos, signal, ax, c, width=width, scale=scale) 
             else:
                 ax.scatter(pos[:,0], pos[:,1], c=c)
             
