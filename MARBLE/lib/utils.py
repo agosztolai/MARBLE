@@ -41,7 +41,7 @@ def construct_dataset(pos,
                       vector=True,
                       dim_man=None,
                       labels=None,
-                      delta=1.0,
+                      delta=1.0
                       ):
     
     """Construct PyG dataset from node positions and features"""
@@ -75,7 +75,7 @@ def construct_dataset(pos,
             edge_index, edge_weight = geometry.fit_graph(p, 
                                                          graph_type=graph_type, 
                                                          par=k,
-                                                         delta=delta,
+                                                         delta=delta
                                                          )
             n = len(p)  
             data_ = Data(pos=p, #positions

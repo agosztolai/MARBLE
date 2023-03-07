@@ -30,8 +30,8 @@ def main():
     """ fitting model for each day + pca embedding """    
     
     # instantaneous rate data
-    rates =  pickle.load(open('../data/rate_data_20ms.pkl','rb'))       
-    trial_ids =  pickle.load(open('../data/trial_ids.pkl','rb'))       
+    rates =  pickle.load(open('../../outputs/spiking_data/rate_data_20ms.pkl','rb'))       
+    trial_ids =  pickle.load(open('../../outputs/spiking_data/trial_ids.pkl','rb'))       
 
     # definingf the set of conditions     
     conditions=['DownLeft','Left','UpLeft','Up','UpRight','Right','DownRight']    
@@ -141,11 +141,11 @@ def main():
 
         # construct data for marble
         data = utils.construct_dataset(pos, features=vel, graph_type='cknn', k=30, stop_crit=0.0, delta=2.0,
-                                       n_nodes=None, n_workers=1, n_geodesic_nb=10, compute_laplacian=True, vector=False)
+                                       n_nodes=None,  n_geodesic_nb=10, compute_laplacian=True, vector=False)
         
         
-        os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-        os.environ["CUDA_VISIBLE_DEVICES"]="2"
+        # os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+        # os.environ["CUDA_VISIBLE_DEVICES"]="2"
         
         #x = data.x[:100,:].numpy()
         #pos = data.pos[:100,:].numpy()
@@ -161,9 +161,9 @@ def main():
                'diffusion': True,
               }
         
-        model = net(data, **par)
+        model = net(data, par=par)
         
-        model.run_training(data, use_best=True)        
+        model.run_training(data, use_best=True, outdir='../../outputs/spiking_data/session_{}_20ms'.format(day))        
         data = model.evaluate(data)   
 
  
@@ -178,13 +178,11 @@ def main():
         all_trial_ids.append(np.hstack(trial_indexes))
         all_sampled_ids.append(data.sample_ind)
 
+        with open('../../outputs/spiking_data/session_{}_20ms.pkl'.format(day), 'wb') as handle:
+            pickle.dump([distance_matrices[-1], embeddings[-1], times[-1], all_condition_labels[-1], all_trial_ids[-1], all_sampled_ids[-1]], handle, protocol=pickle.HIGHEST_PROTOCOL)
         
-        with open('./outputs/distance_matrices_and_embeddings_20ms_sc0.pkl', 'wb') as handle:
-            pickle.dump([distance_matrices, embeddings, times , all_condition_labels, all_trial_ids, all_sampled_ids], handle, protocol=pickle.HIGHEST_PROTOCOL)
-            
-            
-    
-    return
+    with open('../../outputs/spiking_data/session_{}_20ms.pkl'.format(day), 'wb') as handle:
+        pickle.dump([distance_matrices, embeddings, times , all_condition_labels, all_trial_ids, all_sampled_ids], handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 
