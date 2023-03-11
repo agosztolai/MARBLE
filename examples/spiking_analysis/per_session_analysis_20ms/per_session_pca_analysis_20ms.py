@@ -57,7 +57,7 @@ def main():
     for day in days:
         if day<21:
             continue
-        if day>29:
+        if day>24:
             continue
         
         # first stack all trials from that day together and fit pca
