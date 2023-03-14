@@ -136,7 +136,7 @@ def plot_phase_portrait(pos, vel, ax=None, node_feature=None, style='>', lw=2, s
         node_feature = len(pos) * [None]
         
     for p, v, nf in zip(pos, vel, node_feature):
-        ax = plotting.trajectories(p, v, ax=ax, style=style, node_feature=nf, lw=lw, scale=scale, axis=False, alpha=1., arrow_spacing=spacing)
+        ax = plotting.trajectories(p, v, ax=ax, style=style, node_feature=nf, lw=lw, scale=scale, alpha=1., arrow_spacing=spacing)
         
     return ax
 

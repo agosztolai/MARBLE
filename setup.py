@@ -13,9 +13,14 @@ setup(
         "scipy",
         "matplotlib",
         "networkx",
-	    "torch",
-        'cknn @ git+https://github.com/chlorochrule/cknn',
-        'DE_library @ git+https://github.com/agosztolai/DE_library',
+        "torch",
+        "torch_geometric",
+        "torch_sparse",
+        "torch_scatter",
+        "torch_cluster",
+        "pympl",
+        "cknn @ git+https://github.com/chlorochrule/cknn",
+        "DE_library @ git+https://github.com/agosztolai/DE_library",
         "tensorboardX",
         "pyyaml",
         "POT",
@@ -23,14 +28,12 @@ setup(
         "teaspoon",
         "umap-learn",
         "mat73",
-        "wget"
+        "wget",
     ],
     packages=find_packages(),
     ext_modules=cythonize(
         Extension(
-            "ptu_dijkstra",
-            ["MARBLE/lib/ptu_dijkstra.pyx"],
-            include_dirs=[numpy.get_include()]
+            "ptu_dijkstra", ["MARBLE/lib/ptu_dijkstra.pyx"], include_dirs=[numpy.get_include()]
         )
-    )
+    ),
 )
