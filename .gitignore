@@ -1,5 +1,6 @@
 results/
 examples/outputs/
+example/*.ipynb_checkpoints 
 build/
 data/
 examples/log/
