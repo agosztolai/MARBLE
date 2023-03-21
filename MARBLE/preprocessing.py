@@ -40,8 +40,8 @@ def preprocessing(
 
     n, dim_emb = data.pos.shape
     dim_signal = data.x.shape[1]
-    print("---- Embedding dimension: {}".format(dim_emb))
-    print("---- Signal dimension: {}\n".format(dim_signal))
+    print(f"---- Embedding dimension: {dim_emb}")
+    print(f"---- Signal dimension: {dim_signal}\n")
 
     # disable vector computations if 1) signal is scalar or 2) embedding dimension
     # is <= 2. In case 2), either M=R^2 (manifold is whole space) or case 1).
@@ -82,7 +82,7 @@ def preprocessing(
             dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
         data.dim_man = dim_man
 
-        print("\n---- Manifold dimension: {}".format(dim_man))
+        print(f"\n---- Manifold dimension: {dim_man}")
 
         gauges = gauges[:, :, :dim_man]
         R = g.compute_connections(data, gauges)
@@ -106,8 +106,8 @@ def preprocessing(
 
     if diffusion_method == "spectral":
         print("---- Computing eigendecomposition ... ", end="")
-        L = g.compute_eigendecomposition(L, k=n_evec)
-        Lc = g.compute_eigendecomposition(Lc, k=n_evec)
+        L = g.compute_eigendecomposition(L)
+        Lc = g.compute_eigendecomposition(Lc)
         print("Done ")
 
     data.kernels = [

@@ -1,9 +1,11 @@
+"""Data loader module."""
 import torch
 from torch_cluster import random_walk
 from torch_geometric.loader import NeighborSampler as NS
 
 
 def loaders(data, par):
+    """Loaders."""
     nb = [par["n_sampled_nb"]] * par["order"]
 
     train_loader = NeighborSampler(
@@ -37,10 +39,10 @@ def loaders(data, par):
 
 
 class NeighborSampler(NS):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    """Neighbor Sampler."""
 
     def sample(self, batch):
+        """Sample."""
         row, col, _ = self.adj_t.coo()
 
         # For each node in `batch`, we sample a direct neighbor (as positive
@@ -50,7 +52,7 @@ class NeighborSampler(NS):
         neg_batch = torch.randint(0, self.adj_t.size(1), (batch.numel(),))
         batch = torch.cat([batch, pos_batch[:, 1], neg_batch], dim=0)
 
-        return super(NeighborSampler, self).sample(batch)
+        return super().sample(batch)
 
 
 # from torch_geometric.loader import LinkNeighborLoader
