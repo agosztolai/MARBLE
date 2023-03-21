@@ -1,7 +1,9 @@
 from setuptools import setup, find_packages, Extension
-import scipy
+import os
 from Cython.Build import cythonize
 import numpy
+
+from setuptools import setup
 
 setup(
     name="MARBLE",
@@ -15,10 +17,6 @@ setup(
         "matplotlib",
         "networkx",
         "torch",
-        "torch_geometric",
-        "torch_sparse",
-        "torch_scatter",
-        "torch_cluster",
         "pympl",
         "cknn @ git+https://github.com/chlorochrule/cknn",
         "DE_library @ git+https://github.com/agosztolai/DE_library",
@@ -33,13 +31,10 @@ setup(
     ],
     packages=find_packages(),
     include_package_data=True,
-    package_data={"MARBLE.lib": ["ptu_dijkstra.pyx"]},
-    setup_requires=['torch'],
+    package_data={"MARBLE.lib": ["ptu_dijkstra.pyx", "ptu_dijkstra.c"]},
     ext_modules=cythonize(
         Extension(
-            "ptu_dijkstra",
-            ["./MARBLE/lib/ptu_dijkstra.pyx", "./MARBLE/lib/ptu_dijkstra.c"],
-            include_dirs=[numpy.get_include(), scipy.get_include()],
+            "ptu_dijkstra", ["MARBLE/lib/ptu_dijkstra.pyx"], include_dirs=[numpy.get_include()]
         )
     ),
 )
