@@ -34,11 +34,12 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     package_data={"MARBLE.lib": ["ptu_dijkstra.pyx"]},
+    setup_requires=['torch'],
     ext_modules=cythonize(
         Extension(
             "ptu_dijkstra",
             ["./MARBLE/lib/ptu_dijkstra.pyx", "./MARBLE/lib/ptu_dijkstra.c"],
-            include_dirs=[numpy.get_include()], scipy.get_include()],
+            include_dirs=[numpy.get_include(), scipy.get_include()],
         )
     ),
 )
