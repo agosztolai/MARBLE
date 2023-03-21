@@ -1,5 +1,6 @@
+"""Layer module."""
 import torch
-import torch.nn as nn
+from torch import nn
 from torch.nn.functional import normalize
 from torch_geometric.nn import MLP
 from torch_geometric.nn.conv import MessagePassing
@@ -8,6 +9,7 @@ from .lib import geometry as g
 
 
 def setup_layers(model):
+    """Setup layers."""
     par = model.par
 
     s, d, o = par["dim_signal"], par["dim_emb"], par["order"]
@@ -62,11 +64,13 @@ class Diffusion(nn.Module):
     """Diffusion with learned t."""
 
     def __init__(self, tau0=0.0):
+        """initialise."""
         super().__init__()
 
         self.diffusion_time = nn.Parameter(torch.tensor(float(tau0)))
 
     def forward(self, x, L, Lc=None, method="spectral", normalise=False):
+        """Forward."""
         if method == "spectral":
             assert (
                 len(L) == 2
@@ -92,11 +96,13 @@ class AnisoConv(MessagePassing):
     """Anisotropic Convolution"""
 
     def __init__(self, vec_norm=False, **kwargs):
+        """Initialize."""
         super().__init__(aggr="add", **kwargs)
 
         self.vec_norm = vec_norm
 
     def forward(self, x, kernels):
+        """Forward."""
         out = []
         for K in kernels:
             out.append(self.propagate(K, x=x))
@@ -129,7 +135,7 @@ class AnisoConv(MessagePassing):
 
 
 class InnerProductFeatures(nn.Module):
-    """
+    r"""
     Compute scaled inner-products between channel vectors.
 
     Input: (V x C*D) vector of (V x n_i) list of vectors with \sum_in_i = C*D
@@ -142,16 +148,18 @@ class InnerProductFeatures(nn.Module):
         self.C, self.D = C, D
 
         self.O_mat = nn.ModuleList()
-        for i in range(C):
+        for _ in range(C):
             self.O_mat.append(nn.Linear(D, D, bias=False))
 
         self.reset_parameters()
 
     def reset_parameters(self):
+        """Reset parameters."""
         for i in range(len(self.O_mat)):
             self.O_mat[i].weight.data = torch.eye(self.D)
 
     def forward(self, x):
+        """Forward."""
         if not isinstance(x, list):
             x = [x]
 
