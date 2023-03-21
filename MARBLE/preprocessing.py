@@ -9,7 +9,6 @@ def preprocessing(
     data,
     n_geodesic_nb=2.0,
     var_explained=0.9,
-    n_evec=2,
     diffusion_method="spectral",
     vector=True,
     compute_laplacian=False,
