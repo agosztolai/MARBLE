@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages, Extension
+import scipy
 from Cython.Build import cythonize
 import numpy
 
@@ -31,9 +32,13 @@ setup(
         "wget",
     ],
     packages=find_packages(),
+    include_package_data=True,
+    package_data={"MARBLE.lib": ["ptu_dijkstra.pyx"]},
     ext_modules=cythonize(
         Extension(
-            "ptu_dijkstra", ["MARBLE/lib/ptu_dijkstra.pyx"], include_dirs=[numpy.get_include()]
+            "ptu_dijkstra",
+            ["./MARBLE/lib/ptu_dijkstra.pyx", "./MARBLE/lib/ptu_dijkstra.c"],
+            include_dirs=[numpy.get_include()], scipy.get_include()],
         )
     ),
 )
