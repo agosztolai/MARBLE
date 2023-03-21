@@ -353,6 +353,7 @@ def to_pandas(x, augment_time=True):
 
 class EdgeIndex(NamedTuple):
     """Edge Index."""
+
     edge_index: Tensor
     e_id: Optional[Tensor]
     size: Tuple[int, int]
