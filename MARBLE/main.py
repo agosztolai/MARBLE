@@ -4,10 +4,10 @@ import os
 from datetime import datetime
 
 import torch
-from torch import nn
 import torch.nn.functional as F
 import torch.optim as opt
 from tensorboardX import SummaryWriter
+from torch import nn
 from tqdm import tqdm
 
 from . import dataloader
@@ -18,6 +18,7 @@ from .lib import utils
 
 class net(nn.Module):
     """net."""
+
     def __init__(self, data, loadpath=None, par=None, verbose=True):
         super().__init__()
 
