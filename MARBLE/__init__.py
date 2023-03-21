@@ -1,3 +1,4 @@
+"""MARBLE."""
 from .lib import *
 from .main import net
 from .postprocessing import compare_attractors
