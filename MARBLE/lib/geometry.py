@@ -26,8 +26,10 @@ from . import utils
 # =============================================================================
 # Sampling
 # =============================================================================
-def sample_2d(N=100, interval=[[-1, -1], [1, 1]], method="uniform", seed=0):
+def sample_2d(N=100, interval=None, method="uniform", seed=0):
     """Sample N points in a 2D area."""
+    if interval is None:
+        interval = [[-1, -1], [1, 1]]
     if method == "uniform":
         x = np.linspace(interval[0][0], interval[1][0], int(np.sqrt(N)))
         y = np.linspace(interval[0][1], interval[1][1], int(np.sqrt(N)))
@@ -110,7 +112,7 @@ def cluster(x, cluster_typ="meanshift", n_clusters=15, seed=0):
 
     """
 
-    clusters = dict()
+    clusters = {}
     if cluster_typ == "kmeans":
         kmeans = KMeans(n_clusters=n_clusters, random_state=seed).fit(x)
         clusters["n_clusters"] = n_clusters
@@ -122,7 +124,7 @@ def cluster(x, cluster_typ="meanshift", n_clusters=15, seed=0):
         clusters["labels"] = meanshift.labels_
         clusters["centroids"] = meanshift.cluster_centers_
     else:
-        NotImplementedError
+        raise NotImplementedError
 
     return clusters
 
@@ -144,10 +146,8 @@ def embed(x, embed_typ="umap", dim_emb=2, manifold=None):
 
     if x.shape[1] <= 2:
         print(
-            "\n No {} embedding performed. Embedding seems to be \
-              already in 2D.".format(
-                embed_typ
-            )
+            f"\n No {embed_typ} embedding performed. Embedding seems to be \
+              already in 2D."
         )
         return x
 
@@ -180,9 +180,9 @@ def embed(x, embed_typ="umap", dim_emb=2, manifold=None):
         emb = manifold.transform(x)
 
     else:
-        NotImplementedError
+        raise NotImplementedError
 
-    print("Performed {} embedding on embedded results.".format(embed_typ))
+    print(f"Performed {embed_typ} embedding on embedded results.")
 
     return emb, manifold
 
@@ -205,11 +205,11 @@ def relabel_by_proximity(clusters):
     pd = pairwise_distances(clusters["centroids"], metric="euclidean")
     pd += np.max(pd) * np.eye(clusters["n_clusters"])
 
-    mapping = dict()
+    mapping = {}
     id_old = 0
     for i in range(clusters["n_clusters"]):
         id_new = np.argmin(pd[id_old, :])
-        while id_new in mapping.keys():
+        while id_new in mapping:
             pd[id_old, id_new] += np.max(pd)
             id_new = np.argmin(pd[id_old, :])
         mapping[id_new] = i
@@ -368,6 +368,7 @@ def gradient_op(pos, edge_index, gauges):
 
 
 def normalize_sparse_matrix(sp_tensor):
+    """Normalize sparse matrix."""
     row_sum = sp_tensor.sum(axis=1)
     row_sum[row_sum == 0] = 1  # to avoid divide by zero
     sp_tensor = sp_tensor.multiply(1.0 / row_sum)
@@ -389,6 +390,7 @@ def map_to_local_gauges(x, gauges, length_correction=False):
 
 
 def project_to_gauges(x, gauges, dim=2):
+    """Project to gauges."""
     coeffs = torch.einsum("bij,bi->bj", gauges, x)
     return torch.einsum("bj,bij->bi", coeffs[:, :dim], gauges[:, :, :dim])
 
@@ -427,7 +429,7 @@ def fit_graph(x, graph_type="cknn", par=1, delta=1.0):
         edge_index = PyGu.add_self_loops(edge_index)[0]
 
     else:
-        NotImplementedError
+        raise NotImplementedError
 
     assert is_connected(edge_index), "Graph is not connected! Try increasing k."
 
@@ -505,6 +507,7 @@ def fit_graph(x, graph_type="cknn", par=1, delta=1.0):
 
 
 def is_connected(edge_index):
+    """Check if it is connected."""
     adj = torch.sparse_coo_tensor(edge_index, torch.ones(edge_index.shape[1]))
     deg = torch.sparse.sum(adj, 0).values()
 
@@ -512,6 +515,7 @@ def is_connected(edge_index):
 
 
 def compute_laplacian(data, normalization="rw"):
+    """Compute Laplacian."""
     edge_index, edge_attr = PyGu.get_laplacian(
         data.edge_index, edge_weight=data.edge_weight, normalization=normalization
     )
@@ -574,7 +578,7 @@ def compute_connection_laplacian(data, R, normalization="rw"):
         Lc = torch.diag(deg_inv).to_sparse() @ Lc
 
     elif normalization == "sym":
-        NotImplementedError
+        raise NotImplementedError
 
     return Lc
 
@@ -608,7 +612,7 @@ def compute_gauges(data, dim_man=None, n_geodesic_nb=10, n_workers=1):
     A = PyGu.to_scipy_sparse_matrix(data.edge_index).tocsr()
 
     # make chunks for data processing
-    sl = data._slice_dict["x"]
+    sl = data._slice_dict["x"]  # pylint: disable=protected-access
 
     n = len(sl) - 1
     X = [X[sl[i] : sl[i + 1]] for i in range(n)]
@@ -657,7 +661,7 @@ def compute_connections(data, gauges, n_workers=1):
     A = PyGu.to_scipy_sparse_matrix(data.edge_index).tocsr()
 
     # make chunks for data processing
-    sl = data._slice_dict["x"]
+    sl = data._slice_dict["x"]  # pylint: disable=protected-access
     dim_man = gauges.shape[-1]
 
     n = len(sl) - 1
@@ -689,6 +693,7 @@ def _compute_connections(inputs, i):
 # Diffusion
 # =============================================================================
 def scalar_diffusion(x, t, method="matrix_exp", par=None):
+    """Scalar diffusion."""
     if len(x.shape) == 1:
         x = x.unsqueeze(1)
 
@@ -714,11 +719,11 @@ def scalar_diffusion(x, t, method="matrix_exp", par=None):
         # Transform back to per-vertex
         return evecs.mm(x_diffuse_spec)
 
-    else:
-        NotImplementedError
+    raise NotImplementedError
 
 
-def vector_diffusion(x, t, method="spectral", Lc=None, normalise=False):
+def vector_diffusion(x, t, method="spectral", Lc=None):
+    """Vector diffusion."""
     n, d = x.shape[0], x.shape[1]
 
     if method == "spectral":
@@ -747,14 +752,13 @@ def vector_diffusion(x, t, method="spectral", Lc=None, normalise=False):
     return out
 
 
-def compute_eigendecomposition(A, k=64, eps=1e-8):
+def compute_eigendecomposition(A, eps=1e-8):
     """
     Eigendecomposition of a square matrix A
 
     Parameters
     ----------
     A : square matrix A
-    k : number of eigenvectors
     eps : small error term
 
     Returns
@@ -777,10 +781,10 @@ def compute_eigendecomposition(A, k=64, eps=1e-8):
             evals = torch.clamp(evals, min=0.0)
 
             break
-        except Exception as e:
+        except Exception as e:  # pylint: disble=broad-exception-caught
             print(e)
             if failcount > 3:
-                raise ValueError("failed to compute eigendecomp")
+                raise ValueError("failed to compute eigendecomp") from e
             failcount += 1
             print("--- decomp failed; adding eps ===> count: " + str(failcount))
             A += torch.eye(A.shape[0]) * (eps * 10 ** (failcount - 1))

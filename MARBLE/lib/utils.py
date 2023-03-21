@@ -18,7 +18,7 @@ from torch_geometric.transforms import RandomNodeSplit
 from torch_sparse import SparseTensor
 from tqdm import tqdm
 
-from MARBLE import preprocessing
+from MARBLE.preprocessing import preprocessing
 
 from . import geometry
 
@@ -62,7 +62,7 @@ def construct_dataset(
 
     data_list = []
     for i, (p, f) in enumerate(zip(pos, features)):
-        for j in range(number_of_resamples):
+        for _ in range(number_of_resamples):
             # even sampling of points
             start_idx = torch.randint(low=0, high=len(p), size=(1,))
             sample_ind, _ = geometry.furthest_point_sampling(
@@ -97,7 +97,7 @@ def construct_dataset(
     split = RandomNodeSplit(split="train_rest", num_val=0.1, num_test=0.1)
     split(batch)
 
-    batch = preprocessing.preprocessing(
+    batch = preprocessing(
         batch,
         vector=vector,
         compute_laplacian=compute_laplacian,
@@ -118,7 +118,8 @@ def parse_parameters(data, kwargs):
     """Load default parameters and merge with user specified parameters"""
 
     file = os.path.dirname(__file__) + "/../default_params.yaml"
-    par = yaml.load(open(file, "rb"), Loader=yaml.FullLoader)
+    with open(file, "rb") as f:
+        par = yaml.full_load(f)
 
     par["dim_signal"] = data.x.shape[1]
     par["dim_emb"] = data.pos.shape[1]
@@ -191,7 +192,7 @@ def check_parameters(par, data):
     ]
 
     for p in par.keys():
-        assert p in pars, "Unknown specified parameter {}!".format(p)
+        assert p in pars, f"Unknown specified parameter {p}!"
 
     return par
 
@@ -221,11 +222,9 @@ def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
         processes = multiprocessing.cpu_count()
 
     if processes > 1 and len(iterable) > 1:
-        pool = multiprocessing.Pool(processes=processes)
-        fun = partial(fun, inputs)
-        result = list(tqdm(pool.imap(fun, iterable), total=len(iterable), desc=desc))
-        pool.close()
-        pool.join()
+        with multiprocessing.Pool(processes=processes) as pool:
+            fun = partial(fun, inputs)
+            result = list(tqdm(pool.imap(fun, iterable), total=len(iterable), desc=desc))
     else:
         result = [fun(inputs, i) for i in tqdm(iterable, desc=desc)]
 
@@ -256,9 +255,9 @@ def move_to_gpu(model, data, adjs=None):
 
     if adjs is None:
         return model, x, pos, L, Lc, kernels, gauges
-    else:
-        adjs = [adj.to(device) for adj in adjs]
-        return model, x, pos, L, Lc, kernels, gauges, adjs
+
+    adjs = [adj.to(device) for adj in adjs]
+    return model, x, pos, L, Lc, kernels, gauges, adjs
 
 
 def detach_from_gpu(model, data, adjs=None):
@@ -285,10 +284,10 @@ def detach_from_gpu(model, data, adjs=None):
 
     if adjs is None:
         return model, x, pos, L, Lc, kernels, gauges
-    else:
-        for i, adj in enumerate(adjs):
-            adjs[i] = [adj[0].detach().cpu(), adj[1].detach().cpu(), adj[2]]
-        return model, x, pos, L, Lc, kernels, gauges, adjs
+
+    for i, adj in enumerate(adjs):
+        adjs[i] = [adj[0].detach().cpu(), adj[1].detach().cpu(), adj[2]]
+    return model, x, pos, L, Lc, kernels, gauges, adjs
 
 
 # =============================================================================
@@ -328,8 +327,7 @@ def np2torch(x, dtype=None):
         return torch.from_numpy(x).float()
     elif dtype == "double":
         return torch.tensor(x, dtype=torch.int64)
-    else:
-        NotImplementedError
+    raise NotImplementedError
 
 
 def to_list(x):
@@ -354,11 +352,13 @@ def to_pandas(x, augment_time=True):
 
 
 class EdgeIndex(NamedTuple):
+    """Edge Index."""
     edge_index: Tensor
     e_id: Optional[Tensor]
     size: Tuple[int, int]
 
     def to(self, *args, **kwargs):
+        """to"""
         edge_index = self.edge_index.to(*args, **kwargs)
         e_id = self.e_id.to(*args, **kwargs) if self.e_id is not None else None
         return EdgeIndex(edge_index, e_id, self.size)
@@ -375,6 +375,7 @@ def expand_index(ind, dim):
 
 
 def to_block_diag(sp_tensors):
+    """To block diagonal."""
     sizes = [torch.tensor(t.size()).unsqueeze(1) for t in sp_tensors]
     ind = [t.indices() for t in sp_tensors]
     val = [t.values() for t in sp_tensors]
@@ -425,7 +426,7 @@ def restrict_dimension(sp_tensor, d, m):
     """Limit the dimension of the tensor"""
     n = sp_tensor.size(0)
     idx = torch.ones(n)
-    for i in range(m, d):
+    for _ in range(m, d):
         idx[m::d] = 0
     idx = torch.where(idx)[0]
     sp_tensor = torch.index_select(sp_tensor, 0, idx).coalesce()
@@ -439,7 +440,7 @@ def restrict_to_batch(sp_tensor, idx):
 
     if len(idx) == 1:
         return torch.index_select(sp_tensor, 0, idx[0]).coalesce()
-    elif len(idx) == 2:
+    if len(idx) == 2:
         sp_tensor = torch.index_select(sp_tensor, 0, idx[0])
         return torch.index_select(sp_tensor, 1, idx[1]).coalesce()
 
@@ -458,7 +459,7 @@ def standardise(X, zero_mean=True, norm="std"):
     elif norm == "max":
         X /= abs(X).max(axis=0, keepdims=True)
     else:
-        NotImplementedError
+        raise NotImplementedError
 
     return X
 
