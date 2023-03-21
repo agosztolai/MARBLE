@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 
 import torch
-import torch.nn as nn
+from torch import nn
 import torch.nn.functional as F
 import torch.optim as opt
 from tensorboardX import SummaryWriter
@@ -17,8 +17,9 @@ from .lib import utils
 
 
 class net(nn.Module):
+    """net."""
     def __init__(self, data, loadpath=None, par=None, verbose=True):
-        super(net, self).__init__()
+        super().__init__()
 
         if loadpath is not None:
             # folder, load the latest model
