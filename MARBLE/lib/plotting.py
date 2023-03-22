@@ -3,11 +3,11 @@ import os
 from pathlib import Path
 
 import matplotlib
-import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import seaborn as sns
+from matplotlib import gridspec
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
 from scipy.spatial import Voronoi
@@ -61,7 +61,7 @@ def fields(
             data = data[::number_of_resamples]
 
     dim = data[0].pos.shape[1]
-    vector = True if data[0].x.shape[1] > 1 else False
+    vector = data[0].x.shape[1] > 1
     row = int(np.ceil(len(data) / col))
 
     fig = plt.figure(figsize=figsize, constrained_layout=True)
@@ -97,11 +97,11 @@ def fields(
 
         if vector:
             pos = d.pos.numpy()
-            ax = plot_arrows(pos, signal, ax, c, scale=scale, width=width)
+            plot_arrows(pos, signal, ax, c, scale=scale, width=width)
 
         if plot_gauges and (gauges is not None):
             for j in range(gauges.shape[2]):
-                ax = plot_arrows(pos, gauges[..., j], ax, "k", scale=scale)
+                plot_arrows(pos, gauges[..., j], ax, "k", scale=scale)
 
         if titles is not None:
             ax.set_title(titles[i])
@@ -114,7 +114,7 @@ def fields(
             elif len(axlim) == len(data):
                 lims = axlim[i]
             else:
-                NotImplementedError
+                raise NotImplementedError
 
         set_axes(ax, lims=lims, axes_visible=axes_visible)
 
@@ -123,7 +123,7 @@ def fields(
     return ax_list
 
 
-def histograms(data, titles=None, col=2, figsize=(10, 10), save=None):
+def histograms(data, titles=None, col=2, figsize=(10, 10)):
     """
     Plot histograms of cluster distribution across datasets.
 
@@ -134,7 +134,6 @@ def histograms(data, titles=None, col=2, figsize=(10, 10), save=None):
     titles : list of titles
     col : int for number of columns to plot
     figsize : tuple of figure dimensions
-    save : filename
 
     """
 
@@ -157,7 +156,7 @@ def histograms(data, titles=None, col=2, figsize=(10, 10), save=None):
         ax = plt.Subplot(fig, grid[i])
 
         ax.hist(labels[i], bins=np.arange(nc + 1) + 0.5, rwidth=0.85, density=True)
-        ax.set_xticks(np.arange(nc) + 1)
+        ax.set_xticks(np.arange(nc) + 1)  # pylint: disable=not-callable
         ax.set_xlim([0, nc + 1])
         ax.set_xlabel("Feature number")
         ax.set_ylabel("Probability density")
@@ -198,10 +197,10 @@ def embedding(
         emb = data
 
     dim = emb.shape[1]
-    assert dim in [2, 3], "Embedding dimension is {} which cannot be displayed.".format(dim)
+    assert dim in [2, 3], f"Embedding dimension is {dim} which cannot be displayed."
 
     if ax is None:
-        fig, ax = create_axis(dim)
+        _, ax = create_axis(dim)
 
     if labels is not None:
         assert emb.shape[0] == len(labels)
@@ -246,6 +245,7 @@ def embedding(
 
 
 def voronoi(clusters, ax):
+    """voronoi"""
     vor = Voronoi(clusters["centroids"])
     voronoi_plot_2d(vor, ax=ax, show_vertices=False)
     for k in range(clusters["n_clusters"]):
@@ -282,7 +282,7 @@ def neighbourhoods(
     ), "No clusters found. First, run \
         geometry.cluster(data) or postprocessing(data)!"
 
-    vector = True if data.x.shape[1] > 1 else False
+    vector = data.x.shape[1] > 1
     clusters = data.clusters
     nc = clusters["n_clusters"]
     fig = plt.figure(figsize=figsize, constrained_layout=True)
@@ -315,7 +315,7 @@ def neighbourhoods(
         )
 
         ax = plt.Subplot(fig, outer[i])
-        ax.set_title("Type {}".format(i + 1), fontsize=fontsize)
+        ax.set_title(f"Type {i+1}", fontsize=fontsize)
         ax.axis("off")
         fig.add_subplot(ax)
 
@@ -327,8 +327,7 @@ def neighbourhoods(
             label_i = np.where(label_i)[0]
             if not list(label_i):
                 continue
-            else:
-                random_node = np.random.choice(label_i)
+            random_node = np.random.choice(label_i)
 
             signal = signals[j].numpy()
             node_ids = nx.ego_graph(G, random_node, radius=hops).nodes
@@ -368,7 +367,7 @@ def neighbourhoods(
                 pos, manifold = embed(pos, embed_typ="PCA")
                 signal = embed(signal, embed_typ="PCA", manifold=manifold)[0]
             if vector:
-                ax = plot_arrows(pos, signal, ax, c, width=width, scale=scale)
+                plot_arrows(pos, signal, ax, c, width=width, scale=scale)
             else:
                 ax.scatter(pos[:, 0], pos[:, 1], c=c)
 
@@ -392,14 +391,14 @@ def graph(
     G = nx.convert_node_labels_to_integers(G)
     pos = list(nx.get_node_attributes(G, "pos").values())
 
-    if pos == []:
+    if not pos:
         if layout == "spectral":
             pos = nx.spectral_layout(G)
         else:
             pos = nx.spring_layout(G)
 
     dim = len(pos[0])
-    assert dim == 2 or dim == 3, "Dimension must be 2 or 3."
+    assert dim in (2, 3), "Dimension must be 2 or 3."
 
     if ax is None:
         _, ax = create_axis(dim)
@@ -469,7 +468,7 @@ def time_series(T, X, style="o", node_feature=None, figsize=(10, 5), lw=1, ms=5)
         ax.spines["right"].set_visible(False)
 
         if sp < len(X) - 1:
-            plt.setp(ax.get_xticklabels(), visible=False)
+            plt.setp(ax.get_xticklabels(), visible=False)  # pylint: disable=not-callable
             ax.spines["bottom"].set_visible(False)
             ax.xaxis.set_ticks_position("none")
 
@@ -527,7 +526,7 @@ def trajectories(
     """
 
     dim = X.shape[1]
-    assert dim == 2 or dim == 3, "Dimension must be 2 or 3."
+    assert dim in (2, 3), "Dimension must be 2 or 3."
 
     if ax is None:
         _, ax = create_axis(dim)
@@ -553,7 +552,7 @@ def trajectories(
         if ">" in style:
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
-            ax = plot_arrows(X, V, ax, c, width=lw, scale=scale)
+            plot_arrows(X, V, ax, c, width=lw, scale=scale)
 
     elif dim == 3:
         if "o" in style:
@@ -585,20 +584,26 @@ def trajectories(
         if ">" in style:
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
-            ax = plot_arrows(X, V, ax, c, width=lw, scale=scale)
+            plot_arrows(X, V, ax, c, width=lw, scale=scale)
 
-    ax = set_axes(ax, axes_visible=axes_visible)
+    set_axes(ax, axes_visible=axes_visible)
 
     return ax
 
 
 def plot_arrows(pos, signal, ax, c="k", alpha=1.0, width=1.0, scale=1.0):
+    """Plot arrows."""
     dim = pos.shape[1]
     if dim == 3:
         norm = signal.max() - signal.min()
         norm = norm if norm != 0 else 1
         scaling = (pos.max() - pos.min()) / norm / scale
-        arrow_prop_dict = dict(alpha=alpha, mutation_scale=width, arrowstyle="-|>", zorder=3)
+        arrow_prop_dict = {
+            "alpha": alpha,
+            "mutation_scale": width,
+            "arrowstyle": "-|>",
+            "zorder": 3,
+        }
         for j in range(len(pos)):
             a = Arrow3D(
                 [pos[j, 0], pos[j, 0] + signal[j, 0] * scaling],
@@ -610,7 +615,7 @@ def plot_arrows(pos, signal, ax, c="k", alpha=1.0, width=1.0, scale=1.0):
             ax.add_artist(a)
 
     if dim == 2:
-        arrow_prop_dict = dict(alpha=alpha, zorder=3, scale_units="inches")
+        arrow_prop_dict = {"alpha": alpha, "zorder": 3, "scale_units": "inches"}
         ax.quiver(
             pos[:, 0],
             pos[:, 1],
@@ -621,24 +626,25 @@ def plot_arrows(pos, signal, ax, c="k", alpha=1.0, width=1.0, scale=1.0):
             width=width,
             **arrow_prop_dict,
         )
-    else:
-        NotImplementedError
-
-    return ax
+    raise NotImplementedError
 
 
 class Arrow3D(FancyArrowPatch):
+    """Arrow 3D."""
+
     def __init__(self, xs, ys, zs, *args, **kwargs):
         FancyArrowPatch.__init__(self, (0, 0), (0, 0), *args, **kwargs)
         self._verts3d = xs, ys, zs
 
     def draw(self, renderer):
+        """draw."""
         xs3d, ys3d, zs3d = self._verts3d
-        xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, self.axes.M)
+        xs, ys, _ = proj3d.proj_transform(xs3d, ys3d, zs3d, self.axes.M)
         self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
         FancyArrowPatch.draw(self, renderer)
 
-    def do_3d_projection(self, renderer=None):
+    def do_3d_projection(self):
+        """do 3d projection."""
         xs3d, ys3d, zs3d = self._verts3d
         xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, self.axes.M)
         self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
@@ -650,6 +656,7 @@ class Arrow3D(FancyArrowPatch):
 # Helper functions
 # =============================================================================
 def create_axis(*args, fig=None):
+    """Create axis."""
     dim = args[0]
     if len(args) > 1:
         args = [args[i] for i in range(1, len(args))]
@@ -668,6 +675,7 @@ def create_axis(*args, fig=None):
 
 
 def get_limits(ax):
+    """Get limits."""
     lims = [ax.get_xlim(), ax.get_ylim()]
     if ax.name == "3d":
         lims.append(ax.get_zlim())
@@ -676,6 +684,7 @@ def get_limits(ax):
 
 
 def set_axes(ax, lims=None, padding=0.1, axes_visible=True):
+    """Set axes."""
     if lims is not None:
         xlim = lims[0]
         ylim = lims[1]
@@ -694,14 +703,13 @@ def set_axes(ax, lims=None, padding=0.1, axes_visible=True):
             ax.set_zticklabels([])
         ax.axis("off")
 
-    return ax
-
 
 def set_colors(color, cmap="coolwarm"):
+    """Set colors."""
     if color is None:
         return "k", None
-    else:
-        assert isinstance(color, (list, tuple, np.ndarray))
+
+    assert isinstance(color, (list, tuple, np.ndarray))
 
     if isinstance(color[0], (float, np.floating)):
         cmap = sns.color_palette(cmap, as_cmap=True)

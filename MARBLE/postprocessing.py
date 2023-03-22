@@ -21,12 +21,12 @@ def postprocessing(
 
     """
 
-    if type(data) is list:
+    if isinstance(data, list):
         out = np.vstack([d.out for d in data])
     else:
         out = data.out
 
-    if type(data) is list:
+    if isinstance(data, list):
         data_ = data[0]
         data_.emb = out
         data_.y = torch.cat([d.y for d in data])
@@ -38,7 +38,7 @@ def postprocessing(
         clusters = g.cluster(out, cluster_typ, n_clusters, seed)
         clusters = g.relabel_by_proximity(clusters)
 
-        clusters["slices"] = data._slice_dict["x"]
+        clusters["slices"] = data._slice_dict["x"]  # pylint: disable=protected-access
 
         if data.number_of_resamples > 1:
             clusters["slices"] = clusters["slices"][:: data.number_of_resamples]
@@ -59,19 +59,22 @@ def postprocessing(
 
     else:
         data_.emb = out
-        data_.dist, _ = g.compute_distribution_distances(data=data, slices=data._slice_dict["x"])
+        data_.dist, _ = g.compute_distribution_distances(
+            data=data, slices=data._slice_dict["x"]  # pylint: disable=protected-access
+        )
         data_.emb, data_.manifold = g.embed(out, embed_typ=embed_typ, manifold=manifold)
 
     return data_
 
 
 def compare_attractors(data, source_target):
+    """Compare attractors."""
     assert all(
         hasattr(data, attr) for attr in ["emb", "gamma", "clusters", "cdist"]
     ), "It looks like postprocessing has not been run..."
 
     s, t = source_target
-    slices = data._slice_dict["x"]
+    slices = data._slice_dict["x"]  # pylint: disable=protected-access
     n_slices = len(slices) - 1
     s_s = range(slices[s], slices[s + 1])
     s_t = range(slices[t], slices[t + 1])
@@ -91,7 +94,7 @@ def compare_attractors(data, source_target):
     # color code source features
     c = gammadist.sum(1)
     cluster_ids = set(data.clusters["labels"][s_s])
-    labels = [i for i in s_s]
+    labels = list(s_s)
     for cid in cluster_ids:
         idx = np.where(cid == data.clusters["labels"][s_s])[0]
         for i in idx:
@@ -99,14 +102,14 @@ def compare_attractors(data, source_target):
 
     # plot source features in red
     plotting.embedding(data.emb_2d[s_s], labels=labels, ax=ax[0], alpha=1.0)
-    prop_dict = dict(style=">", lw=2, arrowhead=0.1, axis=False, alpha=1.0)
+    prop_dict = {"style": ">", "lw": 2}
     plotting.trajectories(data.pos[s_s], data.x[s_s], ax=ax[1], node_feature=labels, **prop_dict)
     ax[1].set_title("Before")
 
     # color code target features
     c = gammadist.sum(0)
     cluster_ids = set(data.clusters["labels"][s_t])
-    labels = [i for i in s_t]
+    labels = list(s_t)
     for cid in cluster_ids:
         idx = np.where(cid == data.clusters["labels"][s_t])[0]
         for i in idx:

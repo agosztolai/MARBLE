@@ -36,7 +36,7 @@ class net(nn.Module):
 
         self.epoch = 0
         self.par = utils.parse_parameters(data, self.par)
-        self = layers.setup_layers(self)
+        self = layers.setup_layers(self)  # pylint: disable=self-cls-assignment
         self.loss = loss_fun()
         self.reset_parameters()
 
@@ -47,6 +47,7 @@ class net(nn.Module):
             self.load_model(loadpath)
 
     def reset_parameters(self):
+        """reset parmaeters."""
         for layer in self.children():
             if hasattr(layer, "reset_parameters"):
                 layer.reset_parameters()
@@ -89,7 +90,8 @@ class net(nn.Module):
             x = self.grad[i](x, kernels)
             out.append(x)
 
-        out = [o[: size[1]] for o in out]  # take target nodes
+        # take target nodes
+        out = [o[: size[1]] for o in out]  # pylint: disable=undefined-loop-variable
 
         # inner products
         if self.par["inner_product_features"]:
@@ -98,7 +100,9 @@ class net(nn.Module):
             out = torch.cat(out, axis=1)
 
         if self.par["include_positions"]:
-            out = torch.hstack([data.pos[n_id[: size[1]]], out])
+            out = torch.hstack(
+                [data.pos[n_id[: size[1]]], out]  # pylint: disable=undefined-loop-variable
+            )
 
         emb = self.enc(out)
 
@@ -116,12 +120,12 @@ class net(nn.Module):
                     utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()).t()
                     for K in utils.to_list(data.kernels)
                 ]
-            except Exception:
+            except Exception:  # pylint: disable=broad-exception-caught
                 pass
 
             # load to gpu if possible
             (
-                model,
+                _,
                 data.x,
                 data.pos,
                 data.L,
@@ -134,7 +138,7 @@ class net(nn.Module):
             out = self.forward(data, torch.arange(len(data.x)), adjs)
 
             (
-                model,
+                _,
                 data.x,
                 data.pos,
                 data.L,
@@ -190,7 +194,8 @@ class net(nn.Module):
         time = datetime.now().strftime("%Y%m%d-%H%M%S")
 
         # load to gpu (if possible)
-        self, data.x, data.pos, data.L, data.Lc, data.kernels, data.gauges = utils.move_to_gpu(
+        # pylint: disable=self-cls-assignment
+        self, data.x, data.pos, data.L, data.Lc, data.kernels, data.gauges, _ = utils.move_to_gpu(
             self, data
         )
 
@@ -218,9 +223,7 @@ class net(nn.Module):
             writer.add_scalar("Loss/validation", val_loss, epoch)
             writer.flush()
             print(
-                "\nEpoch: {}, Training loss: {:.4f}, Validation loss: {:.4f}, lr: {:.4f}".format(
-                    epoch, train_loss, val_loss, scheduler._last_lr[0]
-                ),
+                f"\nEpoch: {epoch}, Training loss: {train_loss:4f}, Validation loss: {val_loss:.4f}, lr: {scheduler._last_lr[0]:.4f}",  # noqa, pylint: disable=line-too-long,protected-access
                 end="",
             )
 
@@ -232,20 +235,22 @@ class net(nn.Module):
         test_loss, _ = self.batch_loss(data, test_loader)
         writer.add_scalar("Loss/test", test_loss)
         writer.close()
-        print("\nFinal test loss: {:.4f}".format(test_loss))
+        print(f"\nFinal test loss: {test_loss:.4f}")
 
         self.save_model(optimizer, outdir, best=False, timestamp=time)
 
         if use_best:
-            self.load_model(os.path.join(outdir, "best_model_{}.pth".format(time)))
+            self.load_model(os.path.join(outdir, f"best_model_{time}.pth"))
 
     def load_model(self, loadpath):
+        """Load model."""
         checkpoint = torch.load(loadpath)
         self.epoch = checkpoint["epoch"]
         self.load_state_dict(checkpoint["model_state_dict"])
         self.optimizer_state_dict = checkpoint["optimizer_state_dict"]
 
     def save_model(self, optimizer, outdir=None, best=False, timestamp=""):
+        """Save model."""
         if outdir is None:
             outdir = "./outputs/"
 
@@ -277,10 +282,10 @@ class net(nn.Module):
 
 
 class loss_fun(nn.Module):
-    def __init__(self):
-        super().__init__()
+    """Loss function."""
 
     def forward(self, out):
+        """forward."""
         z, z_pos, z_neg = out.split(out.size(0) // 3, dim=0)
         pos_loss = F.logsigmoid((z * z_pos).sum(-1)).mean()
         neg_loss = F.logsigmoid(-(z * z_neg).sum(-1)).mean()
