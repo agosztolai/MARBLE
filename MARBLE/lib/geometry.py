@@ -781,7 +781,7 @@ def compute_eigendecomposition(A, eps=1e-8):
             evals = torch.clamp(evals, min=0.0)
 
             break
-        except Exception as e:  # pylint: disble=broad-exception-caught
+        except Exception as e:  # pylint: disable=broad-exception-caught
             print(e)
             if failcount > 3:
                 raise ValueError("failed to compute eigendecomp") from e

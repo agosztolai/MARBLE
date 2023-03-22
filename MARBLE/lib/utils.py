@@ -37,7 +37,6 @@ def construct_dataset(
     n_nodes=None,
     compute_laplacian=False,
     compute_connection_laplacian=False,
-    n_evec=64,
     var_explained=0.9,
     vector=True,
     dim_man=None,
@@ -102,7 +101,6 @@ def construct_dataset(
         vector=vector,
         compute_laplacian=compute_laplacian,
         compute_connection_laplacian=compute_connection_laplacian,
-        n_evec=n_evec,
         n_geodesic_nb=n_geodesic_nb,
         var_explained=var_explained,
         dim_man=dim_man,
@@ -254,7 +252,7 @@ def move_to_gpu(model, data, adjs=None):
     gauges = data.gauges.to(device)
 
     if adjs is None:
-        return model, x, pos, L, Lc, kernels, gauges
+        return model, x, pos, L, Lc, kernels, gauges, None
 
     adjs = [adj.to(device) for adj in adjs]
     return model, x, pos, L, Lc, kernels, gauges, adjs
@@ -283,7 +281,7 @@ def detach_from_gpu(model, data, adjs=None):
     gauges = data.gauges.detach().cpu()
 
     if adjs is None:
-        return model, x, pos, L, Lc, kernels, gauges
+        return model, x, pos, L, Lc, kernels, gauges, None
 
     for i, adj in enumerate(adjs):
         adjs[i] = [adj[0].detach().cpu(), adj[1].detach().cpu(), adj[2]]
@@ -325,7 +323,7 @@ def np2torch(x, dtype=None):
     """Convert numpy to torch"""
     if dtype is None:
         return torch.from_numpy(x).float()
-    elif dtype == "double":
+    if dtype == "double":
         return torch.tensor(x, dtype=torch.int64)
     raise NotImplementedError
 
@@ -445,6 +443,8 @@ def restrict_to_batch(sp_tensor, idx):
         sp_tensor = torch.index_select(sp_tensor, 0, idx[0])
         return torch.index_select(sp_tensor, 1, idx[1]).coalesce()
 
+    raise NotImplementedError
+
 
 # =============================================================================
 # Statistics
@@ -454,8 +454,7 @@ def standardise(X, zero_mean=True, norm="std"):
 
     if zero_mean:
         X -= X.mean(axis=0, keepdims=True)
-
-    if norm == "std":
+    elif norm == "std":
         X /= X.std(axis=0, keepdims=True)
     elif norm == "max":
         X /= abs(X).max(axis=0, keepdims=True)
