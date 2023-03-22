@@ -69,7 +69,7 @@ class Diffusion(nn.Module):
 
         self.diffusion_time = nn.Parameter(torch.tensor(float(tau0)))
 
-    def forward(self, x, L, Lc=None, method="spectral", normalise=False):
+    def forward(self, x, L, Lc=None, method="spectral"):
         """Forward."""
         if method == "spectral":
             assert (
@@ -84,7 +84,7 @@ class Diffusion(nn.Module):
         t = self.diffusion_time
 
         if Lc is not None:
-            out = g.vector_diffusion(x, t, method, Lc, normalise)
+            out = g.vector_diffusion(x, t, method, Lc)
         else:
             out = [g.scalar_diffusion(x_, t, method, L) for x_ in x.T]
             out = torch.cat(out, axis=1)
@@ -155,7 +155,7 @@ class InnerProductFeatures(nn.Module):
 
     def reset_parameters(self):
         """Reset parameters."""
-        for i in range(len(self.O_mat)):
+        for i, _ in enumerate(self.O_mat):
             self.O_mat[i].weight.data = torch.eye(self.D)
 
     def forward(self, x):
@@ -172,22 +172,21 @@ class InnerProductFeatures(nn.Module):
             return torch.cat(x, axis=1)
 
         # for vector signals take inner products
-        else:
-            # bring to form where all columns are vector in the tangent space
-            # so taking inner products is possible
-            # [ x1 dx1/du ...]
-            #  x2 dx1/dv
-            #  x3 dx1/dw
-            x = [x_.swapaxes(1, 2) for x_ in x]
-            x = torch.cat(x, axis=2)
+        # bring to form where all columns are vector in the tangent space
+        # so taking inner products is possible
+        # [ x1 dx1/du ...]
+        #  x2 dx1/dv
+        #  x3 dx1/dw
+        x = [x_.swapaxes(1, 2) for x_ in x]
+        x = torch.cat(x, axis=2)
 
-            assert x.shape[2] == self.C, "Number of channels is incorrect!"
+        assert x.shape[2] == self.C, "Number of channels is incorrect!"
 
-            # O_ij@x_j
-            Ox = [self.O_mat[j](x[..., j]) for j in range(self.C)]
-            Ox = torch.stack(Ox, dim=2)
+        # O_ij@x_j
+        Ox = [self.O_mat[j](x[..., j]) for j in range(self.C)]
+        Ox = torch.stack(Ox, dim=2)
 
-            # \sum_j x_i^T@O_ij@x_j
-            xOx = torch.einsum("bki,bkj->bi", x, Ox)
+        # \sum_j x_i^T@O_ij@x_j
+        xOx = torch.einsum("bki,bkj->bi", x, Ox)
 
-            return torch.tanh(xOx).reshape(x.shape[0], -1)
+        return torch.tanh(xOx).reshape(x.shape[0], -1)
