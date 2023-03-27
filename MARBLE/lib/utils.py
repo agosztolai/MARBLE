@@ -34,7 +34,6 @@ def construct_dataset(
     n_geodesic_nb=10,
     stop_crit=0.0,
     number_of_resamples=1,
-    n_nodes=None,
     compute_laplacian=False,
     compute_connection_laplacian=False,
     var_explained=0.9,
@@ -65,7 +64,7 @@ def construct_dataset(
             # even sampling of points
             start_idx = torch.randint(low=0, high=len(p), size=(1,))
             sample_ind, _ = geometry.furthest_point_sampling(
-                p, stop_crit=stop_crit, N=n_nodes, start_idx=start_idx
+                p, stop_crit=stop_crit, start_idx=start_idx
             )
             p, f = p[sample_ind], f[sample_ind]
 
