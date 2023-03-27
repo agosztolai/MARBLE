@@ -626,7 +626,6 @@ def plot_arrows(pos, signal, ax, c="k", alpha=1.0, width=1.0, scale=1.0):
             width=width,
             **arrow_prop_dict,
         )
-    raise NotImplementedError
 
 
 class Arrow3D(FancyArrowPatch):

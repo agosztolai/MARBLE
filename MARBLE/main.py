@@ -20,6 +20,9 @@ class net(nn.Module):
     """net."""
 
     def __init__(self, data, loadpath=None, par=None, verbose=True):
+        """
+        par (dict): can contain, allow to point to .yaml file:...
+        """
         super().__init__()
 
         if loadpath is not None:
