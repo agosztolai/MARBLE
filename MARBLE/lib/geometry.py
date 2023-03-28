@@ -17,8 +17,8 @@ from torch_geometric.nn import knn_graph
 from torch_geometric.nn import radius_graph
 from torch_scatter import scatter_add
 
-from ptu_dijkstra import connections
-from ptu_dijkstra import tangent_frames
+from ptu_dijkstra import connections  # isort:skip
+from ptu_dijkstra import tangent_frames  # isort:skip
 
 from . import utils
 
