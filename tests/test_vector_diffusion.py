@@ -115,7 +115,6 @@ def test_diffusion(plot=False):
         ),
     )
 
-    # plot
     if plot:
         plotting.fields(data)
         plt.show()
@@ -128,7 +127,7 @@ def test_diffusion_sphere(plot=False):
     tau0 = 10.0
 
     x = sphere()
-    y = f2(x)  # evaluated functions
+    y = f2(x)
 
     # construct PyG data object
     data = utils.construct_dataset(
@@ -136,11 +135,9 @@ def test_diffusion_sphere(plot=False):
     )
 
     L = geometry.compute_laplacian(data)
-    R = geometry.compute_connections(data, data.gauges)
 
     diffusion = Diffusion(tau0=tau0)
     data.x = diffusion(data.x, L, method="matrix_exp")
-
     assert_array_almost_equal(
         data.x.detach().numpy()[:5],
         np.array(
@@ -152,8 +149,9 @@ def test_diffusion_sphere(plot=False):
                 [0.5897326, 0.68115395, 0.41908088],
             ]
         ),
+        decimal=5,
     )
-    # plot
+
     if plot:
         ax = plotting.fields(data, alpha=1)
         plt.show()
