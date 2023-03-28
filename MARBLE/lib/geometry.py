@@ -20,7 +20,7 @@ from torch_scatter import scatter_add
 from ptu_dijkstra import connections  # isort:skip
 from ptu_dijkstra import tangent_frames  # isort:skip
 
-from . import utils
+from . import utils  # isort:skip
 
 
 # =============================================================================
