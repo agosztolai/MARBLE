@@ -14,11 +14,12 @@ import warnings
 import numpy as np
 from scipy.sparse.csgraph._validation import validate_graph
 
-from libc.stdlib cimport malloc, free
-from libc.math cimport sqrt
 cimport cython
 cimport numpy as np
 cimport scipy.linalg.cython_lapack as cython_lapack
+from libc.math cimport sqrt
+from libc.stdlib cimport free
+from libc.stdlib cimport malloc
 
 DTYPE = np.float64
 ctypedef np.float64_t DTYPE_t
