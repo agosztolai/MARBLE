@@ -725,3 +725,31 @@ def savefig(fig, filename, folder="../results"):
         if not Path(folder).exists():
             os.mkdir(folder)
         fig.savefig((Path(folder) / filename), bbox_inches="tight")
+
+
+def plot_phase_portrait(
+    pos, vel, ax=None, node_feature=None, style=">", lw=2, scale=1.0, spacing=1
+):
+    """Plot phase portrait."""
+    if not isinstance(pos, list):
+        pos = [pos]
+    if not isinstance(vel, list):
+        vel = [vel]
+
+    if node_feature is None:
+        node_feature = len(pos) * [None]
+
+    for p, v, nf in zip(pos, vel, node_feature):
+        ax = trajectories(
+            p,
+            v,
+            ax=ax,
+            style=style,
+            node_feature=nf,
+            lw=lw,
+            scale=scale,
+            alpha=1.0,
+            arrow_spacing=spacing,
+        )
+
+    return ax

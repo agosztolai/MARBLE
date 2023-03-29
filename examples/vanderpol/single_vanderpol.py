@@ -1,28 +1,12 @@
 import numpy as np
-from matplotlib.colors import LightSource
-from DE_library import simulate_ODE, simulate_trajectories
 import matplotlib.pyplot as plt
 
 from torch_geometric.utils.convert import to_networkx
 import networkx as nx
-from example_utils import (
-    initial_conditions,
-    plot_phase_portrait,
-    plot_phase_portrait,
-    find_nn,
-    circle,
-)
 
-from MARBLE import utils, geometry, net, plotting, postprocessing, compare_attractors
-
-
-def simulate_system(mu, X0, t):
-    return simulate_trajectories("vanderpol", X0, t, par={"mu": mu})
-
-
-def parabola(X, Y, alpha=0.05):
-    Z = -((alpha * X) ** 2) - (alpha * Y) ** 2
-    return np.column_stack([X.flatten(), Y.flatten(), Z.flatten()])
+import MARBLE
+from MARBLE import dynamics
+from MARBLE import plotting
 
 
 if __name__ == "__main__":
@@ -32,8 +16,8 @@ if __name__ == "__main__":
     n = 2
     area = [[-2.5, -2.5], [2.5, 2.5]]
 
-    X0_range = initial_conditions(n, 1, area, seed=11)[0]
-    pos, vel = simulate_system(0.5, X0_range, t)
+    X0_range = dynamics.initial_conditions(n, 1, area, seed=11)[0]
+    pos, vel = dynamics.simulate_vanderpol(0.5, X0_range, t)
 
     plotting.time_series(t, list(pos[0].T), style=".", figsize=(3, 2), ms=4)
     plt.savefig("time_series.pdf")
@@ -50,7 +34,7 @@ if __name__ == "__main__":
     plt.scatter(pos[1][0, 0], pos[1][0, 1], c="k")
     plt.plot(pos[1][:150, 0], pos[1][:150, 1], c="k", lw=0.8)
 
-    pos, vel = simulate_system(-0.5, X0_range, t)
+    pos, vel = dynamics.simulate_vanderpol(-0.5, X0_range, t)
 
     plt.scatter(pos[0][0, 0], pos[0][0, 1], c="b")
     plt.plot(pos[0][:150, 0], pos[0][:150, 1], c="b", lw=0.8)  # , ls="", marker=".")
@@ -67,8 +51,8 @@ if __name__ == "__main__":
     t = np.arange(0, t1, dt)
     n = 100
 
-    X0_range = initial_conditions(n, 1, area, seed=11)[0]
-    pos, vel = simulate_system(0.5, X0_range, t)
+    X0_range = dynamics.initial_conditions(n, 1, area, seed=11)[0]
+    pos, vel = dynamics.simulate_vanderpol(0.5, X0_range, t)
 
     fig = plt.figure(figsize=(5, 4))
     plt.plot(cycle[:, 0], cycle[:, 1], c="r", lw=1.5)
@@ -83,11 +67,11 @@ if __name__ == "__main__":
 
     for i, (p, v) in enumerate(zip(pos, vel)):
         end_point = p + v
-        new_endpoint = parabola(end_point[:, 0], end_point[:, 1])
-        pos[i] = parabola(p[:, 0], p[:, 1])
+        new_endpoint = dynamics.parabola(end_point[:, 0], end_point[:, 1])
+        pos[i] = dynamics.parabola(p[:, 0], p[:, 1])
         vel[i] = new_endpoint - pos[i]
 
-    data = utils.construct_dataset(
+    data = MARBLE.construct_dataset(
         np.vstack(pos),
         features=np.vstack(vel),
         graph_type="cknn",
@@ -118,12 +102,12 @@ if __name__ == "__main__":
         "inner_product_features": True,
     }
 
-    model = net(data, par=par)
+    model = MARBLE.net(data, par=par)
     model.run_training(data)
 
     data = model.evaluate(data)
-    data = postprocessing(data, n_clusters=5)
-    plotting.embedding(data, labels=data.clusters['labels'], cbar_visible=False)
+    data = MARBLE.cluster_embeddings(data, n_clusters=5)
+    plotting.embedding(data, labels=data.clusters["labels"], cbar_visible=False)
     plt.savefig("embedding.pdf")
 
     fig = plt.figure(figsize=(5, 4))
