@@ -155,7 +155,7 @@ def test_gauges(plot=False):
     )
 
     if plot:
-        f, (ax1, ax2, ax3) = plt.subplots(
+        _, (ax1, ax2, ax3) = plt.subplots(
             1, 3, sharey=True, figsize=(14, 3), subplot_kw={"aspect": 1}
         )
         ax1.scatter(x[:, 0], x[:, 1], c=y)

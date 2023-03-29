@@ -126,6 +126,7 @@ def test_diffusion(plot=False):
 
 
 def test_diffusion_sphere(plot=False):
+    """Test diffusion on sphere."""
     # parameters
     k = 0.4
     tau0 = 10.0
