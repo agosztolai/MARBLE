@@ -1,11 +1,94 @@
-"""Preprocessing module."""
+"""Prepare module."""
+import numpy as np
 import torch
+from torch_geometric.data import Batch
+from torch_geometric.data import Data
+from torch_geometric.transforms import RandomNodeSplit
 
-from .lib import geometry as g
-from .lib import utils
+from MARBLE import geometry as g
+from MARBLE import utils
 
 
-def preprocessing(
+def construct_dataset(
+    pos,
+    features,
+    graph_type="cknn",
+    k=10,
+    n_geodesic_nb=10,
+    stop_crit=0.0,
+    number_of_resamples=1,
+    compute_laplacian=False,
+    compute_connection_laplacian=False,
+    var_explained=0.9,
+    vector=True,
+    dim_man=None,
+    labels=None,
+    delta=1.0,
+):
+    """Construct PyG dataset from node positions and features.
+
+    TODO: add complete docstring
+    """
+
+    pos = [torch.tensor(p).float() for p in utils.to_list(pos)]
+
+    if not labels:
+        labels = np.linspace(0, len(pos) - 1, len(pos))
+
+    if features is not None:
+        features = [torch.tensor(x).float() for x in utils.to_list(features)]
+        num_node_features = features[0].shape[1]
+    else:
+        num_node_features = None
+
+    if stop_crit == 0.0:
+        number_of_resamples = 1
+
+    data_list = []
+    for i, (p, f) in enumerate(zip(pos, features)):
+        for _ in range(number_of_resamples):
+            # even sampling of points
+            start_idx = torch.randint(low=0, high=len(p), size=(1,))
+            sample_ind, _ = g.furthest_point_sampling(p, stop_crit=stop_crit, start_idx=start_idx)
+            p, f = p[sample_ind], f[sample_ind]
+
+            # fit graph to point cloud
+            edge_index, edge_weight = g.fit_graph(p, graph_type=graph_type, par=k, delta=delta)
+            n = len(p)
+            data_ = Data(
+                pos=p,
+                x=f,
+                edge_index=edge_index,
+                edge_weight=edge_weight,
+                num_nodes=n,
+                num_node_features=num_node_features,
+                y=torch.ones(n, dtype=int) * labels[i],
+                sample_ind=sample_ind,
+            )
+
+            data_list.append(data_)
+
+    # collate datasets
+    batch = Batch.from_data_list(data_list)
+    batch.degree = k
+    batch.number_of_resamples = number_of_resamples
+
+    # split into training/validation/test datasets
+    split = RandomNodeSplit(split="train_rest", num_val=0.1, num_test=0.1)
+    split(batch)
+
+    return _compute_geometric_objects(
+        batch,
+        vector=vector,
+        compute_laplacian=compute_laplacian,
+        compute_connection_laplacian=compute_connection_laplacian,
+        n_geodesic_nb=n_geodesic_nb,
+        var_explained=var_explained,
+        dim_man=dim_man,
+    )
+
+
+def _compute_geometric_objects(
     data,
     n_geodesic_nb=2.0,
     var_explained=0.9,

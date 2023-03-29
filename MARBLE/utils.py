@@ -2,7 +2,6 @@
 import multiprocessing
 import os
 from functools import partial
-from pathlib import Path
 from typing import NamedTuple
 from typing import Optional
 from typing import Tuple
@@ -12,105 +11,13 @@ import pandas as pd
 import torch
 import yaml
 from torch import Tensor
-from torch_geometric.data import Batch
-from torch_geometric.data import Data
-from torch_geometric.transforms import RandomNodeSplit
 from torch_sparse import SparseTensor
 from tqdm import tqdm
-
-from MARBLE.preprocessing import preprocessing
-
-from . import geometry
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(0)
 
 
-def construct_dataset(
-    pos,
-    features,
-    graph_type="cknn",
-    k=10,
-    n_geodesic_nb=10,
-    stop_crit=0.0,
-    number_of_resamples=1,
-    compute_laplacian=False,
-    compute_connection_laplacian=False,
-    var_explained=0.9,
-    vector=True,
-    dim_man=None,
-    labels=None,
-    delta=1.0,
-):
-    """Construct PyG dataset from node positions and features"""
-
-    pos = [torch.tensor(p).float() for p in to_list(pos)]
-
-    if not labels:
-        labels = np.linspace(0, len(pos) - 1, len(pos))
-
-    if features is not None:
-        features = [torch.tensor(x).float() for x in to_list(features)]
-        num_node_features = features[0].shape[1]
-    else:
-        num_node_features = None
-
-    if stop_crit == 0.0:
-        number_of_resamples = 1
-
-    data_list = []
-    for i, (p, f) in enumerate(zip(pos, features)):
-        for _ in range(number_of_resamples):
-            # even sampling of points
-            start_idx = torch.randint(low=0, high=len(p), size=(1,))
-            sample_ind, _ = geometry.furthest_point_sampling(
-                p, stop_crit=stop_crit, start_idx=start_idx
-            )
-            p, f = p[sample_ind], f[sample_ind]
-
-            # fit graph to point cloud
-            edge_index, edge_weight = geometry.fit_graph(
-                p, graph_type=graph_type, par=k, delta=delta
-            )
-            n = len(p)
-            data_ = Data(
-                pos=p,  # positions
-                x=f,  # features
-                edge_index=edge_index,
-                edge_weight=edge_weight,
-                num_nodes=n,
-                num_node_features=num_node_features,
-                y=torch.ones(n, dtype=int) * labels[i],
-                sample_ind=sample_ind,
-            )
-
-            data_list.append(data_)
-
-    # collate datasets
-    batch = Batch.from_data_list(data_list)
-    batch.degree = k
-    batch.number_of_resamples = number_of_resamples
-
-    # split into training/validation/test datasets
-    split = RandomNodeSplit(split="train_rest", num_val=0.1, num_test=0.1)
-    split(batch)
-
-    batch = preprocessing(
-        batch,
-        vector=vector,
-        compute_laplacian=compute_laplacian,
-        compute_connection_laplacian=compute_connection_laplacian,
-        n_geodesic_nb=n_geodesic_nb,
-        var_explained=var_explained,
-        dim_man=dim_man,
-    )
-
-    return batch
-
-
-# =============================================================================
-# Manage parameters
-# =============================================================================
 def parse_parameters(data, kwargs):
     """Load default parameters and merge with user specified parameters"""
 
@@ -209,9 +116,6 @@ def print_settings(model):
     print("---- Total number of parameters: ", n_parameters)
 
 
-# =============================================================================
-# Parallel processing
-# =============================================================================
 def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
     """Distribute an iterable function between processes"""
 
@@ -287,9 +191,6 @@ def detach_from_gpu(model, data, adjs=None):
     return model, x, pos, L, Lc, kernels, gauges, adjs
 
 
-# =============================================================================
-# Conversions
-# =============================================================================
 def to_SparseTensor(edge_index, size=None, value=None):
     """
     Adjacency matrix as torch_sparse tensor
@@ -445,9 +346,6 @@ def restrict_to_batch(sp_tensor, idx):
     raise NotImplementedError
 
 
-# =============================================================================
-# Statistics
-# =============================================================================
 def standardise(X, zero_mean=True, norm="std"):
     """Standarsise data row-wise"""
 
@@ -461,42 +359,3 @@ def standardise(X, zero_mean=True, norm="std"):
         raise NotImplementedError
 
     return X
-
-
-# =============================================================================
-# Input/output
-# =============================================================================
-def _savefig(fig, folder, filename, ext):
-    """Save figures in subfolders and with different extensions."""
-    if fig is not None:
-        if not Path(folder).exists():
-            os.mkdir(folder)
-        fig.savefig((Path(folder) / filename).with_suffix(ext), bbox_inches="tight")
-
-
-def next_path(path_pattern):
-    """
-    Finds the next free path in an sequentially named list of files
-
-    e.g. path_pattern = 'file-%s.txt':
-
-    file-1.txt
-    file-2.txt
-    file-3.txt
-
-    Runs in log(n) time where n is the number of existing files in sequence
-    """
-    i = 1
-
-    # First do an exponential search
-    while os.path.exists(path_pattern % i):
-        i = i * 2
-
-    # Result lies somewhere in the interval (i/2..i]
-    # We call this interval (a..b] and narrow it down until a + 1 = b
-    a, b = (i // 2, i)
-    while a + 1 < b:
-        c = (a + b) // 2  # interval midpoint
-        a, b = (c, b) if os.path.exists(path_pattern % c) else (a, c)
-
-    return path_pattern % b

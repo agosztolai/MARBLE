@@ -17,9 +17,6 @@ from torch_geometric.utils.convert import to_networkx
 from .geometry import embed
 
 
-# =============================================================================
-# Manifolds
-# =============================================================================
 def fields(
     data,
     titles=None,
@@ -426,9 +423,6 @@ def graph(
     return ax
 
 
-# =============================================================================
-# Time series
-# =============================================================================
 def time_series(T, X, style="o", node_feature=None, figsize=(10, 5), lw=1, ms=5):
     """
     Plot time series.
@@ -651,9 +645,6 @@ class Arrow3D(FancyArrowPatch):
         return np.min(zs)
 
 
-# =============================================================================
-# Helper functions
-# =============================================================================
 def create_axis(*args, fig=None):
     """Create axis."""
     dim = args[0]

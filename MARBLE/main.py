@@ -10,10 +10,10 @@ from tensorboardX import SummaryWriter
 from torch import nn
 from tqdm import tqdm
 
-from . import dataloader
-from . import layers
-from .lib import geometry
-from .lib import utils
+from MARBLE import dataloader
+from MARBLE import geometry
+from MARBLE import layers
+from MARBLE import utils
 
 
 class net(nn.Module):
