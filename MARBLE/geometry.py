@@ -20,7 +20,7 @@ from torch_scatter import scatter_add
 from ptu_dijkstra import connections  # isort:skip
 from ptu_dijkstra import tangent_frames  # isort:skip
 
-from . import utils  # isort:skip
+from MARBLE import utils  # isort:skip
 
 
 def sample_2d(N=100, interval=None, method="uniform", seed=0):

@@ -21,7 +21,7 @@ torch.manual_seed(0)
 def parse_parameters(data, kwargs):
     """Load default parameters and merge with user specified parameters"""
 
-    file = os.path.dirname(__file__) + "/../default_params.yaml"
+    file = os.path.dirname(__file__) + "/default_params.yaml"
     with open(file, "rb") as f:
         par = yaml.full_load(f)
 
