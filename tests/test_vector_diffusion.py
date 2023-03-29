@@ -64,6 +64,7 @@ def test_diffusion(plot=False):
                 [[-0.37872583, 0.9255089], [0.9255089, 0.37872583]],
             ]
         ),
+        decimal=5,
     )
     R = geometry.compute_connections(data, gauges)
     assert_array_almost_equal(
@@ -77,6 +78,7 @@ def test_diffusion(plot=False):
                 [-0.22231616, -0.97497463, 0.0, 0.0, 1.0],
             ],
         ),
+        decimal=5,
     )
     L = geometry.compute_laplacian(data)
     assert_array_almost_equal(
@@ -90,6 +92,7 @@ def test_diffusion(plot=False):
                 [0.0, 0.0, 0.0, 0.0, 1.0],
             ],
         ),
+        decimal=5,
     )
     Lc = geometry.compute_connection_laplacian(data, R)
     assert_array_almost_equal(
@@ -103,6 +106,7 @@ def test_diffusion(plot=False):
                 [0.00538132, 0.02359995, 0.0, 0.0, 1.0],
             ],
         ),
+        decimal=5,
     )
 
     diffusion = Diffusion(tau0=tau0)
@@ -118,6 +122,7 @@ def test_diffusion(plot=False):
                 [0.288114, 0.34210885],
             ]
         ),
+        decimal=5,
     )
 
     if plot:

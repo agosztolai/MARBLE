@@ -187,6 +187,16 @@ def parabola(X, Y, alpha=0.05):
     return np.column_stack([X.flatten(), Y.flatten(), Z.flatten()])
 
 
+def embed_parabola(pos, vel, alpha=0.05):
+    """Embed on parabola."""
+    for i, (p, v) in enumerate(zip(pos, vel)):
+        end_point = p + v
+        new_endpoint = parabola(end_point[:, 0], end_point[:, 1], alpha=alpha)
+        pos[i] = parabola(p[:, 0], p[:, 1], alpha=alpha)
+        vel[i] = new_endpoint - pos[i]
+    return pos, vel
+
+
 def initial_conditions(n, reps, area=None, seed=0):
     """Generate iniital condition."""
     if area is None:

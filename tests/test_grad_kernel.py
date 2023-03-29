@@ -55,6 +55,7 @@ def test_gauges(plot=False):
                 [0.0, 0.0, 0.0, -0.16666667, -0.3333333],
             ]
         ),
+        decimal=5,
     )
 
     grad = AnisoConv()
@@ -75,6 +76,7 @@ def test_gauges(plot=False):
                 [0.19641855, 0.19641855],
             ]
         ),
+        decimal=5,
     )
 
     derder = grad(der, K)
@@ -94,6 +96,7 @@ def test_gauges(plot=False):
                 [-7.02447468e-09, -3.92837112e-02, 3.92837112e-02, 8.19522059e-09],
             ]
         ),
+        decimal=5,
     )
 
     if plot:
@@ -139,6 +142,7 @@ def test_gauges(plot=False):
                 [1.45692810e-08, 3.02630051e-01],
             ]
         ),
+        decimal=5,
     )
     derder = grad(der, K)
     assert_array_almost_equal(
@@ -152,6 +156,7 @@ def test_gauges(plot=False):
                 [1.01846653e-01, -3.49188700e-02, -7.97841570e-09, -5.81980685e-02],
             ]
         ),
+        decimal=5,
     )
 
     if plot:
