@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
-from .lib import geometry as g
-from .lib import plotting
+from MARBLE import geometry as g
+from MARBLE import plotting
 
 
-def postprocessing(
+def cluster_embeddings(
     data, cluster_typ="kmeans", embed_typ="umap", n_clusters=None, manifold=None, seed=0
 ):
     """

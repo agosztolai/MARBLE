@@ -1,11 +1,16 @@
+"""Test gradient."""
+import matplotlib.pyplot as plt
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-
 import torch
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
+
+from MARBLE import construct_dataset
 from MARBLE import geometry
 from MARBLE import utils
-import matplotlib.pyplot as plt
 from MARBLE.layers import AnisoConv
+
+# pylint: disable=too-many-statements
 
 
 def f1(x, alpha):
@@ -32,7 +37,7 @@ def test_gauges(plot=False):
     y = f1(x, alpha)
     y = torch.tensor(y)
 
-    data = utils.construct_dataset(x, y, graph_type="cknn", k=k)
+    data = construct_dataset(x, y, graph_type="cknn", k=k)
     gauges = data.gauges
     assert_array_equal(data.gauges, np.repeat(np.array([[[1.0, 0.0], [0.0, 1.0]]]), 100, axis=0))
 
@@ -92,7 +97,7 @@ def test_gauges(plot=False):
     )
 
     if plot:
-        f, (ax1, ax2, ax3) = plt.subplots(
+        _, (ax1, ax2, ax3) = plt.subplots(
             1, 3, sharey=True, figsize=(14, 3), subplot_kw={"aspect": 1}
         )
         ax1.scatter(x[:, 0], x[:, 1], c=y)
