@@ -197,11 +197,30 @@ def embed_parabola(pos, vel, alpha=0.05):
     return pos, vel
 
 
+def sample_2d(N=100, interval=None, method="uniform", seed=0):
+    """Sample N points in a 2D area."""
+    if interval is None:
+        interval = [[-1, -1], [1, 1]]
+    if method == "uniform":
+        x = np.linspace(interval[0][0], interval[1][0], int(np.sqrt(N)))
+        y = np.linspace(interval[0][1], interval[1][1], int(np.sqrt(N)))
+        x, y = np.meshgrid(x, y)
+        x = np.vstack((x.flatten(), y.flatten())).T
+
+    elif method == "random":
+        np.random.seed(seed)
+        x = np.random.uniform(
+            (interval[0][0], interval[0][1]), (interval[1][0], interval[1][1]), (N, 2)
+        )
+
+    return x
+
+
 def initial_conditions(n, reps, area=None, seed=0):
     """Generate iniital condition."""
     if area is None:
         area = [[-3, -3], [3, 3]]
-    X0_range = [geometry.sample_2d(n, area, "random", seed=i + seed) for i in range(reps)]
+    X0_range = [sample_2d(n, area, "random", seed=i + seed) for i in range(reps)]
 
     return X0_range
 

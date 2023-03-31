@@ -23,25 +23,6 @@ from ptu_dijkstra import tangent_frames  # isort:skip
 from MARBLE import utils  # isort:skip
 
 
-def sample_2d(N=100, interval=None, method="uniform", seed=0):
-    """Sample N points in a 2D area."""
-    if interval is None:
-        interval = [[-1, -1], [1, 1]]
-    if method == "uniform":
-        x = np.linspace(interval[0][0], interval[1][0], int(np.sqrt(N)))
-        y = np.linspace(interval[0][1], interval[1][1], int(np.sqrt(N)))
-        x, y = np.meshgrid(x, y)
-        x = np.vstack((x.flatten(), y.flatten())).T
-
-    elif method == "random":
-        np.random.seed(seed)
-        x = np.random.uniform(
-            (interval[0][0], interval[0][1]), (interval[1][0], interval[1][1]), (N, 2)
-        )
-
-    return x
-
-
 def furthest_point_sampling(x, N=None, stop_crit=0.1, start_idx=0):
     """
     A greedy O(N^2) algorithm to do furthest points sampling

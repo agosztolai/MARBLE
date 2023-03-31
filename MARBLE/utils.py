@@ -1,6 +1,5 @@
 """Utils module."""
 import multiprocessing
-import os
 from functools import partial
 from typing import NamedTuple
 from typing import Optional
@@ -9,7 +8,6 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 import torch
-import yaml
 from torch import Tensor
 from torch_sparse import SparseTensor
 from tqdm import tqdm
@@ -18,96 +16,13 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(0)
 
 
-def parse_parameters(data, kwargs):
-    """Load default parameters and merge with user specified parameters"""
-
-    file = os.path.dirname(__file__) + "/default_params.yaml"
-    with open(file, "rb") as f:
-        par = yaml.full_load(f)
-
-    par["dim_signal"] = data.x.shape[1]
-    par["dim_emb"] = data.pos.shape[1]
-
-    if hasattr(data, "dim_man"):
-        par["dim_man"] = data.dim_man
-
-    # merge dictionaries without duplications
-    for key in par.keys():
-        if key not in kwargs.keys():
-            kwargs[key] = par[key]
-
-    if par["frac_sampled_nb"] != -1:
-        kwargs["n_sampled_nb"] = int(data.degree * par["frac_sampled_nb"])
-    else:
-        kwargs["n_sampled_nb"] = -1
-
-    if kwargs["batch_norm"]:
-        kwargs["batch_norm"] = "batch_norm"
-    else:
-        kwargs["batch_norm"] = None
-
-    par = check_parameters(kwargs, data)
-
-    return par
-
-
-def check_parameters(par, data):
-    """Check parameter validity"""
-
-    assert par["order"] > 0, "Derivative order must be at least 1!"
-
-    if par["vec_norm"]:
-        assert (
-            data.x.shape[1] > 1
-        ), "Using vec_norm=True is \
-            not permitted for scalar signals"
-
-    if par["diffusion"]:
-        assert hasattr(data, "L"), "No Laplacian found. Compute it in preprocessing()!"
-
-    if data.local_gauges:
-        assert par[
-            "inner_product_features"
-        ], "Local gauges detected, so >>inner_product_features<< most be True"
-
-    pars = [
-        "batch_size",
-        "epochs",
-        "lr",
-        "momentum",
-        "order",
-        "inner_product_features",
-        "dim_signal",
-        "dim_emb",
-        "dim_man",
-        "frac_sampled_nb",
-        "dropout",
-        "n_lin_layers",
-        "diffusion",
-        "hidden_channels",
-        "out_channels",
-        "bias",
-        "batch_norm",
-        "vec_norm",
-        "seed",
-        "n_sampled_nb",
-        "processes",
-        "include_positions",
-    ]
-
-    for p in par.keys():
-        assert p in pars, f"Unknown specified parameter {p}!"
-
-    return par
-
-
 def print_settings(model):
     """Print parameters to screen"""
 
     print("\n---- Settings: \n")
 
-    for x in model.par:
-        print(x, ":", model.par[x])
+    for x in model.params:
+        print(x, ":", model.params[x])
 
     n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     n_features = model.enc.in_channels
