@@ -2,59 +2,9 @@
 import torch
 from torch import nn
 from torch.nn.functional import normalize
-from torch_geometric.nn import MLP
 from torch_geometric.nn.conv import MessagePassing
 
 from MARBLE import geometry as g
-
-
-def setup_layers(model):
-    """Setup layers."""
-    par = model.par
-
-    s, d, o = par["dim_signal"], par["dim_emb"], par["order"]
-    if "dim_man" in par.keys():
-        s = d = par["dim_man"]
-
-    # diffusion
-    diffusion = Diffusion()
-
-    # gradient features
-    grad = nn.ModuleList(AnisoConv(par["vec_norm"]) for i in range(o))
-
-    # cumulated number of channels after gradient features
-    cum_channels = s * (1 - d ** (o + 1)) // (1 - d)
-    if par["inner_product_features"]:
-        cum_channels //= s
-        if s == 1:
-            cum_channels = o + 1
-
-        inner_products = InnerProductFeatures(cum_channels, s)
-    else:
-        inner_products = None
-
-    if par["include_positions"]:
-        cum_channels += d
-
-    # encoder
-    channel_list = (
-        [cum_channels]
-        + (par["n_lin_layers"] - 1) * [par["hidden_channels"]]
-        + [par["out_channels"]]
-    )
-
-    enc = MLP(
-        channel_list=channel_list, dropout=par["dropout"], norm=par["batch_norm"], bias=par["bias"]
-    )
-
-    model.diffusion, model.grad, model.inner_products, model.enc = (
-        diffusion,
-        grad,
-        inner_products,
-        enc,
-    )
-
-    return model
 
 
 class Diffusion(nn.Module):

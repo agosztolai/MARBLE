@@ -1,5 +1,7 @@
 """Main network"""
 import glob
+import yaml
+from pathlib import Path
 import os
 from datetime import datetime
 
@@ -8,6 +10,7 @@ import torch.nn.functional as F
 import torch.optim as opt
 from tensorboardX import SummaryWriter
 from torch import nn
+from torch_geometric.nn import MLP
 from tqdm import tqdm
 
 from MARBLE import dataloader
@@ -17,29 +20,28 @@ from MARBLE import utils
 
 
 class net(nn.Module):
-    """net."""
+    """MARBLE neural network."""
 
-    def __init__(self, data, loadpath=None, par=None, verbose=True):
+    def __init__(self, data, loadpath=None, params=None, verbose=True):
         """
-        par (dict): can contain, allow to point to .yaml file:...
+        params (dict): can contain, allow to point to .yaml file:...
         """
         super().__init__()
 
         if loadpath is not None:
-            # folder, load the latest model
-            if os.path.isdir(loadpath):
+            if Path(loadpath).is_dir():
                 loadpath = max(glob.glob("best_model*"))
-
-            self.par = torch.load(loadpath)["par"]
+            self.params = torch.load(loadpath)["par"]
         else:
-            self.par = {}
+            self.params = {}
 
-        if par is not None:
-            self.par.update(par)
+        if params is not None:
+            self.params.update(params)
 
-        self.epoch = 0
-        self.par = utils.parse_parameters(data, self.par)
-        self = layers.setup_layers(self)  # pylint: disable=self-cls-assignment
+        self._epoch = 0  # ADAM: this is never assigned, so I'm not sure it is really working?
+        self.parse_parameters(data)
+        self.check_parameters(data)
+        self.setup_layers()
         self.loss = loss_fun()
         self.reset_parameters()
 
@@ -49,11 +51,124 @@ class net(nn.Module):
         if loadpath is not None:
             self.load_model(loadpath)
 
+    def parse_parameters(self, data):
+        """Load default parameters and merge with user specified parameters"""
+
+        file = os.path.dirname(__file__) + "/default_params.yaml"
+        with open(file, "rb") as f:
+            params = yaml.full_load(f)
+
+        params["dim_signal"] = data.x.shape[1]
+        params["dim_emb"] = data.pos.shape[1]
+
+        if hasattr(data, "dim_man"):
+            params["dim_man"] = data.dim_man
+
+        # merge dictionaries without duplications
+        for key in params.keys():
+            if key not in self.params.keys():
+                self.params[key] = params[key]
+
+        if params["frac_sampled_nb"] != -1:
+            self.params["n_sampled_nb"] = int(data.degree * params["frac_sampled_nb"])
+        else:
+            self.params["n_sampled_nb"] = -1
+
+        if self.params["batch_norm"]:
+            self.params["batch_norm"] = "batch_norm"
+        else:
+            self.params["batch_norm"] = None
+
+    def check_parameters(self, data):
+        """Check parameter validity"""
+
+        assert self.params["order"] > 0, "Derivative order must be at least 1!"
+
+        if self.params["vec_norm"]:
+            assert data.x.shape[1] > 1, "Using vec_norm=True is not permitted for scalar signals"
+
+        if self.params["diffusion"]:
+            assert hasattr(data, "L"), "No Laplacian found. Compute it in preprocessing()!"
+
+        if data.local_gauges:
+            assert self.params[
+                "inner_product_features"
+            ], "Local gauges detected, so >>inner_product_features<< most be True"
+
+        pars = [
+            "batch_size",
+            "epochs",
+            "lr",
+            "momentum",
+            "order",
+            "inner_product_features",
+            "dim_signal",
+            "dim_emb",
+            "dim_man",
+            "frac_sampled_nb",
+            "dropout",
+            "n_lin_layers",
+            "diffusion",
+            "hidden_channels",
+            "out_channels",
+            "bias",
+            "batch_norm",
+            "vec_norm",
+            "seed",
+            "n_sampled_nb",
+            "processes",
+            "include_positions",
+        ]
+
+        for p in self.params.keys():
+            assert p in pars, f"Unknown specified parameter {p}!"
+
     def reset_parameters(self):
         """reset parmaeters."""
         for layer in self.children():
             if hasattr(layer, "reset_parameters"):
                 layer.reset_parameters()
+
+    def setup_layers(self):
+        """Setup layers."""
+
+        s, d, o = self.params["dim_signal"], self.params["dim_emb"], self.params["order"]
+        if "dim_man" in self.params.keys():
+            s = d = self.params["dim_man"]
+
+        # diffusion
+        self.diffusion = layers.Diffusion()
+
+        # gradient features
+        self.grad = nn.ModuleList(layers.AnisoConv(self.params["vec_norm"]) for i in range(o))
+
+        # cumulated number of channels after gradient features
+        cum_channels = s * (1 - d ** (o + 1)) // (1 - d)
+        if self.params["inner_product_features"]:
+            cum_channels //= s
+            if s == 1:
+                cum_channels = o + 1
+
+            self.inner_products = layers.InnerProductFeatures(cum_channels, s)
+        else:
+            self.inner_products = None
+
+        if self.params["include_positions"]:
+            cum_channels += d
+
+        # encoder
+        channel_list = (
+            [cum_channels]
+            + (self.params["n_lin_layers"] - 1) * [self.params["hidden_channels"]]
+            + [self.params["out_channels"]]
+        )
+
+        self.enc = MLP(
+            channel_list=channel_list,
+            dropout=self.params["dropout"],
+            norm=self.params["batch_norm"],
+            bias=self.params["bias"],
+        )
 
     def forward(self, data, n_id, adjs=None):
         """Forward pass.
@@ -66,11 +181,11 @@ class net(nn.Module):
         n, d = data.x.shape[0], data.gauges.shape[2]
 
         # local gauges
-        if self.par["inner_product_features"]:
+        if self.params["inner_product_features"]:
             x = geometry.map_to_local_gauges(x, data.gauges)
 
         # diffusion
-        if self.par["diffusion"]:
+        if self.params["diffusion"]:
             L = data.L.copy() if hasattr(data, "L") else None
             Lc = data.Lc.copy() if hasattr(data, "Lc") else None
             x = self.diffusion(x, L, Lc=Lc, method="spectral")
@@ -82,7 +197,7 @@ class net(nn.Module):
         else:
             d = 1
 
-        if self.par["vec_norm"]:
+        if self.params["vec_norm"]:
             x = F.normalize(x, dim=-1, p=2)
 
         # gradients
@@ -97,12 +212,12 @@ class net(nn.Module):
         out = [o[: size[1]] for o in out]  # pylint: disable=undefined-loop-variable
 
         # inner products
-        if self.par["inner_product_features"]:
+        if self.params["inner_product_features"]:
             out = self.inner_products(out)
         else:
             out = torch.cat(out, axis=1)
 
-        if self.par["include_positions"]:
+        if self.params["include_positions"]:
             out = torch.hstack(
                 [data.pos[n_id[: size[1]]], out]  # pylint: disable=undefined-loop-variable
             )
@@ -116,7 +231,7 @@ class net(nn.Module):
         with torch.no_grad():
             size = (data.x.shape[0], data.x.shape[0])
             adjs = utils.EdgeIndex(data.edge_index, torch.arange(data.edge_index.shape[1]), size)
-            adjs = utils.to_list(adjs) * self.par["order"]
+            adjs = utils.to_list(adjs) * self.params["order"]
 
             try:
                 data.kernels = [
@@ -203,8 +318,10 @@ class net(nn.Module):
         )
 
         # data loader
-        train_loader, val_loader, test_loader = dataloader.loaders(data, self.par)
-        optimizer = opt.SGD(self.parameters(), lr=self.par["lr"], momentum=self.par["momentum"])
+        train_loader, val_loader, test_loader = dataloader.loaders(data, self.params)
+        optimizer = opt.SGD(
+            self.parameters(), lr=self.params["lr"], momentum=self.params["momentum"]
+        )
         if hasattr(self, "optimizer_state_dict"):
             optimizer.load_state_dict(self.optimizer_state_dict)
         writer = SummaryWriter("./log/")
@@ -213,8 +330,8 @@ class net(nn.Module):
         scheduler = opt.lr_scheduler.ReduceLROnPlateau(optimizer)
 
         best_loss = -1
-        for epoch in range(self.par["epochs"]):
-            epoch = self.epoch + epoch + 1
+        for epoch in range(self.params["epochs"]):
+            epoch = self._epoch + epoch + 1
 
             train_loss, optimizer = self.batch_loss(
                 data, train_loader, train=True, verbose=verbose, optimizer=optimizer
@@ -248,7 +365,7 @@ class net(nn.Module):
     def load_model(self, loadpath):
         """Load model."""
         checkpoint = torch.load(loadpath)
-        self.epoch = checkpoint["epoch"]
+        self._epoch = checkpoint["epoch"]
         self.load_state_dict(checkpoint["model_state_dict"])
         self.optimizer_state_dict = checkpoint["optimizer_state_dict"]
 
@@ -261,11 +378,11 @@ class net(nn.Module):
             os.makedirs(outdir)
 
         checkpoint = {
-            "epoch": self.epoch,
+            "epoch": self._epoch,
             "model_state_dict": self.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "time": timestamp,
-            "par": self.par,
+            "par": self.params,
         }
 
         if best:
