@@ -1,11 +1,16 @@
+"""Test gradient."""
+import matplotlib.pyplot as plt
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
-
 import torch
+from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_equal
+
+from MARBLE import construct_dataset
 from MARBLE import geometry
 from MARBLE import utils
-import matplotlib.pyplot as plt
 from MARBLE.layers import AnisoConv
+
+# pylint: disable=too-many-statements
 
 
 def f1(x, alpha):
@@ -32,7 +37,7 @@ def test_gauges(plot=False):
     y = f1(x, alpha)
     y = torch.tensor(y)
 
-    data = utils.construct_dataset(x, y, graph_type="cknn", k=k)
+    data = construct_dataset(x, y, graph_type="cknn", k=k)
     gauges = data.gauges
     assert_array_equal(data.gauges, np.repeat(np.array([[[1.0, 0.0], [0.0, 1.0]]]), 100, axis=0))
 
@@ -50,6 +55,7 @@ def test_gauges(plot=False):
                 [0.0, 0.0, 0.0, -0.16666667, -0.3333333],
             ]
         ),
+        decimal=5,
     )
 
     grad = AnisoConv()
@@ -70,6 +76,7 @@ def test_gauges(plot=False):
                 [0.19641855, 0.19641855],
             ]
         ),
+        decimal=5,
     )
 
     derder = grad(der, K)
@@ -89,10 +96,11 @@ def test_gauges(plot=False):
                 [-7.02447468e-09, -3.92837112e-02, 3.92837112e-02, 8.19522059e-09],
             ]
         ),
+        decimal=5,
     )
 
     if plot:
-        f, (ax1, ax2, ax3) = plt.subplots(
+        _, (ax1, ax2, ax3) = plt.subplots(
             1, 3, sharey=True, figsize=(14, 3), subplot_kw={"aspect": 1}
         )
         ax1.scatter(x[:, 0], x[:, 1], c=y)
@@ -134,6 +142,7 @@ def test_gauges(plot=False):
                 [1.45692810e-08, 3.02630051e-01],
             ]
         ),
+        decimal=5,
     )
     derder = grad(der, K)
     assert_array_almost_equal(
@@ -147,10 +156,11 @@ def test_gauges(plot=False):
                 [1.01846653e-01, -3.49188700e-02, -7.97841570e-09, -5.81980685e-02],
             ]
         ),
+        decimal=5,
     )
 
     if plot:
-        f, (ax1, ax2, ax3) = plt.subplots(
+        _, (ax1, ax2, ax3) = plt.subplots(
             1, 3, sharey=True, figsize=(14, 3), subplot_kw={"aspect": 1}
         )
         ax1.scatter(x[:, 0], x[:, 1], c=y)

@@ -20,12 +20,9 @@ from torch_scatter import scatter_add
 from ptu_dijkstra import connections  # isort:skip
 from ptu_dijkstra import tangent_frames  # isort:skip
 
-from . import utils  # isort:skip
+from MARBLE import utils  # isort:skip
 
 
-# =============================================================================
-# Sampling
-# =============================================================================
 def sample_2d(N=100, interval=None, method="uniform", seed=0):
     """Sample N points in a 2D area."""
     if interval is None:
@@ -92,9 +89,6 @@ def furthest_point_sampling(x, N=None, stop_crit=0.1, start_idx=0):
     return perm, lambdas
 
 
-# =============================================================================
-# Clustering
-# =============================================================================
 def cluster(x, cluster_typ="meanshift", n_clusters=15, seed=0):
     """
     Cluster data
@@ -289,9 +283,6 @@ def compute_distribution_distances(clusters=None, data=None, slices=None):
     return dist, gamma
 
 
-# =============================================================================
-# Manifold operations
-# =============================================================================
 def neighbour_vectors(pos, edge_index):
     """
     Local out-going edge vectors around each node.
@@ -684,14 +675,9 @@ def _compute_connections(inputs, i):
     edge_index = np.vstack([A_chunks[i].tocoo().row, A_chunks[i].tocoo().col])
     edge_index = torch.tensor(edge_index)
     edge_index = utils.expand_edge_index(edge_index, dim=R.shape[-1])
-    R = torch.sparse_coo_tensor(edge_index, R.flatten(), dtype=torch.float32).coalesce()
-
-    return R
+    return torch.sparse_coo_tensor(edge_index, R.flatten(), dtype=torch.float32).coalesce()
 
 
-# =============================================================================
-# Diffusion
-# =============================================================================
 def scalar_diffusion(x, t, method="matrix_exp", par=None):
     """Scalar diffusion."""
     if len(x.shape) == 1:

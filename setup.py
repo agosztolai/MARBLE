@@ -1,8 +1,8 @@
-from setuptools import setup, find_packages, Extension
-import os
-from Cython.Build import cythonize
+"""Setup MARBL."""
 import numpy
-
+from Cython.Build import cythonize
+from setuptools import Extension
+from setuptools import find_packages
 from setuptools import setup
 
 setup(
@@ -19,7 +19,6 @@ setup(
         "torch",
         "pympl",
         "cknn @ git+https://github.com/chlorochrule/cknn",
-        "DE_library @ git+https://github.com/agosztolai/DE_library",
         "tensorboardX",
         "pyyaml",
         "POT",

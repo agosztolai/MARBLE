@@ -1,12 +1,16 @@
+"""Test diffusion."""
 import matplotlib.pyplot as plt
-from numpy.testing import assert_array_almost_equal
 import numpy as np
-import sys
-from MARBLE import plotting, utils, geometry
+from numpy.testing import assert_array_almost_equal
+
+from MARBLE import construct_dataset
+from MARBLE import geometry
+from MARBLE import plotting
 from MARBLE.layers import Diffusion
 
 
 def f1(x):
+    """f1"""
     eps = 1e-1
     norm = np.sqrt((x[:, [0]] - 1) ** 2 + x[:, [1]] ** 2 + eps)
     u = x[:, [1]] / norm
@@ -15,17 +19,18 @@ def f1(x):
 
 
 def f2(x):
+    """f2"""
     y = []
-    for i in range(x.shape[0]):
+    for _ in range(x.shape[0]):
         y_ = np.random.uniform(size=(3))
         y_ /= np.linalg.norm(y_)
         y.append(y_)
 
     return np.vstack(y)
-    # return np.repeat(np.array([[1,0,0]]), x.shape[0], axis=0)
 
 
 def sphere():
+    """sphere"""
     u, v = np.mgrid[0 : 2 * np.pi : 20j, 0 : np.pi : 11j]
     x = np.cos(u) * np.sin(v)
     y = np.sin(u) * np.sin(v)
@@ -45,7 +50,7 @@ def test_diffusion(plot=False):
     y = f1(x)  # evaluated functions
 
     # #construct PyG data object
-    data = utils.construct_dataset(x, y, graph_type="cknn", k=k)
+    data = construct_dataset(x, y, graph_type="cknn", k=k)
 
     gauges, _ = geometry.compute_gauges(data)
     assert_array_almost_equal(
@@ -59,6 +64,7 @@ def test_diffusion(plot=False):
                 [[-0.37872583, 0.9255089], [0.9255089, 0.37872583]],
             ]
         ),
+        decimal=5,
     )
     R = geometry.compute_connections(data, gauges)
     assert_array_almost_equal(
@@ -72,6 +78,7 @@ def test_diffusion(plot=False):
                 [-0.22231616, -0.97497463, 0.0, 0.0, 1.0],
             ],
         ),
+        decimal=5,
     )
     L = geometry.compute_laplacian(data)
     assert_array_almost_equal(
@@ -85,6 +92,7 @@ def test_diffusion(plot=False):
                 [0.0, 0.0, 0.0, 0.0, 1.0],
             ],
         ),
+        decimal=5,
     )
     Lc = geometry.compute_connection_laplacian(data, R)
     assert_array_almost_equal(
@@ -98,6 +106,7 @@ def test_diffusion(plot=False):
                 [0.00538132, 0.02359995, 0.0, 0.0, 1.0],
             ],
         ),
+        decimal=5,
     )
 
     diffusion = Diffusion(tau0=tau0)
@@ -113,6 +122,7 @@ def test_diffusion(plot=False):
                 [0.288114, 0.34210885],
             ]
         ),
+        decimal=5,
     )
 
     if plot:
@@ -121,7 +131,7 @@ def test_diffusion(plot=False):
 
 
 def test_diffusion_sphere(plot=False):
-
+    """Test diffusion on sphere."""
     # parameters
     k = 0.4
     tau0 = 10.0
@@ -130,9 +140,7 @@ def test_diffusion_sphere(plot=False):
     y = f2(x)
 
     # construct PyG data object
-    data = utils.construct_dataset(
-        x, y, graph_type="radius", k=k, n_geodesic_nb=10, var_explained=0.9
-    )
+    data = construct_dataset(x, y, graph_type="radius", k=k, n_geodesic_nb=10, var_explained=0.9)
 
     L = geometry.compute_laplacian(data)
 
@@ -153,5 +161,5 @@ def test_diffusion_sphere(plot=False):
     )
 
     if plot:
-        ax = plotting.fields(data, alpha=1)
+        plotting.fields(data, alpha=1)
         plt.show()

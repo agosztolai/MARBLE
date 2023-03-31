@@ -5,7 +5,7 @@ from torch.nn.functional import normalize
 from torch_geometric.nn import MLP
 from torch_geometric.nn.conv import MessagePassing
 
-from .lib import geometry as g
+from MARBLE import geometry as g
 
 
 def setup_layers(model):
@@ -57,9 +57,6 @@ def setup_layers(model):
     return model
 
 
-# =============================================================================
-# Layer definitions
-# =============================================================================
 class Diffusion(nn.Module):
     """Diffusion with learned t."""
 
