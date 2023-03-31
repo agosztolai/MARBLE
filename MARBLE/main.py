@@ -20,7 +20,10 @@ from MARBLE import utils
 
 
 class net(nn.Module):
-    """MARBLE neural network."""
+    """MARBLE neural network.
+
+    TODO: add detailed docstring
+    """
 
     def __init__(self, data, loadpath=None, params=None, verbose=True):
         """
@@ -31,7 +34,7 @@ class net(nn.Module):
         if loadpath is not None:
             if Path(loadpath).is_dir():
                 loadpath = max(glob.glob("best_model*"))
-            self.params = torch.load(loadpath)["par"]
+            self.params = torch.load(loadpath)["params"]
         else:
             self.params = {}
 
@@ -385,7 +388,7 @@ class net(nn.Module):
             "model_state_dict": self.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "time": timestamp,
-            "par": self.params,
+            "params": self.params,
         }
 
         if best:
