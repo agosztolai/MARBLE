@@ -36,9 +36,12 @@ class net(nn.Module):
             self.params = {}
 
         if params is not None:
+            if isinstance(params, str) and Path(params).exists():
+                with open(params, "rb") as f:
+                    params = yaml.safe_load(f)
             self.params.update(params)
 
-        self._epoch = 0  # ADAM: this is never assigned, so I'm not sure it is really working?
+        self._epoch = 0  # to resume optimisation
         self.parse_parameters(data)
         self.check_parameters(data)
         self.setup_layers()
@@ -56,7 +59,7 @@ class net(nn.Module):
 
         file = os.path.dirname(__file__) + "/default_params.yaml"
         with open(file, "rb") as f:
-            params = yaml.full_load(f)
+            params = yaml.safe_load(f)
 
         params["dim_signal"] = data.x.shape[1]
         params["dim_emb"] = data.pos.shape[1]
@@ -331,7 +334,7 @@ class net(nn.Module):
 
         best_loss = -1
         for epoch in range(self.params["epochs"]):
-            epoch = self._epoch + epoch + 1
+            self._epoch = self._epoch + epoch + 1
 
             train_loss, optimizer = self.batch_loss(
                 data, train_loader, train=True, verbose=verbose, optimizer=optimizer
@@ -339,11 +342,11 @@ class net(nn.Module):
             val_loss, _ = self.batch_loss(data, val_loader, verbose=verbose)
             scheduler.step(train_loss)
 
-            writer.add_scalar("Loss/train", train_loss, epoch)
-            writer.add_scalar("Loss/validation", val_loss, epoch)
+            writer.add_scalar("Loss/train", train_loss, self._epoch)
+            writer.add_scalar("Loss/validation", val_loss, self._epoch)
             writer.flush()
             print(
-                f"\nEpoch: {epoch}, Training loss: {train_loss:4f}, Validation loss: {val_loss:.4f}, lr: {scheduler._last_lr[0]:.4f}",  # noqa, pylint: disable=line-too-long,protected-access
+                f"\nEpoch: {self._epoch}, Training loss: {train_loss:4f}, Validation loss: {val_loss:.4f}, lr: {scheduler._last_lr[0]:.4f}",  # noqa, pylint: disable=line-too-long,protected-access
                 end="",
             )
 
