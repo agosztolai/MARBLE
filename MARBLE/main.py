@@ -336,8 +336,10 @@ class net(nn.Module):
         scheduler = opt.lr_scheduler.ReduceLROnPlateau(optimizer)
 
         best_loss = -1
-        for epoch in range(self.params["epochs"]):
-            self._epoch = self._epoch + epoch + 1
+        for epoch in range(
+            self.params.get("epoch", 0), self.params.get("epoch", 0) + self.params["epochs"]
+        ):
+            self._epoch = epoch
 
             train_loss, optimizer = self.batch_loss(
                 data, train_loader, train=True, verbose=verbose, optimizer=optimizer
