@@ -687,12 +687,12 @@ def set_axes(ax, lims=None, padding=0.1, axes_visible=True):
             zlim = lims[2]
             ax.set_zlim([zlim[0] - pad, zlim[1] + pad])
 
-    #if not axes_visible:
-    #    ax.set_yticklabels([])
-    #    ax.set_xticklabels([])
-    #    if ax.name == "3d":
-    #        ax.set_zticklabels([])
-    #    ax.axis("off")
+    if not axes_visible:
+        ax.set_yticklabels([])
+        ax.set_xticklabels([])
+        if ax.name == "3d":
+            ax.set_zticklabels([])
+        ax.axis("off")
 
 
 def set_colors(color, cmap="coolwarm"):
