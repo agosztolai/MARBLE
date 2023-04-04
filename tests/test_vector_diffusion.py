@@ -4,6 +4,7 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal
 
 from MARBLE import construct_dataset
+from MARBLE import dynamics
 from MARBLE import geometry
 from MARBLE import plotting
 from MARBLE.layers import Diffusion
@@ -46,7 +47,7 @@ def test_diffusion(plot=False):
     tau0 = 50
 
     # f1: constant, f2: linear, f3: parabola, f4: saddle
-    x = geometry.sample_2d(n, [[-1, -1], [1, 1]], "random")
+    x = dynamics.sample_2d(n, [[-1, -1], [1, 1]], "random")
     y = f1(x)  # evaluated functions
 
     # #construct PyG data object

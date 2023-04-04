@@ -223,12 +223,15 @@ def initial_conditions(n, reps, area=None, seed=0):
     return X0_range
 
 
-def simulate_vanderpol(mu, X0, t):
+def simulate_vanderpol(mu, X0, t, keep_v=False):
     """Simulate vanderpol."""
     p, v = simulate_trajectories("vanderpol", X0, t, par={"mu": mu})
     pos, vel = [], []
     for p_, v_ in zip(p, v):
-        ind = reject_outliers(p_, v_)
+        if keep_v:
+            ind = reject_outliers(p_)
+        else:
+            ind = reject_outliers(p_, v_)
         pos.append(p_[ind])
         vel.append(v_[ind])
 

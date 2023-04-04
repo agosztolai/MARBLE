@@ -1,13 +1,13 @@
 """Main network"""
 import glob
-import yaml
-from pathlib import Path
 import os
 from datetime import datetime
+from pathlib import Path
 
 import torch
 import torch.nn.functional as F
 import torch.optim as opt
+import yaml
 from tensorboardX import SummaryWriter
 from torch import nn
 from torch_geometric.nn import MLP
