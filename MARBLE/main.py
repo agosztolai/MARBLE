@@ -30,14 +30,14 @@ class net(nn.Module):
     # training parameters
     batch_size: batch size (default=64)
     epochs : optimisation epochs (default=20)
-    lr: learning rate (default=0.01)
+    lr: iniital learning rate (default=0.01)
     momentum: momentum (default=0.9)
-    diffusion: (default=False)
+    diffusion: set to True to use diffusion layer before gradient computation (default=False)
     include_positions: (default=False)
 
     # manifold/signal parameters
     order: order to which to compute the directional derivatives (default=2)
-    inner_product_features: (default=True)
+    inner_product_features: transform gradient features to inner product features (default=True)
     frac_sampled_nb: fraction of neighbours to sample for gradient computation
         (if -1 then all neighbours) (default=-1)
 
@@ -47,12 +47,12 @@ class net(nn.Module):
     hidden_channels: number of hidden channels (default=16)
     out_channels: number of output channels (if null, then =hidden_channels) (default=3)
     bias: learn bias parameters in MLP (default=True)
-    vec_norm: (default=False)
+    vec_norm: normalise features to unit length (default=False)
     batch_norm: batch normalisation (default=False)
 
     #other params
     seed: seed for reproducibility (default=0)
-    processes: (default=1)
+    processes: number of cpus (default=1)
     """
 
     def __init__(self, data, loadpath=None, params=None, verbose=True):
