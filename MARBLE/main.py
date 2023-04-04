@@ -22,18 +22,55 @@ from MARBLE import utils
 class net(nn.Module):
     """MARBLE neural network.
 
-    TODO: add detailed docstring
+    The possible parameters and there default values are described below, and can be accessed
+    via the `params` dictionnary in this class constructor.
+
+    Parameters
+    ----------
+    # training parameters
+    batch_size: batch size (default=64)
+    epochs : optimisation epochs (default=20)
+    lr: learning rate (default=0.01)
+    momentum: momentum (default=0.9)
+    diffusion: (default=False)
+    include_positions: (default=False)
+
+    # manifold/signal parameters
+    order: order to which to compute the directional derivatives (default=2)
+    inner_product_features: (default=True)
+    frac_sampled_nb: fraction of neighbours to sample for gradient computation
+        (if -1 then all neighbours) (default=-1)
+
+    #network parameters
+    dropout: dropout in the MLP (default=0.)
+    n_lin_layers: number of layers if MLP (default=2)
+    hidden_channels: number of hidden channels (default=16)
+    out_channels: number of output channels (if null, then =hidden_channels) (default=3)
+    bias: learn bias parameters in MLP (default=True)
+    vec_norm: (default=False)
+    batch_norm: batch normalisation (default=False)
+
+    #other params
+    seed: seed for reproducibility (default=0)
+    processes: (default=1)
     """
 
     def __init__(self, data, loadpath=None, params=None, verbose=True):
         """
-        params (dict): can contain, allow to point to .yaml file:...
+        Constructor of the MARBLE net.
+
+        Parameters
+        ----------
+        data: PyG data
+        loadpath: path to a model file, or a directory with models (best model will be used)
+        params: can be a dict with parameters to overwrite default params or a path to a yaml file
+        verbose: run in verbose mode
         """
         super().__init__()
 
         if loadpath is not None:
             if Path(loadpath).is_dir():
-                loadpath = max(glob.glob("best_model*"))
+                loadpath = max(glob.glob(f"{loadpath}/best_model*"))
             self.params = torch.load(loadpath)["params"]
         else:
             self.params = {}
@@ -310,8 +347,15 @@ class net(nn.Module):
 
         return cum_loss / len(loader), optimizer
 
-    def run_training(self, data, outdir=None, use_best=True, verbose=False):
-        """Network training"""
+    def run_training(self, data, outdir=None, verbose=False):
+        """Network training.
+
+        Parameters
+        ----------
+        data: PyG data
+        outdir: folder to save intermediate models
+        verbose: run in verbose mode
+        """
 
         print("\n---- Training network ...")
 
@@ -367,11 +411,15 @@ class net(nn.Module):
 
         self.save_model(optimizer, outdir, best=False, timestamp=time)
 
-        if use_best:
-            self.load_model(os.path.join(outdir, f"best_model_{time}.pth"))
+        self.load_model(os.path.join(outdir, f"best_model_{time}.pth"))
 
     def load_model(self, loadpath):
-        """Load model."""
+        """Load model.
+
+        Parameters
+        ----------
+        loadpath: directory with models to load best model, or specific model path
+        """
         checkpoint = torch.load(loadpath)
         self._epoch = checkpoint["epoch"]
         self.load_state_dict(checkpoint["model_state_dict"])
