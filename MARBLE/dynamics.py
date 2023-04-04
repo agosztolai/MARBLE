@@ -8,8 +8,6 @@ import numpy as np
 from scipy.integrate import ode
 from scipy.integrate import odeint
 
-from MARBLE import geometry
-
 
 def fun_vanderpol(par=None):
     """Van der parol oscillator exhibiting a degenerate Hopf bifurcation"""
@@ -171,7 +169,7 @@ def simulate_trajectories(whichmodel, X0_range, t=1, par=None, **noise_pars):
     return X_list, Xprime_list
 
 
-def reject_outliers(*args, min_v=-3, max_v=3):
+def reject_outliers(*args, min_v=-5, max_v=5):
     """Reject outliers."""
     inds = []
     for arg in args:

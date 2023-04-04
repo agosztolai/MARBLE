@@ -29,6 +29,7 @@ def fields(
     node_size=10,
     plot_gauges=False,
     width=0.005,
+    edge_width=1.0,
     scale=5,
     view=None,
 ):
@@ -87,7 +88,7 @@ def fields(
             labels=None if vector else c,
             ax=ax,
             node_size=node_size,
-            edge_width=0.5,
+            edge_width=edge_width,
             edge_alpha=alpha,
             axes_visible=axes_visible,
         )
@@ -369,7 +370,7 @@ def neighbourhoods(
                 ax.scatter(pos[:, 0], pos[:, 1], c=c)
 
             ax.set_frame_on(False)
-            set_axes(ax, axes_visible=False)
+            set_axes(ax, axes_visible=True)
             fig.add_subplot(ax)
 
 
@@ -381,7 +382,7 @@ def graph(
     node_size=20,
     layout=None,
     ax=None,
-    axes_visible=False,
+    axes_visible=True,
 ):
     """Plot scalar values on graph nodes embedded in 2D or 3D."""
 
@@ -686,12 +687,12 @@ def set_axes(ax, lims=None, padding=0.1, axes_visible=True):
             zlim = lims[2]
             ax.set_zlim([zlim[0] - pad, zlim[1] + pad])
 
-    if not axes_visible:
-        ax.set_yticklabels([])
-        ax.set_xticklabels([])
-        if ax.name == "3d":
-            ax.set_zticklabels([])
-        ax.axis("off")
+    #if not axes_visible:
+    #    ax.set_yticklabels([])
+    #    ax.set_xticklabels([])
+    #    if ax.name == "3d":
+    #        ax.set_zticklabels([])
+    #    ax.axis("off")
 
 
 def set_colors(color, cmap="coolwarm"):
