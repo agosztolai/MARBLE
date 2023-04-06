@@ -136,7 +136,7 @@ class net(nn.Module):
         if data.local_gauges:
             assert self.params[
                 "inner_product_features"
-            ], "Local gauges detected, so >>inner_product_features<< most be True"
+            ], "Local gauges detected, so >>inner_product_features<< must be True"
 
         pars = [
             "batch_size",
