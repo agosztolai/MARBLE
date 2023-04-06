@@ -54,7 +54,7 @@ def setup():
         max_stimulus2_duration_discrete + decision_duration_discrete
 
 
-def generate_dms_data(num_trials, type=None, fraction_validation_trials=.2, fraction_catch_trials=0., std=std_default):
+def generate_dms_data(num_trials, type=None, gain=1., fraction_validation_trials=.2, fraction_catch_trials=0., std=std_default):
     x = std * torch.randn(num_trials, total_duration, 2)
     y = torch.zeros(num_trials, total_duration, 1)
     mask = torch.zeros(num_trials, total_duration, 1)
@@ -68,16 +68,16 @@ def generate_dms_data(num_trials, type=None, fraction_validation_trials=.2, frac
                 cur_type = type
 
             if cur_type == 'A-A':
-                input1 = 1
-                input2 = 1
+                input1 = gain
+                input2 = gain
                 choice = 1
             elif cur_type == 'A-B':
-                input1 = 1
+                input1 = gain
                 input2 = 0
                 choice = -1
             elif cur_type == 'B-A':
                 input1 = 0
-                input2 = 1
+                input2 = gain
                 choice = -1
             elif cur_type == 'B-B':
                 input1 = 0
