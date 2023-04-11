@@ -9,20 +9,16 @@ The code is built around [PyG (PyTorch Geometric)](https://pytorch-geometric.rea
 If you find our work useful or inspirational, please cite our work as follows
 
 ```
-@inproceedings{GosztolaiGunel20LiftPose3D,
-  author    = {Adam Gosztolai and
-               Semih Günel and
-               Marco Pietro Abrate and
-               Daniel Morales and 
-               Victor Lobato Rios and
-               Helge Rhodin and
-               PascalFua and
-               Pavan Ramdya},
-  title     = {LiftPose3D, a deep learning-based approach for transforming 2D to 3D pose in laboratory experiments},
-  bookTitle = {bioRxiv},
-  year      = {2020}
+@misc{gosztolai2023interpretable,
+      title={Interpretable statistical representations of neural population dynamics and geometry}, 
+      author={Adam Gosztolai and Robert L. Peach and Alexis Arnaudon and Mauricio Barahona and Pierre Vandergheynst},
+      year={2023},
+      eprint={2304.03376},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
 }
 ```
+
 
 ## Installation
 
