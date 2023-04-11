@@ -2,7 +2,7 @@
 
 This package contains a geometric deep learning method to intrincally represent vector and scalar fields over manifolds and compare representations obtained from different vector fields. The examples  
 
-The code is built around [PyG (PyTorch Geometric)](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html).\
+The code is built around [PyG (PyTorch Geometric)](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html).
 
 ## Cite
 
@@ -53,7 +53,12 @@ pip install .
 
 ## Workflow
 
-Using our code follows
+Our method takes as inputs a point cloud $x$, which define the manifold shape, and corresponding vectors v, which define the dynamics over the manifold. 
+One way to use our approach is to start with n (possibly) variable length trajectories, which make up the data of a dynamical system under a given condition. Alternative
+
+x = 
+v = 
+
 
 ## Examples
 
