@@ -8,7 +8,7 @@ The code is built around [PyG (PyTorch Geometric)](https://pytorch-geometric.rea
 
 If you find our work useful or inspirational, please cite our work as follows
 
-'''
+```
 @misc{gosztolai2023interpretable,
       title={Interpretable statistical representations of neural population dynamics and geometry}, 
       author={Adam Gosztolai and Robert L. Peach and Alexis Arnaudon and Mauricio Barahona and Pierre Vandergheynst},
@@ -17,7 +17,7 @@ If you find our work useful or inspirational, please cite our work as follows
       archivePrefix={arXiv},
       primaryClass={cs.LG}
 }
-'''
+```
 
 ## Installation
 
