@@ -53,8 +53,32 @@ pip install .
 
 ## Workflow
 
-Our method takes as inputs a point cloud $x$, which define the manifold shape, and corresponding vectors v, which define the dynamics over the manifold. 
-One way to use our approach is to start with n (possibly) variable length trajectories, which make up the data of a dynamical system under a given condition. Alternative
+### Input
+
+Our method takes as inputs an `nxd` vector `x`, which consists of n vectors defining the manifold shape, and a corresponding `nxd` vector `v`, which consists of vectors defining the dynamics over the manifold. 
+
+If you measure time series observables, such as neural firing rates, you can start with a list of variable length trajectories which make up the data of a dynamical system under a given condition `x = list(time series 1, time series 2 ...)`. 
+
+If you only measure `x`, you can also get the velocities as `v = [np.diff(x, axis=0) for x_ in x]` and take `x = [x_[:-1,:] for x_ in x]` to ensure they have the same length. 
+
+We assume that the trajectories under a given condition are settled over the same manifold. Therefore, we consider the `x`, `y` pairs as samples of the vector field over the manifold, and stack them row-wise.
+
+```
+x, v = np.vstack(x), np.vstack(v)
+```
+
+Comparing dynamics in a data-driven way across simulations or experiments then becomes equivalent to comparing the corresponding vector fields over distinct manifolds (!) based on their respective sample sets. 
+
+
+
+```
+x_list, v_list = [], []
+```
+
+and them
+data = MARBLE.construct_dataset(pos_concat, features=vel_concat, graph_type='cknn', k=15, stop_crit=0.03, vector=False)
+
+Then, you obtain vectors `v1 = numpy.diff(x1, axis=0)` and likewise for `x2`, and finally stack them vertically `x = np.vstack([x1, x2])` 
 
 x = 
 v = 
