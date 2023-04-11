@@ -67,26 +67,100 @@ We assume that the trajectories under a given condition are settled over the sam
 x, v = np.vstack(x), np.vstack(v)
 ```
 
-Comparing dynamics in a data-driven way across simulations or experiments then becomes equivalent to comparing the corresponding vector fields over distinct manifolds (!) based on their respective sample sets. 
+### Handling different conditions, or dynamical systems
 
+Given the above setup, comparing dynamics in a data-driven way across simulations or experiments becomes equivalent to comparing the corresponding vector fields based on their respective sample sets. Different simulations may correspond to different experimental conditions, measurements, dynamical systems between which we seek to find similarities.
 
+Suppose we have the data pairs `x1, v1` and `x2, v2`. Then concatenating them as a list means they arise as samples from distinct manifolds and will be handled independently by our pipeline. 
 
 ```
-x_list, v_list = [], []
+x_list, v_list = [x1, x2], [v1, v2]
 ```
 
-and them
-data = MARBLE.construct_dataset(pos_concat, features=vel_concat, graph_type='cknn', k=15, stop_crit=0.03, vector=False)
+It is also sometimes useful to consider that two vector fields lie on independent manifolds when we want to discover the contrary. However, when we know that two vector fields lie on the same manifold, then it can be advantageous to stack their corresponding samples, rather than providing them as a list, as this will enforce geometric relationships between them.
 
-Then, you obtain vectors `v1 = numpy.diff(x1, axis=0)` and likewise for `x2`, and finally stack them vertically `x = np.vstack([x1, x2])` 
+### Constructing data object
 
-x = 
-v = 
+Our pipleline is build around a Pytorch Geometric data object, which we can obtain by running the following constructor.
 
+```
+import MARBLE 
+
+data = MARBLE.construct_dataset(x_list, features=v_list, graph_type='cknn', k=15, stop_crit=0.03, curvature=False)
+```
+
+This command will first subsample each point cloud using farthest point sampling to achive even sampling. Using `stop_crit=0.03` means the average distance between the subsampled points will equal to 3% of the manifold diameter. Then it will fit a nearest neighbour graph to each point cloud, here using the `cknn` method using `k=15` nearest neighbours. 
+
+The final argument, `curvature=False` means that local patches will be treated as flat Euclidean spaces. Setting `curvature=True` can be useful when the sampling is sparse relative to the manifold curvature, however, this will increase the cost of the computations.
+
+The final data object contains the following attributes:
+
+```
+data.pos: positions x
+data.x: vectors v
+data.y: labels for each points denoting which manifold it belongs to
+```
+
+### Training
+
+You are ready to train! This is straightforward.
+
+You first specify the hyperparameters. The key ones are the following (see `/MARBLE/default_params.yaml` for a complete list), which will work for many settings.
+
+```
+params = {'epochs': 50, #optimisation epochs
+          'order': 2, #order of derivatives
+          'hidden_channels': 32, #number of internal dimensions in MLP
+          'out_channels': 5,
+          'inner_product_features': True,
+         }
+
+```
+
+Then proceed by constructing a network object
+
+```
+model = MARBLE.net(data, params=params) #loadpath='model_large' )
+```
+
+Finally, launch training. The code will continuously save checkpoints during training with timestamps. 
+
+```
+model.run_training(data, outdir='./outputs')
+```
+
+If you have previously trained a network, you can skip the training step and load the network directly as
+
+```
+model = MARBLE.net(data, loadpath=loadpath, params=params)
+```
+
+where loadpath can be either a path to the model (with a specific timestamp, or a directory to automatically load the last model.
+
+### Evaluating the network
+
+A given network can be evaluated on the data on which it was trained on or another dataset (currently not tested). The following line appends a `data.emb` attribute, which is an `nxout_channels` matrix containing the embeddings for individual sample points in all datasets. 
+
+```
+data = model.evaluate(data)
+```
+
+To recover the identity of the datasets, use `data.y`, e.g., `data.emb[data.y==0]` to obtain the embedding for the vector field over the first manifold.
+
+We can also run postprocessing, which computes the distributional distances between the datasets.
+
+```
+data = postprocessing(data)
+```
+
+Now we should have a `data.dist` attribute corresponding to a symmetric distance matrix. We can also use an optional `n_clusters` argument to apply a k-means kernel to the embedded points before computing distance, which we found to improve performance.
 
 ## Examples
 
-The folder `/examples` contains some example scripts.
+The folder `/examples` contains scripts for some basic examples and reproduction.
+
+To get more intuition of MARBLE, we suggest you start by running `ex_vector_field_flat_surface.py` or `ex_vector_field_curved_surface.py`.
+
 
 ## References
 
