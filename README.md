@@ -2,9 +2,24 @@
 
 This package contains a geometric deep learning method to intrincally represent vector and scalar fields over manifolds and compare representations obtained from different vector fields. The examples  
 
-The code is built around [PyG (PyTorch Geometric)](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html).
+The code is built around [PyG (PyTorch Geometric)](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html).\
 
-## Getting started
+## Cite
+
+If you find our work useful or inspirational, please cite our work as follows
+
+'''
+@misc{gosztolai2023interpretable,
+      title={Interpretable statistical representations of neural population dynamics and geometry}, 
+      author={Adam Gosztolai and Robert L. Peach and Alexis Arnaudon and Mauricio Barahona and Pierre Vandergheynst},
+      year={2023},
+      eprint={2304.03376},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
+'''
+
+## Installation
 
 We recommend you install the code on a fresh Anaconda virtual environment, as follows.
 
@@ -34,6 +49,10 @@ This will install all the requires dependencies. Finally, install by running ins
 ```
 pip install . 
 ```
+
+## Workflow
+
+Using our code follows
 
 ## Examples
 
