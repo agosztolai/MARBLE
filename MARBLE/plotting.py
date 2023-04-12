@@ -174,6 +174,7 @@ def embedding(
     s=5,
     axes_visible=False,
     cbar_visible=True,
+    clusters_visible=False,
     cmap="coolwarm",
 ):
     """
@@ -189,11 +190,11 @@ def embedding(
 
     """
 
-    if hasattr(data, "emb"):
-        emb = data.emb
-    else:
+    if hasattr(data, "emb_2D"):
+        emb = data.emb_2D
+    elif isinstance(data, np.ndarray):
         emb = data
-
+    
     dim = emb.shape[1]
     assert dim in [2, 3], f"Embedding dimension is {dim} which cannot be displayed."
 
@@ -226,9 +227,9 @@ def embedding(
         elif dim == 3:
             ax.scatter(emb[ind, 0], emb[ind, 1], emb[ind, 2], c=c, alpha=alpha, s=s, label=title)
 
-    # if dim == 2:
-    #    if hasattr(data, 'clusters'):
-    #        voronoi(data.clusters, ax)
+    if dim == 2:
+        if hasattr(data, 'clusters') and clusters_visible:
+            voronoi(data.clusters, ax)
 
     if titles is not None:
         ax.legend(loc="upper right")

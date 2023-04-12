@@ -7,11 +7,9 @@ from MARBLE import geometry as g
 from MARBLE import plotting
 
 
-def cluster_embeddings(
-    data, cluster_typ="kmeans", embed_typ="umap", n_clusters=None, manifold=None, seed=0
-):
+def distribution_distances(data, cluster_typ="kmeans", n_clusters=None, seed=0):
     """
-    Cluster embedding and return distance between clusters
+    Return distance between datasets.
 
     Returns
     -------
@@ -21,21 +19,11 @@ def cluster_embeddings(
 
     """
 
-    if isinstance(data, list):
-        out = np.vstack([d.out for d in data])
-    else:
-        out = data.out
-
-    if isinstance(data, list):
-        data_ = data[0]
-        data_.emb = out
-        data_.y = torch.cat([d.y for d in data])
-    else:
-        data_ = data
+    emb = data.emb
 
     if n_clusters is not None:
         # k-means cluster
-        clusters = g.cluster(out, cluster_typ, n_clusters, seed)
+        clusters = g.cluster(emb, cluster_typ, n_clusters, seed)
         clusters = g.relabel_by_proximity(clusters)
 
         clusters["slices"] = data._slice_dict["x"]  # pylint: disable=protected-access
@@ -44,27 +32,61 @@ def cluster_embeddings(
             clusters["slices"] = clusters["slices"][:: data.number_of_resamples]
 
         # compute distances between clusters
-        data_.dist, data_.gamma = g.compute_distribution_distances(
+        data.dist, data.gamma = g.compute_distribution_distances(
             clusters=clusters, slices=clusters["slices"]
         )
-
-        # embed into 2D via t-SNE for visualisation
-        emb = np.vstack([out, clusters["centroids"]])
-        emb, data_.manifold = g.embed(emb, embed_typ=embed_typ, manifold=manifold)
-        data_.emb, clusters["centroids"] = (
-            emb[: -clusters["n_clusters"]],
-            emb[-clusters["n_clusters"] :],
-        )
-        data_.clusters = clusters
+        
+        data.clusters = clusters
 
     else:
-        data_.emb = out
-        data_.dist, _ = g.compute_distribution_distances(
+        data.emb = emb
+        data.dist, _ = g.compute_distribution_distances(
             data=data, slices=data._slice_dict["x"]  # pylint: disable=protected-access
         )
-        data_.emb, data_.manifold = g.embed(out, embed_typ=embed_typ, manifold=manifold)
 
-    return data_
+    return data
+
+
+def embed_in_2D(data, embed_typ="umap", manifold=None, seed=0):
+    """
+    Embed into 2D via for visualisation.
+
+    Parameters
+    ----------
+    data : TYPE
+        DESCRIPTION.
+    embed_typ : string, optional
+        Embedding algorithm to use (tsne, umap, PCA)
+    manifold : sklearn object, optional
+        Manifold object returned by some embedding algorithms (PCA, umap). 
+        Useful when trying to compare datasets.
+    seed : int, optional
+        Random seed. The default is 0.
+
+    Returns
+    -------
+    PyG data object containing emb_2D attribute.
+
+    """
+    if isinstance(data, list):
+        emb = np.vstack([d.emb for d in data])
+    else:
+        emb = data.emb
+    
+    if hasattr(data, 'clusters'):
+        clusters = data.clusters
+        emb = np.vstack([emb, clusters["centroids"]])
+        emb_2D, data.manifold = g.embed(emb, embed_typ=embed_typ, manifold=manifold, seed=seed)
+        data.emb_2D, clusters["centroids"] = (
+            emb_2D[: -clusters["n_clusters"]],
+            emb_2D[-clusters["n_clusters"] :],
+        )
+        
+    else:
+        data.emb_2D, data.manifold = g.embed(emb, embed_typ=embed_typ, manifold=manifold, seed=seed)
+        
+    return data
+        
 
 
 def compare_attractors(data, source_target):

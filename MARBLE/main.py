@@ -309,7 +309,7 @@ class net(nn.Module):
                 adjs,
             ) = utils.detach_from_gpu(self, data, adjs)
 
-            data.out = out.detach().cpu()
+            data.emb = out.detach().cpu()
 
             return data
 

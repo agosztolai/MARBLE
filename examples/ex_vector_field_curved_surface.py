@@ -3,25 +3,19 @@
 
 import numpy as np
 import sys
-from MARBLE import plotting, utils, geometry, net, postprocessing
+from MARBLE import plotting, preprocessing, dynamics, net, postprocessing
 import matplotlib.pyplot as plt
+
+# =============================================================================
+# This example illustrates MARBLE for a vector field on a parabolic manifold
+# =============================================================================
 
 def main():
     
-    #parameters
-    n = 512
-    n_clusters = 20
-    
-    par = {'epochs': 70, #optimisation epochs
-           'order': 1, #order of derivatives
-           'hidden_channels': 32, #number of internal dimensions in MLP
-           'out_channels': 3,
-           'inner_product_features': True,
-           }
-    
-    #evaluate functions
+    #generate simple vector fields
     # f0: linear, f1: point source, f2: point vortex, f3: saddle
-    x = [geometry.sample_2d(n, [[-1,-1],[1,1]], 'random') for i in range(4)]
+    n = 512
+    x = [dynamics.sample_2d(n, [[-1,-1],[1,1]], 'random') for i in range(4)]
     y = [f0(x[0]), f1(x[1]), f2(x[2]), f3(x[3])] #evaluated functions
     
     #embed on parabola
@@ -32,25 +26,37 @@ def main():
         y[i] = (new_endpoint - x[i])/np.linalg.norm(new_endpoint - x[i])*np.linalg.norm(v)
         
     #construct PyG data object
-    data = utils.construct_dataset(x, y,
-                                   graph_type='cknn',
-                                   k=10,
-                                   n_geodesic_nb=20,
-                                   vector=True)
+    data = preprocessing.construct_dataset(x, 
+                                           y,
+                                           graph_type='cknn',
+                                           k=10,
+                                           n_geodesic_nb=20,
+                                           local_gauges=True #use local gauges
+                                           )
     
     #train model
-    model = net(data, **par)
+    params = {'epochs': 70, #optimisation epochs
+              'order': 1, #first-order derivatives are enough because the vector field have at most first-order features
+              'hidden_channels': 32, #16 is enough in this simple example
+              'out_channels': 3,  #3 is enough in this simple example
+              'inner_product_features': True,
+              }
+    
+    model = net(data, params=params)
     model.run_training(data)
     
-    # #evaluate model on data
+    #evaluate model on data
     data = model.evaluate(data)
-    data = postprocessing(data, n_clusters=n_clusters, cluster_typ='kmeans')
+    n_clusters = 20
+    data = postprocessing.distribution_distances(data, n_clusters=n_clusters, cluster_typ='kmeans')
+    data = postprocessing.embed_in_2D(data)
     
     #plot
     titles=['Linear left','Linear right','Vortex right','Vortex left']
-    plotting.fields(data, titles=titles, col=2, width=3, scale=10, view=[0,40], plot_gauges=True)
+    #plot gauges in black to show that they 'hug' the manifold surface
+    plotting.fields(data, titles=titles, col=2, width=3, scale=10, view=[0,40], plot_gauges=True) 
     # plt.savefig('../results/fields.svg')
-    plotting.embedding(data, data.y.numpy(),titles=titles)
+    plotting.embedding(data, data.y.numpy(),titles=titles, clusters_visible=True)
     # plt.savefig('../results/embedding.svg')
     plotting.histograms(data, titles=titles)
     # plt.savefig('../results/histogram.svg')
