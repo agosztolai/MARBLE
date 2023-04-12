@@ -18,16 +18,15 @@ def main():
     y = [f0(x[0]), f1(x[1]), f2(x[2]), f3(x[3])] #evaluated functions
         
     #construct PyG data object
-    data = preprocessing.construct_dataset(x, y, graph_type='cknn', k=30)
+    data = preprocessing.construct_dataset(x, y, graph_type='cknn', k=15)
     
     #train model
-    params = {'epochs': 100, #optimisation epochs
+    params = {'epochs': 50, #optimisation epochs
               'order': 2, #order of derivatives
               'hidden_channels': 16, #number of internal dimensions in MLP
-              'out_channels': 3,
+              'out_channels': 5,
               'include_self': False, #remove feature centers, for testing only, to get the figure in the SI
               'inner_product_features': False,
-              'batch_norm': True
              }
     
     model = net(data, params=params)
@@ -37,14 +36,14 @@ def main():
     data = model.evaluate(data)
     n_clusters = 10 #use 15 clusters for simple visualisation
     data = postprocessing.distribution_distances(data, n_clusters=n_clusters)
-    data = postprocessing.embed_in_2D(data)
+    data = postprocessing.embed_in_2D(data, embed_typ='tsne')
     
     #plot
     titles=['Constant','Linear','Parabola','Saddle']
-    plotting.fields(data, titles=titles, node_size=10, col=2)
+    plotting.fields(data, titles=titles, node_size=20, col=2)
     # plt.savefig('../results/fields.svg')
     plotting.embedding(data, data.y.numpy(), titles=titles, clusters_visible=True)
-    plt.savefig('../results/embedding.svg')
+    #plt.savefig('../results/embedding.svg')
     plotting.histograms(data, titles=titles)
     # plt.savefig('../results/histogram.svg')
     plotting.neighbourhoods(data, hops=1, norm=True, figsize=(10, 20))
