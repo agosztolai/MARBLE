@@ -6,6 +6,10 @@ import sys
 from MARBLE import plotting, preprocessing, dynamics, net, postprocessing
 import matplotlib.pyplot as plt
 
+# =============================================================================
+# This example illustrates MARBLE for a vector field on a flat surface
+# =============================================================================
+
 def main():
     
     #generate simple vector fields
@@ -15,7 +19,10 @@ def main():
     y = [f0(x[0]), f1(x[1]), f2(x[2]), f3(x[3])] #evaluated functions
         
     #construct PyG data object
-    data = preprocessing.construct_dataset(x, y, graph_type='cknn', k=20, compute_laplacian=True)
+    data = preprocessing.construct_dataset(x, 
+                                           y, 
+                                           graph_type='cknn', 
+                                           k=20)
     
     #train model
     params = {'epochs': 50, #optimisation epochs
@@ -30,13 +37,14 @@ def main():
     #evaluate model on data
     data = model.evaluate(data)
     n_clusters = 15 #use 15 clusters for simple visualisation
-    data = postprocessing.cluster_embeddings(data, n_clusters=n_clusters, cluster_typ='kmeans')
+    data = postprocessing.distribution_distances(data, n_clusters=n_clusters, cluster_typ='kmeans')
+    data = postprocessing.embed_in_2D(data)
     
     #plot results
     titles=['Linear left','Linear right','Vortex right','Vortex left']
     plotting.fields(data, titles=titles, col=2)
     # plt.savefig('../results/fields.svg')
-    plotting.embedding(data, data.y.numpy(),titles=titles)
+    plotting.embedding(data, data.y.numpy(),titles=titles, clusters_visible=True)
     # plt.savefig('../results/embedding.svg')
     plotting.histograms(data, titles=titles)
     # plt.savefig('../results/histogram.svg')
