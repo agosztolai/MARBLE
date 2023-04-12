@@ -57,7 +57,7 @@ pip install .
 
 ## For the impatient and foolhardy
 
-We suggest you study at least the scripts of a `simple vector fields over flat surfaces <https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_flat_surface.py>`_ and `simple vector fields over curved surfaces <https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_curved_surface.py>`_ to understand what results to expect.
+We suggest you study at least the scripts of a `simple vector fields over flat surfaces <https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_flat_surface.py>`_ and `simple vector fields over curved surfaces <https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_curved_surface.py>`_ to understand what results to expect. `python <www.python.org>`_
 
 Briefly, MARBLE takes two inputs
 
