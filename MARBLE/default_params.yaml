@@ -4,12 +4,13 @@ epochs : 20, #optimisation epochs
 lr: 0.01 #learning rate
 momentum: 0.9 #momentum
 diffusion: False
-include_positions: False
 
 #manifold/signal parameters
 order: 2 #order to which to compute the directional derivatives
 inner_product_features: True
 frac_sampled_nb: -1 #fraction of neighbours to sample for gradient computation (if -1 then all neighbours)
+include_positions: False #include positions as features (warning: this is untested!)
+include_self: True #include vector at the center of feature
 
 #network parameters
 dropout: 0. #dropout in the MLP

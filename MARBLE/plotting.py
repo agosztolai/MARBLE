@@ -371,7 +371,7 @@ def neighbourhoods(
                 ax.scatter(pos[:, 0], pos[:, 1], c=c)
 
             ax.set_frame_on(False)
-            set_axes(ax, axes_visible=True)
+            set_axes(ax, axes_visible=False)
             fig.add_subplot(ax)
 
 

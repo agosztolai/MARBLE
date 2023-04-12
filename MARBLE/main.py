@@ -161,6 +161,7 @@ class net(nn.Module):
             "n_sampled_nb",
             "processes",
             "include_positions",
+            "include_self"
         ]
 
         for p in self.params.keys():
@@ -198,6 +199,9 @@ class net(nn.Module):
 
         if self.params["include_positions"]:
             cum_channels += d
+            
+        if not self.params['include_self']:
+            cum_channels -= s
 
         # encoder
         channel_list = (
@@ -244,7 +248,10 @@ class net(nn.Module):
             x = F.normalize(x, dim=-1, p=2)
 
         # gradients
-        out = [x]
+        if self.params["include_self"]:
+            out = [x]
+        else:
+            out = []
         for i, (_, _, size) in enumerate(adjs):
             kernels = [K[n_id[: size[1] * d], :][:, n_id[: size[0] * d]] for K in data.kernels]
 
