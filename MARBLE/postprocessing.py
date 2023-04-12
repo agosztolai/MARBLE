@@ -1,7 +1,6 @@
 """Postprocessing module."""
 import matplotlib.pyplot as plt
 import numpy as np
-import torch
 
 from MARBLE import geometry as g
 from MARBLE import plotting
