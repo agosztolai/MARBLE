@@ -57,14 +57,12 @@ pip install .
 
 ## For the impatient and foolhardy
 
-We suggest you study at least the scripts of a [simple vector fields over flat surfaces](https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_flat_surface.py) and [simple vector fields over curved surfaces](https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_curved_surface.py) to understand what results to expect.
-
-[example](https://github.com/NeLy-EPFL/LiftPose3D/tree/master/examples)
+We suggest you study at least the scripts of a [simple vector fields over flat surfaces](https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_flat_surface.py) and [simple vector fields over curved surfaces](https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_curved_surface.py) to understand what behaviour to expect.
 
 Briefly, MARBLE takes two inputs
 
 1. `pos` - a list of `nxd` arrays, each defining a point cloud describing the geometry of a manifold
-2. `vel` - a list of `nxD` arrays, defining a signal over the respective manifolds in 1. For vector fields D=d, but our code can also handle signals of other dimensions.
+2. `vel` - a list of `nxD` arrays, defining a signal over the respective manifolds in 1. For vector fields D=d, but our code can also handle signals of other dimensions. Read more about inputs [here](#inputs).
 
 Then construct a dataset for MARBLE.
 
@@ -115,35 +113,26 @@ plotting.embedding(data, data.y.numpy()) #visualise embedding
 
 There are loads of parameters to adjust these plots, so have a look at the respective functions.
 
-## Complete workflow
+<a name="inputs"></a>
+### More on inputs
 
-### Input
+If you measure time series observables, such as neural firing rates, you can start with a list of variable length time series under a given condition, e.g., `ts_1`, `ts_2`. We assume these are measurements from the same dynamical system, i.e., the sample points making up these trajectories are drawn from the same manifold, defining its shape `pos = np.vstack([ts_1, ts_2])`.
 
-Our method takes as inputs an `nxd` arrays `x`, which consists of n vectors defining the manifold shape, and a corresponding `nxd` vector `v`, which consists of vectors defining the dynamics over the manifold. 
+If you do not directly have access to the velocities, you can approximate them as `vel = np.vstack([np.diff(ts_1, axis=0), np.diff(ts_2, axis=0)])` and take `pos = np.vstack([ts_1[:-1,:], ts_2[:-1,:]])` to ensure `pos` and `vel` have the same length. 
 
-If you measure time series observables, such as neural firing rates, you can start with a list of variable length trajectories which make up the data of a dynamical system under a given condition `x = list(time series 1, time series 2 ...)`. 
+### More on different conditions
 
-If you only measure `x`, you can also get the velocities as `v = [np.diff(x, axis=0) for x_ in x]` and take `x = [x_[:-1,:] for x_ in x]` to ensure they have the same length. 
+Comparing dynamics in a data-driven way is equivalent to comparing the corresponding vector fields based on their respective sample sets. The dynamics to be compared might correspond to different experimental conditions (stimulation conditions, genetic perturbations etc.), dynamical systems (different task, different brain region).
 
-We assume that the trajectories under a given condition are settled over the same manifold. Therefore, we consider the `x`, `y` pairs as samples of the vector field over the manifold, and stack them row-wise.
-
-```
-x, v = np.vstack(x), np.vstack(v)
-```
-
-### Handling different conditions, or dynamical systems
-
-Given the above setup, comparing dynamics in a data-driven way across simulations or experiments becomes equivalent to comparing the corresponding vector fields based on their respective sample sets. Different simulations may correspond to different experimental conditions, measurements, dynamical systems between which we seek to find similarities.
-
-Suppose we have the data pairs `x1, v1` and `x2, v2`. Then concatenating them as a list means they arise as samples from distinct manifolds and will be handled independently by our pipeline. 
+Suppose we have the data pairs `pos1, pos2` and `vel2, vel2`. Then we may concatenate them as a list to ensure that our pipeline handles them independently (on different manifolds), but embeds them jointly in the same space.
 
 ```
 x_list, v_list = [x1, x2], [v1, v2]
 ```
 
-It is also sometimes useful to consider that two vector fields lie on independent manifolds when we want to discover the contrary. However, when we know that two vector fields lie on the same manifold, then it can be advantageous to stack their corresponding samples, rather than providing them as a list, as this will enforce geometric relationships between them.
+Note, it is sometimes useful to consider that two vector fields lie on independent manifolds when we want to discover the contrary. However, when we know that two vector fields lie on the same manifold, then it can be advantageous to stack their corresponding samples, rather than providing them as a list, as this will enforce geometric relationships between them.
 
-### Constructing data object
+### More on constructing data object
 
 Our pipleline is build around a Pytorch Geometric data object, which we can obtain by running the following constructor.
 
