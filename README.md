@@ -55,14 +55,14 @@ This will install all the requires dependencies. Finally, install by running ins
 pip install . 
 ```
 
-## For the impatient and foolhardy
+## Quick start
 
 We suggest you study at least the scripts of a [simple vector fields over flat surfaces](https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_flat_surface.py) and [simple vector fields over curved surfaces](https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_curved_surface.py) to understand what behaviour to expect.
 
 Briefly, MARBLE takes two inputs
 
 1. `pos` - a list of `nxd` arrays, each defining a point cloud describing the geometry of a manifold
-2. `vel` - a list of `nxD` arrays, defining a signal over the respective manifolds in 1. For vector fields D=d, but our code can also handle signals of other dimensions. Read more about inputs [here](#inputs).
+2. `vel` - a list of `nxD` arrays, defining a signal over the respective manifolds in 1. For vector fields D=d, but our code can also handle signals of other dimensions. Read more about [inputs](#inputs) and [different conditions](#conditions).
 
 Then construct a dataset for MARBLE.
 
@@ -71,7 +71,7 @@ import MARBLE
 data = MARBLE.construct_dataset(pos, features=vel)
 ```
 
-The main attributes are `data.pos` - manifold positions concatenated, `data.x` - manifold signals concatenated and `data.y` - identifiers that tell you which manifold the poitn belongs to. There are other useful attributes too, if you are curious (detailed below).
+The main attributes are `data.pos` - manifold positions concatenated, `data.x` - manifold signals concatenated and `data.y` - identifiers that tell you which manifold the poitn belongs to. Read more about [other usedul data attributed](#construct).
 
 Now you can initialise and train a MARBLE model. 
 
@@ -120,6 +120,7 @@ If you measure time series observables, such as neural firing rates, you can sta
 
 If you do not directly have access to the velocities, you can approximate them as `vel = np.vstack([np.diff(ts_1, axis=0), np.diff(ts_2, axis=0)])` and take `pos = np.vstack([ts_1[:-1,:], ts_2[:-1,:]])` to ensure `pos` and `vel` have the same length. 
 
+<a name="conditions"></a>
 ### More on different conditions
 
 Comparing dynamics in a data-driven way is equivalent to comparing the corresponding vector fields based on their respective sample sets. The dynamics to be compared might correspond to different experimental conditions (stimulation conditions, genetic perturbations etc.), dynamical systems (different task, different brain region).
@@ -132,14 +133,14 @@ x_list, v_list = [x1, x2], [v1, v2]
 
 Note, it is sometimes useful to consider that two vector fields lie on independent manifolds when we want to discover the contrary. However, when we know that two vector fields lie on the same manifold, then it can be advantageous to stack their corresponding samples, rather than providing them as a list, as this will enforce geometric relationships between them.
 
+<a name="construct"></a>
 ### More on constructing data object
 
 Our pipleline is build around a Pytorch Geometric data object, which we can obtain by running the following constructor.
 
 ```
 import MARBLE 
-
-data = MARBLE.construct_dataset(x_list, features=v_list, graph_type='cknn', k=15, stop_crit=0.03, local_gauge=False)
+data = MARBLE.construct_dataset(pos, features=vel, graph_type='cknn', k=15, stop_crit=0.03, local_gauge=False)
 ```
 
 This command will first subsample each point cloud using farthest point sampling to achive even sampling. Using `stop_crit=0.03` means the average distance between the subsampled points will equal to 3% of the manifold diameter. Then it will fit a nearest neighbour graph to each point cloud, here using the `cknn` method using `k=15` nearest neighbours. 
