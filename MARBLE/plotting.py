@@ -194,7 +194,7 @@ def embedding(
         emb = data.emb_2D
     elif isinstance(data, np.ndarray):
         emb = data
-    
+
     dim = emb.shape[1]
     assert dim in [2, 3], f"Embedding dimension is {dim} which cannot be displayed."
 
@@ -228,7 +228,7 @@ def embedding(
             ax.scatter(emb[ind, 0], emb[ind, 1], emb[ind, 2], c=c, alpha=alpha, s=s, label=title)
 
     if dim == 2:
-        if hasattr(data, 'clusters') and clusters_visible:
+        if hasattr(data, "clusters") and clusters_visible:
             voronoi(data.clusters, ax)
 
     if titles is not None:
