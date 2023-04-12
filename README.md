@@ -1,4 +1,4 @@
-# MARBLE - **Ma**nifold **R**epresentation **B**asis **L**earning
+# MARBLE - Manifold Representation Basis Learning
 
 MARBLE is a fully unsupervised geometric deep learning method that can 
 
