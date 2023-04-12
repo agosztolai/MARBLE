@@ -162,7 +162,7 @@ class net(nn.Module):
             "n_sampled_nb",
             "processes",
             "include_positions",
-            "include_self"
+            "include_self",
         ]
 
         for p in self.params.keys():
@@ -201,7 +201,7 @@ class net(nn.Module):
         if self.params["include_positions"]:
             cum_channels += d
 
-        if not self.params['include_self']:
+        if not self.params["include_self"]:
             cum_channels -= s
 
         # encoder

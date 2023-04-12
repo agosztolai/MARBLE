@@ -1,9 +1,7 @@
 """Postprocessing module."""
-import matplotlib.pyplot as plt
 import numpy as np
 
 from MARBLE import geometry as g
-from MARBLE import plotting
 
 
 def distribution_distances(data, cluster_typ="kmeans", n_clusters=None, seed=0):
