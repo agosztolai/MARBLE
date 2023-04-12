@@ -47,7 +47,7 @@ def main():
     
     #evaluate model on data
     data = model.evaluate(data)
-    n_clusters = 20
+    n_clusters = 20 #use 15 clusters for simple visualisation
     data = postprocessing.distribution_distances(data, n_clusters=n_clusters, cluster_typ='kmeans')
     data = postprocessing.embed_in_2D(data)
     
