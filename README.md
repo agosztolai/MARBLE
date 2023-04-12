@@ -1,12 +1,16 @@
 # MARBLE - **Ma**nifold **R**epresentation **B**asis **L**earning
 
-This package contains a geometric deep learning method to intrincally represent vector and scalar fields over manifolds and compare representations obtained from different vector fields. The examples  
+MARBLE is a fully unsupervised geometric deep learning method that can 
+
+1. intrincally represent vector fields over manifolds, such as those arising in neural recordings or dissipative dynamical systems, but it is not limited to dynamical systems
+2. perform unbiased comparisons across dynamical systems or parameter conditions by jointly embedding representations
+3. can operate in geometry-aware of geometry-agnostic mode to test the contribution of manifold dynamics and geometry.
 
 The code is built around [PyG (PyTorch Geometric)](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html).
 
 ## Cite
 
-If you find our work useful or inspirational, please cite our work as follows
+If you find this package useful or inspirational, please cite our work as follows
 
 ```
 @misc{gosztolai2023interpretable,
@@ -51,11 +55,69 @@ This will install all the requires dependencies. Finally, install by running ins
 pip install . 
 ```
 
-## Workflow
+## For the impatient and foolhardy
+
+We suggest you study at least the scripts of a `simple vector fields over flat surfaces <https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_flat_surface.py>` and `simple vector fields over curved surfaces <https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_curved_surface.py>` to understand what results to expect.
+
+Briefly, MARBLE takes two inputs
+
+1. `pos` - a list of `nxd` arrays, each defining a point cloud describing the geometry of a manifold
+2. `vel` - a list of `nxD` arrays, defining a signal over the respective manifolds in 1. For vector fields D=d, but our code can also handle signals of other dimensions.
+
+Then construct a dataset for MARBLE.
+
+```
+import MARBLE 
+data = MARBLE.construct_dataset(pos, features=vel)
+```
+
+The main attributes are `data.pos` - manifold positions concatenated, `data.x` - manifold signals concatenated and `data.y` - identifiers that tell you which manifold the poitn belongs to. There are other useful attributes too, if you are curious (detailed below).
+
+Now you can initialise and train a MARBLE model. 
+
+```
+from MARBLE import net
+model = MARBLE.net(data)
+model.run_training(data)
+```
+
+By default, MARBLE operated in geometry-aware mode. You can enable the geometry-agnostic mode by changing the initalisation step to
+
+```
+model = MARBLE.net(data, params = {'inner_product_features': True})
+```
+
+After you have trained your model, you can evaluate evaluate your model on your dataset, or another dataset to obtain an embedding all manifold points in joint latent space (3-dimensional by default) based on their local vector field features.
+
+```
+data = model.evaluate(data) #adds an attribute `data.emb`
+```
+
+To recover the embeddings of individual vector fields, use `data.emb[data.y==0]`.
+
+You can then compare datasets by running
+
+```
+from MARBLE import postprocessing
+data = postprocessing.distribution_distances(data) #adds an attribute `data.dist` containing a matrix of pairwise distance between vector field representations
+```
+
+Finally, you can perform some visualisation
+
+```
+from MARBLE import plotting
+data = postprocessing.embed_in_2D(data) #adds an attribute `data.emb_2D` containing a 2D embedding of the MARBLE output using UMAP by default
+plotting.fields(data) #visualise the original vector fields over manifolds 
+plotting.embedding(data, data.y.numpy()) #visualise embedding
+```
+
+There are loads of parameters to adjust these plots, so have a look at the respective functions.
+
+## Complete workflow
 
 ### Input
 
-Our method takes as inputs an `nxd` vector `x`, which consists of n vectors defining the manifold shape, and a corresponding `nxd` vector `v`, which consists of vectors defining the dynamics over the manifold. 
+Our method takes as inputs an `nxd` arrays `x`, which consists of n vectors defining the manifold shape, and a corresponding `nxd` vector `v`, which consists of vectors defining the dynamics over the manifold. 
 
 If you measure time series observables, such as neural firing rates, you can start with a list of variable length trajectories which make up the data of a dynamical system under a given condition `x = list(time series 1, time series 2 ...)`. 
 
@@ -86,7 +148,7 @@ Our pipleline is build around a Pytorch Geometric data object, which we can obta
 ```
 import MARBLE 
 
-data = MARBLE.construct_dataset(x_list, features=v_list, graph_type='cknn', k=15, stop_crit=0.03, curvature=False)
+data = MARBLE.construct_dataset(x_list, features=v_list, graph_type='cknn', k=15, stop_crit=0.03, local_gauge=False)
 ```
 
 This command will first subsample each point cloud using farthest point sampling to achive even sampling. Using `stop_crit=0.03` means the average distance between the subsampled points will equal to 3% of the manifold diameter. Then it will fit a nearest neighbour graph to each point cloud, here using the `cknn` method using `k=15` nearest neighbours. 
