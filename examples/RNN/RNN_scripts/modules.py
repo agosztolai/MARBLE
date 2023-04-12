@@ -1,12 +1,4 @@
-"""
-MAIN FILE
-
-Definition of network classes, training functionality.
-"""
-
-import sys
-sys.path.append("./RNN_scripts")
-from helpers import gram_schmidt_pt
+"""RNN definition of network classes, training functionality."""
 import torch.nn as nn
 from math import sqrt, floor
 import random
@@ -14,6 +6,19 @@ import time
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+
+
+def gram_schmidt_pt(mat):
+    """
+    Performs INPLACE Gram-Schmidt
+    :param mat:
+    :return:
+    """
+    mat[0] = mat[0] / torch.norm(mat[0])
+    for i in range(1, mat.shape[0]):
+        mat[i] = mat[i] - (mat[:i].t() @ mat[:i] @ mat[i])
+        mat[i] = mat[i] / torch.norm(mat[i])
+
 
 def loss_mse(output, target, mask):
     """
@@ -30,8 +35,24 @@ def loss_mse(output, target, mask):
     return loss_by_trial.mean()
 
 
-def train(net, _input, _target, _mask, n_epochs, random_ic = False, lr=1e-2, batch_size=32, plot_learning_curve=False, plot_gradient=False,
-          mask_gradients=False, clip_gradient=None, early_stop=None, keep_best=False, cuda=False, resample=False):
+def train(
+    net,
+    _input,
+    _target,
+    _mask,
+    n_epochs,
+    random_ic=False,
+    lr=1e-2,
+    batch_size=32,
+    plot_learning_curve=False,
+    plot_gradient=False,
+    mask_gradients=False,
+    clip_gradient=None,
+    early_stop=None,
+    keep_best=False,
+    cuda=False,
+    resample=False,
+):
     """
     Train a network
     :param net: nn.Module
@@ -62,11 +83,11 @@ def train(net, _input, _target, _mask, n_epochs, random_ic = False, lr=1e-2, bat
     if cuda:
         if not torch.cuda.is_available():
             print("Warning: CUDA not available on this machine, switching to CPU")
-            device = torch.device('cpu')
+            device = torch.device("cpu")
         else:
-            device = torch.device('cuda')
+            device = torch.device("cuda")
     else:
-        device = torch.device('cpu')
+        device = torch.device("cpu")
     net.to(device=device)
     input = _input.to(device=device)
     target = _target.to(device=device)
@@ -80,9 +101,9 @@ def train(net, _input, _target, _mask, n_epochs, random_ic = False, lr=1e-2, bat
         if keep_best:
             best = net.clone()
             best_loss = initial_loss.item()
-            
+
     if random_ic:
-        print('training with random initial conditions')
+        print("training with random initial conditions")
 
     # Training loop
     for epoch in range(n_epochs):
@@ -92,13 +113,13 @@ def train(net, _input, _target, _mask, n_epochs, random_ic = False, lr=1e-2, bat
             optimizer.zero_grad()
             random_batch_idx = random.sample(range(num_examples), batch_size)
             batch = input[random_batch_idx]
-            
-            #set initial condition
+
+            # set initial condition
             if random_ic:
                 # norm = net.m.norm(dim=0)
-                h0 = torch.rand(net.hidden_size).to(device)*net.hidden_size/300
+                h0 = torch.rand(net.hidden_size).to(device) * net.hidden_size / 300
                 net.h0.data = h0
-            
+
             output, _ = net(batch)
             loss = loss_mse(output, target[random_batch_idx], mask[random_batch_idx])
             losses.append(loss.item())
@@ -117,7 +138,7 @@ def train(net, _input, _target, _mask, n_epochs, random_ic = False, lr=1e-2, bat
             if plot_gradient:
                 tot = 0
                 for param in [p for p in net.parameters() if p.requires_grad]:
-                    tot += (param.grad ** 2).sum()
+                    tot += (param.grad**2).sum()
                 gradient_norms.append(sqrt(tot))
             optimizer.step()
             # These 2 lines important to prevent memory leaks
@@ -128,9 +149,15 @@ def train(net, _input, _target, _mask, n_epochs, random_ic = False, lr=1e-2, bat
         if keep_best and np.mean(losses) < best_loss:
             best = net.clone()
             best_loss = np.mean(losses)
-            print("epoch %d:  loss=%.3f  (took %.2f s) *" % (epoch, np.mean(losses), time.time() - begin))
+            print(
+                "epoch %d:  loss=%.3f  (took %.2f s) *"
+                % (epoch, np.mean(losses), time.time() - begin)
+            )
         else:
-            print("epoch %d:  loss=%.3f  (took %.2f s)" % (epoch, np.mean(losses), time.time() - begin))
+            print(
+                "epoch %d:  loss=%.3f  (took %.2f s)"
+                % (epoch, np.mean(losses), time.time() - begin)
+            )
         if early_stop is not None and np.mean(losses) < early_stop:
             break
 
@@ -149,10 +176,24 @@ def train(net, _input, _target, _mask, n_epochs, random_ic = False, lr=1e-2, bat
 
 
 class FullRankRNN(nn.Module):
-
-    def __init__(self, input_size, hidden_size, output_size, noise_std, alpha=0.2, rho=1,
-                 train_wi=False, train_wo=False, train_wrec=True, train_h0=False,
-                 wi_init=None, wo_init=None, wrec_init=None, si_init=None, so_init=None):
+    def __init__(
+        self,
+        input_size,
+        hidden_size,
+        output_size,
+        noise_std,
+        alpha=0.2,
+        rho=1,
+        train_wi=False,
+        train_wo=False,
+        train_wrec=True,
+        train_h0=False,
+        wi_init=None,
+        wo_init=None,
+        wrec_init=None,
+        si_init=None,
+        so_init=None,
+    ):
         """
         :param input_size: int
         :param hidden_size: int
@@ -250,11 +291,12 @@ class FullRankRNN(nn.Module):
 
         # simulation loop
         for i in range(seq_len):
-            h = h + \
-                self.noise_std * noise[:, i, :] + \
-                self.alpha * (-h + r.matmul(self.wrec.t()) + \
-                input[:, i, :].matmul(self.wi_full))
-                    
+            h = (
+                h
+                + self.noise_std * noise[:, i, :]
+                + self.alpha * (-h + r.matmul(self.wrec.t()) + input[:, i, :].matmul(self.wi_full))
+            )
+
             r = self.non_linearity(h)
             output[:, i, :] = r.matmul(self.wo_full)
             trajectories[:, i, :] = h
@@ -262,32 +304,52 @@ class FullRankRNN(nn.Module):
         return output, trajectories
 
     def clone(self):
-        new_net = FullRankRNN(self.input_size, self.hidden_size, self.output_size, self.noise_std, self.alpha,
-                              self.rho, self.train_wi, self.train_wo, self.train_wrec, self.train_h0,
-                              self.wi, self.wo, self.wrec, self.si, self.so)
+        new_net = FullRankRNN(
+            self.input_size,
+            self.hidden_size,
+            self.output_size,
+            self.noise_std,
+            self.alpha,
+            self.rho,
+            self.train_wi,
+            self.train_wo,
+            self.train_wrec,
+            self.train_h0,
+            self.wi,
+            self.wo,
+            self.wrec,
+            self.si,
+            self.so,
+        )
         return new_net
-    
-    
+
+
 def simulation_loop(model, input):
     batch_size = input.shape[0]
     seq_len = input.shape[1]
     h = model.h0
     r = model.non_linearity(h)
-    
+
     noise = torch.randn(batch_size, seq_len, model.hidden_size, device=model.m.device)
     output = torch.zeros(batch_size, seq_len, model.output_size, device=model.m.device)
     trajectories = torch.zeros(batch_size, seq_len, model.hidden_size, device=model.m.device)
-    
+
     for i in range(seq_len):
-        h = h + \
-            model.noise_std * noise[:, i, :] + \
-            model.alpha * (-h + r.matmul(model.n).matmul(model.m.t()) / model.hidden_size + \
-            input[:, i, :].matmul(model.wi_full))
-                
+        h = (
+            h
+            + model.noise_std * noise[:, i, :]
+            + model.alpha
+            * (
+                -h
+                + r.matmul(model.n).matmul(model.m.t()) / model.hidden_size
+                + input[:, i, :].matmul(model.wi_full)
+            )
+        )
+
         r = model.non_linearity(h)
         output[:, i, :] = r.matmul(model.wo_full) / model.hidden_size
         trajectories[:, i, :] = h
-        
+
     return output, trajectories
 
 
@@ -297,9 +359,28 @@ class LowRankRNN(nn.Module):
     parametrized by two Nxr matrices m and n such that the connectivity is m * n^T
     """
 
-    def __init__(self, input_size, hidden_size, output_size, noise_std, alpha, rank=1,
-                 train_wi=False, train_wo=False, train_wrec=True, train_h0=False, train_si=True, train_so=True,
-                 wi_init=None, wo_init=None, m_init=None, n_init=None, si_init=None, so_init=None, h0_init=None):
+    def __init__(
+        self,
+        input_size,
+        hidden_size,
+        output_size,
+        noise_std,
+        alpha,
+        rank=1,
+        train_wi=False,
+        train_wo=False,
+        train_wrec=True,
+        train_h0=False,
+        train_si=True,
+        train_so=True,
+        wi_init=None,
+        wo_init=None,
+        m_init=None,
+        n_init=None,
+        si_init=None,
+        so_init=None,
+        h0_init=None,
+    ):
         """
         :param input_size: int
         :param hidden_size: int
@@ -381,7 +462,7 @@ class LowRankRNN(nn.Module):
             else:
                 self.n.copy_(n_init)
             if wo_init is None:
-                self.wo.normal_(std=4.)
+                self.wo.normal_(std=4.0)
             else:
                 self.wo.copy_(wo_init)
             if so_init is None:
@@ -409,9 +490,26 @@ class LowRankRNN(nn.Module):
         return simulation_loop(self, input)
 
     def clone(self):
-        new_net = LowRankRNN(self.input_size, self.hidden_size, self.output_size, self.noise_std, self.alpha,
-                             self.rank, self.train_wi, self.train_wo, self.train_wrec, self.train_h0, self.train_si,
-                             self.train_so, self.wi, self.wo, self.m, self.n, self.si, self.so)
+        new_net = LowRankRNN(
+            self.input_size,
+            self.hidden_size,
+            self.output_size,
+            self.noise_std,
+            self.alpha,
+            self.rank,
+            self.train_wi,
+            self.train_wo,
+            self.train_wrec,
+            self.train_h0,
+            self.train_si,
+            self.train_so,
+            self.wi,
+            self.wo,
+            self.m,
+            self.n,
+            self.si,
+            self.so,
+        )
         new_net._define_proxy_parameters()
         return new_net
 
@@ -419,8 +517,8 @@ class LowRankRNN(nn.Module):
         """
         override
         """
-        if 'rec_noise' in state_dict:
-            del state_dict['rec_noise']
+        if "rec_noise" in state_dict:
+            del state_dict["rec_noise"]
         super().load_state_dict(state_dict, strict)
         self._define_proxy_parameters()
 
@@ -431,7 +529,7 @@ class LowRankRNN(nn.Module):
         with torch.no_grad():
             structure = (self.m @ self.n.t()).numpy()
             m, s, n = np.linalg.svd(structure, full_matrices=False)
-            m, s, n = m[:, :self.rank], s[:self.rank], n[:self.rank, :]
+            m, s, n = m[:, : self.rank], s[: self.rank], n[: self.rank, :]
             self.m.set_(torch.from_numpy(m * np.sqrt(s)))
             self.n.set_(torch.from_numpy(n.transpose() * np.sqrt(s)))
             self._define_proxy_parameters()
@@ -451,9 +549,26 @@ class SupportLowRankRNN(nn.Module):
     of the final distribution obtained is always zero). Affine transforms can be defined by setting biases.
     """
 
-    def __init__(self, input_size, hidden_size, output_size, noise_std, alpha, rank=1, n_supports=1, weights=None,
-                 gaussian_basis_dim=None, m_weights_init=None, n_weights_init=None, wi_weights_init=None,
-                 wo_weights_init=None, m_biases_init=None, n_biases_init=None, wi_biases_init=None, train_biases=False):
+    def __init__(
+        self,
+        input_size,
+        hidden_size,
+        output_size,
+        noise_std,
+        alpha,
+        rank=1,
+        n_supports=1,
+        weights=None,
+        gaussian_basis_dim=None,
+        m_weights_init=None,
+        n_weights_init=None,
+        wi_weights_init=None,
+        wo_weights_init=None,
+        m_biases_init=None,
+        n_biases_init=None,
+        wi_biases_init=None,
+        train_biases=False,
+    ):
         """
         :param input_size: int
         :param hidden_size: int
@@ -481,30 +596,40 @@ class SupportLowRankRNN(nn.Module):
         self.alpha = alpha
         self.rank = rank
         self.n_supports = n_supports
-        self.gaussian_basis_dim = 2 * rank + input_size if gaussian_basis_dim is None else gaussian_basis_dim
+        self.gaussian_basis_dim = (
+            2 * rank + input_size if gaussian_basis_dim is None else gaussian_basis_dim
+        )
         self.non_linearity = torch.tanh
 
-        self.gaussian_basis = nn.Parameter(torch.randn((self.gaussian_basis_dim, hidden_size)), requires_grad=False)
+        self.gaussian_basis = nn.Parameter(
+            torch.randn((self.gaussian_basis_dim, hidden_size)), requires_grad=False
+        )
         self.supports = nn.Parameter(torch.zeros((n_supports, hidden_size)), requires_grad=False)
         if weights is None:
             self.weights = nn.Parameter(torch.tensor([1 / hidden_size]))
             l_support = hidden_size // n_supports
             for i in range(n_supports):
-                self.supports[i, l_support * i: l_support * (i + 1)] = 1
+                self.supports[i, l_support * i : l_support * (i + 1)] = 1
             self.weights = [l_support / hidden_size] * n_supports
         else:
             k = 0
             self.weights = nn.Parameter(torch.tensor(weights), requires_grad=False)
             for i in range(n_supports):
-                self.supports[i, k: k + floor(weights[i] * hidden_size)] = 1
+                self.supports[i, k : k + floor(weights[i] * hidden_size)] = 1
                 k += floor(weights[i] * hidden_size)
 
         # Define parameters
-        self.wi_weights = nn.Parameter(torch.Tensor(input_size, n_supports, self.gaussian_basis_dim))
+        self.wi_weights = nn.Parameter(
+            torch.Tensor(input_size, n_supports, self.gaussian_basis_dim)
+        )
         self.m_weights = nn.Parameter(torch.Tensor(rank, n_supports, self.gaussian_basis_dim))
         self.n_weights = nn.Parameter(torch.Tensor(rank, n_supports, self.gaussian_basis_dim))
-        self.wo_weights = nn.Parameter(torch.Tensor(output_size, n_supports, self.gaussian_basis_dim))
-        self.wi_biases = nn.Parameter(torch.Tensor(input_size, n_supports), requires_grad=train_biases)
+        self.wo_weights = nn.Parameter(
+            torch.Tensor(output_size, n_supports, self.gaussian_basis_dim)
+        )
+        self.wi_biases = nn.Parameter(
+            torch.Tensor(input_size, n_supports), requires_grad=train_biases
+        )
         self.m_biases = nn.Parameter(torch.Tensor(rank, n_supports), requires_grad=train_biases)
         self.n_biases = nn.Parameter(torch.Tensor(rank, n_supports), requires_grad=train_biases)
         self.h0_weights = nn.Parameter(torch.Tensor(n_supports, self.gaussian_basis_dim))
@@ -545,13 +670,19 @@ class SupportLowRankRNN(nn.Module):
         self._define_proxy_parameters()
 
     def _define_proxy_parameters(self):
-        self.wi = torch.sum((self.wi_weights @ self.gaussian_basis) * self.supports, dim=(1,)) + \
-                  self.wi_biases @ self.supports
+        self.wi = (
+            torch.sum((self.wi_weights @ self.gaussian_basis) * self.supports, dim=(1,))
+            + self.wi_biases @ self.supports
+        )
         self.wi_full = self.wi
-        self.m = torch.sum((self.m_weights @ self.gaussian_basis) * self.supports, dim=(1,)).t() + \
-                 (self.m_biases @ self.supports).t()
-        self.n = torch.sum((self.n_weights @ self.gaussian_basis) * self.supports, dim=(1,)).t() + \
-                 (self.n_biases @ self.supports).t()
+        self.m = (
+            torch.sum((self.m_weights @ self.gaussian_basis) * self.supports, dim=(1,)).t()
+            + (self.m_biases @ self.supports).t()
+        )
+        self.n = (
+            torch.sum((self.n_weights @ self.gaussian_basis) * self.supports, dim=(1,)).t()
+            + (self.n_biases @ self.supports).t()
+        )
         self.wo = torch.sum((self.wo_weights @ self.gaussian_basis) * self.supports, dim=(1,)).t()
         self.wo_full = self.wo
         self.h0 = torch.sum((self.h0_weights @ self.gaussian_basis) * self.supports, dim=(0,))
@@ -560,10 +691,24 @@ class SupportLowRankRNN(nn.Module):
         return simulation_loop(self, input)
 
     def clone(self):
-        new_net = SupportLowRankRNN(self.input_size, self.hidden_size, self.output_size, self.noise_std, self.alpha,
-                                    self.rank, self.n_supports, self.weights.tolist(), self.gaussian_basis_dim,
-                                    self.m_weights, self.n_weights, self.wi_weights, self.wo_weights, self.m_biases,
-                                    self.n_biases, self.wi_biases)
+        new_net = SupportLowRankRNN(
+            self.input_size,
+            self.hidden_size,
+            self.output_size,
+            self.noise_std,
+            self.alpha,
+            self.rank,
+            self.n_supports,
+            self.weights.tolist(),
+            self.gaussian_basis_dim,
+            self.m_weights,
+            self.n_weights,
+            self.wi_weights,
+            self.wo_weights,
+            self.m_biases,
+            self.n_biases,
+            self.wi_biases,
+        )
         new_net.gaussian_basis.copy_(self.gaussian_basis)
         new_net._define_proxy_parameters()
         return new_net
@@ -586,11 +731,33 @@ class SupportLowRankRNN_withMask(nn.Module):
     by adding a mask.
     """
 
-    def __init__(self, input_size, hidden_size, output_size, noise_std, alpha, rank=1, n_supports=1,
-                 gaussian_basis_dim=None, initial_m=None, initial_n=None, initial_unitm=None, initial_unitn=None,
-                 initial_wi=None, initial_unitwi=None, initial_wo=None,
-                 initial_h0=None, initial_unith0=None, initial_bias=None, train_h0=False, train_bias=False,
-                 initial_wi_mask=None, initial_wo_mask=None, initial_m_mask=None, initial_n_mask=None):
+    def __init__(
+        self,
+        input_size,
+        hidden_size,
+        output_size,
+        noise_std,
+        alpha,
+        rank=1,
+        n_supports=1,
+        gaussian_basis_dim=None,
+        initial_m=None,
+        initial_n=None,
+        initial_unitm=None,
+        initial_unitn=None,
+        initial_wi=None,
+        initial_unitwi=None,
+        initial_wo=None,
+        initial_h0=None,
+        initial_unith0=None,
+        initial_bias=None,
+        train_h0=False,
+        train_bias=False,
+        initial_wi_mask=None,
+        initial_wo_mask=None,
+        initial_m_mask=None,
+        initial_n_mask=None,
+    ):
         super(SupportLowRankRNN_withMask, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
@@ -599,15 +766,19 @@ class SupportLowRankRNN_withMask(nn.Module):
         self.alpha = alpha
         self.rank = rank
         self.n_supports = n_supports
-        self.gaussian_basis_dim = 2 * rank + input_size if gaussian_basis_dim is None else gaussian_basis_dim
+        self.gaussian_basis_dim = (
+            2 * rank + input_size if gaussian_basis_dim is None else gaussian_basis_dim
+        )
         self.non_linearity = torch.tanh
 
-        self.gaussian_basis = nn.Parameter(torch.randn((self.gaussian_basis_dim, hidden_size)), requires_grad=False)
+        self.gaussian_basis = nn.Parameter(
+            torch.randn((self.gaussian_basis_dim, hidden_size)), requires_grad=False
+        )
         self.unit_vector = nn.Parameter(torch.ones((1, hidden_size)), requires_grad=False)
         self.supports = nn.Parameter(torch.zeros((n_supports, hidden_size)), requires_grad=False)
         l_support = hidden_size // n_supports
         for i in range(n_supports):
-            self.supports[i, l_support * i: l_support * (i + 1)] = 1
+            self.supports[i, l_support * i : l_support * (i + 1)] = 1
 
         # Define parameters
         self.wi = nn.Parameter(torch.Tensor(input_size, n_supports, self.gaussian_basis_dim))
@@ -621,14 +792,26 @@ class SupportLowRankRNN_withMask(nn.Module):
         self.unith0 = nn.Parameter(torch.Tensor(n_supports, 1))
         self.bias = nn.Parameter(torch.Tensor(n_supports, 1))
 
-        self.wi_mask = nn.Parameter(torch.Tensor(input_size, n_supports, self.gaussian_basis_dim), requires_grad=False)
-        self.unitwi_mask = nn.Parameter(torch.Tensor(input_size, n_supports, 1), requires_grad=False)
-        self.m_mask = nn.Parameter(torch.Tensor(rank, n_supports, self.gaussian_basis_dim), requires_grad=False)
-        self.n_mask = nn.Parameter(torch.Tensor(rank, n_supports, self.gaussian_basis_dim), requires_grad=False)
+        self.wi_mask = nn.Parameter(
+            torch.Tensor(input_size, n_supports, self.gaussian_basis_dim), requires_grad=False
+        )
+        self.unitwi_mask = nn.Parameter(
+            torch.Tensor(input_size, n_supports, 1), requires_grad=False
+        )
+        self.m_mask = nn.Parameter(
+            torch.Tensor(rank, n_supports, self.gaussian_basis_dim), requires_grad=False
+        )
+        self.n_mask = nn.Parameter(
+            torch.Tensor(rank, n_supports, self.gaussian_basis_dim), requires_grad=False
+        )
         self.unitm_mask = nn.Parameter(torch.Tensor(rank, n_supports, 1), requires_grad=False)
         self.unitn_mask = nn.Parameter(torch.Tensor(rank, n_supports, 1), requires_grad=False)
-        self.wo_mask = nn.Parameter(torch.Tensor(output_size, n_supports, self.gaussian_basis_dim), requires_grad=False)
-        self.h0_mask = nn.Parameter(torch.Tensor(n_supports, self.gaussian_basis_dim), requires_grad=False)
+        self.wo_mask = nn.Parameter(
+            torch.Tensor(output_size, n_supports, self.gaussian_basis_dim), requires_grad=False
+        )
+        self.h0_mask = nn.Parameter(
+            torch.Tensor(n_supports, self.gaussian_basis_dim), requires_grad=False
+        )
         self.unith0_mask = nn.Parameter(torch.Tensor(n_supports, 1), requires_grad=False)
         self.bias_mask = nn.Parameter(torch.Tensor(n_supports, 1), requires_grad=False)
 
@@ -645,15 +828,20 @@ class SupportLowRankRNN_withMask(nn.Module):
                 if initial_wi_mask is not None:
                     maskc = initial_wi_mask
                 else:
-                    maskc = torch.where(initial_wi != 0, torch.ones_like(initial_wi), torch.zeros_like(initial_wi))
+                    maskc = torch.where(
+                        initial_wi != 0, torch.ones_like(initial_wi), torch.zeros_like(initial_wi)
+                    )
                 self.wi_mask.copy_(maskc)
             else:
                 self.wi.zero_()
                 self.wi_mask.zero_()
             if initial_unitwi is not None:
                 self.unitwi.copy_(initial_unitwi)
-                maskc = torch.where(initial_unitwi != 0, torch.ones_like(initial_unitwi),
-                                    torch.zeros_like(initial_unitwi))
+                maskc = torch.where(
+                    initial_unitwi != 0,
+                    torch.ones_like(initial_unitwi),
+                    torch.zeros_like(initial_unitwi),
+                )
                 self.unitwi_mask.copy_(maskc)
             else:
                 self.unitwi.zero_()
@@ -663,7 +851,9 @@ class SupportLowRankRNN_withMask(nn.Module):
                 if initial_m_mask is not None:
                     maskc = initial_m_mask
                 else:
-                    maskc = torch.where(initial_m != 0, torch.ones_like(initial_m), torch.zeros_like(initial_m))
+                    maskc = torch.where(
+                        initial_m != 0, torch.ones_like(initial_m), torch.zeros_like(initial_m)
+                    )
                 self.m_mask.copy_(maskc)
             else:
                 self.m.zero_()
@@ -673,21 +863,31 @@ class SupportLowRankRNN_withMask(nn.Module):
                 if initial_n_mask is not None:
                     maskc = initial_n_mask
                 else:
-                    maskc = torch.where(initial_n != 0, torch.ones_like(initial_n), torch.zeros_like(initial_n))
+                    maskc = torch.where(
+                        initial_n != 0, torch.ones_like(initial_n), torch.zeros_like(initial_n)
+                    )
                 self.n_mask.copy_(maskc)
             else:
                 self.n.zero_()
                 self.n_mask.zero_()
             if initial_unitm is not None:
                 self.unitm.copy_(initial_unitm)
-                maskc = torch.where(initial_unitm != 0, torch.ones_like(initial_unitm), torch.zeros_like(initial_unitm))
+                maskc = torch.where(
+                    initial_unitm != 0,
+                    torch.ones_like(initial_unitm),
+                    torch.zeros_like(initial_unitm),
+                )
                 self.unitm_mask.copy_(maskc)
             else:
                 self.unitm.zero_()
                 self.unitm_mask.zero_()
             if initial_unitn is not None:
                 self.unitn.copy_(initial_unitn)
-                maskc = torch.where(initial_unitn != 0, torch.ones_like(initial_unitn), torch.zeros_like(initial_unitn))
+                maskc = torch.where(
+                    initial_unitn != 0,
+                    torch.ones_like(initial_unitn),
+                    torch.zeros_like(initial_unitn),
+                )
                 self.unitn_mask.copy_(maskc)
             else:
                 self.unitn.zero_()
@@ -697,48 +897,71 @@ class SupportLowRankRNN_withMask(nn.Module):
                 if initial_wo_mask is not None:
                     maskc = initial_wo_mask
                 else:
-                    maskc = torch.where(initial_wo != 0, torch.ones_like(initial_wo), torch.zeros_like(initial_wo))
+                    maskc = torch.where(
+                        initial_wo != 0, torch.ones_like(initial_wo), torch.zeros_like(initial_wo)
+                    )
                 self.wo_mask.copy_(maskc)
             else:
                 self.wo.zero_()
                 self.wo_mask.zero_()
             if initial_h0 is not None:
                 self.h0.copy_(initial_h0)
-                maskc = torch.where(initial_h0 != 0, torch.ones_like(initial_h0), torch.zeros_like(initial_h0))
+                maskc = torch.where(
+                    initial_h0 != 0, torch.ones_like(initial_h0), torch.zeros_like(initial_h0)
+                )
                 self.h0_mask.copy_(maskc)
             else:
                 self.h0.zero_()
                 self.h0_mask.zero_()
             if initial_unith0 is not None:
                 self.unith0.copy_(initial_unith0)
-                maskc = torch.where(initial_unith0 != 0, torch.ones_like(initial_unith0),
-                                    torch.zeros_like(initial_unith0))
+                maskc = torch.where(
+                    initial_unith0 != 0,
+                    torch.ones_like(initial_unith0),
+                    torch.zeros_like(initial_unith0),
+                )
                 self.unith0_mask.copy_(maskc)
             else:
                 self.unith0.zero_()
                 self.unith0_mask.zero_()
             if initial_bias is not None:
                 self.bias.copy_(initial_bias)
-                maskc = torch.where(initial_bias != 0, torch.ones_like(initial_bias), torch.zeros_like(initial_bias))
+                maskc = torch.where(
+                    initial_bias != 0, torch.ones_like(initial_bias), torch.zeros_like(initial_bias)
+                )
                 self.bias_mask.copy_(maskc)
             else:
                 self.bias.zero_()
                 self.bias_mask.zero_()
 
-        self.wi_full, self.m_rec, self.n_rec, self.wo_full, self.w_rec, self.h0_full, self.bias_full = [None] * 7
+        (
+            self.wi_full,
+            self.m_rec,
+            self.n_rec,
+            self.wo_full,
+            self.w_rec,
+            self.h0_full,
+            self.bias_full,
+        ) = [None] * 7
         self.define_proxy_parameters()
 
     def define_proxy_parameters(self):
-        self.wi_full = torch.sum((self.wi @ self.gaussian_basis) * self.supports, dim=(1,)) + \
-                       torch.sum((self.unitwi @ self.unit_vector) * self.supports, dim=(1,))
-        self.m_rec = torch.sum((self.m @ self.gaussian_basis) * self.supports, dim=(1,)).t() + \
-                     torch.sum((self.unitm @ self.unit_vector) * self.supports, dim=(1,)).t()
-        self.n_rec = torch.sum((self.n @ self.gaussian_basis) * self.supports, dim=(1,)).t() + \
-                     torch.sum((self.unitn @ self.unit_vector) * self.supports, dim=(1,)).t()
+        self.wi_full = torch.sum(
+            (self.wi @ self.gaussian_basis) * self.supports, dim=(1,)
+        ) + torch.sum((self.unitwi @ self.unit_vector) * self.supports, dim=(1,))
+        self.m_rec = (
+            torch.sum((self.m @ self.gaussian_basis) * self.supports, dim=(1,)).t()
+            + torch.sum((self.unitm @ self.unit_vector) * self.supports, dim=(1,)).t()
+        )
+        self.n_rec = (
+            torch.sum((self.n @ self.gaussian_basis) * self.supports, dim=(1,)).t()
+            + torch.sum((self.unitn @ self.unit_vector) * self.supports, dim=(1,)).t()
+        )
         self.wo_full = torch.sum((self.wo @ self.gaussian_basis) * self.supports, dim=(1,)).t()
         self.w_rec = self.m_rec.matmul(self.n_rec.t())
-        self.h0_full = torch.sum((self.h0 @ self.gaussian_basis) * self.supports, dim=(0,)) + \
-                       torch.sum((self.unith0 @ self.unit_vector) * self.supports, dim=(0,))
+        self.h0_full = torch.sum(
+            (self.h0 @ self.gaussian_basis) * self.supports, dim=(0,)
+        ) + torch.sum((self.unith0 @ self.unit_vector) * self.supports, dim=(0,))
         self.bias_full = torch.sum((self.bias @ self.unit_vector) * self.supports, dim=(0,))
 
     def forward(self, input):
@@ -753,11 +976,13 @@ class SupportLowRankRNN_withMask(nn.Module):
 
         # simulation loop
         for i in range(seq_len):
-            h = h + \
-                self.bias_full + \
-                self.noise_std * noise[:, i, :] + self.alpha * (-h + r.matmul(self.w_rec.t()) + \
-                input[:, i, :].matmul(self.wi_full))
-                    
+            h = (
+                h
+                + self.bias_full
+                + self.noise_std * noise[:, i, :]
+                + self.alpha * (-h + r.matmul(self.w_rec.t()) + input[:, i, :].matmul(self.wi_full))
+            )
+
             r = self.non_linearity(h)
             output[:, i, :] = r.matmul(self.wo_full)
             trajectories[:, i, :] = h
@@ -765,11 +990,26 @@ class SupportLowRankRNN_withMask(nn.Module):
         return output, trajectories
 
     def clone(self):
-        new_net = SupportLowRankRNN_withMask(self.input_size, self.hidden_size, self.output_size, self.noise_std,
-                                             self.alpha,
-                                             self.rank, self.n_supports, self.gaussian_basis_dim, self.m, self.n,
-                                             self.unitm, self.unitn, self.wi,
-                                             self.unitwi, self.wo, self.h0, self.unith0, self.bias)
+        new_net = SupportLowRankRNN_withMask(
+            self.input_size,
+            self.hidden_size,
+            self.output_size,
+            self.noise_std,
+            self.alpha,
+            self.rank,
+            self.n_supports,
+            self.gaussian_basis_dim,
+            self.m,
+            self.n,
+            self.unitm,
+            self.unitn,
+            self.wi,
+            self.unitwi,
+            self.wo,
+            self.h0,
+            self.unith0,
+            self.bias,
+        )
         new_net.gaussian_basis.copy_(self.gaussian_basis)
         new_net.define_proxy_parameters()
         return new_net
@@ -787,33 +1027,41 @@ class SupportLowRankRNN_withMask(nn.Module):
 
     def orthogonalize_basis(self):
         for i in range(self.n_supports):
-            gaussian_chunk = self.gaussian_basis[:, self.supports[i] == 1].view(self.gaussian_basis_dim, -1)
+            gaussian_chunk = self.gaussian_basis[:, self.supports[i] == 1].view(
+                self.gaussian_basis_dim, -1
+            )
             gram_schmidt_pt(gaussian_chunk)
             self.gaussian_basis[:, self.supports[i] == 1] = gaussian_chunk
         self.gaussian_basis *= sqrt(self.hidden_size // self.n_supports)
         self.define_proxy_parameters()
-        
-        
+
+
 def simulation_loop(model, input):
     batch_size = input.shape[0]
     seq_len = input.shape[1]
     h = model.h0
     r = model.non_linearity(h)
-    
+
     noise = torch.randn(batch_size, seq_len, model.hidden_size, device=model.m.device)
     output = torch.zeros(batch_size, seq_len, model.output_size, device=model.m.device)
     trajectories = torch.zeros(batch_size, seq_len, model.hidden_size, device=model.m.device)
-    
+
     for i in range(seq_len):
-        h = h + \
-            model.noise_std * noise[:, i, :] + \
-            model.alpha * (-h + r.matmul(model.n).matmul(model.m.t()) / model.hidden_size + \
-            input[:, i, :].matmul(model.wi_full))
-                
+        h = (
+            h
+            + model.noise_std * noise[:, i, :]
+            + model.alpha
+            * (
+                -h
+                + r.matmul(model.n).matmul(model.m.t()) / model.hidden_size
+                + input[:, i, :].matmul(model.wi_full)
+            )
+        )
+
         r = model.non_linearity(h)
         output[:, i, :] = r.matmul(model.wo_full) / model.hidden_size
         trajectories[:, i, :] = h
-        
+
     return output, trajectories
 
 
@@ -822,9 +1070,29 @@ class OptimizedLowRankRNN(nn.Module):
     LowRankRNN class with a different definition of scalings (see caption of SI Fig. about the 3-population Ctx net)
     """
 
-    def __init__(self, input_size, hidden_size, output_size, noise_std, alpha, rho=0., rank=1,
-                 train_wi=False, train_wo=False, train_wrec=True, train_h0=False, train_si=True, train_so=True,
-                 wi_init=None, wo_init=None, m_init=None, n_init=None, si_init=None, so_init=None, h0_init=None):
+    def __init__(
+        self,
+        input_size,
+        hidden_size,
+        output_size,
+        noise_std,
+        alpha,
+        rho=0.0,
+        rank=1,
+        train_wi=False,
+        train_wo=False,
+        train_wrec=True,
+        train_h0=False,
+        train_si=True,
+        train_so=True,
+        wi_init=None,
+        wo_init=None,
+        m_init=None,
+        n_init=None,
+        si_init=None,
+        so_init=None,
+        h0_init=None,
+    ):
         """
         :param input_size: int
         :param hidden_size: int
@@ -939,26 +1207,46 @@ class OptimizedLowRankRNN(nn.Module):
         self.define_proxy_parameters()
         noise = torch.randn(batch_size, seq_len, self.hidden_size, device=self.m.device)
         output = torch.zeros(batch_size, seq_len, self.output_size, device=self.m.device)
-        trajectories = torch.zeros(batch_size, seq_len+1, self.hidden_size, device=self.m.device)
+        trajectories = torch.zeros(batch_size, seq_len + 1, self.hidden_size, device=self.m.device)
         trajectories[:, 0, :] = h
 
         # simulation loop
         for i in range(seq_len):
-            h = h + \
-                self.noise_std * noise[:, i, :] + \
-                self.alpha * (-h + r.matmul(self.n).matmul(self.m.t()) + \
-                input[:, i, :].matmul(self.wi_full))
-                    
+            h = (
+                h
+                + self.noise_std * noise[:, i, :]
+                + self.alpha
+                * (-h + r.matmul(self.n).matmul(self.m.t()) + input[:, i, :].matmul(self.wi_full))
+            )
+
             r = self.non_linearity(h)
             output[:, i, :] = r.matmul(self.wo_full)
-            trajectories[:, i+1, :] = h
+            trajectories[:, i + 1, :] = h
 
         return output, trajectories
 
     def clone(self):
-        new_net = OptimizedLowRankRNN(self.input_size, self.hidden_size, self.output_size, self.noise_std, self.alpha,
-                             self.rho, self.rank, self.train_wi, self.train_wo, self.train_wrec, self.train_h0,
-                             self.train_si, self.train_so, self.wi, self.wo, self.m, self.n, self.si, self.so)
+        new_net = OptimizedLowRankRNN(
+            self.input_size,
+            self.hidden_size,
+            self.output_size,
+            self.noise_std,
+            self.alpha,
+            self.rho,
+            self.rank,
+            self.train_wi,
+            self.train_wo,
+            self.train_wrec,
+            self.train_h0,
+            self.train_si,
+            self.train_so,
+            self.wi,
+            self.wo,
+            self.m,
+            self.n,
+            self.si,
+            self.so,
+        )
         new_net.define_proxy_parameters()
         return new_net
 
@@ -979,7 +1267,7 @@ class OptimizedLowRankRNN(nn.Module):
         with torch.no_grad():
             structure = (self.m @ self.n.t()).numpy()
             m, s, n = np.linalg.svd(structure, full_matrices=False)
-            m, s, n = m[:, :self.rank], s[:self.rank], n[:self.rank, :]
+            m, s, n = m[:, : self.rank], s[: self.rank], n[: self.rank, :]
             self.m.set_(torch.from_numpy(m * np.sqrt(s)))
             self.n.set_(torch.from_numpy(n.transpose() * np.sqrt(s)))
             self.define_proxy_parameters()

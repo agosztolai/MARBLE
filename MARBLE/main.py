@@ -33,7 +33,8 @@ class net(nn.Module):
     lr: iniital learning rate (default=0.01)
     momentum: momentum (default=0.9)
     diffusion: set to True to use diffusion layer before gradient computation (default=False)
-    include_positions: (default=False)
+    include_positions: include positions as features (warning: this is untested!) (default=False)
+    include_self: include vector at the center of feature (default=True)
 
     # manifold/signal parameters
     order: order to which to compute the directional derivatives (default=2)
@@ -199,7 +200,7 @@ class net(nn.Module):
 
         if self.params["include_positions"]:
             cum_channels += d
-            
+
         if not self.params['include_self']:
             cum_channels -= s
 

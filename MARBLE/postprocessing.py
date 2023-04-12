@@ -34,7 +34,7 @@ def distribution_distances(data, cluster_typ="kmeans", n_clusters=None, seed=0):
         data.dist, data.gamma = g.compute_distribution_distances(
             clusters=clusters, slices=clusters["slices"]
         )
-        
+
         data.clusters = clusters
 
     else:
@@ -57,7 +57,7 @@ def embed_in_2D(data, embed_typ="umap", manifold=None, seed=0):
     embed_typ : string, optional
         Embedding algorithm to use (tsne, umap, PCA)
     manifold : sklearn object, optional
-        Manifold object returned by some embedding algorithms (PCA, umap). 
+        Manifold object returned by some embedding algorithms (PCA, umap).
         Useful when trying to compare datasets.
     seed : int, optional
         Random seed. The default is 0.
@@ -71,8 +71,8 @@ def embed_in_2D(data, embed_typ="umap", manifold=None, seed=0):
         emb = np.vstack([d.emb for d in data])
     else:
         emb = data.emb
-    
-    if hasattr(data, 'clusters'):
+
+    if hasattr(data, "clusters"):
         clusters = data.clusters
         emb = np.vstack([emb, clusters["centroids"]])
         emb_2D, data.manifold = g.embed(emb, embed_typ=embed_typ, manifold=manifold, seed=seed)
@@ -80,12 +80,11 @@ def embed_in_2D(data, embed_typ="umap", manifold=None, seed=0):
             emb_2D[: -clusters["n_clusters"]],
             emb_2D[-clusters["n_clusters"] :],
         )
-        
+
     else:
         data.emb_2D, data.manifold = g.embed(emb, embed_typ=embed_typ, manifold=manifold, seed=seed)
-        
+
     return data
-        
 
 
 # def compare_attractors(data, source_target):
