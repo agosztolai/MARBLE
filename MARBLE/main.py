@@ -22,7 +22,7 @@ from MARBLE import utils
 class net(nn.Module):
     """MARBLE neural network.
 
-    The possible parameters and their default values are described below, 
+    The possible parameters and their default values are described below,
     and can be accessed via the `params` dictionnary in this class constructor.
 
     Parameters
