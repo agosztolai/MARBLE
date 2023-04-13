@@ -129,7 +129,7 @@ def main():
                 # adding trial id info (to match with kinematics decoding later)
                 trial_indexes[c].append(np.repeat(trial_ids[day][cond][t], trial.shape[0] - 1))
 
-        # plt.quiver(pos[0][1][:,0],pos[0][1][:,1],vel[0][1][:,0],vel[0][1][:,1], angles='xy')
+
 
         # stack the trials within each condition
         pos = [np.vstack(u) for u in pos]  # trials x time x channels
@@ -192,7 +192,7 @@ def main():
         all_trial_ids.append(np.hstack(trial_indexes))
         all_sampled_ids.append(data.sample_ind)
 
-        with open("../../outputs/spiking_data/session_{}_20ms.pkl".format(day), "wb") as handle:
+        with open("../../outputs/spiking_data/marble_embeddings_20ms_out3.pkl", "wb") as handle:
             pickle.dump(
                 [
                     distance_matrices[-1],
@@ -206,7 +206,7 @@ def main():
                 protocol=pickle.HIGHEST_PROTOCOL,
             )
 
-    with open("../../outputs/spiking_data/session_{}_20ms.pkl".format(day), "wb") as handle:
+    with open("../../outputs/spiking_data/marble_embeddings_20ms_out3.pkl", "wb") as handle:
         pickle.dump(
             [
                 distance_matrices,
