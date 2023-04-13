@@ -3,8 +3,8 @@
 MARBLE is a fully unsupervised geometric deep learning method that can 
 
 1. intrincally represent vector fields over manifolds, such as those arising in neural recordings or dissipative dynamical systems, but it is not limited to dynamical systems
-2. perform unbiased comparisons across dynamical systems or parameter conditions by jointly embedding representations
-3. can operate in geometry-aware of geometry-agnostic mode to test the contribution of manifold dynamics and geometry.
+2. perform unbiased comparisons across dynamical systems or parameter conditions by jointly embedded representations
+3. can operate in geometry-aware or geometry-agnostic modes to test the contribution of manifold dynamics and geometry.
 
 The code is built around [PyG (PyTorch Geometric)](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html).
 
@@ -26,7 +26,7 @@ If you find this package useful or inspirational, please cite our work as follow
 
 ## Installation
 
-We recommend you install the code on a fresh Anaconda virtual environment, as follows.
+We recommend you install the code in a fresh Anaconda virtual environment, as follows.
 
 First, clone this repository, 
 
@@ -57,14 +57,14 @@ pip install .
 
 ## Quick start
 
-We suggest you study at least the scripts of a [simple vector fields over flat surfaces](https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_flat_surface.py) and [simple vector fields over curved surfaces](https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_curved_surface.py) to understand what behaviour to expect.
+We suggest you study at least the example of a [simple vector fields over flat surfaces](https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_flat_surface.py) to understand what behaviour to expect.
 
 Briefly, MARBLE takes two inputs
 
 1. `pos` - a list of `nxd` arrays, each defining a point cloud describing the geometry of a manifold
-2. `vel` - a list of `nxD` arrays, defining a signal over the respective manifolds in 1. For vector fields D=d, but our code can also handle signals of other dimensions. Read more about [inputs](#inputs) and [different conditions](#conditions).
+2. `x` - a list of `nxD` arrays, defining a signal over the respective manifolds in 1. For dynamical systems, D=d, but our code can also handle signals of other dimensions. Read more about [inputs](#inputs) and [different conditions](#conditions).
 
-Then construct a dataset for MARBLE.
+Using these inputs, you can construct a dataset for MARBLE.
 
 ```
 import MARBLE 
@@ -73,7 +73,7 @@ data = MARBLE.construct_dataset(pos, features=vel)
 
 The main attributes are `data.pos` - manifold positions concatenated, `data.x` - manifold signals concatenated and `data.y` - identifiers that tell you which manifold the poitn belongs to. Read more about [other usedul data attributed](#construct).
 
-Now you can initialise and train a MARBLE model. 
+Now you can initialise and train a MARBLE model. Read more about [training parameters](#training).
 
 ```
 from MARBLE import net
@@ -113,25 +113,34 @@ plotting.embedding(data, data.y.numpy()) #visualise embedding
 
 There are loads of parameters to adjust these plots, so have a look at the respective functions.
 
+## Examples
+
+The folder [/examples](https://github.com/agosztolai/MARBLE/tree/main/examples) contains scripts for some basic examples and other scripts to reproduce the results in our paper.
+
+
+## Further details
+
 <a name="inputs"></a>
 ### More on inputs
 
 If you measure time series observables, such as neural firing rates, you can start with a list of variable length time series under a given condition, e.g., `ts_1`, `ts_2`. We assume these are measurements from the same dynamical system, i.e., the sample points making up these trajectories are drawn from the same manifold, defining its shape `pos = np.vstack([ts_1, ts_2])`.
 
-If you do not directly have access to the velocities, you can approximate them as `vel = np.vstack([np.diff(ts_1, axis=0), np.diff(ts_2, axis=0)])` and take `pos = np.vstack([ts_1[:-1,:], ts_2[:-1,:]])` to ensure `pos` and `vel` have the same length. 
+If you do not directly have access to the velocities, you can approximate them as `x = np.vstack([np.diff(ts_1, axis=0), np.diff(ts_2, axis=0)])` and take `pos = np.vstack([ts_1[:-1,:], ts_2[:-1,:]])` to ensure `pos` and `x` have the same length. 
+
+If you just want to play around with dynamical systems, why not try our (experimental) [sister package] DE_library(https://github.com/agosztolai/DE_library).
 
 <a name="conditions"></a>
 ### More on different conditions
 
 Comparing dynamics in a data-driven way is equivalent to comparing the corresponding vector fields based on their respective sample sets. The dynamics to be compared might correspond to different experimental conditions (stimulation conditions, genetic perturbations etc.), dynamical systems (different task, different brain region).
 
-Suppose we have the data pairs `pos1, pos2` and `vel2, vel2`. Then we may concatenate them as a list to ensure that our pipeline handles them independently (on different manifolds), but embeds them jointly in the same space.
+Suppose we have the data pairs `pos1, pos2` and `x1, x2`. Then we may concatenate them as a list to ensure that our pipeline handles them independently (on different manifolds), but embeds them jointly in the same space.
 
 ```
-x_list, v_list = [x1, x2], [v1, v2]
+pos_list, x_list = [pos1, pos2], [x1, x2]
 ```
 
-Note, it is sometimes useful to consider that two vector fields lie on independent manifolds when we want to discover the contrary. However, when we know that two vector fields lie on the same manifold, then it can be advantageous to stack their corresponding samples, rather than providing them as a list, as this will enforce geometric relationships between them.
+Note, it is sometimes useful to consider that two vector fields lie on independent manifolds (providing them as a list) even when we want to *discover* the contrary. However, when we know that two vector fields lie on the same manifold, then it can be advantageous to stack their corresponding samples (stacking them) as this will enforce geometric relationships between them through the proximity graph.
 
 <a name="construct"></a>
 ### More on constructing data object
@@ -140,30 +149,35 @@ Our pipleline is build around a Pytorch Geometric data object, which we can obta
 
 ```
 import MARBLE 
-data = MARBLE.construct_dataset(pos, features=vel, graph_type='cknn', k=15, stop_crit=0.03, local_gauge=False)
+data = MARBLE.construct_dataset(pos, features=x, stop_crit=0.03, graph_type='cknn', k=15, local_gauge=False)
 ```
 
-This command will first subsample each point cloud using farthest point sampling to achive even sampling. Using `stop_crit=0.03` means the average distance between the subsampled points will equal to 3% of the manifold diameter. Then it will fit a nearest neighbour graph to each point cloud, here using the `cknn` method using `k=15` nearest neighbours. 
+This command will do several things.
 
-The final argument, `curvature=False` means that local patches will be treated as flat Euclidean spaces. Setting `curvature=True` can be useful when the sampling is sparse relative to the manifold curvature, however, this will increase the cost of the computations.
+1. Subsample the point cloud using farthest point sampling to achieve even sampling density. Using `stop_crit=0.03` means the average distance between the subsampled points will equal to 3% of the manifold diameter.
+2. Fit a nearest neighbour graph to each point cloud, here using the `graph_type=cknn` method using `k=15` nearest neighbours. We implemented other graph algorithms, but cknn typically works. Note, `k` should be large enough to approximate the tangent space, but small enough not to connect (geodesically) distant points of the manifold. The more data you have the higher `k` you can use.
+3. Perform operations in local (manifold) gauges or global coordinates. Note that `local_gauge=False` should be used whenever the manifold has negligible curvature on the scale of the local feature. Setting `local_gauge=True` means that the code performs tangent space alignments before computing gradients, however, this will increase the cost of the computations $m^2$-fold, where $m$ is the manifold dimension, because points will be treated as vector spaces. See the example of a [simple vector fields over curved surfaces](https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_curved_surface.py) for illustration.
 
-The final data object contains the following attributes:
+
+The final data object contains the following attributes (among others):
 
 ```
-data.pos: positions x
-data.x: vectors v
+data.pos: positions `pos` concatenated across manifolds
+data.x: vectors `x` concatenated across manifolds
 data.y: labels for each points denoting which manifold it belongs to
+data.edge_index: edge list of proximity graph (each manifold gets its own graph, disconnected from others)
+data.gauges: local coordinate bases when `local_gauge=True`
 ```
 
+<a name="training"></a>
 ### Training
 
 You are ready to train! This is straightforward.
 
-You first specify the hyperparameters. The key ones are the following (see `/MARBLE/default_params.yaml` for a complete list), which will work for many settings.
+You first specify the hyperparameters. The key ones are the following, which will work for many settings, but see [here](https://github.com/agosztolai/MARBLE/blob/main/MARBLE/default_params.yaml) for a complete list.
 
 ```
 params = {'epochs': 50, #optimisation epochs
-          'order': 2, #order of derivatives
           'hidden_channels': 32, #number of internal dimensions in MLP
           'out_channels': 5,
           'inner_product_features': True,
@@ -174,7 +188,7 @@ params = {'epochs': 50, #optimisation epochs
 Then proceed by constructing a network object
 
 ```
-model = MARBLE.net(data, params=params) #loadpath='model_large' )
+model = MARBLE.net(data, params=params)
 ```
 
 Finally, launch training. The code will continuously save checkpoints during training with timestamps. 
@@ -189,31 +203,29 @@ If you have previously trained a network, you can skip the training step and loa
 model = MARBLE.net(data, loadpath=loadpath, params=params)
 ```
 
-where loadpath can be either a path to the model (with a specific timestamp, or a directory to automatically load the last model.
+where loadpath can be either a path to the model (with a specific timestamp, or a directory to automatically load the latest model.
 
-### Evaluating the network
+### Troubleshooting guide
 
-A given network can be evaluated on the data on which it was trained on or another dataset (currently not tested). The following line appends a `data.emb` attribute, which is an `nxout_channels` matrix containing the embeddings for individual sample points in all datasets. 
+Training is successful when features are recognised to be similar across distinct vector fields, with their own manifolds and independent proximity graphs. To achieve this, follow these useful pieces of advice (mostly general ML practises):
 
-```
-data = model.evaluate(data)
-```
+1. Check that traning has converged, i.e., the validation loss is no longer decreasing.
+2. Check that convergence is smooth, i.e., there are no big jumps in the validation loss.
+3. Check that that there is no big gap between training loss and validation loss (generalisation gap). 
 
-To recover the identity of the datasets, use `data.y`, e.g., `data.emb[data.y==0]` to obtain the embedding for the vector field over the first manifold.
+Seeing problems with the above would be possible signs your solution will be suboptimal and will likely not generalise well. If you see either of these, try the following
+ * increase training time (increase `epochs`)
+ * increase your data (e.g., decrease `stop_crit` and construct dataset again)
+ * decrease number of parameters (decrease `hidden_channels`, or decrease order, try `order=1`)
+ * improve the gradient approximation (increase `k`, but see above)
+ * disable local gauges (`local_gauge=False`)
 
-We can also run postprocessing, which computes the distributional distances between the datasets.
+If you still do not get good convergence, your data may be very noisy.
+ * Try enabling diffusion (`diffusion=True` in training `params`)
 
-```
-data = postprocessing(data)
-```
+If this still does not work, check if there are very small or very large vector magnitudes in your dataset, filter them out and try again. 
 
-Now we should have a `data.dist` attribute corresponding to a symmetric distance matrix. We can also use an optional `n_clusters` argument to apply a k-means kernel to the embedded points before computing distance, which we found to improve performance.
-
-## Examples
-
-The folder `/examples` contains scripts for some basic examples and reproduction.
-
-To get more intuition of MARBLE, we suggest you start by running `ex_vector_field_flat_surface.py` or `ex_vector_field_curved_surface.py`.
+If all hopes are lost, or if you want to chat about your use case, get in touch or raise an issue! We are happy to help.
 
 
 ## References
