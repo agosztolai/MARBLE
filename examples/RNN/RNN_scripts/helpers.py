@@ -73,13 +73,13 @@ def generate_trajectories(
 
     if fname is not None:
         if os.path.exists(fname):
+            print('Trajectory file found with same name. Loading...')
             return pickle.load(open(fname, "rb"))
 
     traj = []
     for i in range(len(input)):
         conds = []
         for _ in range(n_traj):
-            # net.h0.data = torch.rand(size=net.h0.data.shape) #random ic
             _, traj_ = net(input[i].unsqueeze(0))
             traj_ = traj_.squeeze().detach().numpy()
             traj_epoch = [traj_[e : epochs[j + 1]] for j, e in enumerate(epochs[:-1])]

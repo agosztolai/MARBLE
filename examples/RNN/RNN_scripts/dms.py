@@ -231,7 +231,7 @@ def remove_axes(ax):
     ax.set(xticks=[], yticks=[])
 
 
-def _plot_field(net, input, ax, sizes=1.0, rect=(-5, 5, -4, 4), scalings=False):
+def _plot_field(net, input, ax, sizes=1.0, rect=(-5, 5, -4, 4), scalings=True):
 
     m1 = net.m[:, 0].detach().numpy()
     m2 = net.m[:, 1].detach().numpy()
