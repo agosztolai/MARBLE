@@ -87,6 +87,8 @@ By default, MARBLE operated in geometry-aware mode. You can enable the geometry-
 model = MARBLE.net(data, params = {'inner_product_features': True})
 ```
 
+Read more about the geometry-aware and geometry-agnostic modes [here](#innerproduct)
+
 After you have trained your model, you can evaluate evaluate your model on your dataset, or another dataset to obtain an embedding all manifold points in joint latent space (3-dimensional by default) based on their local vector field features.
 
 ```
@@ -205,7 +207,20 @@ model = MARBLE.net(data, loadpath=loadpath, params=params)
 
 where loadpath can be either a path to the model (with a specific timestamp, or a directory to automatically load the latest model.
 
-### Troubleshooting guide
+<a name="innerproduct"></a>
+### Geometry-aware and geometry-agnostic modes
+
+One of the main features of our method is the ability to run in two different modes
+
+1. Geometry-aware mode - learn manifold geometry and dynamics
+2. Geometry-agnostic mode - learn dynamics only
+
+To enable geometry-agnostic mode, set `inner_product_features=True` in training `params`. This engages an additional layer in the network after the computation of gradients, which makes them rotation invariant.
+
+As a slight cost of expressivity, this feature enables the orientation- and geometry-independent representation of dynamics over the manifolds. Amongst others, this allows one to recognise similar dynamics across different manifolds. See [RNN example](https://github.com/agosztolai/MARBLE/blob/doc/examples/RNN/RNN.ipynb) for an illustration.
+
+
+## Troubleshooting guide
 
 Training is successful when features are recognised to be similar across distinct vector fields, with their own manifolds and independent proximity graphs. To achieve this, follow these useful pieces of advice (mostly general ML practises):
 
