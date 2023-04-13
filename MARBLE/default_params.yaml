@@ -1,25 +1,26 @@
 #training parameters
-batch_size : 64 #batch size
-epochs : 20, #optimisation epochs
-lr: 0.01 #learning rate
-momentum: 0.9 #momentum
-diffusion: False
-include_positions: False
+epochs : 20, # optimisation epochs
+batch_size : 64 # batch size
+lr: 0.01 # learning rate
+momentum: 0.9
 
 #manifold/signal parameters
-order: 2 #order to which to compute the directional derivatives
+order: 2 # order to which to compute the directional derivatives
 inner_product_features: True
-frac_sampled_nb: -1 #fraction of neighbours to sample for gradient computation (if -1 then all neighbours)
+diffusion: False
+frac_sampled_nb: -1 # fraction of neighbours to sample for gradient computation (if -1 then all neighbours)
+include_positions: False # include positions as features (warning: this is untested!)
+include_self: True # include vector at the center of feature
 
-#network parameters
-dropout: 0. #dropout in the MLP
-n_lin_layers: 2 #number of layers if MLP
-hidden_channels: 16 #number of hidden channels
-out_channels: 3 #number of output channels (if null, then =hidden_channels)
-bias: True #learn bias parameters in MLP
+# network parameters
+dropout: 0. #d ropout in the MLP
+n_lin_layers: 2 # number of layers if MLP
+hidden_channels: 16 # number of hidden channels
+out_channels: 3 # number of output channels (if null, then =hidden_channels)
+bias: True # learn bias parameters in MLP
 vec_norm: False
-batch_norm: False #batch normalisation
+batch_norm: False # batch normalisation
 
-#other params
-seed: 0 #seed for reproducibility
+# other params
+seed: 0 # seed for reproducibility
 processes: 1

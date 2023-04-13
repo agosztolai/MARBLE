@@ -22,18 +22,19 @@ from MARBLE import utils
 class net(nn.Module):
     """MARBLE neural network.
 
-    The possible parameters and there default values are described below, and can be accessed
-    via the `params` dictionnary in this class constructor.
+    The possible parameters and their default values are described below,
+    and can be accessed via the `params` dictionnary in this class constructor.
 
     Parameters
     ----------
     # training parameters
     batch_size: batch size (default=64)
-    epochs : optimisation epochs (default=20)
+    epochs: optimisation epochs (default=20)
     lr: iniital learning rate (default=0.01)
     momentum: momentum (default=0.9)
     diffusion: set to True to use diffusion layer before gradient computation (default=False)
-    include_positions: (default=False)
+    include_positions: include positions as features (warning: this is untested!) (default=False)
+    include_self: include vector at the center of feature (default=True)
 
     # manifold/signal parameters
     order: order to which to compute the directional derivatives (default=2)
@@ -73,13 +74,11 @@ class net(nn.Module):
                 loadpath = max(glob.glob(f"{loadpath}/best_model*"))
             self.params = torch.load(loadpath)["params"]
         else:
-            self.params = {}
-
-        if params is not None:
-            if isinstance(params, str) and Path(params).exists():
-                with open(params, "rb") as f:
-                    params = yaml.safe_load(f)
-            self.params.update(params)
+            if params is not None:
+                if isinstance(params, str) and Path(params).exists():
+                    with open(params, "rb") as f:
+                        params = yaml.safe_load(f)
+                self.params = params
 
         self._epoch = 0  # to resume optimisation
         self.parse_parameters(data)
@@ -161,6 +160,7 @@ class net(nn.Module):
             "n_sampled_nb",
             "processes",
             "include_positions",
+            "include_self",
         ]
 
         for p in self.params.keys():
@@ -198,6 +198,9 @@ class net(nn.Module):
 
         if self.params["include_positions"]:
             cum_channels += d
+
+        if not self.params["include_self"]:
+            cum_channels -= s
 
         # encoder
         channel_list = (
@@ -244,7 +247,10 @@ class net(nn.Module):
             x = F.normalize(x, dim=-1, p=2)
 
         # gradients
-        out = [x]
+        if self.params["include_self"]:
+            out = [x]
+        else:
+            out = []
         for i, (_, _, size) in enumerate(adjs):
             kernels = [K[n_id[: size[1] * d], :][:, n_id[: size[0] * d]] for K in data.kernels]
 
@@ -309,7 +315,7 @@ class net(nn.Module):
                 adjs,
             ) = utils.detach_from_gpu(self, data, adjs)
 
-            data.out = out.detach().cpu()
+            data.emb = out.detach().cpu()
 
             return data
 

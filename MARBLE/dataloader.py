@@ -55,6 +55,10 @@ class NeighborSampler(NS):
         return super().sample(batch)
 
 
+# =============================================================================
+# below is an alternative implementation, not working yet
+# =============================================================================
+
 # from torch_geometric.loader import LinkNeighborLoader
 # from torch_geometric.utils import subgraph
 
