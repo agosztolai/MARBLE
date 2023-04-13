@@ -22,14 +22,14 @@ from MARBLE import utils
 class net(nn.Module):
     """MARBLE neural network.
 
-    The possible parameters and there default values are described below, and can be accessed
-    via the `params` dictionnary in this class constructor.
+    The possible parameters and their default values are described below, 
+    and can be accessed via the `params` dictionnary in this class constructor.
 
     Parameters
     ----------
     # training parameters
     batch_size: batch size (default=64)
-    epochs : optimisation epochs (default=20)
+    epochs: optimisation epochs (default=20)
     lr: iniital learning rate (default=0.01)
     momentum: momentum (default=0.9)
     diffusion: set to True to use diffusion layer before gradient computation (default=False)
@@ -74,13 +74,11 @@ class net(nn.Module):
                 loadpath = max(glob.glob(f"{loadpath}/best_model*"))
             self.params = torch.load(loadpath)["params"]
         else:
-            self.params = {}
-
-        if params is not None:
-            if isinstance(params, str) and Path(params).exists():
-                with open(params, "rb") as f:
-                    params = yaml.safe_load(f)
-            self.params.update(params)
+            if params is not None:
+                if isinstance(params, str) and Path(params).exists():
+                    with open(params, "rb") as f:
+                        params = yaml.safe_load(f)
+                self.params = params
 
         self._epoch = 0  # to resume optimisation
         self.parse_parameters(data)
