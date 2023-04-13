@@ -68,7 +68,7 @@ Using these inputs, you can construct a dataset for MARBLE.
 
 ```
 import MARBLE 
-data = MARBLE.construct_dataset(pos, features=vel)
+data = MARBLE.construct_dataset(pos, features=x)
 ```
 
 The main attributes are `data.pos` - manifold positions concatenated, `data.x` - manifold signals concatenated and `data.y` - identifiers that tell you which manifold the poitn belongs to. Read more about [other usedul data attributed](#construct).
