@@ -39,7 +39,7 @@ def sample_network(net, f):
     
     if os.path.exists(f):
         print('Network found with same name. Loading...')
-        return load_network(f)
+        return torch.load(open(f, "rb"))
 
     n_pops = 2
     seed = 0
@@ -62,7 +62,7 @@ def sample_network(net, f):
             keep_best=True,
             clip_gradient=1,
         )
-        torch.save([z, net_sampled.state_dict()], f)
+        torch.save([z, net_sampled], f)
 
     return z, net_sampled
 
