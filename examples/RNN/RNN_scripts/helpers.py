@@ -38,6 +38,7 @@ def load_network(f):
 def sample_network(net, f):
     
     if os.path.exists(f):
+        print('Network found with same name. Loading...')
         return load_network(f)
 
     n_pops = 2
