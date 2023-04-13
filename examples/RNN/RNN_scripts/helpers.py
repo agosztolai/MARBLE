@@ -38,7 +38,7 @@ def load_network(f):
 def sample_network(net, f):
     
     if os.path.exists(f):
-        return torch.load(open(f, "rb"))
+        return load_network(f)
 
     n_pops = 2
     seed = 0
