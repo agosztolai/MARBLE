@@ -50,7 +50,6 @@ For Mac without CUDA:
 conda env create -f environment_cpu_osx.yml
 ```
 
-
 This will install all the requires dependencies. Finally, install by running inside the main folder
 
 ```
@@ -120,7 +119,6 @@ There are loads of parameters to adjust these plots, so have a look at the respe
 ## Examples
 
 The folder [/examples](https://github.com/agosztolai/MARBLE/tree/main/examples) contains scripts for some basic examples and other scripts to reproduce the results in our paper.
-
 
 ## Further details
 
@@ -201,13 +199,13 @@ Finally, launch training. The code will continuously save checkpoints during tra
 model.run_training(data, outdir='./outputs')
 ```
 
-If you have previously trained a network, you can skip the training step and load the network directly as
+If you have previously trained a network, or have interrupted training, you can load the network directly as
 
 ```
-model = MARBLE.net(data, loadpath=loadpath, params=params)
+model = MARBLE.net(data, loadpath=loadpath)
 ```
 
-where loadpath can be either a path to the model (with a specific timestamp, or a directory to automatically load the latest model.
+where loadpath can be either a path to the model (with a specific timestamp, or a directory to automatically load the latest model. By running `MARBLE.run_training()`, training will resume from the last ckechpoint.
 
 <a name="innerproduct"></a>
 ### Geometry-aware and geometry-agnostic modes
