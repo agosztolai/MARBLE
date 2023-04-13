@@ -36,6 +36,9 @@ def load_network(f):
 
 
 def sample_network(net, f):
+    
+    if os.path.exists(f):
+        return None, pickle.load(open(f, "rb"))
 
     n_pops = 2
     seed = 0
