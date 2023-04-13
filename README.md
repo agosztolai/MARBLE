@@ -26,6 +26,8 @@ If you find this package useful or inspirational, please cite our work as follow
 
 ## Installation
 
+The code is tested for both cpu and gpu (CUDA) machines running Linux or OSX. Although smaller examples run fast on cpu, for larger datasets, it is highly recommended that you use a gpu machine.
+
 We recommend you install the code in a fresh Anaconda virtual environment, as follows.
 
 First, clone this repository, 
