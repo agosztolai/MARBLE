@@ -33,18 +33,14 @@ def fields(
     scale=5,
     view=None,
 ):
+    """Plot scalar or vector fields
+
+    Args:
+        data: PyG Batch data object class created with utils.construct_dataset
+        titles: list of titles
+        col: int for number of columns to plot
+        figsize: tuple of figure dimensions
     """
-    Plot scalar or vector fields
-
-    Parameters
-    ----------
-    data : PyG Batch data object class created with utils.construct_dataset
-    titles : list of titles
-    col : int for number of columns to plot
-    figsize : tuple of figure dimensions
-
-    """
-
     if hasattr(data, "gauges"):
         gauges = data.gauges
     else:
@@ -122,19 +118,15 @@ def fields(
 
 
 def histograms(data, titles=None, col=2, figsize=(10, 10)):
+    """Plot histograms of cluster distribution across datasets.
+
+    Args:
+        data: PyG Batch data object class created with utils.construct_dataset
+        clusters: sklearn cluster object
+        titles: list of titles
+        col: int for number of columns to plot
+        figsize: tuple of figure dimensions
     """
-    Plot histograms of cluster distribution across datasets.
-
-    Parameters
-    ----------
-    data : PyG Batch data object class created with utils.construct_dataset
-    clusters : sklearn cluster object
-    titles : list of titles
-    col : int for number of columns to plot
-    figsize : tuple of figure dimensions
-
-    """
-
     assert hasattr(
         data, "clusters"
     ), "No clusters found. First, run \
@@ -177,19 +169,14 @@ def embedding(
     clusters_visible=False,
     cmap="coolwarm",
 ):
+    """Plot embeddings.
+
+    Args:
+        data: PyG data object with attribute emb or nxdim matrix of embedded points with dim=2 or 3
+        labels: list of increasing integer node labels
+        clusters: sklearn cluster object
+        titles: list of titles
     """
-    Plot embeddings.
-
-    Parameters
-    ----------
-    data : PyG data object with attribute emb or nxdim matrix of embedded points
-        with dim=2 or 3
-    labels : list of increasing integer node labels
-    clusters : sklearn cluster object
-    titles : list of titles
-
-    """
-
     if hasattr(data, "emb_2D"):
         emb = data.emb_2D
     elif isinstance(data, np.ndarray):
@@ -263,17 +250,13 @@ def neighbourhoods(
     width=0.025,
     scale=1,
 ):
-    """
-    For each clustered neighbourhood type, draw one sample neighbourhood
-    from each dataset and plot.
+    """For each clustered neighbourhood type, draw one sample neighbourhood from each dataset.
 
-    Parameters
-    ----------
-    data : postprocessed PyG Batch data object class created with utils.construct_dataset
-    hops : size of neighbourhood in number of hops
-    norm : if True, then normalise values to zero mean within clusters
-    plot_graph : if True, then plot the underlying graph.
-
+    Args:
+        data: postprocessed PyG Batch data object class created with utils.construct_dataset
+        hops: size of neighbourhood in number of hops
+        norm: if True, then normalise values to zero mean within clusters
+        plot_graph: if True, then plot the underlying graph.
     """
 
     assert hasattr(
@@ -426,28 +409,18 @@ def graph(
 
 
 def time_series(T, X, style="o", node_feature=None, figsize=(10, 5), lw=1, ms=5):
+    """Plot time series.
+
+    Args:
+        X (np array or list[np array]): Trajectories
+        style (string): Plotting style. The default is 'o'
+        color (bool): Color lines. The default is True
+        lw (int): Line width
+        ms (int): Marker size.
+
+    Returns:
+        matplotlib axes object
     """
-    Plot time series.
-
-    Parameters
-    ----------
-    X : np array or list[np array]
-        Trajectories.
-    style : string
-        Plotting style. The default is 'o'.
-    color: bool
-        Color lines. The default is True.
-    lw : int
-        Line width.
-    ms : int
-        Marker size.
-
-    Returns
-    -------
-    ax : matplotlib axes object.
-
-    """
-
     if not isinstance(X, list):
         X = [X]
 
@@ -496,31 +469,20 @@ def trajectories(
     axes_visible=True,
     alpha=1.0,
 ):
+    """Plot trajectory in phase space. If multiple trajectories are given, they are plotted with
+    different colors.
+
+    Args:
+        X (np array): Positions
+        V (np array): Velocities
+        style (string): Plotting style. The default is 'o'
+        node_feature: Color lines. The default is None
+        lw (int): Line width
+        ms (int): Marker size
+
+    Returns:
+        matplotlib axes object.
     """
-    Plot trajectory in phase space. If multiple trajectories
-    are given, they are plotted with different colors.
-
-    Parameters
-    ----------
-    X : np array
-        Positions.
-    V : np array
-        Velocities.
-    style : string
-        Plotting style. The default is 'o'.
-    node_feature:
-        Color lines. The default is None.
-    lw : int
-        Line width.
-    ms : int
-        Marker size.
-
-    Returns
-    -------
-    ax : matplotlib axes object.
-
-    """
-
     dim = X.shape[1]
     assert dim in (2, 3), "Dimension must be 2 or 3."
 

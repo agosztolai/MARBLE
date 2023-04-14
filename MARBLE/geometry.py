@@ -24,24 +24,18 @@ from MARBLE import utils  # isort:skip
 
 
 def furthest_point_sampling(x, N=None, stop_crit=0.1, start_idx=0):
+    """A greedy O(N^2) algorithm to do furthest points sampling
+
+    Args:
+        x (nxdim matrix): input data
+        N (int): number of sampled points
+        stop_crit: when reaching this fraction of the total manifold diameter, we stop sampling
+        start_idx: index of starting node
+
+    Returns:
+        perm: node indices of the N sampled points
+        lambdas: list of distances of furthest points
     """
-    A greedy O(N^2) algorithm to do furthest points sampling
-
-    Parameters
-    ----------
-    x : nxdim matrix of data
-    N : Integer number of sampled points.
-    stop_crit : when reaching this fraction of the total manifold diameter,
-                we stop sampling
-    start_idx : index of starting node
-
-    Returns
-    -------
-    perm : node indices of the N sampled points
-    lambdas : list of distances of furthest points
-
-    """
-
     if stop_crit == 0.0:
         return torch.arange(len(x)), None
 
@@ -71,22 +65,17 @@ def furthest_point_sampling(x, N=None, stop_crit=0.1, start_idx=0):
 
 
 def cluster(x, cluster_typ="meanshift", n_clusters=15, seed=0):
+    """Cluster data.
+
+    Args:
+        x (nxdim matrix) data
+        cluster_typ: Clustering method.
+        n_clusters: Number of clusters.
+        seed: seed
+
+    Returns:
+        clusters: sklearn cluster object
     """
-    Cluster data
-
-    Parameters
-    ----------
-    x : nxdim matrix of data
-    cluster_typ : Clustering method.
-    n_clusters : Number of clusters.
-    seed
-
-    Returns
-    -------
-    clusters : sklearn cluster object
-
-    """
-
     clusters = {}
     if cluster_typ == "kmeans":
         kmeans = KMeans(n_clusters=n_clusters, random_state=seed).fit(x)
@@ -105,20 +94,15 @@ def cluster(x, cluster_typ="meanshift", n_clusters=15, seed=0):
 
 
 def embed(x, embed_typ="umap", dim_emb=2, manifold=None, seed=0):
+    """Embed data to 2D space.
+
+    Args:
+        x (nxdim matrix): data
+        embed_typ: embedding method. The default is 'tsne'.
+
+    Returns:
+        emb (nx2 matrix): embedded data
     """
-    Embed data to 2D space.
-
-    Parameters
-    ----------
-    x : nxdim matrix of data
-    embed_typ : embedding method. The default is 'tsne'.
-
-    Returns
-    -------
-    emb : nx2 matrix of embedded data
-
-    """
-
     if x.shape[1] <= 2:
         print(
             f"\n No {embed_typ} embedding performed. Embedding seems to be \
@@ -163,20 +147,14 @@ def embed(x, embed_typ="umap", dim_emb=2, manifold=None, seed=0):
 
 
 def relabel_by_proximity(clusters):
+    """Update clusters labels such that nearby clusters in the embedding get similar labels.
+
+    Args:
+        clusters: sklearn object containing 'centroids', 'n_clusters', 'labels'
+
+    Returns:
+        clusters: sklearn object with updated labels
     """
-    Update clusters labels such that nearby clusters in the embedding get similar
-    labels.
-
-    Parameters
-    ----------
-    clusters : sklearn object containing 'centroids', 'n_clusters', 'labels'
-
-    Returns
-    -------
-    clusters : sklearn object with updated labels
-
-    """
-
     pd = pairwise_distances(clusters["centroids"], metric="euclidean")
     pd += np.max(pd) * np.eye(clusters["n_clusters"])
 
@@ -198,21 +176,16 @@ def relabel_by_proximity(clusters):
 
 
 def compute_distribution_distances(clusters=None, data=None, slices=None):
+    """Compute the distance between clustered distributions across datasets.
+
+    Args:
+        clusters: sklearn object containing 'centroids', 'slices', 'labels'
+
+    Returns:
+        dist: distance matrix
+        gamma: optimal transport matrix
+        centroid_distances: distances between cluster centroids
     """
-    Compute the distance between clustered distributions across datasets.
-
-    Parameters
-    ----------
-    clusters : clusters : sklearn object containing 'centroids', 'slices', 'labels'
-
-    Returns
-    -------
-    dist : distance matrix
-    gamma : optimal transport matrix
-    centroid_distances : distances between cluster centroids
-
-    """
-
     s = slices
 
     if clusters is not None:
@@ -265,20 +238,16 @@ def compute_distribution_distances(clusters=None, data=None, slices=None):
 
 
 def neighbour_vectors(pos, edge_index):
-    """
-    Local out-going edge vectors around each node.
+    """Local out-going edge vectors around each node.
 
-    Parameters
-    ----------
-    pos : (nxdim) Matrix of node positions
-    edge_index : (2x|E|) Matrix of edge indices
+    Args:
+        pos (nxdim matrix): node positions
+        edge_index (2xE matrix): edge indices
 
-    Returns
-    -------
-    nvec : (|E|xdim) Matrix of neighbourhood vectors.
+    Returns:
+        nvec (Exdim matrix): neighbourhood vectors.
 
     """
-
     ei, ej = edge_index[0], edge_index[1]
     nvec = pos[ej] - pos[ei]
 
@@ -286,20 +255,15 @@ def neighbour_vectors(pos, edge_index):
 
 
 def project_gauge_to_neighbours(nvec, gauges, edge_index):
+    """Project the gauge vectors to local edge vectors.
+
+    Args:
+        nvec (Exdim matrix): neighbourhood vectors
+        local_gauge (dimxnxdim torch tensor): if None, global gauge is generated
+
+    Returns:
+        list of (nxn) torch tensors of projected components
     """
-    Project the gauge vectors to local edge vectors.
-
-    Parameters
-    ----------
-    nvec : (|E|xdim) Matrix of neighbourhood vectors.
-    local_gauge : dimxnxdim torch tensor, if None, global gauge is generated
-
-    Returns
-    -------
-    list of (nxn) torch tensors of projected components
-
-    """
-
     n, _, d = gauges.shape
     ei = edge_index[0]
     proj = torch.einsum("bi,bic->bc", nvec, gauges[ei])
@@ -310,21 +274,16 @@ def project_gauge_to_neighbours(nvec, gauges, edge_index):
 
 
 def gradient_op(pos, edge_index, gauges):
+    """Directional derivative kernel from Beaini et al. 2021.
+
+    Args:
+        pos (nxdim Matrix) node positions
+        edge_index (2x|E| matrix) edge indices
+        gauge (list): orthonormal unit vectors
+
+    Returns:
+        list of (nxn) Anisotropic kernels
     """
-    Directional derivative kernel from Beaini et al. 2021.
-
-    Parameters
-    ----------
-    pos : (nxdim) Matrix of node positions
-    edge_index : (2x|E|) Matrix of edge indices
-    gauge : List of orthonormal unit vectors
-
-    Returns
-    -------
-    K : list of (nxn) Anisotropic kernels.
-
-    """
-
     nvec = neighbour_vectors(pos, edge_index)
     F = project_gauge_to_neighbours(nvec, gauges, edge_index)
 
@@ -349,7 +308,7 @@ def normalize_sparse_matrix(sp_tensor):
 
 
 def map_to_local_gauges(x, gauges, length_correction=False):
-    """Transform signal into local coordinates"""
+    """Transform signal into local coordinates."""
 
     proj = torch.einsum("aij,ai->aj", gauges, x)
 
@@ -496,15 +455,13 @@ def compute_laplacian(data, normalization="rw"):
 
 
 def compute_connection_laplacian(data, R, normalization="rw"):
-    r"""
-    Connection Laplacian
+    r"""Connection Laplacian
 
-    Parameters
-    ----------
-    data : Pytorch geometric data object.
-    R : (nxnxdxd) Connection matrices between all pairs of nodes.
-        Default is None, in case of a global coordinate system.
-    normalization: None, 'sym', 'rw'
+    Args:
+        data: Pytorch geometric data object.
+        R (nxnxdxd): Connection matrices between all pairs of nodes. Default is None,
+            in case of a global coordinate system.
+        normalization: None, 'sym', 'rw'
                  1. None: No normalization
                  :math:`\mathbf{L} = \mathbf{D} - \mathbf{A}`
 
@@ -515,12 +472,9 @@ def compute_connection_laplacian(data, R, normalization="rw"):
                  3. "rw"`: Random-walk normalization
                  :math:`\mathbf{L} = \mathbf{I} - \mathbf{D}^{-1} \mathbf{A}`
 
-    Returns
-    -------
-    (ndxnd) Normalised connection Laplacian matrix.
-
+    Returns:
+        ndxnd normalised connection Laplacian matrix.
     """
-
     n = data.x.shape[0]
     d = R.size()[0] // n
 
@@ -556,8 +510,7 @@ def compute_connection_laplacian(data, R, normalization="rw"):
 
 
 def compute_gauges(data, dim_man=None, n_geodesic_nb=10, n_workers=1):
-    """
-    Orthonormal gauges for the tangent space at each node, and connection
+    """Orthonormal gauges for the tangent space at each node, and connection
     matrices between each pair of adjacent nodes.
 
     R is a block matrix, where the row index is the gauge we want to align to,
@@ -568,17 +521,14 @@ def compute_gauges(data, dim_man=None, n_geodesic_nb=10, n_workers=1):
     U, _, Vt = scipy.linalg.svd(X.T@Y)
     R[i,j] = U@Vt
 
-    Parameters
-    ----------
-    data : Pytorch geometric data object.
-    n_geodesic_nb : number of geodesic neighbours. The default is 10.
+    Args:
+        data: Pytorch geometric data object.
+        n_geodesic_nb: number of geodesic neighbours. The default is 10.
 
-    Returns
-    -------
-    gauges : (nxdimxdim) Matrix containing dim unit vectors for each node.
-    Sigma : Singular valued
-    R : (n*dimxn*dim) Connection matrices.
-
+    Returns:
+        gauges (nxdimxdim matrix): Matrix containing dim unit vectors for each node.
+        Sigma: Singular valued
+        R (n*dimxn*dim): Connection matrices.
     """
     X = data.pos.numpy().astype(np.float64)
     A = PyGu.to_scipy_sparse_matrix(data.edge_index).tocsr()
@@ -613,22 +563,17 @@ def _compute_gauges(inputs, i):
 
 
 def compute_connections(data, gauges, n_workers=1):
-    """
-    Find smallest rotations R between gauges pairs. It is assumed that the first
+    """Find smallest rotations R between gauges pairs. It is assumed that the first
     row of edge_index is what we want to align to, i.e.,
     gauges(i) = gauges(j)@R[i,j].T
 
-    Parameters
-    ----------
-    data : Pytorch geometric data object.
-    gauges : (n,d,d) matrix of orthogonal unit vectors for each node
+    Args:
+        data: Pytorch geometric data object
+        gauges (n,d,d matrix): Orthogonal unit vectors for each node
 
-    Returns
-    -------
-    R : (n*dim,n*dim) matrix of rotation matrices
-
+    Returns:
+        (n*dim,n*dim) matrix of rotation matrices
     """
-
     gauges = np.array(gauges, dtype=np.float64)
     A = PyGu.to_scipy_sparse_matrix(data.edge_index).tocsr()
 
@@ -720,21 +665,16 @@ def vector_diffusion(x, t, method="spectral", Lc=None):
 
 
 def compute_eigendecomposition(A, eps=1e-8):
+    """Eigendecomposition of a square matrix A.
+
+    Args:
+        A: square matrix A
+        eps: small error term
+
+    Returns:
+        evals (k): eigenvalues of the Laplacian
+        evecs (V,k): matrix of eigenvectors of the Laplacian
     """
-    Eigendecomposition of a square matrix A
-
-    Parameters
-    ----------
-    A : square matrix A
-    eps : small error term
-
-    Returns
-    -------
-    evals : (k) eigenvalues of the Laplacian
-    evecs : (V,k) matrix of eigenvectors of the Laplacian
-
-    """
-
     if A is None:
         return None
 

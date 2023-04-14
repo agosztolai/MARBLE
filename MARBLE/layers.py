@@ -82,8 +82,7 @@ class AnisoConv(MessagePassing):
 
 
 class InnerProductFeatures(nn.Module):
-    r"""
-    Compute scaled inner-products between channel vectors.
+    r"""Compute scaled inner-products between channel vectors.
 
     Input: (V x C*D) vector of (V x n_i) list of vectors with \sum_in_i = C*D
     Output: (VxC) dot products
