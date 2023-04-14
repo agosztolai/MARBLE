@@ -35,7 +35,7 @@ def load_ODE(whichmodel, par=None):
     """
     Load ODE system
 
-    pararameters
+    Parameters
     ----------
     whichmodel : sting
         ODE system from ODE_library.py.

@@ -271,11 +271,11 @@ def neighbour_vectors(pos, edge_index):
     Parameters
     ----------
     pos : (nxdim) Matrix of node positions
-    edge_index : (2x|E|) Matrix of edge indices
+    edge_index : (2xE) Matrix of edge indices
 
     Returns
     -------
-    nvec : (|E|xdim) Matrix of neighbourhood vectors.
+    nvec : (Exdim) Matrix of neighbourhood vectors.
 
     """
 
@@ -291,7 +291,7 @@ def project_gauge_to_neighbours(nvec, gauges, edge_index):
 
     Parameters
     ----------
-    nvec : (|E|xdim) Matrix of neighbourhood vectors.
+    nvec : (Exdim) Matrix of neighbourhood vectors.
     local_gauge : dimxnxdim torch tensor, if None, global gauge is generated
 
     Returns
