@@ -41,7 +41,7 @@ def construct_dataset(
         var_explained: fraction of variance explained by the local gauges
         local_gauges: is True, it will try to compute local gauges if it can (signal dim is > 2,
             embedding dimension is > 2 or dim embedding is not dim of manifold)
-        dim_man: if the manifold dimension is known, it can be set here, otherwise it will be estimated
+        dim_man: if the manifold dimension is known, it can be set here or it will be estimated
         labels: labels of nodes, if None, integers will be used
         delta: argument for cknn graph construction to decide the radius for each points.
     """

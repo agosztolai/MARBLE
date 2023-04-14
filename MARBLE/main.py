@@ -31,7 +31,7 @@ class net(nn.Module):
         lr: iniital learning rate (default=0.01)
         momentum: momentum (default=0.9)
         diffusion: set to True to use diffusion layer before gradient computation (default=False)
-        include_positions: include positions as features (warning: this is untested!) (default=False)
+        include_positions: include positions as features (warning: this is untested) (default=False)
         include_self: include vector at the center of feature (default=True)
         order: order to which to compute the directional derivatives (default=2)
         inner_product_features: transform gradient features to inner product features (default=True)
@@ -55,7 +55,7 @@ class net(nn.Module):
         Args:
             data: PyG data
             loadpath: path to a model file, or a directory with models (best model will be used)
-            params: can be a dict with parameters to overwrite default params or a path to a yaml file
+            params: dict with parameters to overwrite default params or a path to a yaml file
             verbose: run in verbose mode
         """
         super().__init__()
