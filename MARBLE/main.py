@@ -25,47 +25,38 @@ class net(nn.Module):
     The possible parameters and their default values are described below,
     and can be accessed via the `params` dictionnary in this class constructor.
 
-    Parameters
-    ----------
-    # training parameters
-    batch_size: batch size (default=64)
-    epochs: optimisation epochs (default=20)
-    lr: iniital learning rate (default=0.01)
-    momentum: momentum (default=0.9)
-    diffusion: set to True to use diffusion layer before gradient computation (default=False)
-    include_positions: include positions as features (warning: this is untested!) (default=False)
-    include_self: include vector at the center of feature (default=True)
-
-    # manifold/signal parameters
-    order: order to which to compute the directional derivatives (default=2)
-    inner_product_features: transform gradient features to inner product features (default=True)
-    frac_sampled_nb: fraction of neighbours to sample for gradient computation
-        (if -1 then all neighbours) (default=-1)
-
-    #network parameters
-    dropout: dropout in the MLP (default=0.)
-    n_lin_layers: number of layers if MLP (default=2)
-    hidden_channels: number of hidden channels (default=16)
-    out_channels: number of output channels (if null, then =hidden_channels) (default=3)
-    bias: learn bias parameters in MLP (default=True)
-    vec_norm: normalise features to unit length (default=False)
-    batch_norm: batch normalisation (default=False)
-
-    #other params
-    seed: seed for reproducibility (default=0)
-    processes: number of cpus (default=1)
+    Args:
+        batch_size: batch size (default=64)
+        epochs: optimisation epochs (default=20)
+        lr: iniital learning rate (default=0.01)
+        momentum: momentum (default=0.9)
+        diffusion: set to True to use diffusion layer before gradient computation (default=False)
+        include_positions: include positions as features (warning: this is untested!) (default=False)
+        include_self: include vector at the center of feature (default=True)
+        order: order to which to compute the directional derivatives (default=2)
+        inner_product_features: transform gradient features to inner product features (default=True)
+        frac_sampled_nb: fraction of neighbours to sample for gradient computation
+            (if -1 then all neighbours) (default=-1)
+        dropout: dropout in the MLP (default=0.)
+        n_lin_layers: number of layers if MLP (default=2)
+        hidden_channels: number of hidden channels (default=16)
+        out_channels: number of output channels (if null, then =hidden_channels) (default=3)
+        bias: learn bias parameters in MLP (default=True)
+        vec_norm: normalise features to unit length (default=False)
+        batch_norm: batch normalisation (default=False)
+        seed: seed for reproducibility (default=0)
+        processes: number of cpus (default=1)
     """
 
     def __init__(self, data, loadpath=None, params=None, verbose=True):
         """
         Constructor of the MARBLE net.
 
-        Parameters
-        ----------
-        data: PyG data
-        loadpath: path to a model file, or a directory with models (best model will be used)
-        params: can be a dict with parameters to overwrite default params or a path to a yaml file
-        verbose: run in verbose mode
+        Args:
+            data: PyG data
+            loadpath: path to a model file, or a directory with models (best model will be used)
+            params: can be a dict with parameters to overwrite default params or a path to a yaml file
+            verbose: run in verbose mode
         """
         super().__init__()
 
@@ -322,10 +313,9 @@ class net(nn.Module):
     def batch_loss(self, data, loader, train=False, verbose=False, optimizer=None):
         """Loop over minibatches provided by loader function.
 
-        Parameters
-        ----------
-        x : (nxdim) feature matrix
-        loader : dataloader object from dataloader.py
+        Args:
+            x : (nxdim) feature matrix
+            loader : dataloader object from dataloader.py
 
         """
 
@@ -356,11 +346,10 @@ class net(nn.Module):
     def run_training(self, data, outdir=None, verbose=False):
         """Network training.
 
-        Parameters
-        ----------
-        data: PyG data
-        outdir: folder to save intermediate models
-        verbose: run in verbose mode
+        Args:
+            data: PyG data
+            outdir: folder to save intermediate models
+            verbose: run in verbose mode
         """
 
         print("\n---- Training network ...")
@@ -422,9 +411,8 @@ class net(nn.Module):
     def load_model(self, loadpath):
         """Load model.
 
-        Parameters
-        ----------
-        loadpath: directory with models to load best model, or specific model path
+        Args:
+            loadpath: directory with models to load best model, or specific model path
         """
         checkpoint = torch.load(loadpath)
         self._epoch = checkpoint["epoch"]

@@ -5,14 +5,12 @@ from MARBLE import geometry as g
 
 
 def distribution_distances(data, cluster_typ="kmeans", n_clusters=None, seed=0):
-    """
-    Return distance between datasets.
+    """Return distance between datasets.
 
-    Returns
-    -------
-    data : PyG data object containing .out attribute, a nx2 matrix of embedded data
-    clusters : sklearn cluster object
-    dist : cxc matrix of pairwise distances where c is the number of clusters
+    Returns:
+        data: PyG data object containing .out attribute, a nx2 matrix of embedded data
+        clusters: sklearn cluster object
+        dist (cxc matrix): pairwise distances where c is the number of clusters
 
     """
 
@@ -45,25 +43,17 @@ def distribution_distances(data, cluster_typ="kmeans", n_clusters=None, seed=0):
 
 
 def embed_in_2D(data, embed_typ="umap", manifold=None, seed=0):
-    """
-    Embed into 2D via for visualisation.
+    """Embed into 2D via for visualisation.
 
-    Parameters
-    ----------
-    data : TYPE
-        DESCRIPTION.
-    embed_typ : string, optional
-        Embedding algorithm to use (tsne, umap, PCA)
-    manifold : sklearn object, optional
-        Manifold object returned by some embedding algorithms (PCA, umap).
-        Useful when trying to compare datasets.
-    seed : int, optional
-        Random seed. The default is 0.
+    Args:
+        data: PyG input data
+        embed_typl (string, optional): Embedding algorithm to use (tsne, umap, PCA)
+        manifold (sklearn object, optional): Manifold object returned by some embedding algorithms
+            (PCA, umap). Useful when trying to compare datasets.
+        seed (int, optional): Random seed. The default is 0.
 
-    Returns
-    -------
-    PyG data object containing emb_2D attribute.
-
+    Returns:
+        PyG data object containing emb_2D attribute.
     """
     if isinstance(data, list):
         emb = np.vstack([d.emb for d in data])
