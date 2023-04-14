@@ -171,6 +171,11 @@ data.edge_index: edge list of proximity graph (each manifold gets its own graph,
 data.gauges: local coordinate bases when `local_gauge=True`
 ```
 
+### How to pick good parameters
+
+![good_parameters](doc/assets/illustration_for_github.png)
+
+
 <a name="training"></a>
 ### Training
 
