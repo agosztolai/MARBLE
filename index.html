@@ -1,0 +1,512 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="MARBLE module" href="main.html" />
+
+    <!-- Generated with Sphinx 5.2.3 and Furo 2022.12.07 -->
+        <title>MARBLE documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?digest=91d0f0d1c444bdcb17a68e833c7a53903343c195" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?digest=30d1aed668e5c3a91c3e3bf6a60b675221979f0e" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="#"><div class="brand">MARBLE  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="#">
+  
+  
+  <span class="sidebar-brand-text">MARBLE  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="main.html">MARBLE module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="postprocessing.html">Postprocessing module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing.html">Preprocessing module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layers.html">Layers module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="geometry.html">Geometry module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dataloader.html">Dataloader module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">Plotting module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dynamics.html">Dynamics module</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="marble-manifold-representation-basis-learning">
+<h1>MARBLE - Manifold Representation Basis Learning<a class="headerlink" href="#marble-manifold-representation-basis-learning" title="Permalink to this heading">#</a></h1>
+<p>MARBLE is a fully unsupervised geometric deep learning method that can</p>
+<ol class="arabic simple">
+<li><p>intrincally represent vector fields over manifolds, such as those arising in neural recordings or dissipative dynamical systems, but it is not limited to dynamical systems</p></li>
+<li><p>perform unbiased comparisons across dynamical systems or parameter conditions by jointly embedded representations</p></li>
+<li><p>can operate in geometry-aware or geometry-agnostic modes to test the contribution of manifold dynamics and geometry.</p></li>
+</ol>
+<p>The code is built around <a class="reference external" href="https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html">PyG (PyTorch Geometric)</a>.</p>
+<section id="cite">
+<h2>Cite<a class="headerlink" href="#cite" title="Permalink to this heading">#</a></h2>
+<p>If you find this package useful or inspirational, please cite our work as follows</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@misc</span><span class="p">{</span><span class="n">gosztolai2023interpretable</span><span class="p">,</span>
+      <span class="n">title</span><span class="o">=</span><span class="p">{</span><span class="n">Interpretable</span> <span class="n">statistical</span> <span class="n">representations</span> <span class="n">of</span> <span class="n">neural</span> <span class="n">population</span> <span class="n">dynamics</span> <span class="ow">and</span> <span class="n">geometry</span><span class="p">},</span>
+      <span class="n">author</span><span class="o">=</span><span class="p">{</span><span class="n">Adam</span> <span class="n">Gosztolai</span> <span class="ow">and</span> <span class="n">Robert</span> <span class="n">L</span><span class="o">.</span> <span class="n">Peach</span> <span class="ow">and</span> <span class="n">Alexis</span> <span class="n">Arnaudon</span> <span class="ow">and</span> <span class="n">Mauricio</span> <span class="n">Barahona</span> <span class="ow">and</span> <span class="n">Pierre</span> <span class="n">Vandergheynst</span><span class="p">},</span>
+      <span class="n">year</span><span class="o">=</span><span class="p">{</span><span class="mi">2023</span><span class="p">},</span>
+      <span class="n">eprint</span><span class="o">=</span><span class="p">{</span><span class="mf">2304.03376</span><span class="p">},</span>
+      <span class="n">archivePrefix</span><span class="o">=</span><span class="p">{</span><span class="n">arXiv</span><span class="p">},</span>
+      <span class="n">primaryClass</span><span class="o">=</span><span class="p">{</span><span class="n">cs</span><span class="o">.</span><span class="n">LG</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">#</a></h2>
+<p>The code is tested for both cpu and gpu (CUDA) machines running Linux or OSX. Although smaller examples run fast on cpu, for larger datasets, it is highly recommended that you use a gpu machine.</p>
+<p>We recommend you install the code in a fresh Anaconda virtual environment, as follows.</p>
+<p>First, clone this repository,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">agosztolai</span><span class="o">/</span><span class="n">GeoDySys</span>
+</pre></div>
+</div>
+<p>Then, create an new anaconda environment using the provided environment file that matches your system.</p>
+<p>For Linux machines with CUDA:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">env</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">environment</span><span class="o">.</span><span class="n">yml</span>
+</pre></div>
+</div>
+<p>For Mac without CUDA:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">env</span> <span class="n">create</span> <span class="o">-</span><span class="n">f</span> <span class="n">environment_cpu_osx</span><span class="o">.</span><span class="n">yml</span>
+</pre></div>
+</div>
+<p>This will install all the requires dependencies. Finally, install by running inside the main folder</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">.</span>
+</pre></div>
+</div>
+</section>
+<section id="quick-start">
+<h2>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this heading">#</a></h2>
+<p>We suggest you study at least the example of a <a class="reference external" href="https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_flat_surface.py">simple vector fields over flat surfaces</a> to understand what behaviour to expect.</p>
+<p>Briefly, MARBLE takes two inputs</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pos</span></code> - a list of <code class="docutils literal notranslate"><span class="pre">nxd</span></code> arrays, each defining a point cloud describing the geometry of a manifold</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">x</span></code> - a list of <code class="docutils literal notranslate"><span class="pre">nxD</span></code> arrays, defining a signal over the respective manifolds in 1. For dynamical systems, D=d, but our code can also handle signals of other dimensions. Read more about  <a class="reference internal" href="#inputs"><span class="std std-ref">inputs</span></a> and <a class="reference internal" href="#conditions"><span class="std std-ref">different conditions</span></a>.</p></li>
+</ol>
+<p>Using these inputs, you can construct a dataset for MARBLE.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">MARBLE</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">MARBLE</span><span class="o">.</span><span class="n">construct_dataset</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The main attributes are <code class="docutils literal notranslate"><span class="pre">data.pos</span></code> - manifold positions concatenated, <code class="docutils literal notranslate"><span class="pre">data.x</span></code> - manifold signals concatenated and <code class="docutils literal notranslate"><span class="pre">data.y</span></code> - identifiers that tell you which manifold the poitn belongs to. Read more about <a class="reference internal" href="#construct"><span class="std std-ref">other usedul data attributed</span></a>.</p>
+<p>Now you can initialise and train a MARBLE model. Read more about <a class="reference internal" href="#training"><span class="std std-ref">training parameters</span></a>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">MARBLE</span> <span class="kn">import</span> <span class="n">net</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">MARBLE</span><span class="o">.</span><span class="n">net</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">run_training</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>By default, MARBLE operated in geometry-aware mode. You can enable the geometry-agnostic mode by changing the initalisation step to</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">MARBLE</span><span class="o">.</span><span class="n">net</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;inner_product_features&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>Read more about the geometry-aware and geometry-agnostic modes <a class="reference internal" href="#innerproduct"><span class="std std-ref">here</span></a></p>
+<p>After you have trained your model, you can evaluate evaluate your model on your dataset, or another dataset to obtain an embedding all manifold points in joint latent space (3-dimensional by default) based on their local vector field features.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="c1">#adds an attribute `data.emb`</span>
+</pre></div>
+</div>
+<p>To recover the embeddings of individual vector fields, use <code class="docutils literal notranslate"><span class="pre">data.emb[data.y==0]</span></code>.</p>
+<p>You can then compare datasets by running</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">MARBLE</span> <span class="kn">import</span> <span class="n">postprocessing</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">postprocessing</span><span class="o">.</span><span class="n">distribution_distances</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="c1">#adds an attribute `data.dist` containing a matrix of pairwise distance between vector field representations</span>
+</pre></div>
+</div>
+<p>Finally, you can perform some visualisation</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">MARBLE</span> <span class="kn">import</span> <span class="n">plotting</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">postprocessing</span><span class="o">.</span><span class="n">embed_in_2D</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="c1">#adds an attribute `data.emb_2D` containing a 2D embedding of the MARBLE output using UMAP by default</span>
+<span class="n">plotting</span><span class="o">.</span><span class="n">fields</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="c1">#visualise the original vector fields over manifolds</span>
+<span class="n">plotting</span><span class="o">.</span><span class="n">embedding</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span> <span class="c1">#visualise embedding</span>
+</pre></div>
+</div>
+<p>There are loads of parameters to adjust these plots, so have a look at the respective functions.</p>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">#</a></h2>
+<p>The folder <a class="reference external" href="https://github.com/agosztolai/MARBLE/tree/main/examples">/examples</a> contains scripts for some basic examples and other scripts to reproduce the results in our paper.</p>
+</section>
+<section id="further-details">
+<h2>Further details<a class="headerlink" href="#further-details" title="Permalink to this heading">#</a></h2>
+<section id="more-on-inputs">
+<span id="inputs"></span><h3>More on inputs<a class="headerlink" href="#more-on-inputs" title="Permalink to this heading">#</a></h3>
+<p>If you measure time series observables, such as neural firing rates, you can start with a list of variable length time series under a given condition, e.g., <code class="docutils literal notranslate"><span class="pre">ts_1</span></code>, <code class="docutils literal notranslate"><span class="pre">ts_2</span></code>. We assume these are measurements from the same dynamical system, i.e., the sample points making up these trajectories are drawn from the same manifold, defining its shape <code class="docutils literal notranslate"><span class="pre">pos</span> <span class="pre">=</span> <span class="pre">np.vstack([ts_1,</span> <span class="pre">ts_2])</span></code>.</p>
+<p>If you do not directly have access to the velocities, you can approximate them as <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">np.vstack([np.diff(ts_1,</span> <span class="pre">axis=0),</span> <span class="pre">np.diff(ts_2,</span> <span class="pre">axis=0)])</span></code> and take <code class="docutils literal notranslate"><span class="pre">pos</span> <span class="pre">=</span> <span class="pre">np.vstack([ts_1[:-1,:],</span> <span class="pre">ts_2[:-1,:]])</span></code> to ensure <code class="docutils literal notranslate"><span class="pre">pos</span></code> and <code class="docutils literal notranslate"><span class="pre">x</span></code> have the same length.</p>
+<p>If you just want to play around with dynamical systems, why not try our (experimental) [sister package] DE_library(<a class="reference external" href="https://github.com/agosztolai/DE_library">https://github.com/agosztolai/DE_library</a>).</p>
+</section>
+<section id="more-on-different-conditions">
+<span id="conditions"></span><h3>More on different conditions<a class="headerlink" href="#more-on-different-conditions" title="Permalink to this heading">#</a></h3>
+<p>Comparing dynamics in a data-driven way is equivalent to comparing the corresponding vector fields based on their respective sample sets. The dynamics to be compared might correspond to different experimental conditions (stimulation conditions, genetic perturbations etc.), dynamical systems (different task, different brain region).</p>
+<p>Suppose we have the data pairs <code class="docutils literal notranslate"><span class="pre">pos1,</span> <span class="pre">pos2</span></code> and <code class="docutils literal notranslate"><span class="pre">x1,</span> <span class="pre">x2</span></code>. Then we may concatenate them as a list to ensure that our pipeline handles them independently (on different manifolds), but embeds them jointly in the same space.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pos_list</span><span class="p">,</span> <span class="n">x_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">pos1</span><span class="p">,</span> <span class="n">pos2</span><span class="p">],</span> <span class="p">[</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Note, it is sometimes useful to consider that two vector fields lie on independent manifolds (providing them as a list) even when we want to <em>discover</em> the contrary. However, when we know that two vector fields lie on the same manifold, then it can be advantageous to stack their corresponding samples (stacking them) as this will enforce geometric relationships between them through the proximity graph.</p>
+</section>
+<section id="more-on-constructing-data-object">
+<span id="construct"></span><h3>More on constructing data object<a class="headerlink" href="#more-on-constructing-data-object" title="Permalink to this heading">#</a></h3>
+<p>Our pipleline is build around a Pytorch Geometric data object, which we can obtain by running the following constructor.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">MARBLE</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">MARBLE</span><span class="o">.</span><span class="n">construct_dataset</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">stop_crit</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">graph_type</span><span class="o">=</span><span class="s1">&#39;cknn&#39;</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">local_gauge</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This command will do several things.</p>
+<ol class="arabic simple">
+<li><p>Subsample the point cloud using farthest point sampling to achieve even sampling density. Using <code class="docutils literal notranslate"><span class="pre">stop_crit=0.03</span></code> means the average distance between the subsampled points will equal to 3% of the manifold diameter.</p></li>
+<li><p>Fit a nearest neighbour graph to each point cloud, here using the <code class="docutils literal notranslate"><span class="pre">graph_type=cknn</span></code> method using <code class="docutils literal notranslate"><span class="pre">k=15</span></code> nearest neighbours. We implemented other graph algorithms, but cknn typically works. Note, <code class="docutils literal notranslate"><span class="pre">k</span></code> should be large enough to approximate the tangent space, but small enough not to connect (geodesically) distant points of the manifold. The more data you have the higher <code class="docutils literal notranslate"><span class="pre">k</span></code> you can use.</p></li>
+<li><p>Perform operations in local (manifold) gauges or global coordinates. Note that <code class="docutils literal notranslate"><span class="pre">local_gauge=False</span></code> should be used whenever the manifold has negligible curvature on the scale of the local feature. Setting <code class="docutils literal notranslate"><span class="pre">local_gauge=True</span></code> means that the code performs tangent space alignments before computing gradients, however, this will increase the cost of the computations $m^2$-fold, where $m$ is the manifold dimension, because points will be treated as vector spaces. See the example of a <a class="reference external" href="https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_curved_surface.py">simple vector fields over curved surfaces</a> for illustration.</p></li>
+</ol>
+<p>The final data object contains the following attributes (among others):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>data.pos: positions `pos` concatenated across manifolds
+data.x: vectors `x` concatenated across manifolds
+data.y: labels for each points denoting which manifold it belongs to
+data.edge_index: edge list of proximity graph (each manifold gets its own graph, disconnected from others)
+data.gauges: local coordinate bases when `local_gauge=True`
+</pre></div>
+</div>
+</section>
+<section id="how-to-pick-good-parameters">
+<h3>How to pick good parameters<a class="headerlink" href="#how-to-pick-good-parameters" title="Permalink to this heading">#</a></h3>
+<p>Choosing good parameters for the description of manifold, in particular <code class="docutils literal notranslate"><span class="pre">stop_crit</span></code> and <code class="docutils literal notranslate"><span class="pre">k</span></code>, can be essential for the success of your analysis. The illustration below shows three different scenarios to give you intuition.</p>
+<ol class="arabic simple">
+<li><p>(left) <strong>‘Optimal’ scenario.</strong> Here, the sample spacing along trajectories and between trajectories is comparable and <code class="docutils literal notranslate"><span class="pre">k</span></code> is choosen such that the proximity graph connects to neighbours but no further. At the same time <code class="docutils literal notranslate"><span class="pre">k</span></code> is large enough to have enough neighbours for gradient approximation. Notice the trade-off here.</p></li>
+<li><p>(middle) <strong>Suboptimal scenario 1.</strong> Here, the sample spacing is much smaller along the trajectory than between trajectories. This is probably frequently encountered when there are few trials relative to the dimension of the manifold and size of basin of attraction. Fitting a proximity graph to this dataset will lead to either a poorly connected manifold or having too many neighbours pointing to consecutive points on the trajectory, leading to poor gradient approximation. Also, too dense discretisation will mean that second-order features will not pick up on second-order features (curvature)of the trajectories. <strong>Fix:</strong> either increase <code class="docutils literal notranslate"><span class="pre">stop_crit</span></code> and/or subsample your trajectories before using <code class="docutils literal notranslate"><span class="pre">construct_dataset()</span></code>.</p></li>
+<li><p>(right) <strong>Suboptimal scenario 2.</strong> Here, there are too few sample points relative to the curvature of the trajectories. As a result, the gradient approximation will be inaccurate. <strong>Fix:</strong> decrease <code class="docutils literal notranslate"><span class="pre">stop_crit</span></code> or collect more data.</p></li>
+</ol>
+<a class="reference external image-reference" href="../assets/illustration_for_github.png"><img alt="illustration" src="_images/illustration_for_github.png" /></a>
+</section>
+<section id="training">
+<span id="id2"></span><h3>Training<a class="headerlink" href="#training" title="Permalink to this heading">#</a></h3>
+<p>You are ready to train! This is straightforward.</p>
+<p>You first specify the hyperparameters. The key ones are the following, which will work for many settings, but see <a class="reference external" href="https://github.com/agosztolai/MARBLE/blob/main/MARBLE/default_params.yaml">here</a> for a complete list.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;epochs&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span> <span class="c1">#optimisation epochs</span>
+          <span class="s1">&#39;hidden_channels&#39;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span> <span class="c1">#number of internal dimensions in MLP</span>
+          <span class="s1">&#39;out_channels&#39;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+          <span class="s1">&#39;inner_product_features&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+         <span class="p">}</span>
+</pre></div>
+</div>
+<p>Then proceed by constructing a network object</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">MARBLE</span><span class="o">.</span><span class="n">net</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Finally, launch training. The code will continuously save checkpoints during training with timestamps.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model</span><span class="o">.</span><span class="n">run_training</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">outdir</span><span class="o">=</span><span class="s1">&#39;./outputs&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>If you have previously trained a network, or have interrupted training, you can load the network directly as</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">MARBLE</span><span class="o">.</span><span class="n">net</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">loadpath</span><span class="o">=</span><span class="n">loadpath</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where loadpath can be either a path to the model (with a specific timestamp, or a directory to automatically load the latest model. By running <code class="docutils literal notranslate"><span class="pre">MARBLE.run_training()</span></code>, training will resume from the last ckechpoint.</p>
+</section>
+<section id="geometry-aware-and-geometry-agnostic-modes">
+<span id="innerproduct"></span><h3>Geometry-aware and geometry-agnostic modes<a class="headerlink" href="#geometry-aware-and-geometry-agnostic-modes" title="Permalink to this heading">#</a></h3>
+<p>One of the main features of our method is the ability to run in two different modes</p>
+<ol class="arabic simple">
+<li><p>Geometry-aware mode - learn manifold geometry and dynamics</p></li>
+<li><p>Geometry-agnostic mode - learn dynamics only</p></li>
+</ol>
+<p>To enable geometry-agnostic mode, set <code class="docutils literal notranslate"><span class="pre">inner_product_features=True</span></code> in training <code class="docutils literal notranslate"><span class="pre">params</span></code>. This engages an additional layer in the network after the computation of gradients, which makes them rotation invariant.</p>
+<p>As a slight cost of expressivity, this feature enables the orientation- and geometry-independent representation of dynamics over the manifolds. Amongst others, this allows one to recognise similar dynamics across different manifolds. See <a class="reference external" href="https://github.com/agosztolai/MARBLE/blob/doc/examples/RNN/RNN.ipynb">RNN example</a> for an illustration.</p>
+</section>
+</section>
+<section id="troubleshooting-guide">
+<h2>Troubleshooting guide<a class="headerlink" href="#troubleshooting-guide" title="Permalink to this heading">#</a></h2>
+<p>Training is successful when features are recognised to be similar across distinct vector fields, with their own manifolds and independent proximity graphs. To achieve this, follow these useful pieces of advice (mostly general ML practises):</p>
+<ol class="arabic simple">
+<li><p>Check that traning has converged, i.e., the validation loss is no longer decreasing.</p></li>
+<li><p>Check that convergence is smooth, i.e., there are no big jumps in the validation loss.</p></li>
+<li><p>Check that that there is no big gap between training loss and validation loss (generalisation gap).</p></li>
+</ol>
+<p>Seeing problems with the above would be possible signs your solution will be suboptimal and will likely not generalise well. If you see either of these, try the following</p>
+<ul class="simple">
+<li><p>increase training time (increase <code class="docutils literal notranslate"><span class="pre">epochs</span></code>)</p></li>
+<li><p>increase your data (e.g., decrease <code class="docutils literal notranslate"><span class="pre">stop_crit</span></code> and construct dataset again)</p></li>
+<li><p>decrease number of parameters (decrease <code class="docutils literal notranslate"><span class="pre">hidden_channels</span></code>, or decrease order, try <code class="docutils literal notranslate"><span class="pre">order=1</span></code>)</p></li>
+<li><p>improve the gradient approximation (increase <code class="docutils literal notranslate"><span class="pre">k</span></code>, but see above)</p></li>
+<li><p>disable local gauges (<code class="docutils literal notranslate"><span class="pre">local_gauge=False</span></code>)</p></li>
+</ul>
+<p>If you still do not get good convergence, your data may be very noisy.</p>
+<ul class="simple">
+<li><p>Try enabling diffusion (<code class="docutils literal notranslate"><span class="pre">diffusion=True</span></code> in training <code class="docutils literal notranslate"><span class="pre">params</span></code>)</p></li>
+</ul>
+<p>If this still does not work, check if there are very small or very large vector magnitudes in your dataset, filter them out and try again.</p>
+</section>
+<section id="stay-in-touch">
+<h2>Stay in touch<a class="headerlink" href="#stay-in-touch" title="Permalink to this heading">#</a></h2>
+<p>If all hopes are lost, or if you want to chat about your use case, get in touch or raise an issue! We are happy to help and looking to further develop this package to make it as useful as possible.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this heading">#</a></h2>
+<p>The following packages were inspirational during the delopment of this code:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/nmwsharp/diffusion-net">DiffusionNet</a></p></li>
+<li><p><a class="reference external" href="https://github.com/Saro00/DGN">Directional Graph Networks</a></p></li>
+<li><p><a class="reference external" href="https://github.com/SugiharaLab/pyEDM">pyEDM</a></p></li>
+<li><p><a class="reference external" href="https://github.com/mbudnins/parallel_transport_unfolding">Parallel Transport Unfolding</a></p></li>
+</ul>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="main.html">MARBLE module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="postprocessing.html">Postprocessing module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preprocessing.html">Preprocessing module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="layers.html">Layers module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="geometry.html">Geometry module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dataloader.html">Dataloader module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">Plotting module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utils module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dynamics.html">Dynamics module</a></li>
+</ul>
+</div>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="main.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">MARBLE module</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2023, Adam Gosztolai
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">MARBLE - Manifold Representation Basis Learning</a><ul>
+<li><a class="reference internal" href="#cite">Cite</a></li>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#quick-start">Quick start</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#further-details">Further details</a><ul>
+<li><a class="reference internal" href="#more-on-inputs">More on inputs</a></li>
+<li><a class="reference internal" href="#more-on-different-conditions">More on different conditions</a></li>
+<li><a class="reference internal" href="#more-on-constructing-data-object">More on constructing data object</a></li>
+<li><a class="reference internal" href="#how-to-pick-good-parameters">How to pick good parameters</a></li>
+<li><a class="reference internal" href="#training">Training</a></li>
+<li><a class="reference internal" href="#geometry-aware-and-geometry-agnostic-modes">Geometry-aware and geometry-agnostic modes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#troubleshooting-guide">Troubleshooting guide</a></li>
+<li><a class="reference internal" href="#stay-in-touch">Stay in touch</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/scripts/furo.js"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>
