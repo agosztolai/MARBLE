@@ -119,7 +119,7 @@ class CkNearestNeighbors(object):
         ratio_matrix = dmatrix / np.sqrt(darray_n_nbrs.dot(darray_n_nbrs.T))
         diag_ptr = np.arange(n_samples)
 
-        if isinstance(delta, (int, float)):
+        if not isinstance(delta, (int, float)):
             raise ValueError("Invalid argument type. Type of `delta` must be float or int")
         adjacency = csr_matrix(ratio_matrix < delta)
 
