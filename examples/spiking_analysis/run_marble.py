@@ -171,18 +171,12 @@ def main():
             local_gauges=False,
         )
 
-        # os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-        # os.environ["CUDA_VISIBLE_DEVICES"]="2"
-
-        # x = data.x[:100,:].numpy()
-        # pos = data.pos[:100,:].numpy()
-        # plt.quiver(pos[:,0],pos[:,1],x[:,0],x[:,1], angles='xy')
 
         par = {
             "epochs": 120,  # optimisation epochs
             "order": 2,  # order of derivatives
             "hidden_channels": 100,  # number of internal dimensions in MLP
-            "out_channels": 3,
+            "out_channels": 20, # or 3 for Fig3
             "inner_product_features": False,
             "vec_norm": False,
             "diffusion": True,
@@ -203,21 +197,23 @@ def main():
         all_trial_ids.append(np.hstack(trial_indexes))
         all_sampled_ids.append(data.sample_ind)
 
-        with open("data/marble_embeddings_20ms_out3.pkl", "wb") as handle:
+        # save over after each session (incase computations crash)
+        with open("data/marble_embeddings_20ms_out20.pkl", "wb") as handle:
             pickle.dump(
                 [
-                    distance_matrices[-1],
-                    embeddings[-1],
-                    times[-1],
-                    all_condition_labels[-1],
-                    all_trial_ids[-1],
-                    all_sampled_ids[-1],
+                    distance_matrices,
+                    embeddings,
+                    times,
+                    all_condition_labels,
+                    all_trial_ids,
+                    all_sampled_ids,
                 ],
                 handle,
                 protocol=pickle.HIGHEST_PROTOCOL,
             )
 
-    with open("data/marble_embeddings_20ms_out3.pkl", "wb") as handle:
+    # final save
+    with open("data/marble_embeddings_20ms_out20.pkl", "wb") as handle:
         pickle.dump(
             [
                 distance_matrices,
