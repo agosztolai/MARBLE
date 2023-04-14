@@ -18,7 +18,6 @@ setup(
         "networkx",
         "torch",
         "pympl",
-        "cknn @ git+https://github.com/chlorochrule/cknn",
         "tensorboardX",
         "pyyaml",
         "POT",

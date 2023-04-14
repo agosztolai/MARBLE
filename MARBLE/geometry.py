@@ -5,7 +5,6 @@ import scipy.sparse as sp
 import torch
 import torch_geometric.utils as PyGu
 import umap
-from cknn import cknneighbors_graph
 from sklearn.cluster import KMeans
 from sklearn.cluster import MeanShift
 from sklearn.decomposition import PCA
@@ -20,6 +19,7 @@ from torch_scatter import scatter_add
 from ptu_dijkstra import connections  # isort:skip
 from ptu_dijkstra import tangent_frames  # isort:skip
 
+from MARBLE.lib.cknn import cknneighbors_graph  # isort:skip
 from MARBLE import utils  # isort:skip
 
 
