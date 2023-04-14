@@ -1,7 +1,8 @@
 """Module imported and adapted from https://github.com/chlorochrule/cknn."""
 import numpy as np
 from scipy.sparse import csr_matrix
-from scipy.spatial.distance import pdist, squareform
+from scipy.spatial.distance import pdist
+from scipy.spatial.distance import squareform
 
 
 def cknneighbors_graph(
@@ -14,7 +15,7 @@ def cknneighbors_graph(
     is_sparse=True,
     return_instance=False,
 ):
-
+    """Main function to call, see CkNearestNeighbors for the doc."""
     cknn = CkNearestNeighbors(
         n_neighbors=n_neighbors,
         delta=delta,
@@ -27,8 +28,7 @@ def cknneighbors_graph(
 
     if return_instance:
         return cknn
-    else:
-        return cknn.ckng
+    return cknn.ckng
 
 
 class CkNearestNeighbors(object):
@@ -102,7 +102,7 @@ class CkNearestNeighbors(object):
         n_samples = X.shape[0]
 
         if n_neighbors < 1 or n_neighbors > n_samples - 1:
-            raise ValueError("`n_neighbors` must be " "in the range 1 to number of samples")
+            raise ValueError("`n_neighbors` must be in the range 1 to number of samples")
         if len(X.shape) != 2:
             raise ValueError("`X` must be 2D matrix")
         if n_samples < 2:
@@ -120,7 +120,7 @@ class CkNearestNeighbors(object):
         diag_ptr = np.arange(n_samples)
 
         if isinstance(delta, (int, float)):
-            ValueError("Invalid argument type. " "Type of `delta` must be float or int")
+            raise ValueError("Invalid argument type. Type of `delta` must be float or int")
         adjacency = csr_matrix(ratio_matrix < delta)
 
         if include_self:

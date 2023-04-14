@@ -16,6 +16,7 @@ setup(
         "scipy",
         "matplotlib",
         "networkx",
+        "seaborn",
         "torch",
         "pympl",
         "tensorboardX",
