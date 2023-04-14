@@ -26,7 +26,7 @@ jobs:
       run: |
         sudo apt-get install -y poppler-utils imagemagick pandoc
         python -m pip install --upgrade pip setuptools
-        pip install tox-gh-actions pybind11 pandoc
+        pip install tox-gh-actions pandoc
     - name: Run tox
       run: |
         tox
