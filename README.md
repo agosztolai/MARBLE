@@ -251,7 +251,10 @@ If you still do not get good convergence, your data may be very noisy.
 
 If this still does not work, check if there are very small or very large vector magnitudes in your dataset, filter them out and try again. 
 
-If all hopes are lost, or if you want to chat about your use case, get in touch or raise an issue! We are happy to help.
+
+## Stay in touch
+
+If all hopes are lost, or if you want to chat about your use case, get in touch or raise an issue! We are happy to help and looking to further develop this package to make it as useful as possible.
 
 
 ## References
