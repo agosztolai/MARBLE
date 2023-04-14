@@ -179,7 +179,7 @@ Choosing good parameters for the description of manifold, in particular `stop_cr
 2. (middle) **Suboptimal scenario 1.** Here, the sample spacing is much smaller along the trajectory than between trajectories. This is probably frequently encountered when there are few trials relative to the dimension of the manifold and size of basin of attraction. Fitting a proximity graph to this dataset will lead to either a poorly connected manifold or having too many neighbours pointing to consecutive points on the trajectory, leading to poor gradient approximation. Also, too dense discretisation will mean that second-order features will not pick up on second-order features (curvature)of the trajectories. **Fix:** either increase `stop_crit` and/or subsample your trajectories before using `construct_dataset()`.
 3. (right) **Suboptimal scenario 2.** Here, there are too few sample points relative to the curvature of the trajectories. As a result, the gradient approximation will be inaccurate. **Fix:** decrease `stop_crit` or collect more data.
 
-<img src="doc/assets/illustration_for_github.png" width="128"/>
+<img src="doc/assets/illustration_for_github.png" width="800"/>
 
 
 <a name="training"></a>
