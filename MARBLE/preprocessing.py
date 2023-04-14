@@ -27,24 +27,23 @@ def construct_dataset(
 ):
     """Construct PyG dataset from node positions and features.
 
-    Parameters
-    ----------
-    pos: matrix with position of points
-    features: matrix with feature values for each point
-    graph_type: type of nearest-neighbours graph: cknn (default), knn or radius
-    k: number of nearest-neighbours to construct the graph
-    n_geodesic_nb: number of geodesic neighbours to fit the gauges to
-    to map to tangent space
-    stop_crit: stopping criterion for furthest point sampling
-    number_of_resamples: number of furthest point sampling runs to prevent bias (experimental)
-    compute_laplacian: set to True to compute laplacian
-    compute_connection_laplacian: set to True to compute the connection laplacian
-    var_explained: fraction of variance explained by the local gauges
-    local_gauges: is True, it will try to compute local gauges if it can (signal dim is > 2,
-        embedding dimension is > 2 or dim embedding is not dim of manifold)
-    dim_man: if the manifold dimension is known, it can be set here, otherwise it will be estimated
-    labels: labels of nodes, if None, integers will be used
-    delta: argument for cknn graph construction to decide the radius for each points.
+    Args:
+        pos: matrix with position of points
+        features: matrix with feature values for each point
+        graph_type: type of nearest-neighbours graph: cknn (default), knn or radius
+        k: number of nearest-neighbours to construct the graph
+        n_geodesic_nb: number of geodesic neighbours to fit the gauges to
+        to map to tangent space
+        stop_crit: stopping criterion for furthest point sampling
+        number_of_resamples: number of furthest point sampling runs to prevent bias (experimental)
+        compute_laplacian: set to True to compute laplacian
+        compute_connection_laplacian: set to True to compute the connection laplacian
+        var_explained: fraction of variance explained by the local gauges
+        local_gauges: is True, it will try to compute local gauges if it can (signal dim is > 2,
+            embedding dimension is > 2 or dim embedding is not dim of manifold)
+        dim_man: if the manifold dimension is known, it can be set here or it will be estimated
+        labels: labels of nodes, if None, integers will be used
+        delta: argument for cknn graph construction to decide the radius for each points.
     """
 
     pos = [torch.tensor(p).float() for p in utils.to_list(pos)]
@@ -119,24 +118,19 @@ def _compute_geometric_objects(
     Compute geometric objects used later: local gauges, Levi-Civita connections
     gradient kernels, scalar and connection laplacians.
 
-    Parameters
-    ----------
-    data : pytorch geometric data object
-    n_geodesic_nb: number of geodesic neighbours to fit the gauges to
-    to map to tangent space
-    var_explained: fraction of variance explained by the local gauges
-    diffusion: 'spectral' or 'matrix_exp'
+    Args:
+        data: pytorch geometric data object
+        n_geodesic_nb: number of geodesic neighbours to fit the gauges to map to tangent space
+        var_explained: fraction of variance explained by the local gauges
+        diffusion: 'spectral' or 'matrix_exp'
 
-    Returns
-    -------
-    R : (nxnxdxd) tensor of L-C connectionc (dxd) matrices
-    kernels : list of d (nxn) matrices of directional kernels
-    L : (nxn) matrix of scalar laplacian
-    Lc : (ndxnd) matrix of connection laplacian
-    par : updated dictionary of parameters
-
+    Returns:
+        R (nxnxdxd tensor): L-C connectionc (dxd) matrices
+        kernels (list of d (nxn) matrices): directional kernels
+        L (nxn matrix): scalar laplacian
+        Lc (ndxnd matrix): connection laplacian
+        par (dict): updated dictionary of parameters
     """
-
     n, dim_emb = data.pos.shape
     dim_signal = data.x.shape[1]
     print(f"---- Embedding dimension: {dim_emb}")

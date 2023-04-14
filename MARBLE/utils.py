@@ -110,17 +110,14 @@ def to_SparseTensor(edge_index, size=None, value=None):
     """
     Adjacency matrix as torch_sparse tensor
 
-    Parameters
-    ----------
-    edge_index : (2x|E|) Matrix of edge indices
-    size : pair (rows,cols) giving the size of the matrix.
-        The default is the largest node of the edge_index.
-    value : list of weights. The default is unit values.
+    Args:
+        edge_index (2xE matrix): edge indices
+        size: pair (rows,cols) giving the size of the matrix.
+            The default is the largest node of the edge_index.
+        value: list of weights. The default is unit values.
 
-    Returns
-    -------
-    adj : adjacency matrix in SparseTensor format
-
+    Returns:
+        adjacency matrix in SparseTensor format
     """
     if value is None:
         value = torch.ones(edge_index.shape[1])

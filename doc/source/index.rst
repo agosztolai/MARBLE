@@ -1,10 +1,5 @@
-.. mdinclude:: ../../README.md
+.. mdinclude:: ../index_readme.md
     :start-line: 0
-
-API documentation
-*****************
-
-Documentation of the API of *MARBLE*. 
 
 .. toctree::
    :maxdepth: 1
@@ -18,11 +13,3 @@ Documentation of the API of *MARBLE*.
    plotting
    utils
    dynamics
- 
-
-Indices and tables
-******************
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

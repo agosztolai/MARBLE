@@ -23,10 +23,6 @@ If you find this package useful or inspirational, please cite our work as follow
 }
 ```
 
-## Documentation
-
-See full documentation [here](https://agosztolai.github.io/MARBLE/).
-
 
 ## Installation
 
@@ -67,7 +63,7 @@ We suggest you study at least the example of a [simple vector fields over flat s
 Briefly, MARBLE takes two inputs
 
 1. `pos` - a list of `nxd` arrays, each defining a point cloud describing the geometry of a manifold
-2. `x` - a list of `nxD` arrays, defining a signal over the respective manifolds in 1. For dynamical systems, D=d, but our code can also handle signals of other dimensions. Read more about [inputs](#inputs) and [different conditions](#conditions).
+2. `x` - a list of `nxD` arrays, defining a signal over the respective manifolds in 1. For dynamical systems, D=d, but our code can also handle signals of other dimensions. Read more about  [inputs](#inputs) and [different conditions](#conditions).
 
 Using these inputs, you can construct a dataset for MARBLE.
 
@@ -126,8 +122,9 @@ The folder [/examples](https://github.com/agosztolai/MARBLE/tree/main/examples) 
 
 ## Further details
 
-<a name="inputs"></a>
-### More on inputs
+.. _inputs:
+
+### More on inputs 
 
 If you measure time series observables, such as neural firing rates, you can start with a list of variable length time series under a given condition, e.g., `ts_1`, `ts_2`. We assume these are measurements from the same dynamical system, i.e., the sample points making up these trajectories are drawn from the same manifold, defining its shape `pos = np.vstack([ts_1, ts_2])`.
 
@@ -135,7 +132,8 @@ If you do not directly have access to the velocities, you can approximate them a
 
 If you just want to play around with dynamical systems, why not try our (experimental) [sister package] DE_library(https://github.com/agosztolai/DE_library).
 
-<a name="conditions"></a>
+.. _conditions:
+
 ### More on different conditions
 
 Comparing dynamics in a data-driven way is equivalent to comparing the corresponding vector fields based on their respective sample sets. The dynamics to be compared might correspond to different experimental conditions (stimulation conditions, genetic perturbations etc.), dynamical systems (different task, different brain region).
@@ -148,7 +146,8 @@ pos_list, x_list = [pos1, pos2], [x1, x2]
 
 Note, it is sometimes useful to consider that two vector fields lie on independent manifolds (providing them as a list) even when we want to *discover* the contrary. However, when we know that two vector fields lie on the same manifold, then it can be advantageous to stack their corresponding samples (stacking them) as this will enforce geometric relationships between them through the proximity graph.
 
-<a name="construct"></a>
+.. _construct:
+
 ### More on constructing data object
 
 Our pipleline is build around a Pytorch Geometric data object, which we can obtain by running the following constructor.
@@ -183,10 +182,11 @@ Choosing good parameters for the description of manifold, in particular `stop_cr
 2. (middle) **Suboptimal scenario 1.** Here, the sample spacing is much smaller along the trajectory than between trajectories. This is probably frequently encountered when there are few trials relative to the dimension of the manifold and size of basin of attraction. Fitting a proximity graph to this dataset will lead to either a poorly connected manifold or having too many neighbours pointing to consecutive points on the trajectory, leading to poor gradient approximation. Also, too dense discretisation will mean that second-order features will not pick up on second-order features (curvature)of the trajectories. **Fix:** either increase `stop_crit` and/or subsample your trajectories before using `construct_dataset()`.
 3. (right) **Suboptimal scenario 2.** Here, there are too few sample points relative to the curvature of the trajectories. As a result, the gradient approximation will be inaccurate. **Fix:** decrease `stop_crit` or collect more data.
 
-<img src="doc/assets/illustration_for_github.png" width="800"/>
+![illustration](../assets/illustration_for_github.png)
 
 
-<a name="training"></a>
+.. _training:
+
 ### Training
 
 You are ready to train! This is straightforward.
@@ -222,7 +222,8 @@ model = MARBLE.net(data, loadpath=loadpath)
 
 where loadpath can be either a path to the model (with a specific timestamp, or a directory to automatically load the latest model. By running `MARBLE.run_training()`, training will resume from the last ckechpoint.
 
-<a name="innerproduct"></a>
+.. _innerproduct:
+
 ### Geometry-aware and geometry-agnostic modes
 
 One of the main features of our method is the ability to run in two different modes
