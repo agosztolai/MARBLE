@@ -37,7 +37,7 @@ We recommend you install the code in a fresh Anaconda virtual environment, as fo
 First, clone this repository, 
 
 ```
-git clone https://github.com/agosztolai/GeoDySys
+git clone https://github.com/agosztolai/MARBLE
 ```
 
 Then, create an new anaconda environment using the provided environment file that matches your system.
