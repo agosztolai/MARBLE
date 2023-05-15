@@ -129,7 +129,7 @@ class CkNearestNeighbors(object):
             adjacency[diag_ptr, diag_ptr] = False
 
         if t == "inf":
-            neigh = adjacency.astype(np.float)
+            neigh = adjacency.astype(float)
         else:
             mask = adjacency.nonzero()
             weights = np.exp(-np.power(dmatrix[mask], 2) / t)
