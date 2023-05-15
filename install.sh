@@ -45,8 +45,8 @@ echo "$FIND_LINKS"
 # from the find-links URL pip will download the source distribution from
 # the index and try to build a wheel form it. To avoid this and to force lookup
 # in the find-links URL disable the index completely.
-pip install torch-scatter --no-index -f "$FIND_LINKS"
-pip install torch-sparse --no-index -f "$FIND_LINKS"
-pip install torch-cluster --no-index -f "$FIND_LINKS"
-pip install torch-spline-conv --no-index -f "$FIND_LINKS"
+pip install torch-scatter #--no-index -f "$FIND_LINKS"
+pip install torch-sparse #--no-index -f "$FIND_LINKS"
+pip install torch-cluster #--no-index -f "$FIND_LINKS"
+pip install torch-spline-conv #--no-index -f "$FIND_LINKS"
 pip install "torch-geometric"
