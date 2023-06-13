@@ -190,7 +190,7 @@ def main():
         n_clusters = 50
         data = MARBLE.distribution_distances(data, n_clusters=n_clusters)
 
-        embeddings.append(data.out)
+        embeddings.append(data.emb)
         distance_matrices.append(data.dist)
         times.append(np.hstack(timepoints))
         all_condition_labels.append(data.y)
