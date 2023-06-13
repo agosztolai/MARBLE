@@ -172,7 +172,7 @@ def main():
         )
 
 
-        par = {
+        params = {
             "epochs": 120,  # optimisation epochs
             "order": 2,  # order of derivatives
             "hidden_channels": 100,  # number of internal dimensions in MLP
@@ -182,7 +182,7 @@ def main():
             "diffusion": True,
         }
 
-        model = MARBLE.net(data, par=par)
+        model = MARBLE.net(data, params=params)
 
         model.run_training(data, outdir="data/session_{}_20ms".format(day))
         data = model.evaluate(data)
