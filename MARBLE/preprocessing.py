@@ -4,7 +4,6 @@ import torch
 from torch_geometric.data import Batch
 from torch_geometric.data import Data
 from torch_geometric.transforms import RandomNodeSplit
-
 from MARBLE import geometry as g
 from MARBLE import utils
 
@@ -19,6 +18,7 @@ def construct_dataset(
     number_of_resamples=1,
     compute_laplacian=False,
     compute_connection_laplacian=False,
+    return_spectrum=True,
     var_explained=0.9,
     local_gauges=False,
     dim_man=None,
@@ -101,6 +101,7 @@ def construct_dataset(
         n_geodesic_nb=n_geodesic_nb,
         var_explained=var_explained,
         dim_man=dim_man,
+        return_spectrum=return_spectrum
     )
 
 
@@ -108,7 +109,7 @@ def _compute_geometric_objects(
     data,
     n_geodesic_nb=2.0,
     var_explained=0.9,
-    diffusion_method="spectral",
+    return_spectrum=True,
     local_gauges=True,
     compute_laplacian=False,
     compute_connection_laplacian=False,
@@ -191,7 +192,7 @@ def _compute_geometric_objects(
         print("Done ")
         Lc = None
 
-    if diffusion_method == "spectral":
+    if return_spectrum:
         print("---- Computing eigendecomposition ... ", end="")
         L = g.compute_eigendecomposition(L)
         Lc = g.compute_eigendecomposition(Lc)
