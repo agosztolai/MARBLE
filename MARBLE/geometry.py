@@ -43,8 +43,6 @@ def furthest_point_sampling(x, N=None, stop_crit=0.1, start_idx=0):
     n = D.shape[0] if N is None else N
     diam = D.max()
 
-    start_idx = 5
-
     perm = torch.zeros(n, dtype=torch.int64)
     perm[0] = start_idx
     lambdas = torch.zeros(n)
