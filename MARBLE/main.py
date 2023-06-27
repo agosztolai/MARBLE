@@ -226,9 +226,6 @@ class net(nn.Module):
             L = data.L.copy() if hasattr(data, "L") else None
             Lc = data.Lc.copy() if hasattr(data, "Lc") else None
             x = self.diffusion(x, L, Lc=Lc, method="spectral")
-            if torch.isnan(x).sum()>0:
-                import sys
-                sys.exit()
             
         # restrict to current batch
         x = x[n_id]
