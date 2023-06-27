@@ -5,25 +5,21 @@ import scipy.sparse as sp
 import torch
 import torch_geometric.utils as PyGu
 import umap
-from sklearn.cluster import KMeans
-from sklearn.cluster import MeanShift
+from sklearn.cluster import KMeans, MeanShift
 from sklearn.decomposition import PCA
-from sklearn.manifold import MDS
-from sklearn.manifold import TSNE
+from sklearn.manifold import TSNE, Isomap, MDS
 from sklearn.metrics import pairwise_distances
 from sklearn.preprocessing import StandardScaler
-from torch_geometric.nn import knn_graph
-from torch_geometric.nn import radius_graph
+from torch_geometric.nn import knn_graph, radius_graph
 from torch_scatter import scatter_add
 
-from ptu_dijkstra import connections  # isort:skip
-from ptu_dijkstra import tangent_frames  # isort:skip
+from ptu_dijkstra import connections, tangent_frames  # isort:skip
 
 from MARBLE.lib.cknn import cknneighbors_graph  # isort:skip
 from MARBLE import utils  # isort:skip
 
 
-def furthest_point_sampling(x, N=None, stop_crit=0.1, start_idx=0):
+def furthest_point_sampling(x, N=None, stop_crit=0.0, start_idx=0):
     """A greedy O(N^2) algorithm to do furthest points sampling
 
     Args:
@@ -43,13 +39,11 @@ def furthest_point_sampling(x, N=None, stop_crit=0.1, start_idx=0):
     n = D.shape[0] if N is None else N
     diam = D.max()
 
-    start_idx = 5
-
     perm = torch.zeros(n, dtype=torch.int64)
     perm[0] = start_idx
     lambdas = torch.zeros(n)
-    ds = D[start_idx, :]
-    for i in range(1, n):
+    ds = D[start_idx, :].flatten()
+    for i in range(1,n):
         idx = torch.argmax(ds)
         perm[i] = idx
         lambdas[i] = ds[idx]
@@ -61,6 +55,7 @@ def furthest_point_sampling(x, N=None, stop_crit=0.1, start_idx=0):
                 lambdas = lambdas[:i]
                 break
 
+    assert len(perm)==len(np.unique(perm)), 'Returned duplicated points'
     return perm, lambdas
 
 
@@ -108,7 +103,7 @@ def embed(x, embed_typ="umap", dim_emb=2, manifold=None, seed=0):
             f"\n No {embed_typ} embedding performed. Embedding seems to be \
               already in 2D."
         )
-        return x
+        return x, None
 
     if embed_typ == "tsne":
         x = StandardScaler().fit_transform(x)
@@ -120,7 +115,7 @@ def embed(x, embed_typ="umap", dim_emb=2, manifold=None, seed=0):
     elif embed_typ == "umap":
         x = StandardScaler().fit_transform(x)
         if manifold is None:
-            manifold = umap.UMAP(n_components=dim_emb, random_state=seed).fit(x)
+            manifold = umap.UMAP(n_components=dim_emb, random_state=seed, n_neighbors=10, min_dist=0.1).fit(x)
 
         emb = manifold.transform(x)
 
@@ -135,6 +130,14 @@ def embed(x, embed_typ="umap", dim_emb=2, manifold=None, seed=0):
     elif embed_typ == "PCA":
         if manifold is None:
             manifold = PCA(n_components=dim_emb).fit(x)
+
+        emb = manifold.transform(x)
+        
+    elif embed_typ == "Isomap":
+        radius = pairwise_distances(x)
+        radius = 0.1*(radius.max()-radius.min())
+        if manifold is None:
+            manifold = Isomap(n_components=dim_emb, n_neighbors=None, radius=radius).fit(x)
 
         emb = manifold.transform(x)
 
@@ -620,17 +623,17 @@ def scalar_diffusion(x, t, method="matrix_exp", par=None):
         ), "For spectral method, par must be a tuple of \
             eigenvalues, eigenvectors!"
         evals, evecs = par
-
+        
         # Transform to spectral
         x_spec = torch.mm(evecs.T, x)
 
         # Diffuse
         diffusion_coefs = torch.exp(-evals.unsqueeze(-1) * t.unsqueeze(0))
         x_diffuse_spec = diffusion_coefs * x_spec
-
+        
         # Transform back to per-vertex
         return evecs.mm(x_diffuse_spec)
-
+    
     raise NotImplementedError
 
 

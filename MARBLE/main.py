@@ -226,16 +226,19 @@ class net(nn.Module):
             L = data.L.copy() if hasattr(data, "L") else None
             Lc = data.Lc.copy() if hasattr(data, "Lc") else None
             x = self.diffusion(x, L, Lc=Lc, method="spectral")
-
+            if torch.isnan(x).sum()>0:
+                import sys
+                sys.exit()
+            
         # restrict to current batch
         x = x[n_id]
         if data.kernels[0].size(0) == n * d:
             n_id = utils.expand_index(n_id, d)
         else:
             d = 1
-
-        if self.params["vec_norm"]:
-            x = F.normalize(x, dim=-1, p=2)
+            
+        # if self.params["vec_norm"]:
+        #     x = F.normalize(x, dim=-1, p=2)
 
         # gradients
         if self.params["include_self"]:
@@ -244,7 +247,7 @@ class net(nn.Module):
             out = []
         for i, (_, _, size) in enumerate(adjs):
             kernels = [K[n_id[: size[1] * d], :][:, n_id[: size[0] * d]] for K in data.kernels]
-
+            
             x = self.grad[i](x, kernels)
             out.append(x)
 
@@ -256,12 +259,15 @@ class net(nn.Module):
             out = self.inner_products(out)
         else:
             out = torch.cat(out, axis=1)
+            
+        if self.params["vec_norm"]:
+            out = F.normalize(out, dim=-1, p=2)
 
         if self.params["include_positions"]:
             out = torch.hstack(
                 [data.pos[n_id[: size[1]]], out]  # pylint: disable=undefined-loop-variable
             )
-
+            
         emb = self.enc(out)
 
         return emb

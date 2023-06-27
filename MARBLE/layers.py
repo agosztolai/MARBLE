@@ -58,8 +58,8 @@ class AnisoConv(MessagePassing):
         out = torch.stack(out, axis=2)
         out = out.view(out.shape[0], -1)
 
-        if self.vec_norm:
-            out = normalize(out, dim=-1, p=2)
+        # if self.vec_norm:
+        #     out = normalize(out, dim=-1, p=2)
 
         return out
 
