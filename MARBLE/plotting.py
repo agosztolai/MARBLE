@@ -9,6 +9,8 @@ import numpy as np
 import seaborn as sns
 from matplotlib import gridspec
 from matplotlib.patches import FancyArrowPatch
+from matplotlib.colors import LinearSegmentedColormap
+from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from mpl_toolkits.mplot3d import proj3d
 from scipy.spatial import Voronoi
 from scipy.spatial import voronoi_plot_2d
@@ -168,6 +170,9 @@ def embedding(
     cbar_visible=True,
     clusters_visible=False,
     cmap="coolwarm",
+    plot_trajectories=False,
+    style='o',
+    time_gradient=False
 ):
     """Plot embeddings.
 
@@ -193,26 +198,48 @@ def embedding(
         # for more than 1000 nodes, choose randomly
         if len(labels) > 1000:
             idx = np.random.choice(np.arange(len(labels)), size=1000)
-            emb, labels = emb[idx], labels[idx]
-
-    color, cbar = set_colors(labels, cmap)
+            idx = np.sort(idx)
 
     if labels is None:
         labels = np.ones(emb.shape[0])
 
     types = sorted(set(labels))
+    
+    color, cbar = set_colors(types, cmap)
+    
     if titles is not None:
         assert len(titles) == len(types)
 
     for i, typ in enumerate(types):
-        ind = np.where(np.array(labels) == typ)[0]
         title = titles[i] if titles is not None else str(typ)
-        c = np.array(color)[ind] if not isinstance(color, str) else color
-
-        if dim == 2:
-            ax.scatter(emb[ind, 0], emb[ind, 1], c=c, alpha=alpha, s=s, label=title)
-        elif dim == 3:
-            ax.scatter(emb[ind, 0], emb[ind, 1], emb[ind, 2], c=c, alpha=alpha, s=s, label=title)
+        c_ = color[i]
+        emb_ = emb[labels == typ]
+        l_ = data.l[labels == typ]
+        
+        if plot_trajectories:  
+            end = np.where(np.diff(l_)<0)[0]+1
+            start = np.hstack([0, end])
+            end = np.hstack([end, len(emb_)])
+            cmap = LinearSegmentedColormap.from_list("Custom", [(0, 0, 0), c_], N=max(l_))
+            
+            for i, (s_,e_) in enumerate(zip(start, end)):
+                t = range(s_,e_)
+                cgrad = cmap(l_[t]/max(l_))
+                if style=='-':
+                    if time_gradient:
+                        trajectories(emb_[t], style='-', ax=ax, ms=s, node_feature=cgrad)
+                    else:
+                        trajectories(emb_[t], style='-', ax=ax, ms=s, node_feature=[c_]*len(t))
+                elif style=='o':
+                    if dim == 2:
+                        ax.scatter(emb_[t, 0], emb_[t, 1], c=cgrad, alpha=alpha, s=s, label=title)
+                    elif dim == 3:
+                        ax.scatter(emb_[t, 0], emb_[t, 1], emb_[t, 2], c=cgrad, alpha=alpha, s=s, label=title)  
+        else:
+            if dim == 2:
+                ax.scatter(emb_[:, 0], emb_[:, 1], c=c, alpha=alpha, s=s, label=title)
+            elif dim == 3:
+                ax.scatter(emb_[:, 0], emb_[:, 1], emb_[:, 2], c=c, alpha=alpha, s=s, label=title)
 
     if dim == 2:
         if hasattr(data, "clusters") and clusters_visible:
@@ -490,12 +517,12 @@ def trajectories(
         _, ax = create_axis(dim)
 
     c = set_colors(node_feature)[0]
-
+        
     if dim == 2:
         if "o" in style:
             ax.scatter(X[:, 0], X[:, 1], c=c, s=ms, alpha=alpha)
         if "-" in style:
-            if isinstance(c, (list, tuple)):
+            if isinstance(c, (np.ndarray, list, tuple)):
                 for i in range(len(X) - 2):
                     ax.plot(
                         X[i : i + 2, 0],
@@ -663,11 +690,9 @@ def set_colors(color, cmap="coolwarm"):
     if color is None:
         return "k", None
 
-    assert isinstance(color, (list, tuple, np.ndarray))
-
     if isinstance(color[0], (float, np.floating)):
         cmap = sns.color_palette(cmap, as_cmap=True)
-        norm = plt.cm.colors.Normalize(-np.max(np.abs(color)), np.max(np.abs(color)))
+        norm = plt.cm.colors.Normalize(0, np.max(np.abs(color)))
         colors = [cmap(norm(np.array(c).flatten())) for c in color]
 
     elif isinstance(color[0], (int, np.integer)):
@@ -675,6 +700,8 @@ def set_colors(color, cmap="coolwarm"):
         colors = [f"C{i}" for i in color]
         colors = [matplotlib.colors.to_rgba(c) for c in colors]
         cmap, norm = matplotlib.colors.from_levels_and_colors(np.arange(1, len(color) + 2), colors)
+    elif isinstance(color[0], (np.ndarray, list, tuple)):
+        return color, None
     else:
         raise Exception("color must be a list of integers or floats")
 

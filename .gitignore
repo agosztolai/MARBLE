@@ -1,4 +1,5 @@
 *.ipynb_checkpoints 
+examples/outputs/
 build/
 data/
 myjob*

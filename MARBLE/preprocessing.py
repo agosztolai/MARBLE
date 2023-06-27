@@ -11,6 +11,7 @@ from MARBLE import utils
 def construct_dataset(
     pos,
     features,
+    labels=None,
     graph_type="cknn",
     k=15,
     n_geodesic_nb=10,
@@ -22,7 +23,6 @@ def construct_dataset(
     var_explained=0.9,
     local_gauges=False,
     dim_man=None,
-    labels=None,
     delta=1.0,
 ):
     """Construct PyG dataset from node positions and features.
@@ -30,6 +30,7 @@ def construct_dataset(
     Args:
         pos: matrix with position of points
         features: matrix with feature values for each point
+        labels: any additional data labels used for plotting only
         graph_type: type of nearest-neighbours graph: cknn (default), knn or radius
         k: number of nearest-neighbours to construct the graph
         n_geodesic_nb: number of geodesic neighbours to fit the gauges to
@@ -42,14 +43,14 @@ def construct_dataset(
         local_gauges: is True, it will try to compute local gauges if it can (signal dim is > 2,
             embedding dimension is > 2 or dim embedding is not dim of manifold)
         dim_man: if the manifold dimension is known, it can be set here or it will be estimated
-        labels: labels of nodes, if None, integers will be used
         delta: argument for cknn graph construction to decide the radius for each points.
     """
 
     pos = [torch.tensor(p).float() for p in utils.to_list(pos)]
-
-    if not labels:
-        labels = np.linspace(0, len(pos) - 1, len(pos))
+    labels = [torch.tensor(l).float() for l in utils.to_list(labels)]
+    
+    if labels is None:
+        labels = [torch.arange(len(p)) for p in utils.to_list(pos)]
 
     if features is not None:
         features = [torch.tensor(x).float() for x in utils.to_list(features)]
@@ -61,24 +62,26 @@ def construct_dataset(
         number_of_resamples = 1
 
     data_list = []
-    for i, (p, f) in enumerate(zip(pos, features)):
+    for i, (p, f, l) in enumerate(zip(pos, features, labels)):
         for _ in range(number_of_resamples):
             # even sampling of points
             start_idx = torch.randint(low=0, high=len(p), size=(1,))
             sample_ind, _ = g.furthest_point_sampling(p, stop_crit=stop_crit, start_idx=start_idx)
-            p, f = p[sample_ind], f[sample_ind]
+            sample_ind, _ = torch.sort(sample_ind) #this will make postprocessing
+            p_, f_, l_ = p[sample_ind], f[sample_ind], l[sample_ind]
 
             # fit graph to point cloud
-            edge_index, edge_weight = g.fit_graph(p, graph_type=graph_type, par=k, delta=delta)
-            n = len(p)
+            edge_index, edge_weight = g.fit_graph(p_, graph_type=graph_type, par=k, delta=delta)
+            n = len(p_)
             data_ = Data(
-                pos=p,
-                x=f,
+                pos=p_,
+                x=f_,
+                l=l_,
                 edge_index=edge_index,
                 edge_weight=edge_weight,
                 num_nodes=n,
                 num_node_features=num_node_features,
-                y=torch.ones(n, dtype=int) * labels[i],
+                y=torch.ones(n, dtype=int) * i,
                 sample_ind=sample_ind,
             )
 
