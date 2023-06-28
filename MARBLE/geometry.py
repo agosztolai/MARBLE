@@ -88,7 +88,7 @@ def cluster(x, cluster_typ="meanshift", n_clusters=15, seed=0):
     return clusters
 
 
-def embed(x, embed_typ="umap", dim_emb=2, manifold=None, seed=0):
+def embed(x, embed_typ="umap", dim_emb=2, manifold=None, seed=0, **kwargs):
     """Embed data to 2D space.
 
     Args:
@@ -115,7 +115,7 @@ def embed(x, embed_typ="umap", dim_emb=2, manifold=None, seed=0):
     elif embed_typ == "umap":
         x = StandardScaler().fit_transform(x)
         if manifold is None:
-            manifold = umap.UMAP(n_components=dim_emb, random_state=seed, n_neighbors=10, min_dist=0.1).fit(x)
+            manifold = umap.UMAP(n_components=dim_emb, random_state=seed, **kwargs).fit(x)
 
         emb = manifold.transform(x)
 
