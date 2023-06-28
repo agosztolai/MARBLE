@@ -237,7 +237,7 @@ def embedding(
                         ax.scatter(emb_[t, 0], emb_[t, 1], emb_[t, 2], c=cgrad, alpha=alpha, s=s, label=title)  
         else:
             if dim == 2:
-                ax.scatter(emb_[:, 0], emb_[:, 1], c=c, alpha=alpha, s=s, label=title)
+                ax.scatter(emb_[:, 0], emb_[:, 1], c=c_, alpha=alpha, s=s, label=title)
             elif dim == 3:
                 ax.scatter(emb_[:, 0], emb_[:, 1], emb_[:, 2], c=c, alpha=alpha, s=s, label=title)
 
