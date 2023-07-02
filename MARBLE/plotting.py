@@ -163,6 +163,7 @@ def embedding(
     data,
     labels=None,
     titles=None,
+    mask=None,
     ax=None,
     alpha=0.3,
     s=5,
@@ -195,13 +196,13 @@ def embedding(
 
     if labels is not None:
         assert emb.shape[0] == len(labels)
-        # for more than 1000 nodes, choose randomly
-        if len(labels) > 1000:
-            idx = np.random.choice(np.arange(len(labels)), size=1000)
-            idx = np.sort(idx)
 
     if labels is None:
         labels = np.ones(emb.shape[0])
+        
+    if mask is None:
+        mask = np.ones(len(emb), dtype=bool)
+        labels = labels[mask]
 
     types = sorted(set(labels))
     
@@ -213,10 +214,14 @@ def embedding(
     for i, typ in enumerate(types):
         title = titles[i] if titles is not None else str(typ)
         c_ = color[i]
-        emb_ = emb[labels == typ]
-        l_ = data.l[labels == typ]
+        emb_ = emb[mask*(labels == typ)]
         
-        if plot_trajectories:  
+        if isinstance(data, np.ndarray):
+            print('You need to pass a data object to plot trajectories!')
+            plot_trajectories = False
+        
+        if plot_trajectories:
+            l_ = data.l[mask*(labels == typ)]
             end = np.where(np.diff(l_)<0)[0]+1
             start = np.hstack([0, end])
             end = np.hstack([end, len(emb_)])
@@ -227,9 +232,9 @@ def embedding(
                 cgrad = cmap(l_[t]/max(l_))
                 if style=='-':
                     if time_gradient:
-                        trajectories(emb_[t], style='-', ax=ax, ms=s, node_feature=cgrad)
+                        trajectories(emb_[t], style='-', ax=ax, ms=s, node_feature=cgrad, alpha=alpha)
                     else:
-                        trajectories(emb_[t], style='-', ax=ax, ms=s, node_feature=[c_]*len(t))
+                        trajectories(emb_[t], style='-', ax=ax, ms=s, node_feature=[c_]*len(t), alpha=alpha)
                 elif style=='o':
                     if dim == 2:
                         ax.scatter(emb_[t, 0], emb_[t, 1], c=cgrad, alpha=alpha, s=s, label=title)

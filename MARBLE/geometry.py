@@ -297,7 +297,7 @@ def gradient_op(pos, edge_index, gauges):
         _F -= sp.diags(np.array(_F.sum(1)).flatten())
         _F = _F.tocoo()
         K.append(torch.sparse_coo_tensor(np.vstack([_F.row, _F.col]), _F.data.data))
-
+    
     return K
 
 
@@ -451,7 +451,10 @@ def is_connected(edge_index):
 def compute_laplacian(data, normalization="rw"):
     """Compute Laplacian."""
     edge_index, edge_attr = PyGu.get_laplacian(
-        data.edge_index, edge_weight=data.edge_weight, normalization=normalization
+        data.edge_index, 
+        edge_weight=data.edge_weight, 
+        normalization=normalization, 
+        num_nodes=data.num_nodes
     )
 
     return PyGu.to_dense_adj(edge_index, edge_attr=edge_attr).squeeze()
