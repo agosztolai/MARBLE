@@ -173,6 +173,7 @@ def embedding(
     cmap="coolwarm",
     plot_trajectories=False,
     style='o',
+    lw=1,
     time_gradient=False
 ):
     """Plot embeddings.
@@ -222,6 +223,8 @@ def embedding(
         
         if plot_trajectories:
             l_ = data.l[mask*(labels == typ)]
+            if len(l_) == 0:
+                continue
             end = np.where(np.diff(l_)<0)[0]+1
             start = np.hstack([0, end])
             end = np.hstack([end, len(emb_)])
@@ -232,9 +235,9 @@ def embedding(
                 cgrad = cmap(l_[t]/max(l_))
                 if style=='-':
                     if time_gradient:
-                        trajectories(emb_[t], style='-', ax=ax, ms=s, node_feature=cgrad, alpha=alpha)
+                        trajectories(emb_[t], style='-', ax=ax, ms=s, node_feature=cgrad, alpha=alpha, lw=lw)
                     else:
-                        trajectories(emb_[t], style='-', ax=ax, ms=s, node_feature=[c_]*len(t), alpha=alpha)
+                        trajectories(emb_[t], style='-', ax=ax, ms=s, node_feature=[c_]*len(t), alpha=alpha, lw=lw)
                 elif style=='o':
                     if dim == 2:
                         ax.scatter(emb_[t, 0], emb_[t, 1], c=cgrad, alpha=alpha, s=s, label=title)
