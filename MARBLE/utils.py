@@ -53,27 +53,28 @@ def move_to_gpu(model, data, adjs=None):
     assert hasattr(data, "kernels"), "It seems that data is not preprocessed. Run preprocess(data)!"
 
     model = model.to(device)
-    x = data.x.to(device)
-    pos = data.pos.to(device)
+    data.x = data.x.to(device)
+    data.pos = data.pos.to(device)
+    data.mask = data.mask.to(device)
 
     if hasattr(data, "L"):
-        L = [_l.to(device) for _l in data.L]
+        data.L = [_l.to(device) for _l in data.L]
     else:
-        L = None
+        data.L = None
 
     if hasattr(data, "Lc"):
-        Lc = [_l.to(device) for _l in data.Lc]
+        data.Lc = [_l.to(device) for _l in data.Lc]
     else:
-        Lc = None
+        data.Lc = None
 
-    kernels = [K.to(device) for K in data.kernels]
-    gauges = data.gauges.to(device)
+    data.kernels = [K.to(device) for K in data.kernels]
+    data.gauges = data.gauges.to(device)
 
     if adjs is None:
-        return model, x, pos, L, Lc, kernels, gauges, None
+        return model, data, None
 
     adjs = [adj.to(device) for adj in adjs]
-    return model, x, pos, L, Lc, kernels, gauges, adjs
+    return model, data, adjs
 
 
 def detach_from_gpu(model, data, adjs=None):
@@ -82,28 +83,29 @@ def detach_from_gpu(model, data, adjs=None):
     assert hasattr(data, "kernels"), "It seems that data is not preprocessed. Run preprocess(data)!"
 
     model = model.to(device)
-    x = data.x.detach().cpu()
-    pos = data.pos.detach().cpu()
+    data.x = data.x.detach().cpu()
+    data.pos = data.pos.detach().cpu()
+    data.mask = data.mask.detach().cpu()
 
     if hasattr(data, "L"):
-        L = [_l.detach().cpu() for _l in data.L]
+        data.L = [_l.detach().cpu() for _l in data.L]
     else:
-        L = None
+        data.L = None
 
     if hasattr(data, "Lc"):
-        Lc = [_l.detach().cpu() for _l in data.Lc]
+        data.Lc = [_l.detach().cpu() for _l in data.Lc]
     else:
-        Lc = None
+        data.Lc = None
 
-    kernels = [K.detach().cpu() for K in data.kernels]
-    gauges = data.gauges.detach().cpu()
+    data.kernels = [K.detach().cpu() for K in data.kernels]
+    data.gauges = data.gauges.detach().cpu()
 
     if adjs is None:
-        return model, x, pos, L, Lc, kernels, gauges, None
+        return model, data, None
 
     for i, adj in enumerate(adjs):
         adjs[i] = [adj[0].detach().cpu(), adj[1].detach().cpu(), adj[2]]
-    return model, x, pos, L, Lc, kernels, gauges, adjs
+    return model, data, adjs
 
 
 def to_SparseTensor(edge_index, size=None, value=None):

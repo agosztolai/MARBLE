@@ -12,6 +12,7 @@ def construct_dataset(
     pos,
     features,
     labels=None,
+    mask=None,
     graph_type="cknn",
     k=15,
     n_geodesic_nb=10,
@@ -47,28 +48,30 @@ def construct_dataset(
     """
 
     pos = [torch.tensor(p).float() for p in utils.to_list(pos)]
-    labels = [torch.tensor(l).float() for l in utils.to_list(labels)]
+    features = [torch.tensor(x).float() for x in utils.to_list(features)]
+    num_node_features = features[0].shape[1]
     
     if labels is None:
         labels = [torch.arange(len(p)) for p in utils.to_list(pos)]
-
-    if features is not None:
-        features = [torch.tensor(x).float() for x in utils.to_list(features)]
-        num_node_features = features[0].shape[1]
     else:
-        num_node_features = None
+        labels = [torch.tensor(l).float() for l in utils.to_list(labels)]
+        
+    if mask is None:
+        mask = [torch.zeros(len(p), dtype=torch.bool) for p in utils.to_list(pos)]
+    else:
+        mask = [torch.tensor(m) for m in utils.to_list(mask)]
 
     if stop_crit == 0.0:
         number_of_resamples = 1
 
     data_list = []
-    for i, (p, f, l) in enumerate(zip(pos, features, labels)):
+    for i, (p, f, l, m) in enumerate(zip(pos, features, labels, mask)):
         for _ in range(number_of_resamples):
             # even sampling of points
             start_idx = torch.randint(low=0, high=len(p), size=(1,))
             sample_ind, _ = g.furthest_point_sampling(p, stop_crit=stop_crit, start_idx=start_idx)
-            sample_ind, _ = torch.sort(sample_ind) #this will make postprocessing
-            p_, f_, l_ = p[sample_ind], f[sample_ind], l[sample_ind]
+            sample_ind, _ = torch.sort(sample_ind) #this will make postprocessing easier
+            p_, f_, l_, m_ = p[sample_ind], f[sample_ind], l[sample_ind], m[sample_ind]
 
             # fit graph to point cloud
             edge_index, edge_weight = g.fit_graph(p_, graph_type=graph_type, par=k, delta=delta)
@@ -77,6 +80,7 @@ def construct_dataset(
                 pos=p_,
                 x=f_,
                 l=l_,
+                mask=m_,
                 edge_index=edge_index,
                 edge_weight=edge_weight,
                 num_nodes=n,

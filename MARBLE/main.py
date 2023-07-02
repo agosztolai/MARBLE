@@ -38,8 +38,7 @@ class net(nn.Module):
         frac_sampled_nb: fraction of neighbours to sample for gradient computation
             (if -1 then all neighbours) (default=-1)
         dropout: dropout in the MLP (default=0.)
-        n_lin_layers: number of layers if MLP (default=2)
-        hidden_channels: number of hidden channels (default=16)
+        hidden_channels: number of hidden channels (default=16). If list, then adds multiple layers.
         out_channels: number of output channels (if null, then =hidden_channels) (default=3)
         bias: learn bias parameters in MLP (default=True)
         vec_norm: normalise features to unit length (default=False)
@@ -140,7 +139,6 @@ class net(nn.Module):
             "dim_man",
             "frac_sampled_nb",
             "dropout",
-            "n_lin_layers",
             "diffusion",
             "hidden_channels",
             "out_channels",
@@ -194,9 +192,12 @@ class net(nn.Module):
             cum_channels -= s
 
         # encoder
+        if not isinstance(self.params["hidden_channels"], list):
+            self.params["hidden_channels"] = [self.params["hidden_channels"]]
+            
         channel_list = (
             [cum_channels]
-            + (self.params["n_lin_layers"] - 1) * [self.params["hidden_channels"]]
+            + self.params["hidden_channels"]
             + [self.params["out_channels"]]
         )
 
@@ -205,7 +206,7 @@ class net(nn.Module):
             dropout=self.params["dropout"],
             norm=self.params["batch_norm"],
             bias=self.params["bias"],
-        )
+        )        
 
     def forward(self, data, n_id, adjs=None):
         """Forward pass.
@@ -215,7 +216,8 @@ class net(nn.Module):
         are the target nodes, i.e, x = concat[x_target, x_other]."""
 
         x = data.x
-        n, d = data.x.shape[0], data.gauges.shape[2]
+        n, d = x.shape[0], data.gauges.shape[2]
+        mask = data.mask
 
         # local gauges
         if self.params["inner_product_features"]:
@@ -234,8 +236,8 @@ class net(nn.Module):
         else:
             d = 1
             
-        # if self.params["vec_norm"]:
-        #     x = F.normalize(x, dim=-1, p=2)
+        if self.params["vec_norm"]:
+            x = F.normalize(x, dim=-1, p=2)
 
         # gradients
         if self.params["include_self"]:
@@ -246,6 +248,10 @@ class net(nn.Module):
             kernels = [K[n_id[: size[1] * d], :][:, n_id[: size[0] * d]] for K in data.kernels]
             
             x = self.grad[i](x, kernels)
+            
+            if self.params["vec_norm"]:
+                x = F.normalize(x, dim=-1, p=2)
+            
             out.append(x)
 
         # take target nodes
@@ -256,9 +262,6 @@ class net(nn.Module):
             out = self.inner_products(out)
         else:
             out = torch.cat(out, axis=1)
-            
-        if self.params["vec_norm"]:
-            out = F.normalize(out, dim=-1, p=2)
 
         if self.params["include_positions"]:
             out = torch.hstack(
@@ -266,8 +269,8 @@ class net(nn.Module):
             )
             
         emb = self.enc(out)
-
-        return emb
+        
+        return emb, mask[n_id][: size[1]]
 
     def evaluate(self, data):
         """Forward pass @ evaluation (no minibatches)"""
@@ -284,30 +287,9 @@ class net(nn.Module):
             except Exception:  # pylint: disable=broad-exception-caught
                 pass
 
-            # load to gpu if possible
-            (
-                _,
-                data.x,
-                data.pos,
-                data.L,
-                data.Lc,
-                data.kernels,
-                data.gauges,
-                adjs,
-            ) = utils.move_to_gpu(self, data, adjs)
-
-            out = self.forward(data, torch.arange(len(data.x)), adjs)
-
-            (
-                _,
-                data.x,
-                data.pos,
-                data.L,
-                data.Lc,
-                data.kernels,
-                data.gauges,
-                adjs,
-            ) = utils.detach_from_gpu(self, data, adjs)
+            _, data, adjs = utils.move_to_gpu(self, data, adjs)
+            out, _ = self.forward(data, torch.arange(len(data.x)), adjs)
+            utils.detach_from_gpu(self, data, adjs)
 
             data.emb = out.detach().cpu()
 
@@ -332,9 +314,9 @@ class net(nn.Module):
         for batch in tqdm(loader, disable=not verbose):
             _, n_id, adjs = batch
             adjs = [adj.to(data.x.device) for adj in utils.to_list(adjs)]
-
-            emb = self.forward(data, n_id, adjs)
-            loss = self.loss(emb)
+                
+            emb, mask = self.forward(data, n_id, adjs)
+            loss = self.loss(emb, mask)
             cum_loss += float(loss)
 
             if optimizer is not None:
@@ -361,9 +343,7 @@ class net(nn.Module):
 
         # load to gpu (if possible)
         # pylint: disable=self-cls-assignment
-        self, data.x, data.pos, data.L, data.Lc, data.kernels, data.gauges, _ = utils.move_to_gpu(
-            self, data
-        )
+        self, data, _ = utils.move_to_gpu(self, data)
 
         # data loader
         train_loader, val_loader, test_loader = dataloader.loaders(data, self.params)
@@ -456,11 +436,16 @@ class net(nn.Module):
 
 class loss_fun(nn.Module):
     """Loss function."""
-
-    def forward(self, out):
+    
+    def forward(self, out, mask=None):
         """forward."""
         z, z_pos, z_neg = out.split(out.size(0) // 3, dim=0)
         pos_loss = F.logsigmoid((z * z_pos).sum(-1)).mean()
         neg_loss = F.logsigmoid(-(z * z_neg).sum(-1)).mean()
+        
+        coagulation_loss = 0.
+        if mask is not None:
+            z_mask = out[mask]
+            coagulation_loss = (z_mask-z_mask.mean(dim=0)).norm(dim=1).sum()
 
-        return -pos_loss - neg_loss
+        return -pos_loss -neg_loss + torch.sigmoid(coagulation_loss) - 0.5
