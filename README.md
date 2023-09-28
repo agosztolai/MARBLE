@@ -1,8 +1,8 @@
 # MARBLE - Manifold Representation Basis Learning
 
-MARBLE is a fully unsupervised geometric deep learning method that can 
+MARBLE is a fully unsupervised geometric deep-learning method that can 
 
-1. intrincally represent vector fields over manifolds, such as those arising in neural recordings or dissipative dynamical systems, but it is not limited to dynamical systems
+1. intrinsically represent vector fields over manifolds, such as those arising in neural recordings or dissipative dynamical systems, but it is not limited to dynamical systems
 2. perform unbiased comparisons across dynamical systems or parameter conditions by jointly embedded representations
 3. can operate in geometry-aware or geometry-agnostic modes to test the contribution of manifold dynamics and geometry.
 
@@ -214,13 +214,13 @@ Finally, launch training. The code will continuously save checkpoints during tra
 model.run_training(data, outdir='./outputs')
 ```
 
-If you have previously trained a network, or have interrupted training, you can load the network directly as
+If you have previously trained a network or have interrupted training, you can load the network directly as
 
 ```
 model = MARBLE.net(data, loadpath=loadpath)
 ```
 
-where loadpath can be either a path to the model (with a specific timestamp, or a directory to automatically load the latest model. By running `MARBLE.run_training()`, training will resume from the last ckechpoint.
+where loadpath can be either a path to the model (with a specific timestamp, or a directory to automatically load the latest model. By running `MARBLE.run_training()`, training will resume from the last checkpoint.
 
 <a name="innerproduct"></a>
 ### Geometry-aware and geometry-agnostic modes
@@ -237,15 +237,15 @@ As a slight cost of expressivity, this feature enables the orientation- and geom
 
 ## Troubleshooting guide
 
-Training is successful when features are recognised to be similar across distinct vector fields, with their own manifolds and independent proximity graphs. To achieve this, follow these useful pieces of advice (mostly general ML practises):
+Training is successful when features are recognised to be similar across distinct vector fields with their own manifolds and independent proximity graphs. To achieve this, follow these useful pieces of advice (mostly general ML practises):
 
-1. Check that traning has converged, i.e., the validation loss is no longer decreasing.
+1. Check that training has converged, i.e., the validation loss is no longer decreasing.
 2. Check that convergence is smooth, i.e., there are no big jumps in the validation loss.
-3. Check that that there is no big gap between training loss and validation loss (generalisation gap). 
+3. Check that there is no big gap between training loss and validation loss (generalisation gap). 
 
 Seeing problems with the above would be possible signs your solution will be suboptimal and will likely not generalise well. If you see either of these, try the following
  * increase training time (increase `epochs`)
- * increase your data (e.g., decrease `stop_crit` and construct dataset again)
+ * increase your data (e.g., decrease `stop_crit` and construct the dataset again)
  * decrease number of parameters (decrease `hidden_channels`, or decrease order, try `order=1`)
  * improve the gradient approximation (increase `k`, but see above)
  * disable local gauges (`local_gauge=False`)
@@ -263,7 +263,7 @@ If all hopes are lost, or if you want to chat about your use case, get in touch 
 
 ## References
 
-The following packages were inspirational during the delopment of this code:
+The following packages were inspirational during the development of this code:
 
 * [DiffusionNet](https://github.com/nmwsharp/diffusion-net)
 * [Directional Graph Networks](https://github.com/Saro00/DGN)
