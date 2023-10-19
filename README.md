@@ -34,29 +34,32 @@ The code is tested for both cpu and gpu (CUDA) machines running Linux or OSX. Al
 
 We recommend you install the code in a fresh Anaconda virtual environment, as follows.
 
-First, clone this repository, 
+- First, clone this repository, 
 
 ```
 git clone https://github.com/agosztolai/MARBLE
 ```
 
-Then, create an new anaconda environment using the provided environment file that matches your system.
+- Then, create an new anaconda environment using the provided environment file that matches your system.
+  - For Linux machines with CUDA:
 
-For Linux machines with CUDA: 
+  `conda env create -f environment.yml`
+  - For Intel-based Mac:
+
+  `conda env create -f environment_osx_intel.yml`
+
+  - For recent M1/M2/M3 Mac:
+    - Install cmake `brew install cmake` or using the installer on the [cmake website](https://cmake.org/download/)
+    - Create the environment
+
+        `conda env create -f environment_osx_arm.yml`
+    - Activate the environment `conda activate MARBLE` 
+    - Install pytorch geometric
+    `pip install -r requirements_osx_arm.txt`
+- All the required dependencies are now installed. Finally, activate the environment and install by running inside the main folder
 
 ```
-conda env create -f environment.yml
-```
-
-For Mac without CUDA:
-
-```
-conda env create -f environment_cpu_osx.yml
-```
-
-This will install all the requires dependencies. Finally, install by running inside the main folder
-
-```
+conda activate MARBLE
 pip install . 
 ```
 

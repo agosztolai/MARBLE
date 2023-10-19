@@ -1,0 +1,6 @@
+git+https://github.com/pyg-team/pyg-lib.git
+torch_scatter
+torch_sparse
+torch_cluster
+torch_spline_conv
+torch_geometric==2.1.0
