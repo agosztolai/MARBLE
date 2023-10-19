@@ -42,11 +42,11 @@ def main():
 
     # train model
     params = {
-        "epochs": 50,  # optimisation epochs
+        "epochs": 100,  # optimisation epochs
         "order": 1,  # first-order derivatives are enough because the vector field have at most first-order features
-        "hidden_channels": 16,  # 16 is enough in this simple example
+        "hidden_channels": 32,  # 16 is enough in this simple example
         "out_channels": 3,  # 3 is enough in this simple example
-        "inner_product_features": True,  # try changing this to False and see how the embeddings change
+        "inner_product_features": False,  # try changing this to False and see how the embeddings change
     }
     model = net(data, params=params)
     model.run_training(data)
@@ -62,7 +62,7 @@ def main():
     plotting.fields(data, titles=titles, col=2)
     # plt.savefig('../results/fields.svg')
     plotting.embedding(data, data.y.numpy(), titles=titles, clusters_visible=True)
-    # plt.savefig('../results/embedding.svg')
+    plt.savefig('../results/embedding.svg')
     plotting.histograms(data, titles=titles)
     # plt.savefig('../results/histogram.svg')
     plotting.neighbourhoods(data)

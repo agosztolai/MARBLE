@@ -231,6 +231,7 @@ class net(nn.Module):
             
         # restrict to current batch
         x = x[n_id]
+        mask = mask[n_id]
         if data.kernels[0].size(0) == n * d:
             n_id = utils.expand_index(n_id, d)
         else:
@@ -270,7 +271,7 @@ class net(nn.Module):
             
         emb = self.enc(out)
         
-        return emb, mask[n_id][: size[1]]
+        return emb, mask[: size[1]]
 
     def evaluate(self, data):
         """Forward pass @ evaluation (no minibatches)"""
