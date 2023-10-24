@@ -117,7 +117,7 @@ def _compute_geometric_objects(
     n_geodesic_nb=2.0,
     var_explained=0.9,
     return_spectrum=True,
-    local_gauges=True,
+    local_gauges=False,
     compute_laplacian=False,
     compute_connection_laplacian=False,
     dim_man=None,
