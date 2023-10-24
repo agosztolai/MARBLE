@@ -11,3 +11,4 @@ myjob*
 __pycache__/
 *.egg
 *.egg-info/
+log/
