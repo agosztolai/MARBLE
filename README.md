@@ -56,6 +56,13 @@ git clone https://github.com/agosztolai/MARBLE
     - Activate the environment `conda activate MARBLE` 
     - Install pytorch geometric
     `pip install -r requirements_osx_arm.txt`
+
+  - For Windows computers:
+  we recommend using WSL2 that allows running a (virtual) Linux machine inside your windows computer, which makes the installation simpler. If you have a NVIDIA GPU, WSL2 will allow to take advantage of the GPU (an older version of WSL will not).
+    - Follow the [instructions to install WSL2](https://learn.microsoft.com/en-us/windows/wsl/install)
+    - Open "Ubuntu" and install a compiler `sudo apt update && sudo apt install gcc g++`
+    - Proceed with conda install and environment creation as described for Linux machines.
+    - If you do not want to use WSL, this is possible albeit more complicated. You need to have a working compiler (e.g. Visual Studio or [MSYS2](https://www.msys2.org/)). Once installed, along with conda you can create the python environment using `conda env create -f environment_windows_native.yml`. 
 - All the required dependencies are now installed. Finally, activate the environment and install by running inside the main folder
 
 ```
