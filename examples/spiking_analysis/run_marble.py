@@ -118,8 +118,8 @@ def main():
         # loop over conditions
         for c, cond in enumerate(conditions):
 
-            # go cue at 500ms (500ms / 50ms bin = 10)
-            # only take rates from bin 10 onwards
+            # go cue at 500ms (500ms / 20ms bin = 25)
+            # only take rates from bin 25 onwards
             data = rates[day][cond][:, :, 25:]
 
             # loop over all trials
