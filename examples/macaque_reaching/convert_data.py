@@ -17,7 +17,7 @@ import mat73
 import pickle
 
 
-def spikes_to_rates(data, d):
+def spikes_to_rates(data, d, sampling_period=20):
     """
     Converts matlab spiking data into instantaneous rates in a suitable format for further analysis
     """
@@ -59,7 +59,7 @@ def spikes_to_rates(data, d):
                     st = neo.SpikeTrain(spikes, units="ms", t_stop=1200)
 
                     # get rates
-                    inst_rate = instantaneous_rate(st, kernel=gk, sampling_period=1 * ms).magnitude
+                    inst_rate = instantaneous_rate(st, kernel=gk, sampling_period=sampling_period*ms).magnitude
 
                     # append into list
                     inst_rates.append(inst_rate.flatten())
@@ -76,7 +76,7 @@ def spikes_to_rates(data, d):
     return rates
 
 
-def convert_spiking_rates():
+def convert_spiking_rates(sampling_period=20):
 
     data_file = "data/conditions_spiking_data.mat"
     Path("data").mkdir(exist_ok=True)
@@ -93,7 +93,7 @@ def convert_spiking_rates():
     for i, rates_day in enumerate(rates):
         all_rates[i] = rates_day
 
-    with open("data/rate_data.pkl", "wb") as handle:
+    with open(f"data/rate_data_{sampling_period}ms.pkl", "wb") as handle:
         pickle.dump(all_rates, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
@@ -107,10 +107,12 @@ def convert_kinematics():
     """Extracting kinematic data from matlab into format for decoding"""
 
     data_file = "data/kinematics_lfadsSingleFromFactors.mat"
-    os.system(f"wget -nc ?? -O {data_file}")
+    os.system(f"wget -nc  https://dataverse.harvard.edu/api/access/datafile/7062085 -O {data_file}")
     kinematic_data = loadmat(data_file)["Tin_single"]
 
-    trial_ids = pickle.load(open("../data/trial_ids.pkl", "rb"))
+    data_file = "data/trial_ids.pkl"
+    os.system(f"wget -nc  https://dataverse.harvard.edu/api/access/datafile/6963200  -O {data_file}")    
+    trial_ids = pickle.load(open("./data/trial_ids.pkl", "rb"))
 
     kinematics = {}
     conditions = ["DownLeft", "Left", "UpLeft", "Up", "UpRight", "Right", "DownRight"]
@@ -140,7 +142,7 @@ def convert_kinematics():
 
 
 def main():
-    convert_spiking_rates()
+    #convert_spiking_rates()
     convert_kinematics()
 
 
