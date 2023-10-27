@@ -29,6 +29,7 @@ def print_settings(model):
 
     print("\n---- Number of features to pass to the MLP: ", n_features)
     print("---- Total number of parameters: ", n_parameters)
+    print(f"\nUsing device {device}")
 
 
 def parallel_proc(fun, iterable, inputs, processes=-1, desc=""):
