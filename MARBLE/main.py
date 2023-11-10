@@ -145,6 +145,7 @@ class net(nn.Module):
             "bias",
             "batch_norm",
             "vec_norm",
+            "emb_norm",
             "seed",
             "n_sampled_nb",
             "processes",
@@ -201,12 +202,22 @@ class net(nn.Module):
             + [self.params["out_channels"]]
         )
 
-        self.enc = MLP(
+        # self.enc = MLP(
+        #     channel_list=channel_list,
+        #     dropout=self.params["dropout"],
+        #     #norm=self.params["batch_norm"],
+        #     bias=self.params["bias"],
+        # )        
+        
+        self.enc = layers.SkipMLP(
             channel_list=channel_list,
             dropout=self.params["dropout"],
-            norm=self.params["batch_norm"],
+            #norm=self.params["batch_norm"],
             bias=self.params["bias"],
         )        
+        
+
+        
 
     def forward(self, data, n_id, adjs=None):
         """Forward pass.
@@ -267,9 +278,12 @@ class net(nn.Module):
         if self.params["include_positions"]:
             out = torch.hstack(
                 [data.pos[n_id[: size[1]]], out]  # pylint: disable=undefined-loop-variable
-            )
-            
+            )            
+        
         emb = self.enc(out)
+        
+        #if self.params['emb_norm']:
+        emb = F.normalize(emb)   
         
         return emb, mask[: size[1]]
 

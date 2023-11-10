@@ -6,6 +6,35 @@ from torch_geometric.nn.conv import MessagePassing
 
 from MARBLE import geometry as g
 
+class SkipMLP(nn.Module):
+    """ MLP with skip connections """
+
+    def __init__(self, channel_list, dropout=0.0, bias=True):
+        super(SkipMLP, self).__init__()
+        assert len(channel_list) > 1, "Channel list must have at least two elements for an MLP."
+        self.layers = nn.ModuleList()
+        self.dropout = dropout
+        self.in_channels = channel_list[0]
+        for i in range(len(channel_list) - 1):
+            self.layers.append(nn.Linear(channel_list[i], channel_list[i+1], bias=bias))
+            if i < len(channel_list) - 2:  # Don't add activation or dropout to the last layer
+                self.layers.append(nn.ReLU(inplace=True))
+                if dropout > 0:
+                    self.layers.append(nn.Dropout(dropout))
+
+    def forward(self, x):
+        identity = x
+        for layer in self.layers:
+            if isinstance(layer, nn.Linear):
+                if x.shape[1] == layer.weight.shape[1]:  # Check if skip connection is possible
+                    identity = x  # Save identity for skip connection
+                x = layer(x)
+                if x.shape[1] == identity.shape[1]:  # Apply skip connection if shapes match
+                    x += identity
+            else:
+                x = layer(x)  # Apply activation or dropout
+        return x
+
 
 class Diffusion(nn.Module):
     """Diffusion with learned t."""
