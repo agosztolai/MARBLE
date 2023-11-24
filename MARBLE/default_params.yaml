@@ -19,6 +19,7 @@ out_channels: 3 # number of output channels (if null, then =hidden_channels)
 bias: True # learn bias parameters in MLP
 vec_norm: False
 batch_norm: False # batch normalisation
+emb_norm: False # spherical output
 
 # other params
 seed: 0 # seed for reproducibility

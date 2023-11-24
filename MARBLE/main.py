@@ -42,6 +42,7 @@ class net(nn.Module):
         out_channels: number of output channels (if null, then =hidden_channels) (default=3)
         bias: learn bias parameters in MLP (default=True)
         vec_norm: normalise features to unit length (default=False)
+        emb_norm: normalise MLP output to unit length (default=False)
         batch_norm: batch normalisation (default=False)
         seed: seed for reproducibility (default=0)
         processes: number of cpus (default=1)
@@ -62,7 +63,7 @@ class net(nn.Module):
         if loadpath is not None:
             if Path(loadpath).is_dir():
                 loadpath = max(glob.glob(f"{loadpath}/best_model*"))
-            self.params = torch.load(loadpath)["params"]
+            self.params = torch.load(loadpath, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))["params"]
         else:
             if params is not None:
                 if isinstance(params, str) and Path(params).exists():
@@ -282,8 +283,8 @@ class net(nn.Module):
         
         emb = self.enc(out)
         
-        #if self.params['emb_norm']:
-        emb = F.normalize(emb)   
+        if self.params['emb_norm']: # spherical output
+            emb = F.normalize(emb)   
         
         return emb, mask[: size[1]]
 
@@ -412,7 +413,7 @@ class net(nn.Module):
         Args:
             loadpath: directory with models to load best model, or specific model path
         """
-        checkpoint = torch.load(loadpath)
+        checkpoint = torch.load(loadpath, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
         self._epoch = checkpoint["epoch"]
         self.load_state_dict(checkpoint["model_state_dict"])
         self.optimizer_state_dict = checkpoint["optimizer_state_dict"]
