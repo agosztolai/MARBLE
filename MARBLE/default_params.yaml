@@ -1,12 +1,12 @@
 #training parameters
-epochs : 20, # optimisation epochs
+epochs : 100 # optimisation epochs
 batch_size : 64 # batch size
 lr: 0.01 # learning rate
 momentum: 0.9
 
 #manifold/signal parameters
 order: 2 # order to which to compute the directional derivatives
-inner_product_features: True
+inner_product_features: False
 diffusion: False
 frac_sampled_nb: -1 # fraction of neighbours to sample for gradient computation (if -1 then all neighbours)
 include_positions: False # include positions as features (warning: this is untested!)
@@ -18,9 +18,9 @@ hidden_channels: [16] # number of hidden channels
 out_channels: 3 # number of output channels (if null, then =hidden_channels)
 bias: True # learn bias parameters in MLP
 vec_norm: False
-batch_norm: False # batch normalisation
+batch_norm: True # batch normalisation
 emb_norm: False # spherical output
-skip_connections: True # use skips in MLP 
+skip_connections: False # use skips in MLP 
 
 # other params
 seed: 0 # seed for reproducibility

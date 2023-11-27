@@ -1,5 +1,4 @@
-"""Prepare module."""
-import numpy as np
+"""Preprocessing module."""
 import torch
 from torch_geometric.data import Batch
 from torch_geometric.data import Data
@@ -14,16 +13,12 @@ def construct_dataset(
     labels=None,
     mask=None,
     graph_type="cknn",
-    k=15,
-    n_geodesic_nb=10,
+    k=20,
+    frac_geodesic_nb=1.5,
     stop_crit=0.0,
     number_of_resamples=1,
-    compute_laplacian=False,
-    compute_connection_laplacian=False,
-    return_spectrum=True,
     var_explained=0.9,
     local_gauges=False,
-    dim_man=None,
     delta=1.0,
 ):
     """Construct PyG dataset from node positions and features.
@@ -34,16 +29,13 @@ def construct_dataset(
         labels: any additional data labels used for plotting only
         graph_type: type of nearest-neighbours graph: cknn (default), knn or radius
         k: number of nearest-neighbours to construct the graph
-        n_geodesic_nb: number of geodesic neighbours to fit the gauges to
-        to map to tangent space
+        frac_geodesic_nb: number of geodesic neighbours to fit the gauges to
+        to map to tangent space k*frac_geodesic_nb
         stop_crit: stopping criterion for furthest point sampling
         number_of_resamples: number of furthest point sampling runs to prevent bias (experimental)
-        compute_laplacian: set to True to compute laplacian
-        compute_connection_laplacian: set to True to compute the connection laplacian
         var_explained: fraction of variance explained by the local gauges
         local_gauges: is True, it will try to compute local gauges if it can (signal dim is > 2,
             embedding dimension is > 2 or dim embedding is not dim of manifold)
-        dim_man: if the manifold dimension is known, it can be set here or it will be estimated
         delta: argument for cknn graph construction to decide the radius for each points.
     """
 
@@ -103,24 +95,15 @@ def construct_dataset(
     return _compute_geometric_objects(
         batch,
         local_gauges=local_gauges,
-        compute_laplacian=compute_laplacian,
-        compute_connection_laplacian=compute_connection_laplacian,
-        n_geodesic_nb=n_geodesic_nb,
+        frac_geodesic_nb=frac_geodesic_nb,
         var_explained=var_explained,
-        dim_man=dim_man,
-        return_spectrum=return_spectrum
     )
 
 
-def _compute_geometric_objects(
-    data,
-    n_geodesic_nb=2.0,
+def _compute_geometric_objects(data,
+    frac_geodesic_nb=2.0,
     var_explained=0.9,
-    return_spectrum=True,
     local_gauges=False,
-    compute_laplacian=False,
-    compute_connection_laplacian=False,
-    dim_man=None,
 ):
     """
     Compute geometric objects used later: local gauges, Levi-Civita connections
@@ -157,7 +140,7 @@ def _compute_geometric_objects(
 
     if local_gauges:
         try:
-            gauges, Sigma = g.compute_gauges(data, n_geodesic_nb=n_geodesic_nb)
+            gauges, Sigma = g.compute_gauges(data, n_geodesic_nb=frac_geodesic_nb)
         except Exception as exc:
             raise Exception(
                 "\nCould not compute gauges (possibly data is too sparse or the \
@@ -166,44 +149,30 @@ def _compute_geometric_objects(
     else:
         gauges = torch.eye(dim_emb).repeat(n, 1, 1)
 
-    # Laplacian
-    if compute_laplacian:
-        L = g.compute_laplacian(data)
-    else:
-        L = None
+    L = g.compute_laplacian(data)
 
     if local_gauges:
-        if not dim_man:
-            dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
-        data.dim_man = dim_man
+        data.dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
+        print(f"\n---- Manifold dimension: {data.dim_man}")
 
-        print(f"\n---- Manifold dimension: {dim_man}")
-
-        gauges = gauges[:, :, :dim_man]
+        gauges = gauges[:, :, :data.dim_man]
         R = g.compute_connections(data, gauges)
 
         print("\n---- Computing kernels ... ", end="")
         kernels = g.gradient_op(data.pos, data.edge_index, gauges)
-        kernels = [utils.tile_tensor(K, dim_man) for K in kernels]
+        kernels = [utils.tile_tensor(K, data.dim_man) for K in kernels]
         kernels = [K * R for K in kernels]
-        print("Done ")
 
-        if compute_connection_laplacian:
-            Lc = g.compute_connection_laplacian(data, R)
-        else:
-            Lc = None
+        Lc = g.compute_connection_laplacian(data, R)
 
     else:
         print("\n---- Computing kernels ... ", end="")
         kernels = g.gradient_op(data.pos, data.edge_index, gauges)
-        print("Done ")
         Lc = None
 
-    if return_spectrum:
-        print("---- Computing eigendecomposition ... ", end="")
-        L = g.compute_eigendecomposition(L)
-        Lc = g.compute_eigendecomposition(Lc)
-        print("Done ")
+    print("---- Computing eigendecomposition ... ", end="")
+    L = g.compute_eigendecomposition(L)
+    Lc = g.compute_eigendecomposition(Lc)
 
     data.kernels = [
         utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels

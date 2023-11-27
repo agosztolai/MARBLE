@@ -18,7 +18,6 @@ from ptu_dijkstra import connections, tangent_frames  # isort:skip
 from MARBLE.lib.cknn import cknneighbors_graph  # isort:skip
 from MARBLE import utils  # isort:skip
 
-
 def furthest_point_sampling(x, N=None, stop_crit=0.0, start_idx=0):
     """A greedy O(N^2) algorithm to do furthest points sampling
 
@@ -457,7 +456,9 @@ def compute_laplacian(data, normalization="rw"):
         num_nodes=data.num_nodes
     )
 
-    return PyGu.to_dense_adj(edge_index, edge_attr=edge_attr).squeeze()
+    # return PyGu.to_dense_adj(edge_index, edge_attr=edge_attr).squeeze()
+    n = len(data.x)
+    return sp.coo_array((edge_attr, (edge_index[0], edge_index[1])), shape=(n, n))
 
 
 def compute_connection_laplacian(data, R, normalization="rw"):
@@ -670,11 +671,12 @@ def vector_diffusion(x, t, method="spectral", Lc=None):
     return out
 
 
-def compute_eigendecomposition(A, eps=1e-8):
+def compute_eigendecomposition(A, k=50, eps=1e-8):
     """Eigendecomposition of a square matrix A.
 
     Args:
         A: square matrix A
+        k: number of eigenvectors
         eps: small error term
 
     Returns:
@@ -683,15 +685,22 @@ def compute_eigendecomposition(A, eps=1e-8):
     """
     if A is None:
         return None
-
-    A = A.to_dense()
+    
+    if k >= A.shape[0]:
+        k = None
 
     # Compute the eigenbasis
     failcount = 0
     while True:
         try:
-            evals, evecs = torch.linalg.eigh(A)
+            if k is None:
+                evals, evecs = torch.linalg.eigh(A)
+            else:
+                evals, evecs = sp.linalg.eigsh(A, k=k, which="SM")
+                evals, evecs = torch.tensor(evals), torch.tensor(evecs)
+                
             evals = torch.clamp(evals, min=0.0)
+            evecs *= np.sqrt(len(evecs))
 
             break
         except Exception as e:  # pylint: disable=broad-exception-caught

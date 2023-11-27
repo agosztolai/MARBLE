@@ -18,6 +18,7 @@ from MARBLE import geometry
 from MARBLE import layers
 from MARBLE import utils
 
+import warnings
 
 class net(nn.Module):
     """MARBLE neural network.
@@ -60,16 +61,17 @@ class net(nn.Module):
         """
         super().__init__()
 
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        
         if loadpath is not None:
             if Path(loadpath).is_dir():
                 loadpath = max(glob.glob(f"{loadpath}/best_model*"))
-            self.params = torch.load(loadpath, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))["params"]
+            self.params = torch.load(loadpath, map_location=device)["params"]
         else:
             if params is not None:
-                if isinstance(params, str) and Path(params).exists():
-                    with open(params, "rb") as f:
-                        params = yaml.safe_load(f)
                 self.params = params
+            else: 
+                self.params = {}
 
         self._epoch = 0  # to resume optimisation
         self.parse_parameters(data)
@@ -217,11 +219,7 @@ class net(nn.Module):
                 bias=self.params["bias"],
             )        
         
-    
         
-
-        
-
     def forward(self, data, n_id, adjs=None):
         """Forward pass.
         Messages are passed to a set target nodes (current batch) from source
@@ -289,8 +287,12 @@ class net(nn.Module):
             emb = F.normalize(emb)   
         
         return emb, mask[: size[1]]
+    
+    def evaluate(self, data): 
+        warnings.warn("MARBLE.evaluate() is deprecated. Use MARBLE.transform() instead.")
+        self.transform(data)
 
-    def evaluate(self, data):
+    def transform(self, data):
         """Forward pass @ evaluation (no minibatches)"""
         with torch.no_grad():
             size = (data.x.shape[0], data.x.shape[0])
@@ -345,8 +347,13 @@ class net(nn.Module):
         self.eval()
 
         return cum_loss / len(loader), optimizer
-
+    
     def run_training(self, data, outdir=None, verbose=False):
+        warnings.warn("MARBLE.run_training() is deprecated. Use MARBLE.fit() instead.")
+
+        self.fit(data, outdir=outdir, verbose=verbose)
+
+    def fit(self, data, outdir=None, verbose=False):
         """Network training.
 
         Args:

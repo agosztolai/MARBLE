@@ -4,6 +4,21 @@ import numpy as np
 from MARBLE import geometry as g
 
 
+def cluster(data, cluster_typ="kmeans", n_clusters=15, seed=0):
+    
+    clusters = g.cluster(data.emb, cluster_typ, n_clusters, seed)
+    clusters = g.relabel_by_proximity(clusters)
+    
+    clusters["slices"] = data._slice_dict["x"]  # pylint: disable=protected-access
+
+    if data.number_of_resamples > 1:
+        clusters["slices"] = clusters["slices"][:: data.number_of_resamples]
+        
+    data.clusters = clusters
+    
+    return data
+
+
 def distribution_distances(data, cluster_typ="kmeans", n_clusters=None, seed=0):
     """Return distance between datasets.
 
@@ -18,20 +33,12 @@ def distribution_distances(data, cluster_typ="kmeans", n_clusters=None, seed=0):
 
     if n_clusters is not None:
         # k-means cluster
-        clusters = g.cluster(emb, cluster_typ, n_clusters, seed)
-        clusters = g.relabel_by_proximity(clusters)
-
-        clusters["slices"] = data._slice_dict["x"]  # pylint: disable=protected-access
-
-        if data.number_of_resamples > 1:
-            clusters["slices"] = clusters["slices"][:: data.number_of_resamples]
+        data = cluster(data, cluster_typ, n_clusters, seed)
 
         # compute distances between clusters
         data.dist, data.gamma = g.compute_distribution_distances(
-            clusters=clusters, slices=clusters["slices"]
+            clusters=data.clusters, slices=data.clusters["slices"]
         )
-
-        data.clusters = clusters
 
     else:
         data.emb = emb

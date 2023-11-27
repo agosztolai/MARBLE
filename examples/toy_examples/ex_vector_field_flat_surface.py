@@ -8,10 +8,8 @@ import matplotlib.pyplot as plt
 def f0(x):
     return x * 0 + np.array([-1, -1])
 
-
 def f1(x):
     return x * 0 + np.array([1, 1])
-
 
 def f2(x):
     eps = 1e-1
@@ -19,7 +17,6 @@ def f2(x):
     u = x[:, [1]] / norm
     v = -(x[:, [0]] + 1) / norm
     return np.hstack([u, v])
-
 
 def f3(x):
     eps = 1e-1
@@ -37,36 +34,28 @@ def main():
     x = [dynamics.sample_2d(n, [[-1, -1], [1, 1]], "random") for i in range(4)]
     y = [f0(x[0]), f1(x[1]), f2(x[2]), f3(x[3])]  # evaluated functions
 
-    # construct PyG data object
-    data = preprocessing.construct_dataset(x, y, graph_type="cknn", k=20)
+    # construct data object
+    data = preprocessing.construct_dataset(x, y)
 
     # train model
-    params = {
-        "epochs": 100,  # optimisation epochs
-        "order": 1,  # first-order derivatives are enough because the vector field have at most first-order features
-        "hidden_channels": 32,  # 16 is enough in this simple example
-        "out_channels": 3,  # 3 is enough in this simple example
-        "inner_product_features": False,  # try changing this to False and see how the embeddings change
-    }
-    model = net(data, params=params)
-    model.run_training(data)
+    model = net(data)
+    model.fit(data)
 
     # evaluate model on data
-    data = model.evaluate(data)
-    n_clusters = 15  # use 15 clusters for simple visualisation
-    data = postprocessing.distribution_distances(data, n_clusters=n_clusters, cluster_typ="kmeans")
+    data = model.transform(data)
+    data = postprocessing.cluster(data)
     data = postprocessing.embed_in_2D(data)
 
     # plot results
     titles = ["Linear left", "Linear right", "Vortex right", "Vortex left"]
     plotting.fields(data, titles=titles, col=2)
-    # plt.savefig('../results/fields.svg')
+    plt.savefig('fields.png')
     plotting.embedding(data, data.y.numpy(), titles=titles, clusters_visible=True)
-    plt.savefig('../results/embedding.svg')
+    plt.savefig('mbedding.png')
     plotting.histograms(data, titles=titles)
-    # plt.savefig('../results/histogram.svg')
+    plt.savefig('histogram.png')
     plotting.neighbourhoods(data)
-    # plt.savefig('../results/neighbourhoods.svg')
+    plt.savefig('neighbourhoods.png')
     plt.show()
 
 

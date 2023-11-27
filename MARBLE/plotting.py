@@ -131,8 +131,7 @@ def histograms(data, titles=None, col=2, figsize=(10, 10)):
     """
     assert hasattr(
         data, "clusters"
-    ), "No clusters found. First, run \
-        geometry.cluster(data) or postprocessing(data)!"
+    ), "No clusters found. First, run postprocessing.cluster(data)!"
 
     labels, s = data.clusters["labels"], data.clusters["slices"]
     n_slices = len(s) - 1
@@ -245,9 +244,9 @@ def embedding(
                         ax.scatter(emb_[t, 0], emb_[t, 1], emb_[t, 2], c=cgrad, alpha=alpha, s=s, label=title)  
         else:
             if dim == 2:
-                ax.scatter(emb_[:, 0], emb_[:, 1], c=c_, alpha=alpha, s=s, label=title)
+                ax.scatter(emb_[:, 0], emb_[:, 1], color=c_, alpha=alpha, s=s, label=title)
             elif dim == 3:
-                ax.scatter(emb_[:, 0], emb_[:, 1], emb_[:, 2], c=c, alpha=alpha, s=s, label=title)
+                ax.scatter(emb_[:, 0], emb_[:, 1], emb_[:, 2], color=c_, alpha=alpha, s=s, label=title)
 
     if dim == 2:
         if hasattr(data, "clusters") and clusters_visible:
@@ -296,8 +295,7 @@ def neighbourhoods(
 
     assert hasattr(
         data, "clusters"
-    ), "No clusters found. First, run \
-        geometry.cluster(data) or postprocessing(data)!"
+    ), "No clusters found. First, run postprocessing.cluster(data)!"
 
     vector = data.x.shape[1] > 1
     clusters = data.clusters

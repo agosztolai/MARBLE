@@ -57,33 +57,29 @@ def main():
 
     # train model
     params = {
-        "epochs": 70,  # optimisation epochs
-        "order": 1,  # first-order derivatives are enough because the vector field have at most first-order features
-        "hidden_channels": 32,  # 16 is enough in this simple example
-        "out_channels": 3,  # 3 is enough in this simple example
+        "order": 1,
         "inner_product_features": True,
     }
 
     model = net(data, params=params)
-    model.run_training(data)
+    model.fit(data)
 
     # evaluate model on data
-    data = model.evaluate(data)
-    n_clusters = 20  # use 15 clusters for simple visualisation
-    data = postprocessing.distribution_distances(data, n_clusters=n_clusters, cluster_typ="kmeans")
+    data = model.transform(data)
+    data = postprocessing.cluster(data)
     data = postprocessing.embed_in_2D(data)
 
     # plot
     titles = ["Linear left", "Linear right", "Vortex right", "Vortex left"]
     # plot gauges in black to show that they 'hug' the manifold surface
     plotting.fields(data, titles=titles, col=2, width=3, scale=10, view=[0, 40], plot_gauges=True)
-    # plt.savefig('../results/fields.svg')
+    plt.savefig('fields.png')
     plotting.embedding(data, data.y.numpy(), titles=titles, clusters_visible=True)
-    # plt.savefig('../results/embedding.svg')
+    plt.savefig('embedding.png')
     plotting.histograms(data, titles=titles)
-    # plt.savefig('../results/histogram.svg')
+    plt.savefig('histogram.png')
     plotting.neighbourhoods(data)
-    # plt.savefig('../results/neighbourhoods.svg')
+    plt.savefig('neighbourhoods.png')
     plt.show()
 
 
