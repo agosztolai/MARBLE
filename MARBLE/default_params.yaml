@@ -20,6 +20,7 @@ bias: True # learn bias parameters in MLP
 vec_norm: False
 batch_norm: False # batch normalisation
 emb_norm: False # spherical output
+skip_connections: True # use skips in MLP 
 
 # other params
 seed: 0 # seed for reproducibility

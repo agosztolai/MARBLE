@@ -147,6 +147,7 @@ class net(nn.Module):
             "batch_norm",
             "vec_norm",
             "emb_norm",
+            "skip_connections",
             "seed",
             "n_sampled_nb",
             "processes",
@@ -203,19 +204,20 @@ class net(nn.Module):
             + [self.params["out_channels"]]
         )
 
-        # self.enc = MLP(
-        #     channel_list=channel_list,
-        #     dropout=self.params["dropout"],
-        #     #norm=self.params["batch_norm"],
-        #     bias=self.params["bias"],
-        # )        
+        if self.params['skip_connections']:
+            self.enc = layers.SkipMLP(
+                channel_list=channel_list,
+                dropout=self.params["dropout"],
+                bias=self.params["bias"],
+            )   
+        else:
+            self.enc = MLP(
+                channel_list=channel_list,
+                dropout=self.params["dropout"],
+                bias=self.params["bias"],
+            )        
         
-        self.enc = layers.SkipMLP(
-            channel_list=channel_list,
-            dropout=self.params["dropout"],
-            #norm=self.params["batch_norm"],
-            bias=self.params["bias"],
-        )        
+    
         
 
         
