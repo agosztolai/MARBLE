@@ -1,10 +1,36 @@
 """Layer module."""
 import torch
 from torch import nn
-from torch.nn.functional import normalize
+from torch.nn.functional import normalize, relu
 from torch_geometric.nn.conv import MessagePassing
 
 from MARBLE import geometry as g
+
+class SkipMLP(nn.Module):
+    def __init__(self, channel_list, dropout=0.0, bias=True):
+        super(SkipMLP, self).__init__()
+        self.layers = nn.ModuleList()
+        self.in_channels = channel_list[0]
+        for i in range(len(channel_list) - 1):
+            self.layers.append(nn.Linear(channel_list[i], channel_list[i + 1], bias=bias))
+            self.layers.append(nn.Dropout(dropout))
+        
+        # Output layer adjustment for concatenated skip connection
+        final_out_features = channel_list[-1] + channel_list[0]
+        self.output_layer = nn.Linear(final_out_features, channel_list[-1], bias=bias)
+
+    def forward(self, x):
+        identity = x
+        for layer in self.layers:
+            if isinstance(layer, nn.Linear):
+                x = relu(layer(x))
+            else:
+                x = layer(x)
+        
+        # Concatenate the input (identity) with the output
+        x = torch.cat([identity, x], dim=1)
+        x = self.output_layer(x)
+        return x
 
 
 class Diffusion(nn.Module):

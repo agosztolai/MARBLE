@@ -42,6 +42,7 @@ class net(nn.Module):
         out_channels: number of output channels (if null, then =hidden_channels) (default=3)
         bias: learn bias parameters in MLP (default=True)
         vec_norm: normalise features to unit length (default=False)
+        emb_norm: normalise MLP output to unit length (default=False)
         batch_norm: batch normalisation (default=False)
         seed: seed for reproducibility (default=0)
         processes: number of cpus (default=1)
@@ -62,7 +63,7 @@ class net(nn.Module):
         if loadpath is not None:
             if Path(loadpath).is_dir():
                 loadpath = max(glob.glob(f"{loadpath}/best_model*"))
-            self.params = torch.load(loadpath)["params"]
+            self.params = torch.load(loadpath, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))["params"]
         else:
             if params is not None:
                 if isinstance(params, str) and Path(params).exists():
@@ -145,6 +146,8 @@ class net(nn.Module):
             "bias",
             "batch_norm",
             "vec_norm",
+            "emb_norm",
+            "skip_connections",
             "seed",
             "n_sampled_nb",
             "processes",
@@ -201,12 +204,23 @@ class net(nn.Module):
             + [self.params["out_channels"]]
         )
 
-        self.enc = MLP(
-            channel_list=channel_list,
-            dropout=self.params["dropout"],
-            norm=self.params["batch_norm"],
-            bias=self.params["bias"],
-        )        
+        if self.params['skip_connections']:
+            self.enc = layers.SkipMLP(
+                channel_list=channel_list,
+                dropout=self.params["dropout"],
+                bias=self.params["bias"],
+            )   
+        else:
+            self.enc = MLP(
+                channel_list=channel_list,
+                dropout=self.params["dropout"],
+                bias=self.params["bias"],
+            )        
+        
+    
+        
+
+        
 
     def forward(self, data, n_id, adjs=None):
         """Forward pass.
@@ -267,9 +281,12 @@ class net(nn.Module):
         if self.params["include_positions"]:
             out = torch.hstack(
                 [data.pos[n_id[: size[1]]], out]  # pylint: disable=undefined-loop-variable
-            )
-            
+            )            
+        
         emb = self.enc(out)
+        
+        if self.params['emb_norm']: # spherical output
+            emb = F.normalize(emb)   
         
         return emb, mask[: size[1]]
 
@@ -398,7 +415,7 @@ class net(nn.Module):
         Args:
             loadpath: directory with models to load best model, or specific model path
         """
-        checkpoint = torch.load(loadpath)
+        checkpoint = torch.load(loadpath, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
         self._epoch = checkpoint["epoch"]
         self.load_state_dict(checkpoint["model_state_dict"])
         self.optimizer_state_dict = checkpoint["optimizer_state_dict"]
