@@ -5,18 +5,23 @@ import scipy.sparse as sp
 import torch
 import torch_geometric.utils as PyGu
 import umap
-from sklearn.cluster import KMeans, MeanShift
+from sklearn.cluster import KMeans
+from sklearn.cluster import MeanShift
 from sklearn.decomposition import PCA
-from sklearn.manifold import TSNE, Isomap, MDS
+from sklearn.manifold import MDS
+from sklearn.manifold import TSNE
+from sklearn.manifold import Isomap
 from sklearn.metrics import pairwise_distances
 from sklearn.preprocessing import StandardScaler
-from torch_geometric.nn import knn_graph, radius_graph
+from torch_geometric.nn import knn_graph
+from torch_geometric.nn import radius_graph
 from torch_scatter import scatter_add
 
 from ptu_dijkstra import connections, tangent_frames  # isort:skip
 
 from MARBLE.lib.cknn import cknneighbors_graph  # isort:skip
 from MARBLE import utils  # isort:skip
+
 
 def furthest_point_sampling(x, N=None, stop_crit=0.0, start_idx=0):
     """A greedy O(N^2) algorithm to do furthest points sampling
@@ -42,7 +47,7 @@ def furthest_point_sampling(x, N=None, stop_crit=0.0, start_idx=0):
     perm[0] = start_idx
     lambdas = torch.zeros(n)
     ds = D[start_idx, :].flatten()
-    for i in range(1,n):
+    for i in range(1, n):
         idx = torch.argmax(ds)
         perm[i] = idx
         lambdas[i] = ds[idx]
@@ -54,7 +59,7 @@ def furthest_point_sampling(x, N=None, stop_crit=0.0, start_idx=0):
                 lambdas = lambdas[:i]
                 break
 
-    assert len(perm)==len(np.unique(perm)), 'Returned duplicated points'
+    assert len(perm) == len(np.unique(perm)), "Returned duplicated points"
     return perm, lambdas
 
 
@@ -131,10 +136,10 @@ def embed(x, embed_typ="umap", dim_emb=2, manifold=None, seed=0, **kwargs):
             manifold = PCA(n_components=dim_emb).fit(x)
 
         emb = manifold.transform(x)
-        
+
     elif embed_typ == "Isomap":
         radius = pairwise_distances(x)
-        radius = 0.1*(radius.max()-radius.min())
+        radius = 0.1 * (radius.max() - radius.min())
         if manifold is None:
             manifold = Isomap(n_components=dim_emb, n_neighbors=None, radius=radius).fit(x)
 
@@ -296,7 +301,7 @@ def gradient_op(pos, edge_index, gauges):
         _F -= sp.diags(np.array(_F.sum(1)).flatten())
         _F = _F.tocoo()
         K.append(torch.sparse_coo_tensor(np.vstack([_F.row, _F.col]), _F.data.data))
-    
+
     return K
 
 
@@ -450,10 +455,10 @@ def is_connected(edge_index):
 def compute_laplacian(data, normalization="rw"):
     """Compute Laplacian."""
     edge_index, edge_attr = PyGu.get_laplacian(
-        data.edge_index, 
-        edge_weight=data.edge_weight, 
-        normalization=normalization, 
-        num_nodes=data.num_nodes
+        data.edge_index,
+        edge_weight=data.edge_weight,
+        normalization=normalization,
+        num_nodes=data.num_nodes,
     )
 
     return PyGu.to_dense_adj(edge_index, edge_attr=edge_attr).squeeze()
@@ -625,17 +630,17 @@ def scalar_diffusion(x, t, method="matrix_exp", par=None):
         ), "For spectral method, par must be a tuple of \
             eigenvalues, eigenvectors!"
         evals, evecs = par
-        
+
         # Transform to spectral
         x_spec = torch.mm(evecs.T, x)
 
         # Diffuse
         diffusion_coefs = torch.exp(-evals.unsqueeze(-1) * t.unsqueeze(0))
         x_diffuse_spec = diffusion_coefs * x_spec
-        
+
         # Transform back to per-vertex
         return evecs.mm(x_diffuse_spec)
-    
+
     raise NotImplementedError
 
 
@@ -683,7 +688,7 @@ def compute_eigendecomposition(A, k=None, eps=1e-8):
     """
     if A is None:
         return None
-    
+
     if k is not None and k >= A.shape[0]:
         k = None
 
@@ -696,7 +701,7 @@ def compute_eigendecomposition(A, k=None, eps=1e-8):
             else:
                 evals, evecs = sp.linalg.eigsh(A, k=k, which="SM")
                 evals, evecs = torch.tensor(evals), torch.tensor(evecs)
-                
+
             evals = torch.clamp(evals, min=0.0)
             evecs *= np.sqrt(len(evecs))
 

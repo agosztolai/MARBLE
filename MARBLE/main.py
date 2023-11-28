@@ -1,6 +1,7 @@
 """Main network"""
 import glob
 import os
+import warnings
 from datetime import datetime
 from pathlib import Path
 import yaml
@@ -14,7 +15,6 @@ from torch_geometric.nn import MLP
 
 from MARBLE import dataloader, geometry, layers, utils
 
-import warnings
 
 class net(nn.Module):
     """MARBLE neural network.
@@ -56,8 +56,8 @@ class net(nn.Module):
         """
         super().__init__()
 
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
         if loadpath is not None:
             if Path(loadpath).is_dir():
                 loadpath = max(glob.glob(f"{loadpath}/best_model*"))
@@ -65,7 +65,7 @@ class net(nn.Module):
         else:
             if params is not None:
                 self.params = params
-            else: 
+            else:
                 self.params = {}
 
         self._epoch = 0  # to resume optimisation
@@ -192,20 +192,17 @@ class net(nn.Module):
         # encoder
         if not isinstance(self.params["hidden_channels"], list):
             self.params["hidden_channels"] = [self.params["hidden_channels"]]
-            
+
         channel_list = (
-            [cum_channels]
-            + self.params["hidden_channels"]
-            + [self.params["out_channels"]]
+            [cum_channels] + self.params["hidden_channels"] + [self.params["out_channels"]]
         )
 
         self.enc = MLP(
             channel_list=channel_list,
             dropout=self.params["dropout"],
             bias=self.params["bias"],
-        )        
-        
-        
+        )
+
     def forward(self, data, n_id, adjs=None):
         """Forward pass.
         Messages are passed to a set target nodes (current batch) from source
@@ -226,7 +223,7 @@ class net(nn.Module):
             L = data.L.copy() if hasattr(data, "L") else None
             Lc = data.Lc.copy() if hasattr(data, "Lc") else None
             x = self.diffusion(x, L, Lc=Lc, method="spectral")
-            
+
         # restrict to current batch
         x = x[n_id]
         mask = mask[n_id]
@@ -234,7 +231,7 @@ class net(nn.Module):
             n_id = utils.expand_index(n_id, d)
         else:
             d = 1
-            
+
         if self.params["vec_norm"]:
             x = F.normalize(x, dim=-1, p=2)
 
@@ -245,12 +242,12 @@ class net(nn.Module):
             out = []
         for i, (_, _, size) in enumerate(adjs):
             kernels = [K[n_id[: size[1] * d], :][:, n_id[: size[0] * d]] for K in data.kernels]
-            
+
             x = self.grad[i](x, kernels)
-            
+
             if self.params["vec_norm"]:
                 x = F.normalize(x, dim=-1, p=2)
-            
+
             out.append(x)
 
         # take target nodes
@@ -265,16 +262,16 @@ class net(nn.Module):
         if self.params["include_positions"]:
             out = torch.hstack(
                 [data.pos[n_id[: size[1]]], out]  # pylint: disable=undefined-loop-variable
-            )            
-        
+            )
+
         emb = self.enc(out)
-        
-        if self.params['emb_norm']: # spherical output
-            emb = F.normalize(emb)   
-        
+
+        if self.params["emb_norm"]:  # spherical output
+            emb = F.normalize(emb)
+
         return emb, mask[: size[1]]
-    
-    def evaluate(self, data): 
+
+    def evaluate(self, data):
         warnings.warn("MARBLE.evaluate() is deprecated. Use MARBLE.transform() instead.")
         self.transform(data)
 
@@ -320,7 +317,7 @@ class net(nn.Module):
         for batch in tqdm(loader, disable=not verbose):
             _, n_id, adjs = batch
             adjs = [adj.to(data.x.device) for adj in utils.to_list(adjs)]
-                
+
             emb, mask = self.forward(data, n_id, adjs)
             loss = self.loss(emb, mask)
             cum_loss += float(loss)
@@ -333,7 +330,7 @@ class net(nn.Module):
         self.eval()
 
         return cum_loss / len(loader), optimizer
-    
+
     def run_training(self, data, outdir=None, verbose=False):
         warnings.warn("MARBLE.run_training() is deprecated. Use MARBLE.fit() instead.")
 
@@ -368,7 +365,7 @@ class net(nn.Module):
         scheduler = opt.lr_scheduler.ReduceLROnPlateau(optimizer)
 
         best_loss = -1
-        self.losses = {'train_loss': [], 'val_loss': [], 'test_loss': []}
+        self.losses = {"train_loss": [], "val_loss": [], "test_loss": []}
         for epoch in range(
             self.params.get("epoch", 0), self.params.get("epoch", 0) + self.params["epochs"]
         ):
@@ -386,18 +383,20 @@ class net(nn.Module):
             )
 
             if best_loss == -1 or (val_loss < best_loss):
-                outdir = self.save_model(optimizer, self.losses, outdir=outdir, best=True, timestamp=time)
+                outdir = self.save_model(
+                    optimizer, self.losses, outdir=outdir, best=True, timestamp=time
+                )
                 best_loss = val_loss
                 print(" *", end="")
-            
-            self.losses['train_loss'].append(train_loss)
-            self.losses['val_loss'].append(val_loss)
+
+            self.losses["train_loss"].append(train_loss)
+            self.losses["val_loss"].append(val_loss)
 
         test_loss, _ = self.batch_loss(data, test_loader)
         print(f"\nFinal test loss: {test_loss:.4f}")
 
-        self.losses['test_loss'].append(test_loss)
-            
+        self.losses["test_loss"].append(test_loss)
+
         self.save_model(optimizer, self.losses, outdir=outdir, best=False, timestamp=time)
         self.load_model(os.path.join(outdir, f"best_model_{time}.pth"))
 
@@ -407,11 +406,13 @@ class net(nn.Module):
         Args:
             loadpath: directory with models to load best model, or specific model path
         """
-        checkpoint = torch.load(loadpath, map_location=torch.device('cuda' if torch.cuda.is_available() else 'cpu'))
+        checkpoint = torch.load(
+            loadpath, map_location=torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        )
         self._epoch = checkpoint["epoch"]
         self.load_state_dict(checkpoint["model_state_dict"])
         self.optimizer_state_dict = checkpoint["optimizer_state_dict"]
-        self.losses = checkpoint['losses']
+        self.losses = checkpoint["losses"]
 
     def save_model(self, optimizer, losses, outdir=None, best=False, timestamp=""):
         """Save model."""
@@ -448,16 +449,16 @@ class net(nn.Module):
 
 class loss_fun(nn.Module):
     """Loss function."""
-    
+
     def forward(self, out, mask=None):
         """forward."""
         z, z_pos, z_neg = out.split(out.size(0) // 3, dim=0)
         pos_loss = F.logsigmoid((z * z_pos).sum(-1)).mean()
         neg_loss = F.logsigmoid(-(z * z_neg).sum(-1)).mean()
-        
-        coagulation_loss = 0.
+
+        coagulation_loss = 0.0
         if mask is not None:
             z_mask = out[mask]
-            coagulation_loss = (z_mask-z_mask.mean(dim=0)).norm(dim=1).sum()
+            coagulation_loss = (z_mask - z_mask.mean(dim=0)).norm(dim=1).sum()
 
-        return -pos_loss -neg_loss + torch.sigmoid(coagulation_loss) - 0.5
+        return -pos_loss - neg_loss + torch.sigmoid(coagulation_loss) - 0.5

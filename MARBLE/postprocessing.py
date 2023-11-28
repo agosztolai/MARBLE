@@ -5,17 +5,16 @@ from MARBLE import geometry as g
 
 
 def cluster(data, cluster_typ="kmeans", n_clusters=15, seed=0):
-    
     clusters = g.cluster(data.emb, cluster_typ, n_clusters, seed)
     clusters = g.relabel_by_proximity(clusters)
-    
+
     clusters["slices"] = data._slice_dict["x"]  # pylint: disable=protected-access
 
     if data.number_of_resamples > 1:
         clusters["slices"] = clusters["slices"][:: data.number_of_resamples]
-        
+
     data.clusters = clusters
-    
+
     return data
 
 

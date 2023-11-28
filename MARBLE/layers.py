@@ -1,10 +1,10 @@
 """Layer module."""
 import torch
 from torch import nn
-from torch.nn.functional import normalize, relu
 from torch_geometric.nn.conv import MessagePassing
 
 from MARBLE import geometry as g
+
 
 class Diffusion(nn.Module):
     """Diffusion with learned t."""
