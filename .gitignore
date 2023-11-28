@@ -12,3 +12,6 @@ __pycache__/
 *.egg
 *.egg-info/
 log/
+*.pkl
+*.svg
+*.png
