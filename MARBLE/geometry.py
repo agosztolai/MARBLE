@@ -671,7 +671,7 @@ def vector_diffusion(x, t, method="spectral", Lc=None):
     return out
 
 
-def compute_eigendecomposition(A, k=50, eps=1e-8):
+def compute_eigendecomposition(A, k=None, eps=1e-8):
     """Eigendecomposition of a square matrix A.
 
     Args:
