@@ -457,8 +457,6 @@ def compute_laplacian(data, normalization="rw"):
     )
 
     return PyGu.to_dense_adj(edge_index, edge_attr=edge_attr).squeeze()
-    #n = len(data.x)
-    #return sp.coo_array((edge_attr, (edge_index[0], edge_index[1])), shape=(n, n))
 
 
 def compute_connection_laplacian(data, R, normalization="rw"):
