@@ -47,7 +47,7 @@ def construct_dataset(
     if labels is None:
         labels = [torch.arange(len(p)) for p in utils.to_list(pos)]
     else:
-        labels = [torch.tensor(l).float() for l in utils.to_list(labels)]
+        labels = [torch.tensor(label).float() for label in utils.to_list(labels)]
 
     if mask is None:
         mask = [torch.zeros(len(p), dtype=torch.bool) for p in utils.to_list(pos)]

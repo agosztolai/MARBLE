@@ -697,7 +697,7 @@ def compute_eigendecomposition(A, k=None, eps=1e-8):
     while True:
         try:
             if k is None:
-                evals, evecs = torch.linalg.eigh(A)
+                evals, evecs = torch.linalg.eigh(A)  # pylint: disable=not-callable
             else:
                 evals, evecs = sp.linalg.eigsh(A, k=k, which="SM")
                 evals, evecs = torch.tensor(evals), torch.tensor(evecs)

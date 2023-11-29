@@ -5,6 +5,7 @@ from MARBLE import geometry as g
 
 
 def cluster(data, cluster_typ="kmeans", n_clusters=15, seed=0):
+    """Cluster data."""
     clusters = g.cluster(data.emb, cluster_typ, n_clusters, seed)
     clusters = g.relabel_by_proximity(clusters)
 

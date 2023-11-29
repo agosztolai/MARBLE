@@ -141,7 +141,9 @@ def test_diffusion_sphere(plot=False):
     y = f2(x)
 
     # construct PyG data object
-    data = construct_dataset(x, y, graph_type="radius", k=k, n_geodesic_nb=10, var_explained=0.9)
+    data = construct_dataset(
+        x, y, graph_type="radius", k=k, frac_geodesic_nb=1.5, var_explained=0.9
+    )
 
     L = geometry.compute_laplacian(data)
 

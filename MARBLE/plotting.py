@@ -11,7 +11,6 @@ from matplotlib import gridspec
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
-from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from scipy.spatial import Voronoi
 from scipy.spatial import voronoi_plot_2d
 from torch_geometric.utils.convert import to_networkx

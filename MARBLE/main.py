@@ -250,8 +250,9 @@ class net(nn.Module):
 
             out.append(x)
 
+        last_size = adjs[-1][2]
         # take target nodes
-        out = [o[: size[1]] for o in out]  # pylint: disable=undefined-loop-variable
+        out = [o[: last_size[1]] for o in out]
 
         # inner products
         if self.params["inner_product_features"]:
@@ -260,18 +261,17 @@ class net(nn.Module):
             out = torch.cat(out, axis=1)
 
         if self.params["include_positions"]:
-            out = torch.hstack(
-                [data.pos[n_id[: size[1]]], out]  # pylint: disable=undefined-loop-variable
-            )
+            out = torch.hstack([data.pos[n_id[: last_size[1]]], out])
 
         emb = self.enc(out)
 
         if self.params["emb_norm"]:  # spherical output
             emb = F.normalize(emb)
 
-        return emb, mask[: size[1]]
+        return emb, mask[: last_size[1]]
 
     def evaluate(self, data):
+        """Evaluate."""
         warnings.warn("MARBLE.evaluate() is deprecated. Use MARBLE.transform() instead.")
         self.transform(data)
 
@@ -332,6 +332,7 @@ class net(nn.Module):
         return cum_loss / len(loader), optimizer
 
     def run_training(self, data, outdir=None, verbose=False):
+        """Run training."""
         warnings.warn("MARBLE.run_training() is deprecated. Use MARBLE.fit() instead.")
 
         self.fit(data, outdir=outdir, verbose=verbose)
@@ -453,8 +454,8 @@ class loss_fun(nn.Module):
     def forward(self, out, mask=None):
         """forward."""
         z, z_pos, z_neg = out.split(out.size(0) // 3, dim=0)
-        pos_loss = F.logsigmoid((z * z_pos).sum(-1)).mean()
-        neg_loss = F.logsigmoid(-(z * z_neg).sum(-1)).mean()
+        pos_loss = F.logsigmoid((z * z_pos).sum(-1)).mean()  # pylint: disable=not-callable
+        neg_loss = F.logsigmoid(-(z * z_neg).sum(-1)).mean()  # pylint: disable=not-callable
 
         coagulation_loss = 0.0
         if mask is not None:
