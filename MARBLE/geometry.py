@@ -456,9 +456,9 @@ def compute_laplacian(data, normalization="rw"):
         num_nodes=data.num_nodes
     )
 
-    # return PyGu.to_dense_adj(edge_index, edge_attr=edge_attr).squeeze()
-    n = len(data.x)
-    return sp.coo_array((edge_attr, (edge_index[0], edge_index[1])), shape=(n, n))
+    return PyGu.to_dense_adj(edge_index, edge_attr=edge_attr).squeeze()
+    #n = len(data.x)
+    #return sp.coo_array((edge_attr, (edge_index[0], edge_index[1])), shape=(n, n))
 
 
 def compute_connection_laplacian(data, R, normalization="rw"):
@@ -686,7 +686,7 @@ def compute_eigendecomposition(A, k=None, eps=1e-8):
     if A is None:
         return None
     
-    if k >= A.shape[0]:
+    if k is not None and k >= A.shape[0]:
         k = None
 
     # Compute the eigenbasis

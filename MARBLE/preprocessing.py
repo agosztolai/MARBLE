@@ -125,7 +125,7 @@ def _compute_geometric_objects(data,
     n, dim_emb = data.pos.shape
     dim_signal = data.x.shape[1]
     print(f"---- Embedding dimension: {dim_emb}")
-    print(f"---- Signal dimension: {dim_signal}\n")
+    print(f"---- Signal dimension: {dim_signal}", end="")
 
     # disable vector computations if 1) signal is scalar or 2) embedding dimension
     # is <= 2. In case 2), either M=R^2 (manifold is whole space) or case 1).
@@ -170,7 +170,7 @@ def _compute_geometric_objects(data,
         kernels = g.gradient_op(data.pos, data.edge_index, gauges)
         Lc = None
 
-    print("---- Computing eigendecomposition ... ", end="")
+    print("\n---- Computing eigendecomposition ... ", end="")
     L = g.compute_eigendecomposition(L)
     Lc = g.compute_eigendecomposition(Lc)
 
