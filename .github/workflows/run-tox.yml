@@ -24,7 +24,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        sudo apt-get install -y poppler-utils imagemagick pandoc
+        sudo apt-get update
+        sudo apt-get install -y poppler-utils imagemagick pandoc --fix-missing
         python -m pip install --upgrade pip setuptools
         pip install tox-gh-actions pandoc
     - name: Run tox
