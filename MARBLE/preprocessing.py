@@ -113,7 +113,8 @@ def _compute_geometric_objects(
 
     Args:
         data: pytorch geometric data object
-        frac_geodesic_nb: fraction of geodesic neighbours relative to neighbours to fit the tangent spaces to
+        frac_geodesic_nb: fraction of geodesic neighbours relative to neighbours
+            to fit the tangent spaces to
         var_explained: fraction of variance explained by the local gauges
         local_gauges: whether to use local or global gauges
 
