@@ -1,12 +1,13 @@
 """Plotting module."""
 import os
 from pathlib import Path
-import torch
+
 import matplotlib
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import seaborn as sns
+import torch
 from matplotlib import gridspec
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.patches import FancyArrowPatch

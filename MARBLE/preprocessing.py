@@ -125,7 +125,7 @@ def _compute_geometric_objects(
         gauges (nxdxd): local gauges at all points
         par (dict): updated dictionary of parameters
         local_gauges: whether to use local gauges
-        
+
     """
     n, dim_emb = data.pos.shape
     dim_signal = data.x.shape[1]

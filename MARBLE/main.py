@@ -4,16 +4,19 @@ import os
 import warnings
 from datetime import datetime
 from pathlib import Path
-import yaml
-from tqdm import tqdm
 
 import torch
 import torch.nn.functional as F
 import torch.optim as opt
+import yaml
 from torch import nn
 from torch_geometric.nn import MLP
+from tqdm import tqdm
 
-from MARBLE import dataloader, geometry, layers, utils
+from MARBLE import dataloader
+from MARBLE import geometry
+from MARBLE import layers
+from MARBLE import utils
 
 
 class net(nn.Module):
