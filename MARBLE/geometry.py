@@ -460,7 +460,7 @@ def compute_laplacian(data, normalization="rw"):
 
 
 def compute_connection_laplacian(data, R, normalization="rw"):
-    r"""Connection Laplacian
+    """Connection Laplacian
 
     Args:
         data: Pytorch geometric data object.

@@ -13,15 +13,13 @@ include_positions: False # include positions as features (warning: this is untes
 include_self: True # include vector at the center of feature
 
 # network parameters
-dropout: 0. #d ropout in the MLP
+dropout: 0. # dropout in the MLP
 hidden_channels: [16] # number of hidden channels
 out_channels: 3 # number of output channels (if null, then =hidden_channels)
+vec_norm: False # normalise features at each order of derivatives
 bias: True # learn bias parameters in MLP
-vec_norm: False
 batch_norm: True # batch normalisation
 emb_norm: False # spherical output
-skip_connections: False # use skips in MLP 
 
 # other params
 seed: 0 # seed for reproducibility
-processes: 1

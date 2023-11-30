@@ -1,7 +1,7 @@
 """Plotting module."""
 import os
 from pathlib import Path
-
+import torch
 import matplotlib
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -185,7 +185,7 @@ def embedding(
     """
     if hasattr(data, "emb_2D"):
         emb = data.emb_2D
-    elif isinstance(data, np.ndarray):
+    elif isinstance(data, np.ndarray) or torch.is_tensor(data):
         emb = data
 
     dim = emb.shape[1]
@@ -216,7 +216,7 @@ def embedding(
         c_ = color[i]
         emb_ = emb[mask*(labels == typ)]
         
-        if isinstance(data, np.ndarray):
+        if isinstance(data, np.ndarray) or torch.is_tensor(data):
             print('You need to pass a data object to plot trajectories!')
             plot_trajectories = False
         
@@ -264,8 +264,18 @@ def embedding(
     return ax
 
 
+def losses(model):
+    """Model losses"""
+
+    plt.plot(model.losses['train_loss'], label='Training loss')
+    plt.plot(model.losses['val_loss'], label='Validation loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('MSE loss')
+    plt.legend()
+    
+    
 def voronoi(clusters, ax):
-    """voronoi"""
+    """Voronoi tesselation of clusters"""
     vor = Voronoi(clusters["centroids"])
     voronoi_plot_2d(vor, ax=ax, show_vertices=False)
     for k in range(clusters["n_clusters"]):
@@ -441,52 +451,52 @@ def graph(
     return ax
 
 
-def time_series(T, X, style="o", node_feature=None, figsize=(10, 5), lw=1, ms=5):
-    """Plot time series.
+#def time_series(T, X, style="o", node_feature=None, figsize=(10, 5), lw=1, ms=5):
+#    """Plot time series.
 
-    Args:
-        X (np array or list[np array]): Trajectories
-        style (string): Plotting style. The default is 'o'
-        color (bool): Color lines. The default is True
-        lw (int): Line width
-        ms (int): Marker size.
+#    Args:
+#        X (np array or list[np array]): Trajectories
+#        style (string): Plotting style. The default is 'o'
+#        color (bool): Color lines. The default is True
+#        lw (int): Line width
+#        ms (int): Marker size.
 
-    Returns:
-        matplotlib axes object
-    """
-    if not isinstance(X, list):
-        X = [X]
+#    Returns:
+#        matplotlib axes object
+#    """
+#    if not isinstance(X, list):
+#        X = [X]
 
-    fig = plt.figure(figsize=figsize, constrained_layout=True)
-    grid = gridspec.GridSpec(len(X), 1, wspace=0.5, hspace=0, figure=fig)
+#    fig = plt.figure(figsize=figsize, constrained_layout=True)
+#    grid = gridspec.GridSpec(len(X), 1, wspace=0.5, hspace=0, figure=fig)
 
-    for sp, X_ in enumerate(X):
-        if sp == 0:
-            ax = plt.Subplot(fig, grid[sp])
-        else:
-            ax = plt.Subplot(fig, grid[sp], sharex=ax)
+#    for sp, X_ in enumerate(X):
+#        if sp == 0:
+#            ax = plt.Subplot(fig, grid[sp])
+#        else:
+#            ax = plt.Subplot(fig, grid[sp], sharex=ax)
 
-        ax.spines["top"].set_visible(False)
-        ax.spines["right"].set_visible(False)
+#        ax.spines["top"].set_visible(False)
+#        ax.spines["right"].set_visible(False)
 
-        if sp < len(X) - 1:
-            plt.setp(ax.get_xticklabels(), visible=False)  # pylint: disable=not-callable
-            ax.spines["bottom"].set_visible(False)
-            ax.xaxis.set_ticks_position("none")
+#        if sp < len(X) - 1:
+#            plt.setp(ax.get_xticklabels(), visible=False)  # pylint: disable=not-callable
+#            ax.spines["bottom"].set_visible(False)
+#            ax.xaxis.set_ticks_position("none")
 
-        colors = set_colors(node_feature)[0]
+#        colors = set_colors(node_feature)[0]
 
-        for i in range(len(X_) - 2):
-            if X_[i] is None:
-                continue
+#        for i in range(len(X_) - 2):
+#            if X_[i] is None:
+#                continue
 
-            c = colors[i] if len(colors) > 1 and not isinstance(colors, str) else colors
+#            c = colors[i] if len(colors) > 1 and not isinstance(colors, str) else colors
 
-            ax.plot(T[i : i + 2], X_[i : i + 2], style, c=c, linewidth=lw, markersize=ms)
+#            ax.plot(T[i : i + 2], X_[i : i + 2], style, c=c, linewidth=lw, markersize=ms)
 
-            fig.add_subplot(ax)
+#            fig.add_subplot(ax)
 
-    return ax
+#    return ax
 
 
 def trajectories(
@@ -714,39 +724,3 @@ def set_colors(color, cmap="coolwarm"):
     cbar = plt.cm.ScalarMappable(norm=norm, cmap=cmap)
 
     return colors, cbar
-
-
-def savefig(fig, filename, folder="../results"):
-    """Save figures in subfolders and with different extensions."""
-    if fig is not None:
-        if not Path(folder).exists():
-            os.mkdir(folder)
-        fig.savefig((Path(folder) / filename), bbox_inches="tight")
-
-
-def plot_phase_portrait(
-    pos, vel, ax=None, node_feature=None, style=">", lw=2, scale=1.0, spacing=1
-):
-    """Plot phase portrait."""
-    if not isinstance(pos, list):
-        pos = [pos]
-    if not isinstance(vel, list):
-        vel = [vel]
-
-    if node_feature is None:
-        node_feature = len(pos) * [None]
-
-    for p, v, nf in zip(pos, vel, node_feature):
-        ax = trajectories(
-            p,
-            v,
-            ax=ax,
-            style=style,
-            node_feature=nf,
-            lw=lw,
-            scale=scale,
-            alpha=1.0,
-            arrow_spacing=spacing,
-        )
-
-    return ax

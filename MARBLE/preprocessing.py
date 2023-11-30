@@ -14,12 +14,12 @@ def construct_dataset(
     mask=None,
     graph_type="cknn",
     k=20,
+    delta=1.0,
     frac_geodesic_nb=1.5,
     stop_crit=0.0,
     number_of_resamples=1,
     var_explained=0.9,
     local_gauges=False,
-    delta=1.0,
 ):
     """Construct PyG dataset from node positions and features.
 
@@ -29,6 +29,7 @@ def construct_dataset(
         labels: any additional data labels used for plotting only
         graph_type: type of nearest-neighbours graph: cknn (default), knn or radius
         k: number of nearest-neighbours to construct the graph
+        delta: argument for cknn graph construction to decide the radius for each points.
         frac_geodesic_nb: number of geodesic neighbours to fit the gauges to
         to map to tangent space k*frac_geodesic_nb
         stop_crit: stopping criterion for furthest point sampling
@@ -36,7 +37,6 @@ def construct_dataset(
         var_explained: fraction of variance explained by the local gauges
         local_gauges: is True, it will try to compute local gauges if it can (signal dim is > 2,
             embedding dimension is > 2 or dim embedding is not dim of manifold)
-        delta: argument for cknn graph construction to decide the radius for each points.
     """
 
     pos = [torch.tensor(p).float() for p in utils.to_list(pos)]
@@ -111,21 +111,24 @@ def _compute_geometric_objects(data,
 
     Args:
         data: pytorch geometric data object
-        n_geodesic_nb: number of geodesic neighbours to fit the gauges to map to tangent space
+        frac_geodesic_nb: fraction of geodesic neighbours relative to neighbours to fit the tangent spaces to
         var_explained: fraction of variance explained by the local gauges
-        diffusion: 'spectral' or 'matrix_exp'
+        local_gauges: whether to use local or global gauges
 
     Returns:
-        R (nxnxdxd tensor): L-C connectionc (dxd) matrices
+        data: pytorch geometric data object with the following new attributes
         kernels (list of d (nxn) matrices): directional kernels
         L (nxn matrix): scalar laplacian
         Lc (ndxnd matrix): connection laplacian
+        gauges (nxdxd): local gauges at all points
         par (dict): updated dictionary of parameters
+        local_gauges: whether to use local gauges
+        
     """
     n, dim_emb = data.pos.shape
     dim_signal = data.x.shape[1]
-    print(f"---- Embedding dimension: {dim_emb}")
-    print(f"---- Signal dimension: {dim_signal}", end="")
+    print(f"\n---- Embedding dimension: {dim_emb}", end="")
+    print(f"\n---- Signal dimension: {dim_signal}", end="")
 
     # disable vector computations if 1) signal is scalar or 2) embedding dimension
     # is <= 2. In case 2), either M=R^2 (manifold is whole space) or case 1).

@@ -3,20 +3,16 @@ import glob
 import os
 from datetime import datetime
 from pathlib import Path
+import yaml
+from tqdm import tqdm
 
 import torch
 import torch.nn.functional as F
 import torch.optim as opt
-import yaml
-from tensorboardX import SummaryWriter
 from torch import nn
 from torch_geometric.nn import MLP
-from tqdm import tqdm
 
-from MARBLE import dataloader
-from MARBLE import geometry
-from MARBLE import layers
-from MARBLE import utils
+from MARBLE import dataloader, geometry, layers, utils
 
 import warnings
 
@@ -42,11 +38,10 @@ class net(nn.Module):
         hidden_channels: number of hidden channels (default=16). If list, then adds multiple layers.
         out_channels: number of output channels (if null, then =hidden_channels) (default=3)
         bias: learn bias parameters in MLP (default=True)
-        vec_norm: normalise features to unit length (default=False)
+        vec_norm: normalise features at each derivative order to unit length (default=False)
         emb_norm: normalise MLP output to unit length (default=False)
         batch_norm: batch normalisation (default=False)
         seed: seed for reproducibility (default=0)
-        processes: number of cpus (default=1)
     """
 
     def __init__(self, data, loadpath=None, params=None, verbose=True):
@@ -149,10 +144,8 @@ class net(nn.Module):
             "batch_norm",
             "vec_norm",
             "emb_norm",
-            "skip_connections",
             "seed",
             "n_sampled_nb",
-            "processes",
             "include_positions",
             "include_self",
         ]
@@ -177,7 +170,7 @@ class net(nn.Module):
         self.diffusion = layers.Diffusion()
 
         # gradient features
-        self.grad = nn.ModuleList(layers.AnisoConv(self.params["vec_norm"]) for i in range(o))
+        self.grad = nn.ModuleList(layers.AnisoConv() for i in range(o))
 
         # cumulated number of channels after gradient features
         cum_channels = s * (1 - d ** (o + 1)) // (1 - d)
@@ -206,18 +199,11 @@ class net(nn.Module):
             + [self.params["out_channels"]]
         )
 
-        if self.params['skip_connections']:
-            self.enc = layers.SkipMLP(
-                channel_list=channel_list,
-                dropout=self.params["dropout"],
-                bias=self.params["bias"],
-            )   
-        else:
-            self.enc = MLP(
-                channel_list=channel_list,
-                dropout=self.params["dropout"],
-                bias=self.params["bias"],
-            )        
+        self.enc = MLP(
+            channel_list=channel_list,
+            dropout=self.params["dropout"],
+            bias=self.params["bias"],
+        )        
         
         
     def forward(self, data, n_id, adjs=None):
@@ -377,12 +363,12 @@ class net(nn.Module):
         )
         if hasattr(self, "optimizer_state_dict"):
             optimizer.load_state_dict(self.optimizer_state_dict)
-        writer = SummaryWriter("./log/")
 
         # training scheduler
         scheduler = opt.lr_scheduler.ReduceLROnPlateau(optimizer)
 
         best_loss = -1
+        self.losses = {'train_loss': [], 'val_loss': [], 'test_loss': []}
         for epoch in range(
             self.params.get("epoch", 0), self.params.get("epoch", 0) + self.params["epochs"]
         ):
@@ -394,26 +380,25 @@ class net(nn.Module):
             val_loss, _ = self.batch_loss(data, val_loader, verbose=verbose)
             scheduler.step(train_loss)
 
-            writer.add_scalar("Loss/train", train_loss, self._epoch)
-            writer.add_scalar("Loss/validation", val_loss, self._epoch)
-            writer.flush()
             print(
                 f"\nEpoch: {self._epoch}, Training loss: {train_loss:4f}, Validation loss: {val_loss:.4f}, lr: {scheduler._last_lr[0]:.4f}",  # noqa, pylint: disable=line-too-long,protected-access
                 end="",
             )
 
             if best_loss == -1 or (val_loss < best_loss):
-                outdir = self.save_model(optimizer, outdir, best=True, timestamp=time)
+                outdir = self.save_model(optimizer, self.losses, outdir=outdir, best=True, timestamp=time)
                 best_loss = val_loss
                 print(" *", end="")
+            
+            self.losses['train_loss'].append(train_loss)
+            self.losses['val_loss'].append(val_loss)
 
         test_loss, _ = self.batch_loss(data, test_loader)
-        writer.add_scalar("Loss/test", test_loss)
-        writer.close()
         print(f"\nFinal test loss: {test_loss:.4f}")
 
-        self.save_model(optimizer, outdir, best=False, timestamp=time)
-
+        self.losses['test_loss'].append(test_loss)
+            
+        self.save_model(optimizer, self.losses, outdir=outdir, best=False, timestamp=time)
         self.load_model(os.path.join(outdir, f"best_model_{time}.pth"))
 
     def load_model(self, loadpath):
@@ -426,8 +411,9 @@ class net(nn.Module):
         self._epoch = checkpoint["epoch"]
         self.load_state_dict(checkpoint["model_state_dict"])
         self.optimizer_state_dict = checkpoint["optimizer_state_dict"]
+        self.losses = checkpoint['losses']
 
-    def save_model(self, optimizer, outdir=None, best=False, timestamp=""):
+    def save_model(self, optimizer, losses, outdir=None, best=False, timestamp=""):
         """Save model."""
         if outdir is None:
             outdir = "./outputs/"
@@ -441,6 +427,7 @@ class net(nn.Module):
             "optimizer_state_dict": optimizer.state_dict(),
             "time": timestamp,
             "params": self.params,
+            "losses": losses,
         }
 
         if best:
