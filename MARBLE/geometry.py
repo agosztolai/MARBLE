@@ -465,7 +465,7 @@ def compute_laplacian(data, normalization="rw"):
 
 
 def compute_connection_laplacian(data, R, normalization="rw"):
-    """Connection Laplacian
+    r"""Connection Laplacian
 
     Args:
         data: Pytorch geometric data object.
@@ -520,7 +520,7 @@ def compute_connection_laplacian(data, R, normalization="rw"):
 
 
 def compute_gauges(data, dim_man=None, n_geodesic_nb=10, n_workers=1):
-    """Orthonormal gauges for the tangent space at each node, and connection
+    r"""Orthonormal gauges for the tangent space at each node, and connection
     matrices between each pair of adjacent nodes.
 
     R is a block matrix, where the row index is the gauge we want to align to,
@@ -573,7 +573,7 @@ def _compute_gauges(inputs, i):
 
 
 def compute_connections(data, gauges, n_workers=1):
-    """Find smallest rotations R between gauges pairs. It is assumed that the first
+    r"""Find smallest rotations R between gauges pairs. It is assumed that the first
     row of edge_index is what we want to align to, i.e.,
     gauges(i) = gauges(j)@R[i,j].T
 
