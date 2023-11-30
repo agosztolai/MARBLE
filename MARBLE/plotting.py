@@ -1,16 +1,13 @@
 """Plotting module."""
-import os
-from pathlib import Path
-import torch
 import matplotlib
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import seaborn as sns
+import torch
 from matplotlib import gridspec
-from matplotlib.patches import FancyArrowPatch
 from matplotlib.colors import LinearSegmentedColormap
-from mpl_toolkits.mplot3d.art3d import Line3DCollection
+from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
 from scipy.spatial import Voronoi
 from scipy.spatial import voronoi_plot_2d
@@ -129,9 +126,7 @@ def histograms(data, titles=None, col=2, figsize=(10, 10)):
         col: int for number of columns to plot
         figsize: tuple of figure dimensions
     """
-    assert hasattr(
-        data, "clusters"
-    ), "No clusters found. First, run postprocessing.cluster(data)!"
+    assert hasattr(data, "clusters"), "No clusters found. First, run postprocessing.cluster(data)!"
 
     labels, s = data.clusters["labels"], data.clusters["slices"]
     n_slices = len(s) - 1
@@ -171,9 +166,9 @@ def embedding(
     clusters_visible=False,
     cmap="coolwarm",
     plot_trajectories=False,
-    style='o',
+    style="o",
     lw=1,
-    time_gradient=False
+    time_gradient=False,
 ):
     """Plot embeddings.
 
@@ -199,54 +194,74 @@ def embedding(
 
     if labels is None:
         labels = np.ones(emb.shape[0])
-        
+
     if mask is None:
         mask = np.ones(len(emb), dtype=bool)
         labels = labels[mask]
 
     types = sorted(set(labels))
-    
+
     color, cbar = set_colors(types, cmap)
-    
+
     if titles is not None:
         assert len(titles) == len(types)
 
     for i, typ in enumerate(types):
         title = titles[i] if titles is not None else str(typ)
         c_ = color[i]
-        emb_ = emb[mask*(labels == typ)]
-        
+        emb_ = emb[mask * (labels == typ)]
+
         if isinstance(data, np.ndarray) or torch.is_tensor(data):
-            print('You need to pass a data object to plot trajectories!')
+            print("You need to pass a data object to plot trajectories!")
             plot_trajectories = False
-        
+
         if plot_trajectories:
-            l_ = data.l[mask*(labels == typ)]
+            l_ = data.l[mask * (labels == typ)]
             if len(l_) == 0:
                 continue
-            end = np.where(np.diff(l_)<0)[0]+1
+            end = np.where(np.diff(l_) < 0)[0] + 1
             start = np.hstack([0, end])
             end = np.hstack([end, len(emb_)])
             cmap = LinearSegmentedColormap.from_list("Custom", [(0, 0, 0), c_], N=max(l_))
-            
-            for i, (s_,e_) in enumerate(zip(start, end)):
-                t = range(s_,e_)
-                cgrad = cmap(l_[t]/max(l_))
-                if style=='-':
+
+            for i, (s_, e_) in enumerate(zip(start, end)):
+                t = range(s_, e_)
+                cgrad = cmap(l_[t] / max(l_))
+                if style == "-":
                     if time_gradient:
-                        trajectories(emb_[t], style='-', ax=ax, ms=s, node_feature=cgrad, alpha=alpha, lw=lw)
+                        trajectories(
+                            emb_[t], style="-", ax=ax, ms=s, node_feature=cgrad, alpha=alpha, lw=lw
+                        )
                     else:
-                        trajectories(emb_[t], style='-', ax=ax, ms=s, node_feature=[c_]*len(t), alpha=alpha, lw=lw)
-                elif style=='o':
+                        trajectories(
+                            emb_[t],
+                            style="-",
+                            ax=ax,
+                            ms=s,
+                            node_feature=[c_] * len(t),
+                            alpha=alpha,
+                            lw=lw,
+                        )
+                elif style == "o":
                     if dim == 2:
                         ax.scatter(emb_[t, 0], emb_[t, 1], c=cgrad, alpha=alpha, s=s, label=title)
                     elif dim == 3:
-                        ax.scatter(emb_[t, 0], emb_[t, 1], emb_[t, 2], c=cgrad, alpha=alpha, s=s, label=title)  
+                        ax.scatter(
+                            emb_[t, 0],
+                            emb_[t, 1],
+                            emb_[t, 2],
+                            c=cgrad,
+                            alpha=alpha,
+                            s=s,
+                            label=title,
+                        )
         else:
             if dim == 2:
                 ax.scatter(emb_[:, 0], emb_[:, 1], color=c_, alpha=alpha, s=s, label=title)
             elif dim == 3:
-                ax.scatter(emb_[:, 0], emb_[:, 1], emb_[:, 2], color=c_, alpha=alpha, s=s, label=title)
+                ax.scatter(
+                    emb_[:, 0], emb_[:, 1], emb_[:, 2], color=c_, alpha=alpha, s=s, label=title
+                )
 
     if dim == 2:
         if hasattr(data, "clusters") and clusters_visible:
@@ -267,13 +282,13 @@ def embedding(
 def losses(model):
     """Model losses"""
 
-    plt.plot(model.losses['train_loss'], label='Training loss')
-    plt.plot(model.losses['val_loss'], label='Validation loss')
-    plt.xlabel('Epochs')
-    plt.ylabel('MSE loss')
+    plt.plot(model.losses["train_loss"], label="Training loss")
+    plt.plot(model.losses["val_loss"], label="Validation loss")
+    plt.xlabel("Epochs")
+    plt.ylabel("MSE loss")
     plt.legend()
-    
-    
+
+
 def voronoi(clusters, ax):
     """Voronoi tesselation of clusters"""
     vor = Voronoi(clusters["centroids"])
@@ -303,9 +318,7 @@ def neighbourhoods(
         plot_graph: if True, then plot the underlying graph.
     """
 
-    assert hasattr(
-        data, "clusters"
-    ), "No clusters found. First, run postprocessing.cluster(data)!"
+    assert hasattr(data, "clusters"), "No clusters found. First, run postprocessing.cluster(data)!"
 
     vector = data.x.shape[1] > 1
     clusters = data.clusters
@@ -451,7 +464,7 @@ def graph(
     return ax
 
 
-#def time_series(T, X, style="o", node_feature=None, figsize=(10, 5), lw=1, ms=5):
+# def time_series(T, X, style="o", node_feature=None, figsize=(10, 5), lw=1, ms=5):
 #    """Plot time series.
 
 #    Args:
@@ -533,7 +546,7 @@ def trajectories(
         _, ax = create_axis(dim)
 
     c = set_colors(node_feature)[0]
-        
+
     if dim == 2:
         if "o" in style:
             ax.scatter(X[:, 0], X[:, 1], c=c, s=ms, alpha=alpha)

@@ -3,6 +3,7 @@ import torch
 from torch_geometric.data import Batch
 from torch_geometric.data import Data
 from torch_geometric.transforms import RandomNodeSplit
+
 from MARBLE import geometry as g
 from MARBLE import utils
 
@@ -42,12 +43,12 @@ def construct_dataset(
     pos = [torch.tensor(p).float() for p in utils.to_list(pos)]
     features = [torch.tensor(x).float() for x in utils.to_list(features)]
     num_node_features = features[0].shape[1]
-    
+
     if labels is None:
         labels = [torch.arange(len(p)) for p in utils.to_list(pos)]
     else:
-        labels = [torch.tensor(l).float() for l in utils.to_list(labels)]
-        
+        labels = [torch.tensor(label).float() for label in utils.to_list(labels)]
+
     if mask is None:
         mask = [torch.zeros(len(p), dtype=torch.bool) for p in utils.to_list(pos)]
     else:
@@ -62,7 +63,7 @@ def construct_dataset(
             # even sampling of points
             start_idx = torch.randint(low=0, high=len(p), size=(1,))
             sample_ind, _ = g.furthest_point_sampling(p, stop_crit=stop_crit, start_idx=start_idx)
-            sample_ind, _ = torch.sort(sample_ind) #this will make postprocessing easier
+            sample_ind, _ = torch.sort(sample_ind)  # this will make postprocessing easier
             p_, f_, l_, m_ = p[sample_ind], f[sample_ind], l[sample_ind], m[sample_ind]
 
             # fit graph to point cloud
@@ -100,7 +101,8 @@ def construct_dataset(
     )
 
 
-def _compute_geometric_objects(data,
+def _compute_geometric_objects(
+    data,
     frac_geodesic_nb=2.0,
     var_explained=0.9,
     local_gauges=False,
@@ -111,7 +113,8 @@ def _compute_geometric_objects(data,
 
     Args:
         data: pytorch geometric data object
-        frac_geodesic_nb: fraction of geodesic neighbours relative to neighbours to fit the tangent spaces to
+        frac_geodesic_nb: fraction of geodesic neighbours relative to neighbours
+            to fit the tangent spaces to
         var_explained: fraction of variance explained by the local gauges
         local_gauges: whether to use local or global gauges
 
@@ -123,7 +126,7 @@ def _compute_geometric_objects(data,
         gauges (nxdxd): local gauges at all points
         par (dict): updated dictionary of parameters
         local_gauges: whether to use local gauges
-        
+
     """
     n, dim_emb = data.pos.shape
     dim_signal = data.x.shape[1]
@@ -158,7 +161,7 @@ def _compute_geometric_objects(data,
         data.dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
         print(f"\n---- Manifold dimension: {data.dim_man}")
 
-        gauges = gauges[:, :, :data.dim_man]
+        gauges = gauges[:, :, : data.dim_man]
         R = g.compute_connections(data, gauges)
 
         print("\n---- Computing kernels ... ", end="")
