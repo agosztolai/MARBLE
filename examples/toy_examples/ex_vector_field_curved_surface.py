@@ -52,7 +52,7 @@ def main():
 
     # construct PyG data object
     data = preprocessing.construct_dataset(
-        x, y, graph_type="cknn", k=10, n_geodesic_nb=20, local_gauges=True  # use local gauges
+        x, y, graph_type="cknn", k=10, local_gauges=True  # use local gauges
     )
 
     # train model

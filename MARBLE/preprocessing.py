@@ -1,7 +1,6 @@
 """Preprocessing module."""
 import torch
-from torch_geometric.data import Batch
-from torch_geometric.data import Data
+from torch_geometric.data import Batch, Data
 from torch_geometric.transforms import RandomNodeSplit
 
 from MARBLE import geometry as g
@@ -9,15 +8,16 @@ from MARBLE import utils
 
 
 def construct_dataset(
-    pos,
-    features,
-    labels=None,
+    anchor,
+    vector,
+    label=None,
     mask=None,
     graph_type="cknn",
     k=20,
     delta=1.0,
+    n_eigenvalues=None,
     frac_geodesic_nb=1.5,
-    stop_crit=0.0,
+    spacing=0.0,
     number_of_resamples=1,
     var_explained=0.9,
     local_gauges=False,
@@ -28,9 +28,11 @@ def construct_dataset(
         pos: matrix with position of points
         features: matrix with feature values for each point
         labels: any additional data labels used for plotting only
+        mask: boolean array, that will be forced to be close (default is None)
         graph_type: type of nearest-neighbours graph: cknn (default), knn or radius
         k: number of nearest-neighbours to construct the graph
         delta: argument for cknn graph construction to decide the radius for each points.
+        n_eigenvalues: number of eigenvalue/eigenvector pairs to compute (None means all, but this can be slow)
         frac_geodesic_nb: number of geodesic neighbours to fit the gauges to
         to map to tangent space k*frac_geodesic_nb
         stop_crit: stopping criterion for furthest point sampling
@@ -40,45 +42,46 @@ def construct_dataset(
             embedding dimension is > 2 or dim embedding is not dim of manifold)
     """
 
-    pos = [torch.tensor(p).float() for p in utils.to_list(pos)]
-    features = [torch.tensor(x).float() for x in utils.to_list(features)]
-    num_node_features = features[0].shape[1]
-
-    if labels is None:
-        labels = [torch.arange(len(p)) for p in utils.to_list(pos)]
+    anchor = [torch.tensor(p).float() for p in utils.to_list(anchor)]
+    vector = [torch.tensor(x).float() for x in utils.to_list(vector)]
+    num_node_features = vector[0].shape[1]
+    
+    if label is None:
+        label = [torch.arange(len(p)) for p in utils.to_list(anchor)]
     else:
-        labels = [torch.tensor(label).float() for label in utils.to_list(labels)]
+        label = [torch.tensor(l).float() for l in utils.to_list(label)]
 
     if mask is None:
-        mask = [torch.zeros(len(p), dtype=torch.bool) for p in utils.to_list(pos)]
+        mask = [torch.zeros(len(p), dtype=torch.bool) for p in utils.to_list(anchor)]
     else:
         mask = [torch.tensor(m) for m in utils.to_list(mask)]
 
-    if stop_crit == 0.0:
+    if spacing == 0.0:
         number_of_resamples = 1
 
     data_list = []
-    for i, (p, f, l, m) in enumerate(zip(pos, features, labels, mask)):
+    for i, (a, v, l, m) in enumerate(zip(anchor, vector, label, mask)):
         for _ in range(number_of_resamples):
             # even sampling of points
-            start_idx = torch.randint(low=0, high=len(p), size=(1,))
-            sample_ind, _ = g.furthest_point_sampling(p, stop_crit=stop_crit, start_idx=start_idx)
-            sample_ind, _ = torch.sort(sample_ind)  # this will make postprocessing easier
-            p_, f_, l_, m_ = p[sample_ind], f[sample_ind], l[sample_ind], m[sample_ind]
+            start_idx = torch.randint(low=0, high=len(a), size=(1,))
+            sample_ind, _ = g.furthest_point_sampling(a, spacing=spacing, start_idx=start_idx)
+            sample_ind, _ = torch.sort(sample_ind) #this will make postprocessing easier
+            a_, v_, l_, m_ = a[sample_ind], v[sample_ind], l[sample_ind], m[sample_ind]
 
             # fit graph to point cloud
-            edge_index, edge_weight = g.fit_graph(p_, graph_type=graph_type, par=k, delta=delta)
-            n = len(p_)
+            edge_index, edge_weight = g.fit_graph(a_, graph_type=graph_type, par=k, delta=delta)
+            
+            # define data object
             data_ = Data(
-                pos=p_,
-                x=f_,
-                l=l_,
+                pos=a_,
+                x=v_,
+                label=l_,
                 mask=m_,
                 edge_index=edge_index,
                 edge_weight=edge_weight,
-                num_nodes=n,
+                num_nodes=len(a_),
                 num_node_features=num_node_features,
-                y=torch.ones(n, dtype=int) * i,
+                y=torch.ones(len(a_), dtype=int) * i,
                 sample_ind=sample_ind,
             )
 
@@ -96,14 +99,14 @@ def construct_dataset(
     return _compute_geometric_objects(
         batch,
         local_gauges=local_gauges,
-        frac_geodesic_nb=frac_geodesic_nb,
+        n_geodesic_nb=k*frac_geodesic_nb,
         var_explained=var_explained,
     )
 
 
 def _compute_geometric_objects(
     data,
-    frac_geodesic_nb=2.0,
+    n_geodesic_nb=10,
     var_explained=0.9,
     local_gauges=False,
 ):
@@ -113,8 +116,7 @@ def _compute_geometric_objects(
 
     Args:
         data: pytorch geometric data object
-        frac_geodesic_nb: fraction of geodesic neighbours relative to neighbours
-            to fit the tangent spaces to
+        n_geodesic_nb: number of geodesic neighbours to fit the tangent spaces to
         var_explained: fraction of variance explained by the local gauges
         local_gauges: whether to use local or global gauges
 
@@ -146,7 +148,7 @@ def _compute_geometric_objects(
 
     if local_gauges:
         try:
-            gauges, Sigma = g.compute_gauges(data, n_geodesic_nb=frac_geodesic_nb)
+            gauges, Sigma = g.compute_gauges(data, n_geodesic_nb=n_geodesic_nb)
         except Exception as exc:
             raise Exception(
                 "\nCould not compute gauges (possibly data is too sparse or the \
@@ -159,7 +161,7 @@ def _compute_geometric_objects(
 
     if local_gauges:
         data.dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
-        print(f"\n---- Manifold dimension: {data.dim_man}")
+        print(f"---- Manifold dimension: {data.dim_man}")
 
         gauges = gauges[:, :, : data.dim_man]
         R = g.compute_connections(data, gauges)
@@ -176,7 +178,7 @@ def _compute_geometric_objects(
         kernels = g.gradient_op(data.pos, data.edge_index, gauges)
         Lc = None
 
-    print("\n---- Computing eigendecomposition ... ", end="")
+    # print("\n---- Computing eigendecomposition ... ", end="")
     L = g.compute_eigendecomposition(L)
     Lc = g.compute_eigendecomposition(Lc)
 

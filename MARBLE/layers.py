@@ -3,7 +3,7 @@ import torch
 from torch import nn
 from torch_geometric.nn.conv import MessagePassing
 
-from MARBLE import geometry as g
+from MARBLE import smoothing as s
 
 
 class Diffusion(nn.Module):
@@ -20,8 +20,7 @@ class Diffusion(nn.Module):
         if method == "spectral":
             assert (
                 len(L) == 2
-            ), "L must be a matrix or a pair of eigenvalues \
-                                and eigenvectors"
+            ), "L must be a matrix or a pair of eigenvalues and eigenvectors"
 
         # making sure diffusion times are positive
         with torch.no_grad():
@@ -30,9 +29,9 @@ class Diffusion(nn.Module):
         t = self.diffusion_time
 
         if Lc is not None:
-            out = g.vector_diffusion(x, t, method, Lc)
+            out = s.vector_diffusion(x, t, Lc, L=L, method=method, normalise=True)
         else:
-            out = [g.scalar_diffusion(x_, t, method, L) for x_ in x.T]
+            out = [s.scalar_diffusion(x_, t, method, L) for x_ in x.T]
             out = torch.cat(out, axis=1)
 
         return out

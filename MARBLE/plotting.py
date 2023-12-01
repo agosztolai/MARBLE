@@ -1,4 +1,5 @@
 """Plotting module."""
+import torch
 import matplotlib
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -7,7 +8,6 @@ import seaborn as sns
 import torch
 from matplotlib import gridspec
 from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
 from scipy.spatial import Voronoi
 from scipy.spatial import voronoi_plot_2d

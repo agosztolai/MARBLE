@@ -217,16 +217,19 @@ class net(nn.Module):
         n, d = x.shape[0], data.gauges.shape[2]
         mask = data.mask
 
-        # local gauges
-        if self.params["inner_product_features"]:
-            x = geometry.map_to_local_gauges(x, data.gauges)
-
         # diffusion
         if self.params["diffusion"]:
-            L = data.L.copy() if hasattr(data, "L") else None
-            Lc = data.Lc.copy() if hasattr(data, "Lc") else None
-            x = self.diffusion(x, L, Lc=Lc, method="spectral")
-
+            if hasattr(data, "Lc"):
+                x = geometry.global_to_local_frame(x, data.gauges)
+                x = self.diffusion(x, data.L, Lc=data.Lc, method="spectral")
+                x = geometry.global_to_local_frame(x, data.gauges, reverse=True)
+            else:
+                x = self.diffusion(x, data.L, method="spectral")
+                
+        # local gauges
+        if self.params["inner_product_features"]:
+            x = geometry.global_to_local_frame(x, data.gauges)
+            
         # restrict to current batch
         x = x[n_id]
         mask = mask[n_id]
@@ -265,7 +268,7 @@ class net(nn.Module):
 
         if self.params["include_positions"]:
             out = torch.hstack([data.pos[n_id[: last_size[1]]], out])
-
+            
         emb = self.enc(out)
 
         if self.params["emb_norm"]:  # spherical output

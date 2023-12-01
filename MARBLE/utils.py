@@ -59,12 +59,18 @@ def move_to_gpu(model, data, adjs=None):
     data.mask = data.mask.to(device)
 
     if hasattr(data, "L"):
-        data.L = [_l.to(device) for _l in data.L]
+        if len(data.L)==2:
+            data.L = [_l.to(device) for _l in data.L]
+        else:
+            data.L = data.L.to(device)
     else:
         data.L = None
 
     if hasattr(data, "Lc"):
-        data.Lc = [_l.to(device) for _l in data.Lc]
+        if len(data.Lc)==2:
+            data.Lc = [_l.to(device) for _l in data.Lc]
+        else:
+            data.Lc = data.Lc.to(device)
     else:
         data.Lc = None
 
@@ -261,16 +267,10 @@ def restrict_to_batch(sp_tensor, idx):
     raise NotImplementedError
 
 
-def standardise(X, zero_mean=True, norm="std"):
+def standardize(X):
     """Standarsise data row-wise"""
 
-    if zero_mean:
-        X -= X.mean(axis=0, keepdims=True)
-    elif norm == "std":
-        X /= X.std(axis=0, keepdims=True)
-    elif norm == "max":
-        X /= abs(X).max(axis=0, keepdims=True)
-    else:
-        raise NotImplementedError
+    mean = X.mean(axis=0, keepdims=True)
+    std = X.std(axis=0, keepdims=True)
 
-    return X
+    return (X - mean) / std
