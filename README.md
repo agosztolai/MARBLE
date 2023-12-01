@@ -1,10 +1,10 @@
-# MARBLE - Manifold Representation Basis Learning
+# MARBLE - MAnifold Representation Basis LEarning
 
 MARBLE is a fully unsupervised geometric deep-learning method that can 
 
-1. intrinsically represent vector fields over manifolds, such as those arising in neural recordings or dissipative dynamical systems, but it is not limited to dynamical systems
-2. perform unbiased comparisons across dynamical systems or parameter conditions by jointly embedded representations
-3. can operate in geometry-aware or geometry-agnostic modes to test the contribution of manifold dynamics and geometry.
+1. Find interpretable representations of neural dynamics, more generally dynamical systems, or even more generally vector fields over manifolds.
+2. Perform unbiased comparisons across conditions within the same animal (or dynamical system).
+3. Compare dynamics across animals or artificial neural networks.
 
 The code is built around [PyG (PyTorch Geometric)](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html).
 
