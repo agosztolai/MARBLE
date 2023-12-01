@@ -41,13 +41,11 @@ def prepare_marble(spikes, labels, pca=None, pca_n=10, skip=1):
     labels = labels[:rates_pca.shape[0]]
     
     data = MARBLE.construct_dataset(
-        rates_pca,
-        features=vel_rates_pca,
+        anchor=rates_pca,
+        vector=vel_rates_pca,
         k=15,
-        stop_crit=0.0,
+        spacing=0.0,
         delta=1.5,
-        compute_laplacian=True,
-        local_gauges=False,
     )
 
     return data, labels, pca

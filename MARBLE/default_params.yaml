@@ -14,7 +14,7 @@ include_self: True # include vector at the center of feature
 
 # network parameters
 dropout: 0. # dropout in the MLP
-hidden_channels: [16] # number of hidden channels
+hidden_channels: [32] # number of hidden channels
 out_channels: 3 # number of output channels (if null, then =hidden_channels)
 vec_norm: False # normalise features at each order of derivatives
 bias: True # learn bias parameters in MLP

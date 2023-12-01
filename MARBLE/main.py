@@ -151,6 +151,7 @@ class net(nn.Module):
             "n_sampled_nb",
             "include_positions",
             "include_self",
+            "processes",
         ]
 
         for p in self.params.keys():
@@ -279,7 +280,7 @@ class net(nn.Module):
     def evaluate(self, data):
         """Evaluate."""
         warnings.warn("MARBLE.evaluate() is deprecated. Use MARBLE.transform() instead.")
-        self.transform(data)
+        return self.transform(data)
 
     def transform(self, data):
         """Forward pass @ evaluation (no minibatches)"""

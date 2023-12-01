@@ -8,6 +8,7 @@ import seaborn as sns
 import torch
 from matplotlib import gridspec
 from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
 from scipy.spatial import Voronoi
 from scipy.spatial import voronoi_plot_2d
@@ -216,7 +217,7 @@ def embedding(
             plot_trajectories = False
 
         if plot_trajectories:
-            l_ = data.l[mask * (labels == typ)]
+            l_ = data.label[mask * (labels == typ)]
             if len(l_) == 0:
                 continue
             end = np.where(np.diff(l_) < 0)[0] + 1
@@ -680,6 +681,8 @@ def create_axis(*args, fig=None):
         ax = fig.add_subplot(*args)
     elif dim == 3:
         ax = fig.add_subplot(*args, projection="3d")
+    else:
+        raise Exception('Data dimension is {}. We can only plot 2D or 3D data.'.format(dim))
 
     return fig, ax
 
