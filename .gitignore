@@ -16,3 +16,4 @@ log/
 *.svg
 *.png
 *.pth
+*.pt
