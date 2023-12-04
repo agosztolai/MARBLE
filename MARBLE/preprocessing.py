@@ -138,13 +138,13 @@ def _compute_geometric_objects(
     # disable vector computations if 1) signal is scalar or 2) embedding dimension
     # is <= 2. In case 2), either M=R^2 (manifold is whole space) or case 1).
     if dim_signal == 1:
-        print("Signal dimension is 1, so manifold computations are disabled!")
+        print("\nSignal dimension is 1, so manifold computations are disabled!")
         local_gauges = False
     if dim_emb <= 2:
-        print("Embedding dimension <= 2, so manifold computations are disabled!")
+        print("\nEmbedding dimension <= 2, so manifold computations are disabled!")
         local_gauges = False
     if dim_emb != dim_signal:
-        print("Embedding dimension /= signal dimension, so manifold computations are disabled!")
+        print("\nEmbedding dimension /= signal dimension, so manifold computations are disabled!")
 
     if local_gauges:
         try:

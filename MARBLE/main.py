@@ -43,8 +43,8 @@ class net(nn.Module):
         bias: learn bias parameters in MLP (default=True)
         vec_norm: normalise features at each derivative order to unit length (default=False)
         emb_norm: normalise MLP output to unit length (default=False)
-        batch_norm: batch normalisation (default=False)
-        seed: seed for reproducibility (default=0)
+        batch_norm: batch normalisation (default=True)
+        seed: seed for reproducibility
     """
 
     def __init__(self, data, loadpath=None, params=None, verbose=True):
@@ -123,11 +123,6 @@ class net(nn.Module):
         if self.params["diffusion"]:
             assert hasattr(data, "L"), "No Laplacian found. Compute it in preprocessing()!"
 
-        if data.local_gauges:
-            assert self.params[
-                "inner_product_features"
-            ], "Local gauges detected, so >>inner_product_features<< must be True"
-
         pars = [
             "batch_size",
             "epochs",
@@ -137,7 +132,6 @@ class net(nn.Module):
             "inner_product_features",
             "dim_signal",
             "dim_emb",
-            "dim_man",
             "frac_sampled_nb",
             "dropout",
             "diffusion",
@@ -148,14 +142,12 @@ class net(nn.Module):
             "vec_norm",
             "emb_norm",
             "seed",
-            "n_sampled_nb",
             "include_positions",
             "include_self",
-            "processes",
         ]
-
-        for p in self.params.keys():
-            assert p in pars, f"Unknown specified parameter {p}!"
+    
+        for p in pars:
+            assert p in list(self.params.keys()), f"Parameter {p} is not specified!"
 
     def reset_parameters(self):
         """reset parmaeters."""
@@ -205,6 +197,7 @@ class net(nn.Module):
             channel_list=channel_list,
             dropout=self.params["dropout"],
             bias=self.params["bias"],
+            norm=self.params['batch_norm']
         )
 
     def forward(self, data, n_id, adjs=None):

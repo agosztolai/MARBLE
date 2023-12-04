@@ -60,6 +60,7 @@ def furthest_point_sampling(x, N=None, spacing=0.0, start_idx=0):
                 break
 
     assert len(perm) == len(np.unique(perm)), "Returned duplicated points"
+    
     return perm, lambdas
 
 
@@ -77,7 +78,7 @@ def cluster(x, cluster_typ="meanshift", n_clusters=15, seed=0):
     """
     clusters = {}
     if cluster_typ == "kmeans":
-        kmeans = KMeans(n_clusters=n_clusters, random_state=seed).fit(x)
+        kmeans = KMeans(n_clusters=n_clusters, random_state=seed, n_init='auto').fit(x)
         clusters["n_clusters"] = n_clusters
         clusters["labels"] = kmeans.labels_
         clusters["centroids"] = kmeans.cluster_centers_
@@ -157,7 +158,7 @@ def relabel_by_proximity(clusters):
     """Update clusters labels such that nearby clusters in the embedding get similar labels.
 
     Args:
-        clusters: sklearn object containing 'centroids', 'n_clusters', 'labels'
+        clusters: sklearn object containing 'centroids', 'n_clusters', 'labels' as attributes
 
     Returns:
         clusters: sklearn object with updated labels
@@ -186,7 +187,7 @@ def compute_distribution_distances(clusters=None, data=None, slices=None):
     """Compute the distance between clustered distributions across datasets.
 
     Args:
-        clusters: sklearn object containing 'centroids', 'slices', 'labels'
+        clusters: sklearn object containing 'centroids', 'slices', 'labels' as attributes
 
     Returns:
         dist: distance matrix

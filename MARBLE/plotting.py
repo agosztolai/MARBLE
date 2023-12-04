@@ -532,10 +532,15 @@ def trajectories(
     Args:
         X (np array): Positions
         V (np array): Velocities
-        style (string): Plotting style. The default is 'o'
+        ax (matplotlib axes object): If specificed, it will plot on existing axes. The default is None
+        style (string): Plotting style. 'o' for scatter plot or '-' for line plot
         node_feature: Color lines. The default is None
         lw (int): Line width
         ms (int): Marker size
+        scale (float): Scaling of arrows
+        arrow_spacing (int): How many timesteps apart are the arrows spaced. 
+        axes_visible (bool): Whether to display axes
+        alpha (float): transparancy of the markers
 
     Returns:
         matplotlib axes object.
@@ -563,7 +568,14 @@ def trajectories(
                         alpha=alpha,
                     )
             else:
-                ax.plot(X[:, 0], X[:, 1], c=c, linewidth=lw, markersize=ms, alpha=alpha)
+                ax.plot(
+                    X[:, 0], 
+                    X[:, 1], 
+                    c=c, 
+                    linewidth=lw,
+                    markersize=ms, 
+                    alpha=alpha
+                )
         if ">" in style:
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
@@ -573,7 +585,7 @@ def trajectories(
         if "o" in style:
             ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=c, s=ms, alpha=alpha)
         if "-" in style:
-            if isinstance(c, (list, tuple)):
+            if isinstance(c, (np.ndarray, list, tuple)):
                 for i in range(len(X) - 2):
                     ax.plot(
                         X[i : i + 2, 0],
@@ -600,6 +612,8 @@ def trajectories(
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
             plot_arrows(X, V, ax, c, width=lw, scale=scale)
+    else:
+        raise Exception('Data dimension is: {}. It needs to be 2 or 3 to allow plotting.'.format(dim))
 
     set_axes(ax, axes_visible=axes_visible)
 
