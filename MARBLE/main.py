@@ -413,7 +413,7 @@ class net(nn.Module):
         self._epoch = checkpoint["epoch"]
         self.load_state_dict(checkpoint["model_state_dict"])
         self.optimizer_state_dict = checkpoint["optimizer_state_dict"]
-        if hatattr(self, 'losses'):
+        if hasattr(self, 'losses'):
             self.losses = checkpoint["losses"]
 
     def save_model(self, optimizer, losses, outdir=None, best=False, timestamp=""):
