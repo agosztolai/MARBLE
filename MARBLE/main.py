@@ -348,7 +348,9 @@ class net(nn.Module):
 
         print("\n---- Training network ...")
 
-        time = datetime.now().strftime("%Y%m%d-%H%M%S")
+        self.timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+
+        print("\n---- Timestamp: {}".format(self.timestamp))
 
         # load to gpu (if possible)
         # pylint: disable=self-cls-assignment
@@ -385,7 +387,7 @@ class net(nn.Module):
 
             if best_loss == -1 or (val_loss < best_loss):
                 outdir = self.save_model(
-                    optimizer, self.losses, outdir=outdir, best=True, timestamp=time
+                    optimizer, self.losses, outdir=outdir, best=True, timestamp=self.timestamp
                 )
                 best_loss = val_loss
                 print(" *", end="")
@@ -398,8 +400,8 @@ class net(nn.Module):
 
         self.losses["test_loss"].append(test_loss)
 
-        self.save_model(optimizer, self.losses, outdir=outdir, best=False, timestamp=time)
-        self.load_model(os.path.join(outdir, f"best_model_{time}.pth"))
+        self.save_model(optimizer, self.losses, outdir=outdir, best=False, timestamp=self.timestamp)
+        self.load_model(os.path.join(outdir, f"best_model_{self.timestamp}.pth"))
 
     def load_model(self, loadpath):
         """Load model.
@@ -413,7 +415,8 @@ class net(nn.Module):
         self._epoch = checkpoint["epoch"]
         self.load_state_dict(checkpoint["model_state_dict"])
         self.optimizer_state_dict = checkpoint["optimizer_state_dict"]
-        self.losses = checkpoint["losses"]
+        if hasattr(self, 'losses'):
+            self.losses = checkpoint["losses"]
 
     def save_model(self, optimizer, losses, outdir=None, best=False, timestamp=""):
         """Save model."""
