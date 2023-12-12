@@ -34,7 +34,8 @@ def construct_dataset(
         graph_type: type of nearest-neighbours graph: cknn (default), knn or radius
         k: number of nearest-neighbours to construct the graph
         delta: argument for cknn graph construction to decide the radius for each points.
-        n_eigenvalues: number of eigenvalue/eigenvector pairs to compute (None means all, but this can be slow)
+        n_eigenvalues: number of eigenvalue/eigenvector pairs to compute (None means all, 
+                       but this can be slow)
         frac_geodesic_nb: number of geodesic neighbours to fit the gauges to
         to map to tangent space k*frac_geodesic_nb
         stop_crit: stopping criterion for furthest point sampling
@@ -42,20 +43,21 @@ def construct_dataset(
         var_explained: fraction of variance explained by the local gauges
         local_gauges: is True, it will try to compute local gauges if it can (signal dim is > 2,
             embedding dimension is > 2 or dim embedding is not dim of manifold)
-        seed: Specify for reproducibility in the furthest point sampling. The default is None, which means a random starting vertex.
+        seed: Specify for reproducibility in the furthest point sampling. 
+              The default is None, which means a random starting vertex.
     """
 
-    anchor = [torch.tensor(p).float() for p in utils.to_list(anchor)]
-    vector = [torch.tensor(x).float() for x in utils.to_list(vector)]
+    anchor = [torch.tensor(a).float() for a in utils.to_list(anchor)]
+    vector = [torch.tensor(v).float() for v in utils.to_list(vector)]
     num_node_features = vector[0].shape[1]
 
     if label is None:
-        label = [torch.arange(len(p)) for p in utils.to_list(anchor)]
+        label = [torch.arange(len(a)) for a in utils.to_list(anchor)]
     else:
-        label = [torch.tensor(l).float() for l in utils.to_list(label)]
+        label = [torch.tensor(lab).float() for lab in utils.to_list(label)]
 
     if mask is None:
-        mask = [torch.zeros(len(p), dtype=torch.bool) for p in utils.to_list(anchor)]
+        mask = [torch.zeros(len(a), dtype=torch.bool) for a in utils.to_list(anchor)]
     else:
         mask = [torch.tensor(m) for m in utils.to_list(mask)]
 
