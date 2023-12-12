@@ -35,7 +35,7 @@ def test_gauges(plot=False):
     x = np.vstack([xv.flatten(), yv.flatten()]).T
 
     y = f1(x, alpha)
-    y = torch.tensor(y)
+    # y = torch.tensor(y)
 
     data = construct_dataset(x, y, graph_type="cknn", k=k)
     gauges = data.gauges
@@ -45,7 +45,7 @@ def test_gauges(plot=False):
     K = [utils.to_SparseTensor(_K.coalesce().indices(), value=_K.coalesce().values()) for _K in K]
 
     assert_array_almost_equal(
-        K[0].to_scipy().toarray()[:5, :5],
+        K[0].to_dense()[:5, :5],
         np.array(
             [
                 [-1.0, 0.25, 0.5, 0.0, 0.0],
@@ -59,7 +59,7 @@ def test_gauges(plot=False):
     )
 
     grad = AnisoConv()
-    der = grad(y, K)
+    der = grad(torch.tensor(y), K)
     assert_array_almost_equal(
         der.numpy()[:10],
         np.array(

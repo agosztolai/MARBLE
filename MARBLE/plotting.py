@@ -1,5 +1,4 @@
 """Plotting module."""
-import torch
 import matplotlib
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -538,7 +537,7 @@ def trajectories(
         lw (int): Line width
         ms (int): Marker size
         scale (float): Scaling of arrows
-        arrow_spacing (int): How many timesteps apart are the arrows spaced. 
+        arrow_spacing (int): How many timesteps apart are the arrows spaced.
         axes_visible (bool): Whether to display axes
         alpha (float): transparancy of the markers
 
@@ -568,14 +567,7 @@ def trajectories(
                         alpha=alpha,
                     )
             else:
-                ax.plot(
-                    X[:, 0], 
-                    X[:, 1], 
-                    c=c, 
-                    linewidth=lw,
-                    markersize=ms, 
-                    alpha=alpha
-                )
+                ax.plot(X[:, 0], X[:, 1], c=c, linewidth=lw, markersize=ms, alpha=alpha)
         if ">" in style:
             skip = (slice(None, None, arrow_spacing), slice(None))
             X, V = X[skip], V[skip]
@@ -613,7 +605,9 @@ def trajectories(
             X, V = X[skip], V[skip]
             plot_arrows(X, V, ax, c, width=lw, scale=scale)
     else:
-        raise Exception('Data dimension is: {}. It needs to be 2 or 3 to allow plotting.'.format(dim))
+        raise Exception(
+            "Data dimension is: {}. It needs to be 2 or 3 to allow plotting.".format(dim)
+        )
 
     set_axes(ax, axes_visible=axes_visible)
 
@@ -696,7 +690,7 @@ def create_axis(*args, fig=None):
     elif dim == 3:
         ax = fig.add_subplot(*args, projection="3d")
     else:
-        raise Exception('Data dimension is {}. We can only plot 2D or 3D data.'.format(dim))
+        raise Exception("Data dimension is {}. We can only plot 2D or 3D data.".format(dim))
 
     return fig, ax
 

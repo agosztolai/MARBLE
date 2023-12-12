@@ -3,6 +3,7 @@
 
 import torch
 
+
 def scalar_diffusion(x, t, method="matrix_exp", par=None):
     """Scalar diffusion."""
     if len(x.shape) == 1:
@@ -12,7 +13,7 @@ def scalar_diffusion(x, t, method="matrix_exp", par=None):
         if par.is_sparse:
             par = par.to_dense()
         return torch.matrix_exp(-t * par.to_dense()).mm(x)
-    
+
     if method == "spectral":
         assert (
             isinstance(par, (list, tuple)) and len(par) == 2
@@ -30,8 +31,8 @@ def scalar_diffusion(x, t, method="matrix_exp", par=None):
         # Transform back to per-vertex
         return evecs.mm(x_diffuse_spec)
 
-    raise NotImplementedError 
-    
+    raise NotImplementedError
+
 
 def vector_diffusion(x, t, Lc, L=None, method="spectral", normalise=True):
     """Vector diffusion."""
@@ -54,10 +55,10 @@ def vector_diffusion(x, t, Lc, L=None, method="spectral", normalise=True):
     out = out.view(x.shape)
 
     if normalise:
-        assert L is not None, 'Need Laplacian for normalised diffusion!'
+        assert L is not None, "Need Laplacian for normalised diffusion!"
         x_abs = x.norm(dim=-1, p=2, keepdim=True)
         out_abs = scalar_diffusion(x_abs, t, method, L)
-        ind = scalar_diffusion(torch.ones(x.shape[0],1), t, method, L)
-        out = out*out_abs/(ind*out.norm(dim=-1, p=2, keepdim=True))
+        ind = scalar_diffusion(torch.ones(x.shape[0], 1), t, method, L)
+        out = out * out_abs / (ind * out.norm(dim=-1, p=2, keepdim=True))
 
     return out

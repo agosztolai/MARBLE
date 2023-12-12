@@ -18,9 +18,7 @@ class Diffusion(nn.Module):
     def forward(self, x, L, Lc=None, method="spectral"):
         """Forward."""
         if method == "spectral":
-            assert (
-                len(L) == 2
-            ), "L must be a matrix or a pair of eigenvalues and eigenvectors"
+            assert len(L) == 2, "L must be a matrix or a pair of eigenvalues and eigenvectors"
 
         # making sure diffusion times are positive
         with torch.no_grad():

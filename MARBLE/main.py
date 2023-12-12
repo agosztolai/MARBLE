@@ -145,7 +145,7 @@ class net(nn.Module):
             "include_positions",
             "include_self",
         ]
-    
+
         for p in pars:
             assert p in list(self.params.keys()), f"Parameter {p} is not specified!"
 
@@ -197,7 +197,7 @@ class net(nn.Module):
             channel_list=channel_list,
             dropout=self.params["dropout"],
             bias=self.params["bias"],
-            norm=self.params['batch_norm']
+            norm=self.params["batch_norm"],
         )
 
     def forward(self, data, n_id, adjs=None):
@@ -219,11 +219,11 @@ class net(nn.Module):
                 x = geometry.global_to_local_frame(x, data.gauges, reverse=True)
             else:
                 x = self.diffusion(x, data.L, method="spectral")
-                
+
         # local gauges
         if self.params["inner_product_features"]:
             x = geometry.global_to_local_frame(x, data.gauges)
-            
+
         # restrict to current batch
         x = x[n_id]
         mask = mask[n_id]
@@ -262,7 +262,7 @@ class net(nn.Module):
 
         if self.params["include_positions"]:
             out = torch.hstack([data.pos[n_id[: last_size[1]]], out])
-            
+
         emb = self.enc(out)
 
         if self.params["emb_norm"]:  # spherical output
@@ -415,7 +415,7 @@ class net(nn.Module):
         self._epoch = checkpoint["epoch"]
         self.load_state_dict(checkpoint["model_state_dict"])
         self.optimizer_state_dict = checkpoint["optimizer_state_dict"]
-        if hasattr(self, 'losses'):
+        if hasattr(self, "losses"):
             self.losses = checkpoint["losses"]
 
     def save_model(self, optimizer, losses, outdir=None, best=False, timestamp=""):

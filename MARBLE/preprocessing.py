@@ -1,6 +1,7 @@
 """Preprocessing module."""
 import torch
-from torch_geometric.data import Batch, Data
+from torch_geometric.data import Batch
+from torch_geometric.data import Data
 from torch_geometric.transforms import RandomNodeSplit
 
 from MARBLE import geometry as g
@@ -47,7 +48,7 @@ def construct_dataset(
     anchor = [torch.tensor(p).float() for p in utils.to_list(anchor)]
     vector = [torch.tensor(x).float() for x in utils.to_list(vector)]
     num_node_features = vector[0].shape[1]
-    
+
     if label is None:
         label = [torch.arange(len(p)) for p in utils.to_list(anchor)]
     else:
@@ -70,12 +71,12 @@ def construct_dataset(
             else:
                 start_idx = 0
             sample_ind, _ = g.furthest_point_sampling(a, spacing=spacing, start_idx=start_idx)
-            sample_ind, _ = torch.sort(sample_ind) #this will make postprocessing easier
+            sample_ind, _ = torch.sort(sample_ind)  # this will make postprocessing easier
             a_, v_, l_, m_ = a[sample_ind], v[sample_ind], l[sample_ind], m[sample_ind]
 
             # fit graph to point cloud
             edge_index, edge_weight = g.fit_graph(a_, graph_type=graph_type, par=k, delta=delta)
-            
+
             # define data object
             data_ = Data(
                 pos=a_,
@@ -104,7 +105,7 @@ def construct_dataset(
     return _compute_geometric_objects(
         batch,
         local_gauges=local_gauges,
-        n_geodesic_nb=k*frac_geodesic_nb,
+        n_geodesic_nb=k * frac_geodesic_nb,
         var_explained=var_explained,
     )
 

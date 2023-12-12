@@ -59,7 +59,7 @@ def move_to_gpu(model, data, adjs=None):
     data.mask = data.mask.to(device)
 
     if hasattr(data, "L"):
-        if len(data.L)==2:
+        if len(data.L) == 2:
             data.L = [_l.to(device) for _l in data.L]
         else:
             data.L = data.L.to(device)
@@ -67,7 +67,7 @@ def move_to_gpu(model, data, adjs=None):
         data.L = None
 
     if hasattr(data, "Lc"):
-        if len(data.Lc)==2:
+        if len(data.Lc) == 2:
             data.Lc = [_l.to(device) for _l in data.Lc]
         else:
             data.Lc = data.Lc.to(device)

@@ -60,7 +60,7 @@ def furthest_point_sampling(x, N=None, spacing=0.0, start_idx=0):
                 break
 
     assert len(perm) == len(np.unique(perm)), "Returned duplicated points"
-    
+
     return perm, lambdas
 
 
@@ -78,7 +78,7 @@ def cluster(x, cluster_typ="meanshift", n_clusters=15, seed=0):
     """
     clusters = {}
     if cluster_typ == "kmeans":
-        kmeans = KMeans(n_clusters=n_clusters, random_state=seed, n_init='auto').fit(x)
+        kmeans = KMeans(n_clusters=n_clusters, random_state=seed, n_init="auto").fit(x)
         clusters["n_clusters"] = n_clusters
         clusters["labels"] = kmeans.labels_
         clusters["centroids"] = kmeans.cluster_centers_
@@ -425,7 +425,7 @@ def compute_connection_laplacian(data, R, normalization="rw"):
     d = R.size()[0] // n
 
     # unnormalised (combinatorial) laplacian, to be normalised later
-    L = compute_laplacian(data, normalization=None)#.to_sparse()
+    L = compute_laplacian(data, normalization=None)  # .to_sparse()
 
     # rearrange into block form (kron(L, ones(d,d)))
     edge_index = utils.expand_edge_index(L.indices(), dim=d)
@@ -478,8 +478,11 @@ def compute_gauges(data, dim_man=None, n_geodesic_nb=10, processes=1):
 
     inputs = [X, A, dim_man, n_geodesic_nb]
     out = utils.parallel_proc(
-        _compute_gauges, range(n), inputs, processes=processes, 
-        desc="\n---- Computing tangent spaces..."
+        _compute_gauges,
+        range(n),
+        inputs,
+        processes=processes,
+        desc="\n---- Computing tangent spaces...",
     )
 
     gauges, Sigma = zip(*out)
@@ -527,8 +530,11 @@ def compute_connections(data, gauges, processes=1):
 
     inputs = [gauges, A, dim_man]
     out = utils.parallel_proc(
-        _compute_connections, range(n), inputs, processes=processes, 
-        desc="\n---- Computing connections..."
+        _compute_connections,
+        range(n),
+        inputs,
+        processes=processes,
+        desc="\n---- Computing connections...",
     )
 
     return utils.to_block_diag(out)
@@ -560,13 +566,13 @@ def compute_eigendecomposition(A, k=None, eps=1e-8):
     """
     if A is None:
         return None
-    
+
     if k is None:
         A = A.to_dense()
-    else: 
+    else:
         indices, values, size = A.indices(), A.values(), A.size()
         A = sp.coo_array((values, (indices[0], indices[1])), shape=size)
-    
+
     failcount = 0
     while True:
         try:
