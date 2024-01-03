@@ -64,7 +64,7 @@ def furthest_point_sampling(x, N=None, spacing=0.0, start_idx=0):
     return perm, lambdas
 
 
-def cluster(x, cluster_typ="meanshift", n_clusters=15, seed=0):
+def cluster(x, cluster_typ="kmeans", n_clusters=15, seed=0):
     """Cluster data.
 
     Args:
@@ -78,7 +78,7 @@ def cluster(x, cluster_typ="meanshift", n_clusters=15, seed=0):
     """
     clusters = {}
     if cluster_typ == "kmeans":
-        kmeans = KMeans(n_clusters=n_clusters, random_state=seed, n_init="auto").fit(x)
+        kmeans = KMeans(n_clusters=n_clusters, random_state=seed).fit(x)
         clusters["n_clusters"] = n_clusters
         clusters["labels"] = kmeans.labels_
         clusters["centroids"] = kmeans.cluster_centers_
