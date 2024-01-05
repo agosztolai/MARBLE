@@ -76,14 +76,14 @@ We suggest you study at least the example of a [simple vector fields over flat s
 
 Briefly, MARBLE takes two inputs
 
-1. `pos` - a list of `nxd` arrays, each defining a point cloud describing the geometry of a manifold
-2. `x` - a list of `nxD` arrays, defining a signal over the respective manifolds in 1. For dynamical systems, D=d, but our code can also handle signals of other dimensions. Read more about [inputs](#inputs) and [different conditions](#conditions).
+1. `pos` - a list of `nxd` arrays, each defining a cloud of anchor points describing the geometry of a manifold
+2. `x` - a list of `nxD` arrays, defining a vector signal over the respective manifolds in 1. For dynamical systems, D=d, but our code can also handle signals of other dimensions. Read more about [inputs](#inputs) and [different conditions](#conditions).
 
 Using these inputs, you can construct a dataset for MARBLE.
 
 ```
 import MARBLE 
-data = MARBLE.construct_dataset(pos, features=x)
+data = MARBLE.construct_dataset(anchor=pos, vector=x)
 ```
 
 The main attributes are `data.pos` - manifold positions concatenated, `data.x` - manifold signals concatenated and `data.y` - identifiers that tell you which manifold the point belongs to. Read more about [other usedul data attributed](#construct).
@@ -96,7 +96,7 @@ model = MARBLE.net(data)
 model.fit(data)
 ```
 
-By default, MARBLE operated in geometry-aware mode. You can enable the geometry-agnostic mode by changing the initialisation step to
+By default, MARBLE operates in geometry-aware mode. You can enable the geometry-agnostic mode by changing the initialisation step to
 
 ```
 model = MARBLE.net(data, params = {'inner_product_features': True})
