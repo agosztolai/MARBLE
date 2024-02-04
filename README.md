@@ -30,7 +30,7 @@ See full documentation [here](https://agosztolai.github.io/MARBLE/).
 
 ## Installation
 
-The code is tested for CPU and GPU (CUDA) machines running Linux or OSX. Although smaller examples run fast on CPU, for larger datasets, it is highly recommended that you use a GPU machine.
+The code is tested for CPU and GPU (CUDA) machines running Linux, Mac OSX or Windows. Although smaller examples run fast on CPU, for larger datasets, it is highly recommended that you use a GPU machine.
 
 We recommend you install the code in a fresh Anaconda virtual environment, as follows.
 
