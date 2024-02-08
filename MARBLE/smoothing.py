@@ -23,7 +23,7 @@ def scalar_diffusion(x, t, method="matrix_exp", par=None):
 
         # Transform to spectral
         x_spec = torch.mm(evecs.T, x)
-
+ 
         # Diffuse
         diffusion_coefs = torch.exp(-evals.unsqueeze(-1) * t.unsqueeze(0))
         x_diffuse_spec = diffusion_coefs * x_spec
@@ -58,7 +58,7 @@ def vector_diffusion(x, t, Lc, L=None, method="spectral", normalise=True):
         assert L is not None, "Need Laplacian for normalised diffusion!"
         x_abs = x.norm(dim=-1, p=2, keepdim=True)
         out_abs = scalar_diffusion(x_abs, t, method, L)
-        ind = scalar_diffusion(torch.ones(x.shape[0], 1), t, method, L)
+        ind = scalar_diffusion(torch.ones(x.shape[0], 1).to(x.device), t, method, L)
         out = out * out_abs / (ind * out.norm(dim=-1, p=2, keepdim=True))
 
     return out

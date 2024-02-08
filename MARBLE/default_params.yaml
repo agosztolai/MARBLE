@@ -20,6 +20,7 @@ vec_norm: False # normalise features at each order of derivatives
 bias: True # learn bias parameters in MLP
 batch_norm: True # batch normalisation
 emb_norm: False # spherical output
+global_align: False # align global embeddings
 
 # other params
 seed: 0 # seed for reproducibility

@@ -279,6 +279,69 @@ def embedding(
     return ax
 
 
+
+def embedding_3d(data, labels=None, titles=None, mask=None, alpha=0.3, s=5,
+                 axes_visible=False, cbar_visible=True, clusters_visible=False,
+                 cmap="coolwarm", plot_trajectories=False, style="o", lw=1,
+                 time_gradient=False):
+    """Plot 3D embeddings.
+
+    Args:
+        data: PyG data object with attribute `emb_3D` or `nxdim` matrix of embedded points with `dim=3`
+        labels: List of increasing integer node labels
+        titles: List of titles
+    """
+    
+    if isinstance(data, np.ndarray):
+        emb = data
+    else:
+        emb = data.emb[:,:3]
+
+    dim = emb.shape[1]
+    assert dim == 3, f"Embedding dimension is {dim}, but a 3D plot requires dim=3."
+
+    fig, ax = create_axis(dim)
+
+    if labels is not None:
+        assert emb.shape[0] == len(labels)
+
+    if labels is None:
+        labels = np.ones(emb.shape[0])
+
+    if mask is None:
+        mask = np.ones(len(emb), dtype=bool)
+
+    labels = labels[mask]
+    types = sorted(set(labels))
+
+    color, cbar = set_colors(types, cmap)
+
+    if titles is not None:
+        assert len(titles) == len(types)
+
+    for i, typ in enumerate(types):
+        title = titles[i] if titles is not None else str(typ)
+        c_ = color[i]
+        emb_ = emb[mask & (labels == typ)]
+
+        ax.scatter(emb_[:, 0], emb_[:, 1], emb_[:, 2], color=c_, alpha=alpha, s=s, label=title)
+
+    if titles is not None:
+        ax.legend(loc="upper right")
+
+    if not axes_visible:
+        ax.set_axis_off()
+
+    if cbar_visible and cbar is not None:
+        plt.colorbar(cbar, ax=ax)
+        
+    ax.azim = -60
+    ax.dist = 10
+    ax.elev = 30
+    
+    plt.show()
+
+
 def losses(model):
     """Model losses"""
 

@@ -6,6 +6,56 @@ from torch_geometric.nn.conv import MessagePassing
 from MARBLE import smoothing as s
 
 
+class OrthogonalTransformLayer(nn.Module):
+    """ Learn orthogonal transformation of output embeddings """
+    
+    def __init__(self, size, enforce_rotation=True):
+        super(OrthogonalTransformLayer, self).__init__()
+        self.size = size
+        self.enforce_rotation = enforce_rotation
+        # Initialize the identity matrix 
+        Q = torch.randn(size, size) # torch.eye(size)#
+        # Use QR decomposition to orthogonalize it
+        Q, _ = torch.linalg.qr(Q)
+        # Ensure the determinant is +1 for a proper rotation
+        if self.enforce_rotation:
+            if torch.det(Q) < 0:
+                Q[:, 0] = -Q[:, 0]  # Flip the sign of the first column if the determinant is negative
+        # Wrap as a parameter
+        self.Q = nn.Parameter(Q)
+
+    def forward(self, x):
+        # Apply the orthogonal transformation
+        self.enforce_orthogonality()
+        return torch.matmul(x, self.Q)
+
+    def enforce_orthogonality(self):
+        # Optionally re-orthogonalize the matrix periodically
+        Q, _ = torch.linalg.qr(self.Q.data)
+        if self.enforce_rotation:
+            if torch.det(Q) < 0:
+                Q[:, 0] = -Q[:, 0]  # Flip the sign of the first column if the determinant is negative
+        self.Q.data = Q
+
+
+class AffineTransformLayer(nn.Module):
+    """ Learn affine transformation of output embeddings """
+    
+    def __init__(self, size):
+        super(AffineTransformLayer, self).__init__()
+        self.size = size
+        
+        # Initialize the linear transformation matrix
+        # It doesn't need to be orthogonal, so we can initialize it normally
+        self.A = nn.Parameter(torch.eye(size))#nn.Parameter(torch.randn(size, size))
+        
+        # Initialize the translation vector
+        self.b = nn.Parameter(torch.ones(size)) #nn.Parameter(torch.randn(size))
+        
+    def forward(self, x):
+        # Apply the affine transformation: Ax + b
+        return torch.matmul(x, self.A) + self.b
+
 class Diffusion(nn.Module):
     """Diffusion with learned t."""
 
@@ -66,9 +116,13 @@ class AnisoConv(MessagePassing):
         if (K_t.size(dim=1) % n * dim) == 0:
             n_ch = torch.div(n * dim, K_t.size(dim=1), rounding_mode="floor")
             x = x.view(-1, n_ch)
+            #dim_ = int(K_t.size(dim=1) / n) # added this 
 
         x = K_t.matmul(x, reduce=self.aggr)
-
+        
+        #if x.shape[0]==
+        #dim_ = int(x.shape[0]/K_t.size(0))
+        #return x.view(-1, dim_)
         return x.view(-1, dim)
 
 

@@ -37,10 +37,10 @@ setup(
     ],
     packages=find_packages(),
     include_package_data=True,
-    package_data={"MARBLE.lib": ["ptu_dijkstra.pyx", "ptu_dijkstra.c"]},
+    package_data={"MARBLE.lib": ["ptu_dijkstra_marble.pyx", "ptu_dijkstra_marble.c"]},
     ext_modules=cythonize(
         Extension(
-            "ptu_dijkstra", ["MARBLE/lib/ptu_dijkstra.pyx"], include_dirs=[numpy.get_include()]
+            "ptu_dijkstra_marble", ["MARBLE/lib/ptu_dijkstra_marble.pyx"], include_dirs=[numpy.get_include()]
         )
     ),
 )

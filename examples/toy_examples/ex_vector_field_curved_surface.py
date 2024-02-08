@@ -13,20 +13,48 @@ def f1(x):
     return x * 0 + np.array([1, 1])
 
 
+# def f0(x):
+#     eps = 1e-1
+#     norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
+#     u = (x[:, [1]] + 1) / norm
+#     v = -(x[:, [0]] + 1) / norm
+#     return np.hstack([u, v])
+
+# def f1(x):
+#     eps = 1e-1
+#     norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
+#     u = (x[:, [1]] + 1) / norm
+#     v = -(x[:, [0]] - 1) / norm
+#     return np.hstack([u, v])
+
 def f2(x):
     eps = 1e-1
-    norm = np.sqrt((x[:, [0]] + 1) ** 2 + x[:, [1]] ** 2 + eps)
-    u = x[:, [1]] / norm
+    norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] -1) ** 2 + eps)
+    u = (x[:, [1]]-1) / norm
     v = -(x[:, [0]] + 1) / norm
     return np.hstack([u, v])
 
-
 def f3(x):
     eps = 1e-1
-    norm = np.sqrt((x[:, [0]] - 1) ** 2 + x[:, [1]] ** 2 + eps)
-    u = x[:, [1]] / norm
+    norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] - 1) ** 2 + eps)
+    u = (x[:, [1]]-1) / norm
     v = -(x[:, [0]] - 1) / norm
     return np.hstack([u, v])
+
+# def f2(x):
+#     eps = 1e-1
+#     norm = np.sqrt((x[:, [0]] + 1) ** 2 + x[:, [1]] ** 2 + eps)
+#     u = x[:, [1]] / norm
+#     v = -(x[:, [0]] + 1) / norm
+#     return np.hstack([u, v])
+
+
+# def f3(x):
+#     eps = 1e-1
+#     norm = np.sqrt((x[:, [0]] - 1) ** 2 + x[:, [1]] ** 2 + eps)
+#     u = x[:, [1]] / norm
+#     v = -(x[:, [0]] - 1) / norm
+#     return np.hstack([u, v])
 
 
 def parabola(X, Y, alpha=0.05):
@@ -56,9 +84,24 @@ def main():
     )
 
     # train model
+    # params = {
+    #     "order": 1,
+    #     "inner_product_features": True,
+    # }
+    
+    # train model
     params = {
-        "order": 1,
-        "inner_product_features": True,
+        "lr":0.1,
+        "order": 1,  # order of derivatives
+        "include_self": True,#True, 
+        "hidden_channels":[64,32],
+        "out_channels": 2,
+        "batch_size" : 128, # batch size
+        #"emb_norm": True,
+        #"include_positions":True,
+        "epochs":100,
+        "inner_product_features":False,
+        "global_align":True,
     }
 
     model = net(data, params=params)
@@ -76,6 +119,11 @@ def main():
     plt.savefig('fields.png')
     plotting.embedding(data, data.y.numpy(), titles=titles, clusters_visible=True)
     plt.savefig('embedding.png')
+    
+    if params["out_channels"]>2:
+        plotting.embedding_3d(data, data.y.numpy(), titles=titles, clusters_visible=True)
+        plt.savefig('embedding_3d.png')
+        
     plotting.histograms(data, titles=titles)
     plt.savefig('histogram.png')
     plotting.neighbourhoods(data)

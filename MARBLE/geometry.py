@@ -17,7 +17,7 @@ from torch_geometric.nn import knn_graph
 from torch_geometric.nn import radius_graph
 from torch_scatter import scatter_add
 
-from ptu_dijkstra import connections, tangent_frames  # isort:skip
+from ptu_dijkstra_marble import connections, tangent_frames  # isort:skip
 
 from MARBLE.lib.cknn import cknneighbors_graph  # isort:skip
 from MARBLE import utils  # isort:skip
