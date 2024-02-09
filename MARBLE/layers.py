@@ -14,7 +14,7 @@ class OrthogonalTransformLayer(nn.Module):
         self.size = size
         self.enforce_rotation = enforce_rotation
         # Initialize the identity matrix 
-        Q = torch.randn(size, size) # torch.eye(size)#
+        Q = torch.eye(size)# torch.randn(size, size) # torch.eye(size)#
         # Use QR decomposition to orthogonalize it
         Q, _ = torch.linalg.qr(Q)
         # Ensure the determinant is +1 for a proper rotation

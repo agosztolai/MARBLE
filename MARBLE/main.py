@@ -212,13 +212,16 @@ class net(nn.Module):
             norm=self.params["batch_norm"],
         )
         
-        self.orthogonal_transform = nn.ModuleList([
-                                        layers.OrthogonalTransformLayer(self.params["out_channels"]) for _ in range(self.params["n_graphs"])
-                                    ])
+        # self.orthogonal_transform = nn.ModuleList([
+        #                                 layers.OrthogonalTransformLayer(self.params["out_channels"]) for _ in range(self.params["n_graphs"])
+        #                             ])
         
-        self.affine_transform = nn.ModuleList([
-                                        layers.AffineTransformLayer(self.params["out_channels"]) for _ in range(self.params["n_graphs"])
-                                    ])        
+        self.orthogonal_transform = nn.ModuleList([
+                                        layers.OrthogonalTransformLayer(s) for _ in range(self.params["n_graphs"])
+                                    ])
+        # self.affine_transform = nn.ModuleList([
+        #                                 layers.AffineTransformLayer(self.params["out_channels"]) for _ in range(self.params["n_graphs"])
+        #                             ])        
 
     def forward(self, data, n_id, adjs=None, n_batch=None):
         """Forward pass.
@@ -230,6 +233,7 @@ class net(nn.Module):
         x = data.x
         n, d = x.shape[0], data.gauges.shape[2]
         dim_man = data.gauges.shape[2]
+        dim_space = data.x.shape[1]
         mask = data.mask
 
         # diffusion
@@ -296,27 +300,31 @@ class net(nn.Module):
 
         if self.params["include_positions"]:
             out = torch.hstack([data.pos[n_id_orig[: last_size[1]]], out])
+            
+        # learn orthogonal transformation
+        if self.params["global_align"]:                
+            o, indices = group_embeddings_by_graph(n_id_orig[:n_batch], data.batch, out, limit_rows=False)
+            ortho = [self.orthogonal_transform[i](o[i].view(-1,dim_space)).view(-1,o[i].shape[1]) for i in range(len(o))]    
+            out = torch.zeros_like(out)
+            out[torch.cat(indices, dim=0).squeeze()] = torch.cat(ortho, dim=0) 
 
         emb = self.enc(out)      
         
         if self.params["emb_norm"]:  # spherical output
             emb = F.normalize(emb)   
 
-        # learn orthogonal transformation
-        if self.params["global_align"]:                
-            emb_, indices = group_embeddings_by_graph(n_id_orig[:n_batch], data.batch, emb, limit_rows=False)
-            #ortho = [self.orthogonal_transform[i](emb_[i]) for i in range(len(emb_))]
-            ortho = [self.orthogonal_transform[i](emb_[i]) for i in range(len(emb_))]
-    
-            emb = torch.zeros_like(emb)
-            #ortho = torch.cat(ortho, dim=0)
-            #indices = torch.cat(indices, dim=0).squeeze()
-            emb[torch.cat(indices, dim=0).squeeze()] = torch.cat(ortho, dim=0)    
+        # # learn orthogonal transformation
+        # if self.params["global_align"]:                
+        #     emb_, indices = group_embeddings_by_graph(n_id_orig[:n_batch], data.batch, emb, limit_rows=False)
+        #     ortho = [self.orthogonal_transform[i](emb_[i]) for i in range(len(emb_))]    
+        #     emb = torch.zeros_like(emb)
+        #     emb[torch.cat(indices, dim=0).squeeze()] = torch.cat(ortho, dim=0)    
+        
+        # remove positions
+        if self.params["include_positions"]:
+            out = out[:,data.pos.shape[1]:]
 
-        # if self.params["emb_norm"]:  # spherical output
-        #     emb = F.normalize(emb)   
-
-        return emb, mask[: last_size[1]]
+        return emb, mask[: last_size[1]], out
 
     def evaluate(self, data):
         """Evaluate."""
@@ -339,7 +347,7 @@ class net(nn.Module):
                 pass
 
             _, data, adjs = utils.move_to_gpu(self, data, adjs)
-            out, _ = self.forward(data, torch.arange(len(data.x)), adjs)
+            out, _, _ = self.forward(data, torch.arange(len(data.x)), adjs)
             utils.detach_from_gpu(self, data, adjs)
 
             data.emb = out.detach().cpu()
@@ -366,25 +374,31 @@ class net(nn.Module):
             n_batch, n_id, adjs = batch
             adjs = [adj.to(data.x.device) for adj in utils.to_list(adjs)]
 
-            emb, mask = self.forward(data, n_id, adjs, n_batch)
+            emb, mask, out = self.forward(data, n_id, adjs, n_batch)
             loss = self.loss(emb, mask, data, n_id, n_batch)
             cum_loss += float(loss)
             
             # computing loss on orthogonal transformations
-            #custom_loss = self.loss_orth(emb, data, n_id, n_batch)
-            #cum_loss += float(custom_loss.mean())
+            custom_loss = self.loss_orth(out, data, n_id, n_batch)
+            cum_loss += float(custom_loss.mean())
 
             if optimizer is not None:
+                
+                # 1. first make a backward step on the main MLP embeddings
                 optimizer.zero_grad()  # zero gradients, otherwise accumulates
                 loss.backward(retain_graph=True)  # backprop
-
-                # looping over and back propgating only on the orthogonal transform layers
-                #for i,layer in enumerate(self.orthogonal_transform):
-                #    layer.Q.grad = None
-                #    custom_loss[i].backward(retain_graph=True)
-
-                #self.orthogonal_transform[0].Q.grad = None
+               
+                for layer in self.orthogonal_transform:
+                    for param in layer.parameters():
+                        if param.grad is not None:
+                            param.grad.zero_()  
                 
+                # 2. looping over and back propgating only on the orthogonal transform layers
+                for i, layer in enumerate(self.orthogonal_transform):
+                    for param in layer.parameters():
+                        if param.grad is not None:  # Check if gradients exist to avoid overwriting them
+                            param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0]                            
+                    
                 optimizer.step()
 
         self.eval()
@@ -509,6 +523,19 @@ class net(nn.Module):
             torch.save(checkpoint, os.path.join(outdir, fname))
 
         return outdir
+    
+    def is_orthogonal_parameter(self, param):
+        """
+        Check if the given parameter is part of any orthogonal layer in the model.
+    
+        Parameters:
+        - param: The parameter to check.
+    
+        Returns:
+        - True if param is part of any layer.Q, False otherwise.
+        """
+        return any(param is q_param for layer in self.orthogonal_transform for q_param in layer.parameters())
+    
 
 
 class loss_fun(nn.Module):
@@ -526,13 +553,13 @@ class loss_fun(nn.Module):
             coagulation_loss = (z_mask - z_mask.mean(dim=0)).norm(dim=1).sum()
             
         # perform procrustes on embeddings between systems
-        if data:
-            embeddings, indices = group_embeddings_by_graph(n_id[:n_batch], data.batch, out, limit_rows=False)
-            emb_dist = distance(embeddings, dist_type='procrustes')
+        #if data:
+            #embeddings, indices = group_embeddings_by_graph(n_id[:n_batch], data.batch, out, limit_rows=False)
+            #emb_dist = distance(embeddings, dist_type='procrustes')
             #emb_dist = distance(embeddings, dist_type='mmd')
 
         #print(emb_dist)
-        return -pos_loss - neg_loss + torch.sigmoid(coagulation_loss) - 0.5 + 0.1*emb_dist 
+        return -pos_loss - neg_loss + torch.sigmoid(coagulation_loss) - 0.5# + 0.1*emb_dist 
             
 
 class ortho_loss(nn.Module):
@@ -541,7 +568,7 @@ class ortho_loss(nn.Module):
     def forward(self, out, data=None, n_id=None, n_batch=None):
         embeddings, indices = group_embeddings_by_graph(n_id[:n_batch], data.batch, out, limit_rows=False)
         emb_dist = distance(embeddings, dist_type='procrustes', return_paired=True)
-        return emb_dist 
+        return 0.1*emb_dist 
     
 
 def group_embeddings_by_graph(target_id, graph_ids, emb, limit_rows=True):
@@ -565,7 +592,8 @@ def distance(embeddings, dist_type='procrustes', return_paired=False):
             if dist_type=='mmd':
                 dist = mmd_distance(embeddings[i], embeddings[j])
             if dist_type=='procrustes':
-                dist = orthogonal_procrustes_distance(embeddings[i], embeddings[j])
+                dist = orthogonal_procrustes_distance_rotation_only(embeddings[i], embeddings[j])
+                #dist = orthogonal_procrustes_distance(embeddings[i], embeddings[j])
                 #dist = affine_transform_distance(embeddings[i], embeddings[j])
             distances[i,j] = dist
     distances = distances + distances.T
@@ -586,44 +614,6 @@ def mmd_distance(x, y, sigma=1.0):
     y_kernel = gaussian_kernel(y, y, sigma)
     xy_kernel = gaussian_kernel(x, y, sigma)
     return x_kernel.mean() + y_kernel.mean() - 2 * xy_kernel.mean()
-
-
-def affine_transform_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-    # match sizes for affine transform
-    size = min(x.shape[0], y.shape[0])
-    x = x[:size, :]
-    y = y[:size, :]
-
-    # Ensure x is augmented with ones to account for translation
-    ones = torch.ones(x.shape[0], 1, device=x.device)
-    x_augmented = torch.cat([x, ones], dim=1)
-
-    # Solve for the best affine transformation A_augmented
-    # where A_augmented * x_augmented ≈ y
-    result = torch.linalg.lstsq(x_augmented, y)
-    A_augmented = result.solution[:x_augmented.shape[1], :]  # Truncate extra rows if necessary
-
-    # Separate the linear transformation (A) and translation (b) components
-    A = A_augmented[:-1, :]
-    b = A_augmented[-1, :]
-
-    # Enforce constraints to prevent scaling
-    # For rotation and reflection: ensure orthogonal columns with unit norm
-    U, _, V = torch.linalg.svd(A, full_matrices=False)
-    A_no_scale = torch.matmul(U, V.t())
-
-    # For shearing: Modify A_no_scale to include shear factors, ensuring no scaling is introduced
-    # This can be complex as it depends on how you define shearing, and may require additional parameters or assumptions
-
-    # Apply the constrained affine transformation to x
-    x_transformed = torch.matmul(x, A_no_scale) + b
-
-    # Compute the distance as the Frobenius norm of the difference between the transformed x and y
-    distance = torch.linalg.norm(x_transformed - y, ord='fro')
-    #distance = mmd_distance(x_transformed, y)
-
-    return distance
-
 
 
 def orthogonal_procrustes_distance(x: torch.Tensor,
@@ -651,34 +641,37 @@ def orthogonal_procrustes_distance(x: torch.Tensor,
     return x_sq_frob + y_sq_frob - 2 * nuc
 
 
-
-def orthogonal_procrustes_distance_(x: torch.Tensor,
-                                   y: torch.Tensor,
-                                   ) -> torch.Tensor:
-    """ Orthogonal Procrustes distance used in Ding+21.
-    Returns in dist interval [0, 1].
-
-    Note:
-        -  for a raw representation A we first subtract the mean value from each column, then divide
-    by the Frobenius norm, to produce the normalized representation A* , used in all our dissimilarity computation.
-        - see uutils.torch_uu.orthogonal_procrustes_distance to see my implementation
-    Args:
-        x: input tensor of Shape NxD1
-        y: input tensor of Shape NxD2
-    Returns:
+def orthogonal_procrustes_distance_rotation_only(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     """
-    # _check_shape_equal(x, y, 0)
-    nuclear_norm = partial(torch.linalg.norm, ord="nuc")
+    Computes Procrustes distance between representations A and B using PyTorch tensors,
+    enforcing the transformation to be a rotation (without reflection), avoiding in-place operations.
+    """
 
     x = _matrix_normalize(x, dim=0)
     y = _matrix_normalize(y, dim=0)
-    
-    size = min([x.shape[0],y.shape[0]])
-    x = x[:size,:]
-    y = y[:size,:]
-    # note: ||x||_F = 1, ||y||_F = 1
-    # - note this already outputs it between [0, 1] e.g. it's not 2 - 2 nuclear_norm(<x1, x2>) due to 0.5*d_proc(x, y)
-    return 1 - nuclear_norm(x.t() @ y)
+
+    size = min(x.shape[0], y.shape[0])
+    x = x[:size, :]
+    y = y[:size, :]
+
+    # Compute SVD of the product of X and Y.T
+    u, s, v_t = torch.linalg.svd(x @ y.T, full_matrices=False)
+
+    # Enforce a rotation by ensuring the determinant is 1, without using in-place operations
+    det = torch.det(u @ v_t)
+    if det < 0:
+        # Create a new s tensor with the last singular value negated
+        s_adjusted = s.clone()
+        s_adjusted[-1] = -s_adjusted[-1]
+    else:
+        s_adjusted = s
+
+    # Compute the squared Frobenius norms of X and Y
+    x_sq_frob = torch.sum(x ** 2)
+    y_sq_frob = torch.sum(y ** 2)
+
+    # Calculate and return the Procrustes distance, adjusted for rotation only
+    return x_sq_frob + y_sq_frob - 2 * torch.sum(s_adjusted)
 
 def _zero_mean(input: torch.Tensor,
                dim: int

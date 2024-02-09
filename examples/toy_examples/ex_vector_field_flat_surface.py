@@ -63,12 +63,12 @@ def main():
         "lr":0.1,
         "order": 1,  # order of derivatives
         "include_self": True,#True, 
-        "hidden_channels":[64,32],
+        "hidden_channels":[64,64],
         "out_channels": 2,
-        "batch_size" : 128, # batch size
+        "batch_size" : 64, # batch size
         #"emb_norm": True,
         #"include_positions":True,
-        "epochs":100,
+        "epochs":50,
         "inner_product_features":False,
         "global_align":True,
     }
