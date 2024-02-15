@@ -397,11 +397,12 @@ class net(nn.Module):
                             param.grad.zero_()  
                 
                 # 2. looping over and back propgating only on the orthogonal transform layers
-                for i, layer in enumerate(self.orthogonal_transform):
-                    for param in layer.parameters():
-                        if param.grad is not None:  # Check if gradients exist to avoid overwriting them
-                            param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0]                            
-                    
+                if len(self.orthogonal_transform) > 1:
+                    for i, layer in enumerate(self.orthogonal_transform):
+                        for param in layer.parameters():
+                            if param.grad is not None:  # Check if gradients exist to avoid overwriting them
+                                param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0]                            
+                        
                 optimizer.step()
 
         self.eval()
