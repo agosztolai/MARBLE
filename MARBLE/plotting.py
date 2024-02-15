@@ -53,7 +53,7 @@ def fields(
             print("\nDetected several samples. Taking only first one for visualisation!")
             data = data[::number_of_resamples]
 
-    dim = data[0].pos.shape[1]
+    dim = min([3,data[0].pos.shape[1]])
     vector = data[0].x.shape[1] > 1
     row = int(np.ceil(len(data) / col))
 
@@ -62,7 +62,11 @@ def fields(
 
     ax_list, lims = [], None
     for i, d in enumerate(data):
+        d.x = d.x[:,:dim]
+        d.pos = d.pos[:,:dim]
+        
         signal = d.x.detach().numpy()
+        #signal = signal[:,:3]
         _, ax = create_axis(dim, grid[i], fig=fig)
 
         if view is not None:

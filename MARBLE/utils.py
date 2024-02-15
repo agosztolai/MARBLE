@@ -156,6 +156,15 @@ def to_list(x):
 
     return x
 
+def to_list_of_lists(x):
+    """Convert to list"""
+    if not isinstance(x, list):
+        x = [x]
+        
+    if not any(isinstance(l, list) for l in x):
+        x = [[u] for u in x]
+        
+    return x
 
 def to_pandas(x, augment_time=True):
     """Convert numpy to pandas"""

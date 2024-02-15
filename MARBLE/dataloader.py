@@ -15,7 +15,8 @@ def loaders(data, par):
         shuffle=True,
         num_nodes=data.num_nodes,
         node_idx=data.train_mask,
-        graph_index=data.batch,
+        system_index=data.system,
+        condition_index=data.condition,
     )
 
     val_loader = NeighborSampler(
@@ -25,7 +26,8 @@ def loaders(data, par):
         shuffle=True,
         num_nodes=data.num_nodes,
         node_idx=data.val_mask,
-        graph_index=data.batch,
+        system_index=data.system,
+        condition_index=data.condition,
     )
 
     test_loader = NeighborSampler(
@@ -35,7 +37,8 @@ def loaders(data, par):
         shuffle=True,
         num_nodes=data.num_nodes,
         node_idx=data.test_mask,
-        graph_index=data.batch,
+        system_index=data.system,
+        condition_index=data.condition,
     )
 
     return train_loader, val_loader, test_loader
@@ -43,9 +46,10 @@ def loaders(data, par):
 
 class NeighborSampler(NS):
     """Neighbor Sampler."""
-    def __init__(self, graph_index=None, **kwargs):
+    def __init__(self, system_index=None, condition_index=None, **kwargs):
         super().__init__(**kwargs)  # Pass all the unnamed and named arguments to the parent class
-        self.graph_index = graph_index  # Additional initialization for the child class
+        self.system_index = system_index  # Additional initialization for the child class
+        self.condition_index = condition_index  # Additional initialization for the child class
      
     def sample(self, batch):
         """Sample."""
@@ -55,7 +59,7 @@ class NeighborSampler(NS):
         # sample) and a random node (as negative sample):
         batch = torch.tensor(batch)
         pos_batch = random_walk(row, col, batch, walk_length=1, coalesced=False)
-        neg_batch = sample_neg_nodes(batch, self.graph_index, col, row)        
+        neg_batch = sample_neg_nodes(batch, self.system_index, col, row)        
         
         #neg_batch = torch.randint(0, self.adj_t.size(1), (batch.numel(),))
         batch = torch.cat([batch, pos_batch[:, 1], neg_batch], dim=0)
@@ -63,15 +67,15 @@ class NeighborSampler(NS):
         return super().sample(batch)
 
 
-def sample_neg_nodes(batch_nodes, graph_index, row, col):
+def sample_neg_nodes(batch_nodes, system_index, row, col):
     """ only sample negative nodes from within the same graph """
     # Initialize tensor to hold negative samples for the batch
     neg_samples = torch.empty_like(batch_nodes)
     
     # Iterate over each node in the batch
     for i, node in enumerate(batch_nodes):
-        # Nodes in the same graph as the current node
-        same_graph_nodes = (graph_index == graph_index[node]).nonzero(as_tuple=False).view(-1)
+        # Nodes in the same system as the current node
+        same_graph_nodes = (system_index == system_index[node]).nonzero(as_tuple=False).view(-1)
         
         # Find neighbours of node
         neighbors = col[row==node]

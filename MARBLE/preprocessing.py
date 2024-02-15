@@ -46,59 +46,101 @@ def construct_dataset(
         seed: Specify for reproducibility in the furthest point sampling. 
               The default is None, which means a random starting vertex.
     """
-
-    anchor = [torch.tensor(a).float() for a in utils.to_list(anchor)]
-    vector = [torch.tensor(v).float() for v in utils.to_list(vector)]
-    num_node_features = vector[0].shape[1]
+    
+    # upper list is systems and sublist is the conditions
+    anchor = [[torch.tensor(u).float() for u in sublist] for sublist in utils.to_list_of_lists(anchor)]
+    vector = [[torch.tensor(u).float() for u in sublist] for sublist in utils.to_list_of_lists(vector)]
+    num_node_features = vector[0][0].shape[1]
 
     if label is None:
-        label = [torch.arange(len(a)) for a in utils.to_list(anchor)]
+        label = [[torch.arange(len(a)) for a in condition] for condition in utils.to_list_of_lists(anchor)]
     else:
-        label = [torch.tensor(lab).float() for lab in utils.to_list(label)]
+        label = [torch.tensor(lab).float() for lab in utils.to_list_of_lists(label)]
 
     if mask is None:
-        mask = [torch.zeros(len(a), dtype=torch.bool) for a in utils.to_list(anchor)]
+        mask = [[torch.zeros(len(a), dtype=torch.bool) for a in condition] for condition in utils.to_list_of_lists(anchor)]
     else:
-        mask = [torch.tensor(m) for m in utils.to_list(mask)]
+        mask = [torch.tensor(m) for m in utils.to_list_of_lists(mask)]
 
     if spacing == 0.0:
         number_of_resamples = 1
 
     data_list = []
-    for i, (a, v, l, m) in enumerate(zip(anchor, vector, label, mask)):
-        for _ in range(number_of_resamples):
-            # even sampling of points
-            if seed is None:
-                start_idx = torch.randint(low=0, high=len(a), size=(1,))
-            else:
-                start_idx = 0
-            sample_ind, _ = g.furthest_point_sampling(a, spacing=spacing, start_idx=start_idx)
-            sample_ind, _ = torch.sort(sample_ind)  # this will make postprocessing easier
-            a_, v_, l_, m_ = a[sample_ind], v[sample_ind], l[sample_ind], m[sample_ind]
+    graph_id = 0
+    for sys, (anchor_, vector_, label_, mask_) in enumerate(zip(anchor, vector, label, mask)):
+        for con, (a,v,l,m) in enumerate(zip(anchor_, vector_, label_, mask_)):
+            for _ in range(number_of_resamples):
+                # even sampling of points
+                if seed is None:
+                    start_idx = torch.randint(low=0, high=len(a), size=(1,))
+                else:
+                    start_idx = 0
+            
+                sample_ind, _ = g.furthest_point_sampling(a, spacing=spacing, start_idx=start_idx)
+                sample_ind, _ = torch.sort(sample_ind)  # this will make postprocessing easier
+                a_, v_, l_, m_ = a[sample_ind], v[sample_ind], l[sample_ind], m[sample_ind]
+                
+                # fit graph to point cloud
+                edge_index, edge_weight = g.fit_graph(a_, graph_type=graph_type, par=k, delta=delta)
+    
+                # define data object
+                data_ = Data(
+                    pos=a_,
+                    x=v_,
+                    label=l_,
+                    mask=m_,
+                    edge_index=edge_index,
+                    edge_weight=edge_weight,
+                    num_nodes=len(a_),
+                    num_node_features=num_node_features,
+                    y=torch.ones(len(a_), dtype=int) * con,                    
+                    system=torch.ones(len(a_), dtype=int) * sys,    
+                    condition=torch.ones(len(a_), dtype=int) * con, 
+                    graph=torch.ones(len(a_), dtype=int) * graph_id, 
+                    sample_ind=sample_ind,
+                )
+                
+                data_list.append(data_)
+                graph_id += 1
 
-            # fit graph to point cloud
-            edge_index, edge_weight = g.fit_graph(a_, graph_type=graph_type, par=k, delta=delta)
+                
+    # for i, (a, v, l, m) in enumerate(zip(anchor, vector, label, mask)):
+    #     for _ in range(number_of_resamples):
+    #         # even sampling of points
+    #         if seed is None:
+    #             start_idx = torch.randint(low=0, high=len(a), size=(1,))
+    #         else:
+    #             start_idx = 0
+    #         sample_ind, _ = g.furthest_point_sampling(a, spacing=spacing, start_idx=start_idx)
+    #         sample_ind, _ = torch.sort(sample_ind)  # this will make postprocessing easier
+    #         a_, v_, l_, m_ = a[sample_ind], v[sample_ind], l[sample_ind], m[sample_ind]
 
-            # define data object
-            data_ = Data(
-                pos=a_,
-                x=v_,
-                label=l_,
-                mask=m_,
-                edge_index=edge_index,
-                edge_weight=edge_weight,
-                num_nodes=len(a_),
-                num_node_features=num_node_features,
-                y=torch.ones(len(a_), dtype=int) * i,
-                sample_ind=sample_ind,
-            )
+    #         # fit graph to point cloud
+    #         edge_index, edge_weight = g.fit_graph(a_, graph_type=graph_type, par=k, delta=delta)
 
-            data_list.append(data_)
+    #         # define data object
+    #         data_ = Data(
+    #             pos=a_,
+    #             x=v_,
+    #             label=l_,
+    #             mask=m_,
+    #             edge_index=edge_index,
+    #             edge_weight=edge_weight,
+    #             num_nodes=len(a_),
+    #             num_node_features=num_node_features,
+    #             y=torch.ones(len(a_), dtype=int) * i,
+                
+    #             sample_ind=sample_ind,
+    #         )
+
+    #         data_list.append(data_)
 
     # collate datasets
     batch = Batch.from_data_list(data_list)
     batch.degree = k
     batch.number_of_resamples = number_of_resamples
+    batch.num_systems = len(anchor)
+    batch.num_conditions = len(anchor[0])
 
     # split into training/validation/test datasets
     split = RandomNodeSplit(split="train_rest", num_val=0.1, num_test=0.1)

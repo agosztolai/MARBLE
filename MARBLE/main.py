@@ -100,6 +100,8 @@ class net(nn.Module):
         params["dim_signal"] = data.x.shape[1]
         params["dim_emb"] = data.pos.shape[1]
         params["n_graphs"] = data.num_graphs
+        params["n_systems"] = data.num_systems
+        params["n_conditions"] = data.num_conditions
 
         if hasattr(data, "dim_man"):
             params["dim_man"] = data.dim_man
@@ -217,7 +219,7 @@ class net(nn.Module):
         #                             ])
         
         self.orthogonal_transform = nn.ModuleList([
-                                        layers.OrthogonalTransformLayer(s) for _ in range(self.params["n_graphs"])
+                                        layers.OrthogonalTransformLayer(s) for _ in range(self.params["n_systems"])
                                     ])
         # self.affine_transform = nn.ModuleList([
         #                                 layers.AffineTransformLayer(self.params["out_channels"]) for _ in range(self.params["n_graphs"])
@@ -298,15 +300,16 @@ class net(nn.Module):
         else:
             out = torch.cat(out, axis=1)
 
-        if self.params["include_positions"]:
-            out = torch.hstack([data.pos[n_id_orig[: last_size[1]]], out])
-            
+
         # learn orthogonal transformation
         if self.params["global_align"]:                
-            o, indices = group_embeddings_by_graph(n_id_orig[:n_batch], data.batch, out, limit_rows=False)
+            o, indices = group_embeddings_by_system(n_id_orig[:n_batch], data.system, out, limit_rows=False)
             ortho = [self.orthogonal_transform[i](o[i].view(-1,dim_space)).view(-1,o[i].shape[1]) for i in range(len(o))]    
             out = torch.zeros_like(out)
             out[torch.cat(indices, dim=0).squeeze()] = torch.cat(ortho, dim=0) 
+
+        if self.params["include_positions"]:
+            out = torch.hstack([data.pos[n_id_orig[: last_size[1]]], out])           
 
         emb = self.enc(out)      
         
@@ -552,28 +555,22 @@ class loss_fun(nn.Module):
             z_mask = out[mask]
             coagulation_loss = (z_mask - z_mask.mean(dim=0)).norm(dim=1).sum()
             
-        # perform procrustes on embeddings between systems
-        #if data:
-            #embeddings, indices = group_embeddings_by_graph(n_id[:n_batch], data.batch, out, limit_rows=False)
-            #emb_dist = distance(embeddings, dist_type='procrustes')
-            #emb_dist = distance(embeddings, dist_type='mmd')
-
-        #print(emb_dist)
-        return -pos_loss - neg_loss + torch.sigmoid(coagulation_loss) - 0.5# + 0.1*emb_dist 
+        return -pos_loss - neg_loss + torch.sigmoid(coagulation_loss) - 0.5
             
 
 class ortho_loss(nn.Module):
     """ custom loss based on orthogonal transform distance """
     
     def forward(self, out, data=None, n_id=None, n_batch=None):
-        embeddings, indices = group_embeddings_by_graph(n_id[:n_batch], data.batch, out, limit_rows=False)
+        embeddings, indices = group_embeddings_by_system(n_id[:n_batch], data.system, out, limit_rows=False)
         emb_dist = distance(embeddings, dist_type='procrustes', return_paired=True)
         return 0.1*emb_dist 
     
 
-def group_embeddings_by_graph(target_id, graph_ids, emb, limit_rows=True):
-    embs = [emb[graph_ids[target_id] == gid]  for gid in graph_ids.unique().tolist()]
-    indices = [(graph_ids[target_id] == gid).nonzero() for gid in graph_ids.unique().tolist()]
+def group_embeddings_by_system(target_id, system_ids, emb, limit_rows=True):
+    """ function for grouping embeddings by system """
+    embs = [emb[system_ids[target_id] == gid]  for gid in system_ids.unique().tolist()]
+    indices = [(system_ids[target_id] == gid).nonzero() for gid in system_ids.unique().tolist()]
 
     # procrustes requires us to have same size matrices
     if limit_rows:
