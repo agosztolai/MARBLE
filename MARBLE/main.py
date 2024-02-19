@@ -218,9 +218,10 @@ class net(nn.Module):
         #                                 layers.OrthogonalTransformLayer(self.params["out_channels"]) for _ in range(self.params["n_graphs"])
         #                             ])
         
-        self.orthogonal_transform = nn.ModuleList([
-                                        layers.OrthogonalTransformLayer(s) for _ in range(self.params["n_systems"])
-                                    ])
+        if self.params['global_align']:
+            self.orthogonal_transform = nn.ModuleList([
+                                            layers.OrthogonalTransformLayer(s) for _ in range(self.params["n_systems"])
+                                        ])
         # self.affine_transform = nn.ModuleList([
         #                                 layers.AffineTransformLayer(self.params["out_channels"]) for _ in range(self.params["n_graphs"])
         #                             ])        
@@ -283,8 +284,7 @@ class net(nn.Module):
         # take target nodes
         out = [o[: last_size[1]] for o in out]
             
-        if self.params["global_align"]:            
-            
+        if self.params["global_align"]:             
             for i, o in enumerate(out):
                 # project back into ambient coordinate space
                 # for each output only act on each local tangent direction e.g. [dx/du, dx/dv]
@@ -382,8 +382,9 @@ class net(nn.Module):
             cum_loss += float(loss)
             
             # computing loss on orthogonal transformations
-            custom_loss = self.loss_orth(out, data, n_id, n_batch)
-            cum_loss += float(custom_loss.mean())
+            if self.params['global_align']:
+                custom_loss = self.loss_orth(out, data, n_id, n_batch)
+                cum_loss += float(custom_loss.mean())
 
             if optimizer is not None:
                 
@@ -391,13 +392,14 @@ class net(nn.Module):
                 optimizer.zero_grad()  # zero gradients, otherwise accumulates
                 loss.backward(retain_graph=True)  # backprop
                
-                for layer in self.orthogonal_transform:
-                    for param in layer.parameters():
-                        if param.grad is not None:
-                            param.grad.zero_()  
-                
                 # 2. looping over and back propgating only on the orthogonal transform layers
-                if len(self.orthogonal_transform) > 1:
+                if self.params['global_align']:
+
+                    for layer in self.orthogonal_transform:
+                        for param in layer.parameters():
+                            if param.grad is not None:
+                                param.grad.zero_()  
+                                
                     for i, layer in enumerate(self.orthogonal_transform):
                         for param in layer.parameters():
                             if param.grad is not None:  # Check if gradients exist to avoid overwriting them

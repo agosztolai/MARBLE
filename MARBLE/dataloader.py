@@ -68,7 +68,7 @@ class NeighborSampler(NS):
 
 
 def sample_neg_nodes(batch_nodes, system_index, row, col):
-    """ only sample negative nodes from within the same graph """
+    """ only sample negative nodes from within the same system """
     # Initialize tensor to hold negative samples for the batch
     neg_samples = torch.empty_like(batch_nodes)
     
