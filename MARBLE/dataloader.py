@@ -78,12 +78,12 @@ def sample_neg_nodes(batch_nodes, system_index, row, col):
         same_graph_nodes = (system_index == system_index[node]).nonzero(as_tuple=False).view(-1)
         
         # Find neighbours of node
-        neighbors = col[row==node]
+        #neighbors = col[row==node]
         
         # Exclude the current node to avoid it being selected as a negative sample
-        nodes_to_exclude = torch.cat((neighbors, node.unsqueeze(0)), dim=-1)
+        #nodes_to_exclude = torch.cat((neighbors, node.unsqueeze(0)), dim=-1)
         
-        choices = same_graph_nodes[~torch.isin(same_graph_nodes,nodes_to_exclude)]
+        choices = same_graph_nodes # [~torch.isin(same_graph_nodes,nodes_to_exclude)]
 
         # Randomly select a negative sample from the available choices
         if choices.numel() > 0:

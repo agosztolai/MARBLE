@@ -120,6 +120,10 @@ class net(nn.Module):
             self.params["batch_norm"] = "batch_norm"
         else:
             self.params["batch_norm"] = None
+            
+        if self.params["n_systems"] == 1:
+            print("\n---- Only one system: setting global alignment to False", end="")
+            self.params["global_align"] = False
 
     def check_parameters(self, data):
         """Check parameter validity"""
@@ -212,19 +216,14 @@ class net(nn.Module):
             dropout=self.params["dropout"],
             bias=self.params["bias"],
             norm=self.params["batch_norm"],
-        )
+        )        
         
-        # self.orthogonal_transform = nn.ModuleList([
-        #                                 layers.OrthogonalTransformLayer(self.params["out_channels"]) for _ in range(self.params["n_graphs"])
-        #                             ])
-        
+        # add list of orthogonal transform layers - one for each system
         if self.params['global_align']:
             self.orthogonal_transform = nn.ModuleList([
                                             layers.OrthogonalTransformLayer(s) for _ in range(self.params["n_systems"])
                                         ])
-        # self.affine_transform = nn.ModuleList([
-        #                                 layers.AffineTransformLayer(self.params["out_channels"]) for _ in range(self.params["n_graphs"])
-        #                             ])        
+
 
     def forward(self, data, n_id, adjs=None, n_batch=None):
         """Forward pass.
@@ -300,7 +299,6 @@ class net(nn.Module):
         else:
             out = torch.cat(out, axis=1)
 
-
         # learn orthogonal transformation
         if self.params["global_align"]:                
             o, indices = group_embeddings_by_system(n_id_orig[:n_batch], data.system, out, limit_rows=False)
@@ -315,15 +313,8 @@ class net(nn.Module):
         
         if self.params["emb_norm"]:  # spherical output
             emb = F.normalize(emb)   
-
-        # # learn orthogonal transformation
-        # if self.params["global_align"]:                
-        #     emb_, indices = group_embeddings_by_graph(n_id_orig[:n_batch], data.batch, emb, limit_rows=False)
-        #     ortho = [self.orthogonal_transform[i](emb_[i]) for i in range(len(emb_))]    
-        #     emb = torch.zeros_like(emb)
-        #     emb[torch.cat(indices, dim=0).squeeze()] = torch.cat(ortho, dim=0)    
-        
-        # remove positions
+       
+        # remove positions from the directional derivative features
         if self.params["include_positions"]:
             out = out[:,data.pos.shape[1]:]
 
@@ -378,7 +369,7 @@ class net(nn.Module):
             adjs = [adj.to(data.x.device) for adj in utils.to_list(adjs)]
 
             emb, mask, out = self.forward(data, n_id, adjs, n_batch)
-            loss = self.loss(emb, mask, data, n_id, n_batch)
+            loss = self.loss(emb, mask)
             cum_loss += float(loss)
             
             # computing loss on orthogonal transformations
@@ -547,7 +538,7 @@ class net(nn.Module):
 class loss_fun(nn.Module):
     """Loss function."""    
 
-    def forward(self, out, mask=None, data=None, n_id=None, n_batch=None):
+    def forward(self, out, mask=None):
         """forward."""
         z, z_pos, z_neg = out.split(out.size(0) // 3, dim=0)
         pos_loss = F.logsigmoid((z * z_pos).sum(-1)).mean()  # pylint: disable=not-callable
