@@ -12,7 +12,8 @@ The scripts and notebooks are as follows.
 
 - convert_data.py: convert original spiking and kinematics data to data compatible with MARBLE (both input and generated data are on dataverse)
 - run_marble.py: train MARBLE networks (this takes a while to run - 1-2h/session)
-- analysis.ipynb: create plots of some panels of Figure 3
 
-3. Decoding into kinematics
+3. If you want to simply reproduce the results, run - analysis.ipynb: create plots of some panels of Figure 3
+
+4. Decoding into kinematics
 - decoding.ipynb
