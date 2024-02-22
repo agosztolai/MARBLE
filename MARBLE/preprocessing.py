@@ -67,33 +67,35 @@ def construct_dataset(
     data_list = []
     for i, (a, v, l, m) in enumerate(zip(anchor, vector, label, mask)):
         for _ in range(number_of_resamples):
-            # even sampling of points
-            if seed is None:
-                start_idx = torch.randint(low=0, high=len(a), size=(1,))
-            else:
-                start_idx = 0
-            sample_ind, _ = g.furthest_point_sampling(a, spacing=spacing, start_idx=start_idx)
-            sample_ind, _ = torch.sort(sample_ind)  # this will make postprocessing easier
-            a_, v_, l_, m_ = a[sample_ind], v[sample_ind], l[sample_ind], m[sample_ind]
+            if len(a) != 0:
+                # even sampling of points
+                if seed is None:
+                    start_idx = torch.randint(low=0, high=len(a), size=(1,))
+                else:
+                    start_idx = 0
+                    
+                sample_ind, _ = g.furthest_point_sampling(a, spacing=spacing, start_idx=start_idx)
+                sample_ind, _ = torch.sort(sample_ind)  # this will make postprocessing easier
+                a_, v_, l_, m_ = a[sample_ind], v[sample_ind], l[sample_ind], m[sample_ind]
+    
+                # fit graph to point cloud
+                edge_index, edge_weight = g.fit_graph(a_, graph_type=graph_type, par=k, delta=delta)
+    
+                # define data object
+                data_ = Data(
+                    pos=a_,
+                    x=v_,
+                    label=l_,
+                    mask=m_,
+                    edge_index=edge_index,
+                    edge_weight=edge_weight,
+                    num_nodes=len(a_),
+                    num_node_features=num_node_features,
+                    y=torch.ones(len(a_), dtype=int) * i,
+                    sample_ind=sample_ind,
+                )
 
-            # fit graph to point cloud
-            edge_index, edge_weight = g.fit_graph(a_, graph_type=graph_type, par=k, delta=delta)
-
-            # define data object
-            data_ = Data(
-                pos=a_,
-                x=v_,
-                label=l_,
-                mask=m_,
-                edge_index=edge_index,
-                edge_weight=edge_weight,
-                num_nodes=len(a_),
-                num_node_features=num_node_features,
-                y=torch.ones(len(a_), dtype=int) * i,
-                sample_ind=sample_ind,
-            )
-
-            data_list.append(data_)
+                data_list.append(data_)
 
     # collate datasets
     batch = Batch.from_data_list(data_list)
