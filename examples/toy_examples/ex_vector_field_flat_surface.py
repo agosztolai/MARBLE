@@ -51,7 +51,7 @@ def main():
 
     # generate simple vector fields
     # f0: linear, f1: point source, f2: point vortex, f3: saddle
-    n = 512
+    n = 256
     x = [dynamics.sample_2d(n, [[-1, -1], [1, 1]], "random") for i in range(4)]
     y = [f0(x[0]), f1(x[1]), f2(x[2]), f3(x[3])]  # evaluated functions
 
@@ -85,14 +85,14 @@ def main():
     titles = ["Linear left", "Linear right", "Vortex right", "Vortex left"]
     plotting.fields(data, titles=titles, col=2)
     plt.savefig('fields.png')
-    plotting.embedding(data, data.y.numpy(), titles=titles, clusters_visible=True)
+    plotting.embedding(data, data.system.numpy(), clusters_visible=True)
     plt.savefig('embedding.png')
     
     if params["out_channels"]>2:
-        plotting.embedding_3d(data, data.y.numpy(), titles=titles, clusters_visible=True)
+        plotting.embedding_3d(data, data.system.numpy(), clusters_visible=True)
         plt.savefig('embedding_3d.png')
         
-    plotting.histograms(data, titles=titles)
+    plotting.histograms(data,)
     plt.savefig('histogram.png')
     plotting.neighbourhoods(data)
     plt.savefig('neighbourhoods.png')

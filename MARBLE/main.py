@@ -248,7 +248,7 @@ class net(nn.Module):
                 x = self.diffusion(x, data.L, method="spectral")
 
         # local gauges
-        if self.params["inner_product_features"] or self.params['global_align']:
+        if self.params["inner_product_features"] or (dim_man < dim_space): # self.params['global_align'] or 
             x = geometry.global_to_local_frame(x, data.gauges)
 
         # restrict to current batch
@@ -283,15 +283,15 @@ class net(nn.Module):
         # take target nodes
         out = [o[: last_size[1]] for o in out]
             
-        if self.params["global_align"]:             
+        # need global coordinates prior to orthogonal transformations
+        if self.params["global_align"]:  #self.params["global_align"]:             
             for i, o in enumerate(out):
                 # project back into ambient coordinate space
                 # for each output only act on each local tangent direction e.g. [dx/du, dx/dv]
                 new_o = [geometry.global_to_local_frame(o[:,d_*dim_man:d_*dim_man+dim_man], data.gauges[n_id_orig][:last_size[1]], reverse=True)
                          for d_ in range(int(o.shape[1]/dim_man))]
                 new_o = torch.cat(new_o, axis=1)
-                out[i] = new_o
-                            
+                out[i] = new_o                            
 
         # inner products
         if self.params["inner_product_features"]:
@@ -301,7 +301,7 @@ class net(nn.Module):
 
         # learn orthogonal transformation
         if self.params["global_align"]:                
-            o, indices = group_embeddings_by_system(n_id_orig[:n_batch], data.system, out, limit_rows=False)
+            o, indices = group_dd_by_system(n_id_orig[:n_batch], data.system, out, limit_rows=False)
             ortho = [self.orthogonal_transform[i](o[i].view(-1,dim_space)).view(-1,o[i].shape[1]) for i in range(len(o))]    
             out = torch.zeros_like(out)
             out[torch.cat(indices, dim=0).squeeze()] = torch.cat(ortho, dim=0) 
@@ -376,6 +376,7 @@ class net(nn.Module):
             if self.params['global_align']:
                 custom_loss = self.loss_orth(out, data, n_id, n_batch)
                 cum_loss += float(custom_loss.mean())
+                #print(custom_loss)
 
             if optimizer is not None:
                 
@@ -386,14 +387,15 @@ class net(nn.Module):
                 # 2. looping over and back propgating only on the orthogonal transform layers
                 if self.params['global_align']:
 
-                    for layer in self.orthogonal_transform:
-                        for param in layer.parameters():
-                            if param.grad is not None:
-                                param.grad.zero_()  
+                    # for layer in self.orthogonal_transform:
+                    #     for param in layer.parameters():
+                    #         if param.grad is not None:
+                    #             param.grad.zero_()  
                                 
                     for i, layer in enumerate(self.orthogonal_transform):
                         for param in layer.parameters():
                             if param.grad is not None:  # Check if gradients exist to avoid overwriting them
+                                #param.grad.zero_()  
                                 param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0]                            
                         
                 optimizer.step()
@@ -556,43 +558,62 @@ class ortho_loss(nn.Module):
     """ custom loss based on orthogonal transform distance """
     
     def forward(self, out, data=None, n_id=None, n_batch=None):
-        embeddings, indices = group_embeddings_by_system(n_id[:n_batch], data.system, out, limit_rows=False)
-        emb_dist = distance(embeddings, dist_type='procrustes', return_paired=True)
+        dim_space = data.x.shape[1]
+        
+        # extract the directional derivatives per system
+        dd, indices = group_dd_by_system(n_id[:n_batch], data.system, out, limit_rows=False)
+
+        # get condition ids for each system        
+        cons = [data.condition[n_id[idx]].squeeze() for idx in indices]
+        
+        # limit dd to vectors        
+        #dd = [d[:,:dim_space] for d in dd]
+        
+        if data.num_conditions > 1:
+            dist_type = 'condition_procrustes'
+        else:
+            dist_type = 'procrustes'           
+
+        emb_dist = distance(dd, cons, dist_type=dist_type,  return_paired=True)
         return 0.1*emb_dist 
     
 
-def group_embeddings_by_system(target_id, system_ids, emb, limit_rows=True):
-    """ function for grouping embeddings by system """
-    embs = [emb[system_ids[target_id] == gid]  for gid in system_ids.unique().tolist()]
+def group_dd_by_system(target_id, system_ids, dd, limit_rows=True):
+    """ function for grouping directional derivatives by system """
+    dds = [dd[system_ids[target_id] == gid]  for gid in system_ids.unique().tolist()]
     indices = [(system_ids[target_id] == gid).nonzero() for gid in system_ids.unique().tolist()]
 
     # procrustes requires us to have same size matrices
     if limit_rows:
-        max_rows = min([u.shape[0] for u in embs])
-        return [emb[:max_rows,:] for emb in embs], indices
+        max_rows = min([u.shape[0] for u in dds])
+        return [dd[:max_rows,:] for dd in dds], indices
     else:
-        return embs, indices
+        return dds, indices
 
 def euclidean_distance(a, b):
     return torch.norm(a - b, dim=1)  # Compute Euclidean distance
 
-def distance(embeddings, dist_type='procrustes', return_paired=False):    
+
+def distance(embeddings, condition, dist_type='procrustes', return_paired=False):    
     distances = torch.zeros([len(embeddings),len(embeddings)])
     for i in range(len(embeddings)):
         for j in range(i + 1, len(embeddings)):  # Avoid redundant calculations
             if dist_type=='mmd':
                 dist = mmd_distance(embeddings[i], embeddings[j])
-            if dist_type=='procrustes':
+            if dist_type=='procrustes':  
                 dist = orthogonal_procrustes_distance_rotation_only(embeddings[i], embeddings[j])
-                #dist = orthogonal_procrustes_distance(embeddings[i], embeddings[j])
-                #dist = affine_transform_distance(embeddings[i], embeddings[j])
+            if dist_type=='condition_procrustes':
+                intersection = utils.torch_intersect(condition[i].unique(), condition[j].unique())
+                condition_emb_1 = [embeddings[i][condition[i]==c,:] for c in intersection]
+                condition_emb_2 = [embeddings[j][condition[j]==c,:] for c in intersection]
+                dist = orthogonal_procrustes_distance_condition(condition_emb_1,condition_emb_2)
+
             distances[i,j] = dist
     distances = distances + distances.T
     if return_paired:
         return distances.mean(axis=0)
     else:
         return distances.max()
-
 
 
 def gaussian_kernel(x, y, sigma=1.0):
@@ -605,31 +626,6 @@ def mmd_distance(x, y, sigma=1.0):
     y_kernel = gaussian_kernel(y, y, sigma)
     xy_kernel = gaussian_kernel(x, y, sigma)
     return x_kernel.mean() + y_kernel.mean() - 2 * xy_kernel.mean()
-
-
-def orthogonal_procrustes_distance(x: torch.Tensor,
-                                   y: torch.Tensor,
-                                   ) -> torch.Tensor:
-    """
-    Computes Procrustes distance between representations A and B using PyTorch tensors.
-    """
-    
-    x = _matrix_normalize(x, dim=0)
-    y = _matrix_normalize(y, dim=0)
-    
-    size = min([x.shape[0],y.shape[0]])
-    x = x[:size,:]
-    y = y[:size,:]
-    
-    # Compute squared Frobenius norms of A and B
-    x_sq_frob = torch.sum(x ** 2)
-    y_sq_frob = torch.sum(y ** 2)
-
-    # Compute nuclear norm of the product of A and B.T
-    nuc = torch.linalg.norm(x @ y.T, ord='nuc')  # Note: 'nuc' stands for nuclear norm
-
-    # Calculate and return the Procrustes distance
-    return x_sq_frob + y_sq_frob - 2 * nuc
 
 
 def orthogonal_procrustes_distance_rotation_only(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
@@ -646,7 +642,7 @@ def orthogonal_procrustes_distance_rotation_only(x: torch.Tensor, y: torch.Tenso
     y = y[:size, :]
 
     # Compute SVD of the product of X and Y.T
-    u, s, v_t = torch.linalg.svd(x @ y.T, full_matrices=False)
+    u, s, v_t = torch.linalg.svd(x @ y.T, full_matrices=False) # or x @ y.T
 
     # Enforce a rotation by ensuring the determinant is 1, without using in-place operations
     det = torch.det(u @ v_t)
@@ -662,7 +658,107 @@ def orthogonal_procrustes_distance_rotation_only(x: torch.Tensor, y: torch.Tenso
     y_sq_frob = torch.sum(y ** 2)
 
     # Calculate and return the Procrustes distance, adjusted for rotation only
-    return x_sq_frob + y_sq_frob - 2 * torch.sum(s_adjusted)
+    return x_sq_frob + y_sq_frob - 2 * torch.sum(s) # _adjusted
+
+
+
+def orthogonal_procrustes_distance(x: torch.Tensor,
+                                   y: torch.Tensor,
+                                   ) -> torch.Tensor:
+    """ Orthogonal Procrustes distance used in Ding+21
+
+    Args:
+        x: input tensor of Shape DxH
+        y: input tensor of Shape DxW
+
+    Returns:
+
+    """
+    
+    size = min(x.shape[0], y.shape[0])
+    x = x[:size, :]
+    y = y[:size, :]    
+    #_check_shape_equal(x, y, 0)
+
+    frobenius_norm = partial(torch.linalg.norm, ord="fro")
+    nuclear_norm = partial(torch.linalg.norm, ord="nuc")
+
+    x = _zero_mean(x, dim=0)
+    x = x/frobenius_norm(x)
+    y = _zero_mean(y, dim=0)
+    y = y/frobenius_norm(y)
+    # frobenius_norm(x) = 1, frobenius_norm(y) = 1
+    # 0.5*d_proc(x, y)
+    return 1 - nuclear_norm(x.t() @ y)
+
+
+def orthogonal_procrustes_distance_condition(conditions_x, conditions_y):
+    """
+    Computes Procrustes distance between conditions of two systems, ensuring that the rotation is applied
+    to the whole of system 1 simultaneously.
+
+    :param conditions_x: List of torch.Tensors, each representing a condition of system 1
+    :param conditions_y: List of torch.Tensors, each representing a condition of system 2
+    :return: Procrustes distance
+    """
+    assert len(conditions_x) == len(conditions_y), "Both systems must have the same number of conditions"
+
+    distances = torch.zeros(len(conditions_x))
+
+    for i, (x, y) in enumerate(zip(conditions_x, conditions_y)):
+        x = _matrix_normalize(x, dim=0)
+        y = _matrix_normalize(y, dim=0)
+
+        size = min(x.shape[0], y.shape[0])
+        x = x[:size, :]
+        y = y[:size, :]
+
+        u, s, v_t = torch.linalg.svd(x @ y.T, full_matrices=False)
+
+        # Enforce a rotation by ensuring the determinant is 1, without using in-place operations
+        det = torch.det(u @ v_t)
+        if det < 0:
+            # Create a new s tensor with the last singular value negated
+            s_adjusted = s.clone()
+            s_adjusted[-1] = -s_adjusted[-1]
+        else:
+            s_adjusted = s
+    
+        # Compute the squared Frobenius norms of X and Y
+        x_sq_frob = torch.sum(x ** 2)
+        y_sq_frob = torch.sum(y ** 2)
+    
+        # Calculate and return the Procrustes distance, adjusted for rotation only
+        distances[i] = x_sq_frob + y_sq_frob - 2 * torch.sum(s) 
+    
+    # Aggregate distances across conditions
+    total_distance = sum(distances) / len(distances)
+    #print(total_distance)
+    return total_distance
+
+def compute_consensus_rotation(rotations):
+    """
+    Computes a consensus rotation matrix from a list of rotation matrices using SVD.
+
+    :param rotations: List of torch.Tensors, each being a rotation matrix.
+    :return: Consensus rotation matrix as a torch.Tensor.
+    """
+    # Compute the element-wise average of the rotation matrices
+    avg_rotation = sum(rotations) / len(rotations)
+
+    # Use SVD to decompose the averaged matrix
+    u, _, v_t = torch.linalg.svd(avg_rotation, full_matrices=True)
+
+    # Reconstruct the rotation matrix from U and V^T
+    consensus_rotation = u @ v_t
+
+    # Ensure the determinant is 1 (proper rotation)
+    if torch.det(consensus_rotation) < 0:
+        u_adjusted = u.clone()  # Make a copy of u
+        u_adjusted[:, -1] = -u_adjusted[:, -1]  # Negate the last column in the copy
+        consensus_rotation = u_adjusted @ v_t  # Recompute the consensus rotation using the adjusted copy
+
+    return consensus_rotation
 
 def _zero_mean(input: torch.Tensor,
                dim: int

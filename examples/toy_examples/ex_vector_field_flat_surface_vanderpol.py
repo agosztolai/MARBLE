@@ -3,43 +3,53 @@ import numpy as np
 import sys
 from MARBLE import plotting, preprocessing, dynamics, net, postprocessing, geometry, distribution_distances
 import matplotlib.pyplot as plt
-
+from scipy.spatial.transform import Rotation as R
 
 def get_pos_vel(mus, 
-                alpha=0.05, 
-                n=100,
-                t = np.arange(0, 3, 0.5),
+                alpha=0.2, 
+                n=200,
+                t = np.array([0]),#np.arange(0, 3, 0.5),
                 area = [[-3, -3],[3, 3]]
                 ):
-    X0_range = dynamics.initial_conditions(n, len(mus), area)
+    
+    X0_range = dynamics.initial_conditions(n, len(mus), area, method='uniform')
 
     pos, vel = [], []
     for X0, m in zip(X0_range, mus):
-        p, v = dynamics.simulate_vanderpol(m, X0, t)
+        p, v = dynamics.simulate_vanderpol(m, X0, t)  
         pos.append(np.vstack(p))
         vel.append(np.vstack(v))
 
     pos, vel = dynamics.embed_parabola(pos, vel, alpha=alpha)
-    return pos, vel
+    rotation = []
+    for i, (p, v) in enumerate(zip(pos,vel)):
+        random_rotation = R.random()        
+        p = random_rotation.apply(p)
+        v = random_rotation.apply(v)  
+        pos[i] = p
+        vel[i] = v
+        rotation.append(random_rotation.as_matrix())
+        
+    return pos, vel, rotation
 
 
 def main():
 
 
-    mus = np.linspace(-1,1,21)
-    x, y = get_pos_vel(mus)
+    mus = np.linspace(-1,1,11)
+    x, y, rot = get_pos_vel(mus)
 
     # construct data object
-    data = preprocessing.construct_dataset(x, y)
+    data = preprocessing.construct_dataset(x, y, k=15, local_gauges=False)
 
     # train model
     params = {
         "lr":0.1,
-        "order": 2,  # order of derivatives
+        "order": 1,  # order of derivatives
         "include_self": True,#True, 
-        "hidden_channels":[64,64],
+        "hidden_channels":[64],
         "out_channels": 2,
-        "batch_size" : 64, # batch size
+        #"batch_size" : 64, # batch size
         #"emb_norm": True,
         #"include_positions":True,
         "epochs":100,
@@ -60,7 +70,7 @@ def main():
     # plot results
     plotting.fields(data,  col=2)
     plt.savefig('fields.png')
-    plotting.embedding(data, mus[data.y.numpy().astype(int)])
+    plotting.embedding(data, mus[data.system.numpy().astype(int)])
     plt.savefig('embedding.png')
     
     plt.figure(figsize=(4, 4))
@@ -70,7 +80,7 @@ def main():
     plt.colorbar(im, shrink=0.8)
     
     if params["out_channels"]>2:
-        plotting.embedding_3d(data, data.y.numpy(), clusters_visible=True)
+        plotting.embedding_3d(data, data.system.numpy(), clusters_visible=True)
         plt.savefig('embedding_3d.png')
         
     emb_MDS, _ = geometry.embed(data.dist, embed_typ='MDS')

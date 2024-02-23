@@ -144,7 +144,7 @@ def construct_dataset(
 
     # split into training/validation/test datasets
     split = RandomNodeSplit(split="train_rest", num_val=0.1, num_test=0.1)
-    split(batch)
+    batch = split(batch)
 
     return _compute_geometric_objects(
         batch,

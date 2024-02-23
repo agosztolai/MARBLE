@@ -183,11 +183,11 @@ def sample_2d(N=100, interval=None, method="uniform", seed=0):
     return x
 
 
-def initial_conditions(n, reps, area=None, seed=0):
+def initial_conditions(n, reps, area=None, seed=0, method="random"):
     """Generate iniital condition."""
     if area is None:
         area = [[-3, -3], [3, 3]]
-    X0_range = [sample_2d(n, area, "random", seed=i + seed) for i in range(reps)]
+    X0_range = [sample_2d(n, area, method, seed=i + seed) for i in range(reps)]
 
     return X0_range
 
