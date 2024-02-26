@@ -602,11 +602,13 @@ def distance(embeddings, condition, dist_type='procrustes', return_paired=False)
                 dist = mmd_distance(embeddings[i], embeddings[j])
             if dist_type=='procrustes':  
                 dist = orthogonal_procrustes_distance_rotation_only(embeddings[i], embeddings[j])
-            if dist_type=='condition_procrustes':
+            if dist_type=='condition_procrustes':                
+                dist = orthogonal_procrustes_distance_rotation_only(embeddings[i], embeddings[j])
                 intersection = utils.torch_intersect(condition[i].unique(), condition[j].unique())
                 condition_emb_1 = [embeddings[i][condition[i]==c,:] for c in intersection]
                 condition_emb_2 = [embeddings[j][condition[j]==c,:] for c in intersection]
-                dist = orthogonal_procrustes_distance_condition(condition_emb_1,condition_emb_2)
+                dist_condition = condition_distance(condition_emb_1,condition_emb_2)
+                dist = dist + dist_condition
 
             distances[i,j] = dist
     distances = distances + distances.T
@@ -692,10 +694,9 @@ def orthogonal_procrustes_distance(x: torch.Tensor,
     return 1 - nuclear_norm(x.t() @ y)
 
 
-def orthogonal_procrustes_distance_condition(conditions_x, conditions_y):
+def condition_distance(conditions_x, conditions_y):
     """
-    Computes Procrustes distance between conditions of two systems, ensuring that the rotation is applied
-    to the whole of system 1 simultaneously.
+    Computes euclidean distance between conditions
 
     :param conditions_x: List of torch.Tensors, each representing a condition of system 1
     :param conditions_y: List of torch.Tensors, each representing a condition of system 2
@@ -705,34 +706,13 @@ def orthogonal_procrustes_distance_condition(conditions_x, conditions_y):
 
     distances = torch.zeros(len(conditions_x))
 
-    for i, (x, y) in enumerate(zip(conditions_x, conditions_y)):
-        x = _matrix_normalize(x, dim=0)
-        y = _matrix_normalize(y, dim=0)
-
-        size = min(x.shape[0], y.shape[0])
-        x = x[:size, :]
-        y = y[:size, :]
-
-        u, s, v_t = torch.linalg.svd(x @ y.T, full_matrices=False)
-
-        # Enforce a rotation by ensuring the determinant is 1, without using in-place operations
-        det = torch.det(u @ v_t)
-        if det < 0:
-            # Create a new s tensor with the last singular value negated
-            s_adjusted = s.clone()
-            s_adjusted[-1] = -s_adjusted[-1]
-        else:
-            s_adjusted = s
-    
-        # Compute the squared Frobenius norms of X and Y
-        x_sq_frob = torch.sum(x ** 2)
-        y_sq_frob = torch.sum(y ** 2)
-    
-        # Calculate and return the Procrustes distance, adjusted for rotation only
-        distances[i] = x_sq_frob + y_sq_frob - 2 * torch.sum(s) 
+    for i, (x, y) in enumerate(zip(conditions_x, conditions_y)):        
+        dist = torch.cdist(x, y).mean()*0.001        
+        distances[i] = dist    
     
     # Aggregate distances across conditions
     total_distance = sum(distances) / len(distances)
+    
     #print(total_distance)
     return total_distance
 

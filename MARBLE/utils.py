@@ -285,8 +285,8 @@ def standardize(X):
     return (X - mean) / std
 
 def torch_intersect(t1, t2, use_unique=False):
-    t1 = t1.cuda()
-    t2 = t2.cuda()
+    #t1 = t1.cuda()
+    #t2 = t2.cuda()
     t1 = t1.unique()
     t2 = t2.unique()
     t1=set(t1.cpu().numpy())
