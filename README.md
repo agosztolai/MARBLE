@@ -143,7 +143,7 @@ If you measure time series observables, such as neural firing rates, you can sta
 
 If you do not directly have access to the velocities, you can approximate them as `x = np.vstack([np.diff(ts_1, axis=0), np.diff(ts_2, axis=0)])` and take `pos = np.vstack([ts_1[:-1,:], ts_2[:-1,:]])` to ensure `pos` and `x` have the same length. 
 
-If you just want to play around with dynamical systems, why not try our (experimental) sister package [DE_library] (https://github.com/agosztolai/DE_library).
+If you just want to play around with dynamical systems, why not try our (experimental) sister package [DE_library](https://github.com/agosztolai/DE_library).
 
 <a name="conditions"></a>
 ### More on different conditions
