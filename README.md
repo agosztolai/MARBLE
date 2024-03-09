@@ -40,7 +40,7 @@ We recommend you install the code in a fresh Anaconda virtual environment, as fo
 git clone https://github.com/agosztolai/MARBLE
 ```
 
-- Then, create a new anaconda environment using the provided environment file that matches your system.
+- Then, create a new Anaconda environment using the provided environment file that matches your system.
   - For Linux machines with CUDA:
 
   `conda env create -f environment.yml`
@@ -242,7 +242,7 @@ One of the main features of our method is the ability to run in two different mo
 
 To enable geometry-agnostic mode, set `inner_product_features=True` in training `params`. This engages an additional layer in the network after the computation of gradients, which makes them rotation invariant.
 
-As a slight cost of expressivity, this feature enables the orientation- and geometry-independent representation of dynamics over the manifolds. Amongst others, this allows one to recognise similar dynamics across different manifolds. See [RNN example](https://github.com/agosztolai/MARBLE/blob/doc/examples/RNN/RNN.ipynb) for an illustration.
+As a slight cost of expressivity, this feature enables the orientation- and geometry-independent representation of dynamics over the manifolds. Amongst others, this allows one to recognise similar dynamics across different manifolds. See [RNN example](https://github.com/agosztolai/MARBLE/blob/main/examples/RNN/RNN.ipynb) for an illustration.
 
 
 ## Troubleshooting guide
