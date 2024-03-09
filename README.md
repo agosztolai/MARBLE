@@ -139,11 +139,11 @@ The folder [/examples](https://github.com/agosztolai/MARBLE/tree/main/examples) 
 <a name="inputs"></a>
 ### More on inputs
 
-If you measure time series observables, such as neural firing rates, you can start with a list of variable length time series under a given condition, e.g., `ts_1`, `ts_2`. We assume these are measurements from the same dynamical system, i.e., the sample points making up these trajectories are drawn from the same manifold, defining its shape `pos = np.vstack([ts_1, ts_2])`.
+If you measure time series observables, such as neural firing rates, you can start with a list of variable-length time series under a given condition, e.g., `ts_1`, `ts_2`. We assume these are measurements from the same dynamical system, i.e., the sample points making up these trajectories are drawn from the same manifold, defining its shape `pos = np.vstack([ts_1, ts_2])`.
 
 If you do not directly have access to the velocities, you can approximate them as `x = np.vstack([np.diff(ts_1, axis=0), np.diff(ts_2, axis=0)])` and take `pos = np.vstack([ts_1[:-1,:], ts_2[:-1,:]])` to ensure `pos` and `x` have the same length. 
 
-If you just want to play around with dynamical systems, why not try our (experimental) [sister package] DE_library(https://github.com/agosztolai/DE_library).
+If you just want to play around with dynamical systems, why not try our (experimental) sister package [DE_library] (https://github.com/agosztolai/DE_library).
 
 <a name="conditions"></a>
 ### More on different conditions
