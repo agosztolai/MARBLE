@@ -72,7 +72,7 @@ pip install .
 
 ## Quick start
 
-We suggest you study at least the example of a [simple vector fields over flat surfaces](https://github.com/agosztolai/MARBLE/blob/main/examples/ex_vector_field_flat_surface.py) to understand what behaviour to expect.
+We suggest you study at least the example of a [simple vector fields over flat surfaces](https://github.com/agosztolai/MARBLE/blob/main/examples/toy_examples/ex_vector_field_flat_surface.py) to understand what behaviour to expect.
 
 Briefly, MARBLE takes two inputs
 
