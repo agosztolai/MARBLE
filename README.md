@@ -165,12 +165,12 @@ Our pipeline is built around a Pytorch Geometric data object, which we can obtai
 
 ```
 import MARBLE 
-data = MARBLE.construct_dataset(pos, features=x, stop_crit=0.03, graph_type='cknn', k=15, local_gauge=False)
+data = MARBLE.construct_dataset(anchor=pos, vector=x, spacing=0.03, graph_type='cknn', k=15, local_gauge=False)
 ```
 
 This command will do several things.
 
-1. Subsample the point cloud using farthest point sampling to achieve even sampling density. Using `stop_crit=0.03` means the average distance between the subsampled points will equal 3% of the manifold diameter.
+1. Subsample the point cloud using farthest point sampling to achieve even sampling density. Using `spacing=0.03` means the average distance between the subsampled points will equal 3% of the manifold diameter.
 2. Fit a nearest neighbour graph to each point cloud using the `graph_type=cknn` method using `k=15` nearest neighbours. We implemented other graph algorithms, but cknn typically works. Note that `k` should be large enough to approximate the tangent space but small enough not to connect (geodesically) distant points of the manifold. The more data you have, the higher `k` you can use.
 3. Perform operations in local (manifold) gauges or global coordinates. Note that `local_gauge=False` should be used whenever the manifold has negligible curvature on the scale of the local feature. Setting `local_gauge=True` means that the code performs tangent space alignments before computing gradients. However, this will increase the cost of the computations $m^2$-fold, where $m$ is the manifold dimension because points will be treated as vector spaces. See the example of a [simple vector fields over curved surfaces](https://github.com/agosztolai/MARBLE/blob/main/examples/toy_examples/ex_vector_field_curved_surface.py) for illustration.
 
@@ -187,11 +187,11 @@ data.gauges: local coordinate bases when `local_gauge=True`
 
 ### How to pick good parameters
 
-Choosing good parameters for the description of manifold, in particular `stop_crit` and `k`, can be essential for the success of your analysis. The illustration below shows three different scenarios to give you intuition.
+Choosing good parameters for the description of manifold, in particular `spacing` and `k`, can be essential for the success of your analysis. The illustration below shows three different scenarios to give you intuition.
 
 1. (left) **'Optimal' scenario.** Here, the sample spacing along trajectories and between trajectories is comparable and `k` is chosen such that the proximity graph connects to neighbours but no further. At the same time, `k` is large enough to have enough neighbours for gradient approximation. Notice the trade-off here.
-2. (middle) **Suboptimal scenario 1.** Here, the sample spacing is much smaller along the trajectory than between trajectories. This is probably frequently encountered when there are few trials relative to the dimension of the manifold and the size of the basin of attraction. Fitting a proximity graph to this dataset will lead to a poorly connected manifold or having too many neighbours pointing to consecutive points on the trajectory, leading to poor gradient approximation. Also, too-dense discretisation will mean that second-order features will not pick up on second-order features (curvature)of the trajectories. **Fix:** either increase `stop_crit` and/or subsample your trajectories before using `construct_dataset()`.
-3. (right) **Suboptimal scenario 2.** Here, there are too few sample points relative to the curvature of the trajectories. As a result, the gradient approximation will be inaccurate. **Fix:** decrease `stop_crit` or collect more data.
+2. (middle) **Suboptimal scenario 1.** Here, the sample spacing is much smaller along the trajectory than between trajectories. This is probably frequently encountered when there are few trials relative to the dimension of the manifold and the size of the basin of attraction. Fitting a proximity graph to this dataset will lead to a poorly connected manifold or having too many neighbours pointing to consecutive points on the trajectory, leading to poor gradient approximation. Also, too-dense discretisation will mean that second-order features will not pick up on second-order features (curvature) of the trajectories. **Fix:** either increase `spacing` and/or subsample your trajectories before using `construct_dataset()`.
+3. (right) **Suboptimal scenario 2.** Here, there are too few sample points relative to the curvature of the trajectories. As a result, the gradient approximation will be inaccurate. **Fix:** decrease `spacing` or collect more data.
 
 <img src="doc/assets/illustration_for_github.png" width="800"/>
 
@@ -255,7 +255,7 @@ Training is successful when features are recognised to be similar across distinc
 
 Seeing problems with the above would be possible signs your solution will be suboptimal and will likely not generalise well. If you see either of these, try the following
  * increase training time (increase `epochs`)
- * increase your data (e.g., decrease `stop_crit` and construct the dataset again)
+ * increase your data (e.g., decrease `spacing` and construct the dataset again)
  * decrease number of parameters (decrease `hidden_channels`, or decrease order, try `order=1`)
  * improve the gradient approximation (increase `k`, but see above)
  * disable local gauges (`local_gauge=False`)
