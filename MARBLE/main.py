@@ -16,7 +16,10 @@ from tqdm import tqdm
 from functools import partial
 
 from procrustes.generalized import generalized
+from procrustes.orthogonal import orthogonal
 from typing import List, Tuple, Optional
+
+from anatome.distance import pwcca_distance, linear_cka_distance, orthogonal_procrustes_distance
 
 from MARBLE import dataloader
 from MARBLE import geometry
@@ -317,7 +320,7 @@ class net(nn.Module):
         # remove positions from the directional derivative features
         if self.params["include_positions"]:
             out = out[:,data.pos.shape[1]:]
-
+            
         return emb, mask[: last_size[1]], out
 
     def evaluate(self, data):
@@ -560,6 +563,13 @@ class ortho_loss(nn.Module):
     def forward(self, out, data=None, n_id=None, n_batch=None):
         dim_space = data.x.shape[1]
         
+        # limit to vector inputs
+        #out = out[:,:dim_space]
+        
+        # normalize
+        max_norm = torch.norm(out, p=2, dim=1).max()
+        out = out / max_norm
+        
         # extract the directional derivatives per system
         dd, indices = group_dd_by_system(n_id[:n_batch], data.system, out, limit_rows=False)
 
@@ -567,7 +577,7 @@ class ortho_loss(nn.Module):
         cons = [data.condition[n_id[idx]].squeeze() for idx in indices]
         
         # limit dd to vectors        
-        #dd = [d[:,:dim_space] for d in dd]
+        dd = [d[:,:dim_space] for d in dd]   
         
         if data.num_conditions > 1:
             dist_type = 'condition_procrustes'
@@ -601,9 +611,9 @@ def distance(embeddings, condition, dist_type='procrustes', return_paired=False)
             if dist_type=='mmd':
                 dist = mmd_distance(embeddings[i], embeddings[j])
             if dist_type=='procrustes':  
-                dist = orthogonal_procrustes_distance_rotation_only(embeddings[i], embeddings[j])
+                dist = svd_distance(embeddings[i], embeddings[j])
             if dist_type=='condition_procrustes':                
-                dist = orthogonal_procrustes_distance_rotation_only(embeddings[i], embeddings[j])
+                dist = svd_distance(embeddings[i], embeddings[j])
                 intersection = utils.torch_intersect(condition[i].unique(), condition[j].unique())
                 condition_emb_1 = [embeddings[i][condition[i]==c,:] for c in intersection]
                 condition_emb_2 = [embeddings[j][condition[j]==c,:] for c in intersection]
@@ -630,68 +640,19 @@ def mmd_distance(x, y, sigma=1.0):
     return x_kernel.mean() + y_kernel.mean() - 2 * xy_kernel.mean()
 
 
-def orthogonal_procrustes_distance_rotation_only(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+def svd_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     """
-    Computes Procrustes distance between representations A and B using PyTorch tensors,
-    enforcing the transformation to be a rotation (without reflection), avoiding in-place operations.
+    Computes singular value decomposition of product of vectors
     """
 
     x = _matrix_normalize(x, dim=0)
     y = _matrix_normalize(y, dim=0)
 
-    size = min(x.shape[0], y.shape[0])
-    x = x[:size, :]
-    y = y[:size, :]
-
     # Compute SVD of the product of X and Y.T
-    u, s, v_t = torch.linalg.svd(x @ y.T, full_matrices=False) # or x @ y.T
+    u, s, v_t = torch.linalg.svd(x @ y.T) # or x @ y.T
 
-    # Enforce a rotation by ensuring the determinant is 1, without using in-place operations
-    det = torch.det(u @ v_t)
-    if det < 0:
-        # Create a new s tensor with the last singular value negated
-        s_adjusted = s.clone()
-        s_adjusted[-1] = -s_adjusted[-1]
-    else:
-        s_adjusted = s
-
-    # Compute the squared Frobenius norms of X and Y
-    x_sq_frob = torch.sum(x ** 2)
-    y_sq_frob = torch.sum(y ** 2)
-
-    # Calculate and return the Procrustes distance, adjusted for rotation only
-    return x_sq_frob + y_sq_frob - 2 * torch.sum(s) # _adjusted
-
-
-
-def orthogonal_procrustes_distance(x: torch.Tensor,
-                                   y: torch.Tensor,
-                                   ) -> torch.Tensor:
-    """ Orthogonal Procrustes distance used in Ding+21
-
-    Args:
-        x: input tensor of Shape DxH
-        y: input tensor of Shape DxW
-
-    Returns:
-
-    """
-    
-    size = min(x.shape[0], y.shape[0])
-    x = x[:size, :]
-    y = y[:size, :]    
-    #_check_shape_equal(x, y, 0)
-
-    frobenius_norm = partial(torch.linalg.norm, ord="fro")
-    nuclear_norm = partial(torch.linalg.norm, ord="nuc")
-
-    x = _zero_mean(x, dim=0)
-    x = x/frobenius_norm(x)
-    y = _zero_mean(y, dim=0)
-    y = y/frobenius_norm(y)
-    # frobenius_norm(x) = 1, frobenius_norm(y) = 1
-    # 0.5*d_proc(x, y)
-    return 1 - nuclear_norm(x.t() @ y)
+    # returns the negative sum of singular values
+    return -torch.sum(s) 
 
 
 def condition_distance(conditions_x, conditions_y):
@@ -707,7 +668,7 @@ def condition_distance(conditions_x, conditions_y):
     distances = torch.zeros(len(conditions_x))
 
     for i, (x, y) in enumerate(zip(conditions_x, conditions_y)):        
-        dist = torch.cdist(x, y).mean()*0.001        
+        dist = torch.cdist(x, y).mean()
         distances[i] = dist    
     
     # Aggregate distances across conditions
@@ -715,30 +676,6 @@ def condition_distance(conditions_x, conditions_y):
     
     #print(total_distance)
     return total_distance
-
-def compute_consensus_rotation(rotations):
-    """
-    Computes a consensus rotation matrix from a list of rotation matrices using SVD.
-
-    :param rotations: List of torch.Tensors, each being a rotation matrix.
-    :return: Consensus rotation matrix as a torch.Tensor.
-    """
-    # Compute the element-wise average of the rotation matrices
-    avg_rotation = sum(rotations) / len(rotations)
-
-    # Use SVD to decompose the averaged matrix
-    u, _, v_t = torch.linalg.svd(avg_rotation, full_matrices=True)
-
-    # Reconstruct the rotation matrix from U and V^T
-    consensus_rotation = u @ v_t
-
-    # Ensure the determinant is 1 (proper rotation)
-    if torch.det(consensus_rotation) < 0:
-        u_adjusted = u.clone()  # Make a copy of u
-        u_adjusted[:, -1] = -u_adjusted[:, -1]  # Negate the last column in the copy
-        consensus_rotation = u_adjusted @ v_t  # Recompute the consensus rotation using the adjusted copy
-
-    return consensus_rotation
 
 def _zero_mean(input: torch.Tensor,
                dim: int
@@ -765,70 +702,4 @@ def _matrix_normalize(input: torch.Tensor,
     return X_star
 
 
-def generalized_procrustes_tensor(
-    tensor_list: List[torch.Tensor],
-    tol: float = 1e-7,
-    n_iter: int = 200
-) -> Tuple[List[torch.Tensor], float]:
-    """Generalized Procrustes Analysis for PyTorch tensors.
-
-    Parameters
-    ----------
-    tensor_list : List[torch.Tensor]
-        The list of 2D-tensors to be transformed.
-    tol : float, optional
-        Tolerance value to stop the iterations.
-    n_iter : int, optional
-        Number of total iterations.
-
-    Returns
-    -------
-    tensor_aligned : List[torch.Tensor]
-        A list of transformed tensors with generalized Procrustes analysis.
-    new_distance_gpa : float
-        The distance for matching all the transformed tensors with generalized Procrustes analysis.
-    """
-    if n_iter <= 0:
-        raise ValueError("Number of iterations should be a positive number.")
-
-    # Initialize with the first tensor as the reference
-    ref = tensor_list[0].clone()
-    tensor_aligned = [ref] + [None] * (len(tensor_list) - 1)
-
-    distance_gpa = float('inf')
-    for _ in range(n_iter):
-        # Align all tensors to the current reference
-        for i, tensor in enumerate(tensor_list):  
-            tensor_aligned[i] = _orthogonal(tensor, ref)
-
-        # Update the reference as the mean of aligned tensors
-        new_ref = torch.mean(torch.stack(tensor_aligned), dim=0)
-
-        # Calculate the distance change for convergence check
-        new_distance_gpa = torch.norm(ref - new_ref).item() ** 2
-        if distance_gpa != float('inf') and abs(new_distance_gpa - distance_gpa) < tol:
-            break
-
-        ref = new_ref
-        distance_gpa = new_distance_gpa
-        
-
-    return tensor_aligned, new_distance_gpa
-
-def _orthogonal(arr_a: torch.Tensor, arr_b: torch.Tensor) -> torch.Tensor:
-    """Orthogonal Procrustes transformation and returns the transformed array."""
-    
-    # Compute the matrix product of arr_b^T and arr_a
-    mat = torch.matmul(arr_b.t(), arr_a)
-
-    # Compute the singular value decomposition
-    U, _, V = torch.linalg.svd(mat, full_matrices=False)
-
-    # Compute the optimal rotation matrix R
-    R = torch.matmul(U, V.t())
-
-    # Apply the transformation
-    transformed = torch.matmul(arr_a, R)
-
-    return transformed
 
