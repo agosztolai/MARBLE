@@ -36,13 +36,12 @@ def get_pos_vel(mus,
 def main():
 
 
-    mus = np.linspace(-1,1,2)
+    mus = np.linspace(-1,1,5)
     x, y, rot = get_pos_vel(mus)
 
     # construct data object
     data = preprocessing.construct_dataset(x, y, k=15, local_gauges=False)
-
-    # train model
+    
     params = {
         "lr":0.1,
         "order": 2,  # order of derivatives
@@ -51,12 +50,14 @@ def main():
         "out_channels": 2,
         "batch_size" : 64, # batch size
         #"emb_norm": True,
-        #"include_positions":True,
-        "diffusion":False,
-        "epochs":100,
+        "include_positions":False, # don't / use positional features
+        "epochs": 100,
         "inner_product_features":False,
-        "global_align":True,
+        "global_align":True, # align dynamical systems orthogonally
+        "final_grad": True, # compute orthogonal gradient at end of batch
+        "positional_grad":True,  # use gradient on positions or not
     }
+    
 
     model = net(data, params=params)
     model.fit(data)

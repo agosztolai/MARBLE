@@ -14,19 +14,19 @@ def f1(x):
     return x * 0 + np.array([1, 1])
 
 
-def f0(x):
-    eps = 1e-1
-    norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
-    u = (x[:, [1]] + 1) / norm
-    v = -(x[:, [0]] + 1) / norm
-    return np.hstack([u, v])
+# def f0(x):
+#     eps = 1e-1
+#     norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
+#     u = (x[:, [1]] + 1) / norm
+#     v = -(x[:, [0]] + 1) / norm
+#     return np.hstack([u, v])
 
-def f1(x):
-    eps = 1e-1
-    norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
-    u = (x[:, [1]] + 1) / norm
-    v = -(x[:, [0]] - 1) / norm
-    return np.hstack([u, v])
+# def f1(x):
+#     eps = 1e-1
+#     norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
+#     u = (x[:, [1]] + 1) / norm
+#     v = -(x[:, [0]] - 1) / norm
+#     return np.hstack([u, v])
 
 def f2(x):
     eps = 1e-1
@@ -69,9 +69,9 @@ def main():
     # generate simple vector fields
     # f0: linear, f1: point source, f2: point vortex, f3: saddle
     n = 512
-    x = [dynamics.sample_2d(n, [[-1, -1], [1, 1]], "random") for i in range(3)]
+    x = [dynamics.sample_2d(n, [[-1, -1], [1, 1]], "random") for i in range(4)]
     y = [f0(x[0]), 
-         f1(x[1]), f2(x[2]),] #f3(x[3])]  # evaluated functions    
+         f1(x[1]), f2(x[2]),f3(x[3])]  # evaluated functions    
 
     alpha=0.05
     # embed on parabola
@@ -97,24 +97,21 @@ def main():
     )
 
     # train model
-    # params = {
-    #     "order": 1,
-    #     "inner_product_features": True,
-    # }
-    
-    # train model
     params = {
         "lr":0.1,
-        "order": 1,  # order of derivatives
+        "order": 2,  # order of derivatives
+        "include_self": True,#True, 
+        "hidden_channels":[32],
         "out_channels": 2,
-        "batch_size": 128,
+        "batch_size" : 128, # batch size
         #"emb_norm": True,
-        "include_positions":True,
-        "epochs":100,
+        "include_positions":False, # don't / use positional features
+        "epochs": 100,
         "inner_product_features":False,
-        "global_align":True,
+        "global_align": True, # align dynamical systems orthogonally
+        "final_grad": True, # compute orthogonal gradient at end of batch
+        "positional_grad": True,  # use gradient on positions or not
     }
-
     model = net(data, params=params)
     model.fit(data)
 

@@ -74,12 +74,12 @@ def main():
         "out_channels": 2,
         "batch_size" : 128, # batch size
         #"emb_norm": True,
-        "include_positions":False # don't / use positional features
+        "include_positions":True, # don't / use positional features
         "epochs": 100,
         "inner_product_features":False,
         "global_align":True, # align dynamical systems orthogonally
         "final_grad": True, # compute orthogonal gradient at end of batch
-        "positional_grad":True,  # use gradient on positions or not
+        "positional_grad":False,  # use gradient on positions or not
     }
 
     model = net(data, params=params)

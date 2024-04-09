@@ -529,7 +529,7 @@ class net(nn.Module):
             # compute gradient and backpropagate on full set of data
             if self.params['final_grad']:
                             
-                fixed_layer = 0#torch.randint(0, len(original_requires_grad), (1,))
+                #fixed_layer = 0 #torch.randint(0, len(original_requires_grad), (1,))
                 #original_requires_grad = len(original_requires_grad)*[True]
                 #original_requires_grad[fixed_layer] = False
                 
@@ -540,7 +540,7 @@ class net(nn.Module):
                 data_ = self.transform_grad(data)  # transforms the entire dataset
                 out = data_.out.to(data.x.device)
                 
-                # compute orthogonal loss on the vectors                
+                # compute orthogonal loss on the vectors  
                 custom_loss = self.loss_orth(out[:,dim_space:2*dim_space], data,
                                              torch.arange(len(data.x)), len(data.x),
                                              dist_type='dynamic', )
@@ -552,11 +552,16 @@ class net(nn.Module):
                                                      dist_type='positional',)
                     custom_loss = custom_loss + positional_loss
                     
-                custom_loss = custom_loss[:,fixed_layer] # only taking the first row 
+                # if self.params['derivative_grad']:
+                #     derivative_loss = self.loss_orth(out[:,:dim_space], data,
+                #                                      torch.arange(len(data.x)), len(data.x),
+                #                                      dist_type='dynamic',)
+                #     custom_loss = custom_loss + positional_loss
+                    
+                    
+                custom_loss = custom_loss.mean(axis=1) #[:,fixed_layer] # only taking the first row 
                 cum_custom_loss += float(custom_loss.mean())
                 
-                #custom_loss = custom_loss[:, fixed_layer]
-    
                 if optimizer is not None:
                     for i, layer in enumerate(self.orthogonal_transform):
                             optimizer.zero_grad()  # Reset gradients to zero for all model parameters                
@@ -564,7 +569,7 @@ class net(nn.Module):
                                 if param.requires_grad:
                                     param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0] 
                                     # param.grad = torch.autograd.grad(custom_loss.mean(), param, retain_graph=True)[0] 
-                            
+                                    
                                     #nn.utils.clip_grad_norm_(self.parameters(), 0.05)
                                     optimizer.step()
                         
@@ -829,6 +834,7 @@ def svd_distance_2(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
 
     # Compute SVD of the product of X and Y.T
     dot = x @ y.T
+    #dot = torch.pow(dot,2) * torch.sign(dot)
     s = torch.sum(dot) / (dot.shape[0] * dot.shape[1])
     s = (s + 1)/2 # zero is minimum and 1 is max
     return 1-s
@@ -848,18 +854,7 @@ def svd_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     s = torch.sum(s) 
     return 1-s
 
-def plot2d(x,y):
-    fig = plt.figure()
-    ax = fig.add_subplot(111,)
-    
-    ax.scatter(x[:,0].cpu().detach().numpy(),
-                x[:,1].cpu().detach().numpy(), c = 'b', marker='o')
-    ax.scatter(y[:,0].cpu().detach().numpy(),
-                y[:,1].cpu().detach().numpy(), c = 'r', marker='o')
-    ax.set_xlabel('X-axis')
-    ax.set_ylabel('Y-axis')
 
-    
 def plot3d(x,y):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -873,6 +868,20 @@ def plot3d(x,y):
     ax.set_xlabel('X-axis')
     ax.set_ylabel('Y-axis')
     ax.set_zlabel('Z-axis')
+
+def plot2d(x,y):
+    fig = plt.figure()
+    ax = fig.add_subplot(111,)
+    
+    ax.scatter(x[:,0].cpu().detach().numpy(),
+                x[:,1].cpu().detach().numpy(), c = 'b', marker='o')
+    ax.scatter(y[:,0].cpu().detach().numpy(),
+                y[:,1].cpu().detach().numpy(), c = 'r', marker='o')
+    ax.set_xlabel('X-axis')
+    ax.set_ylabel('Y-axis')
+
+    
+
     
 
 def cosine_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
@@ -907,20 +916,20 @@ def hausdorff_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     # Expanding set1 and set2 into 3D tensors for broadcasting
     d_matrix = torch.sqrt(((x[:, None, :] - y[None, :, :]) ** 2).sum(dim=2))
     
-    # # Create the figure
-    # fig = plt.figure()
-    # ax = fig.add_subplot(111, projection='3d')
+    # Create the figure
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
     
-    # # Plot the values
-    # ax.scatter(x[:,0].cpu().detach().numpy(),
-    #             x[:,1].cpu().detach().numpy(),
-    #             x[:,2].cpu().detach().numpy(), c = 'b', marker='o')
-    # ax.scatter(y[:,0].cpu().detach().numpy(),
-    #             y[:,1].cpu().detach().numpy(),
-    #             y[:,2].cpu().detach().numpy(), c = 'r', marker='o')
-    # ax.set_xlabel('X-axis')
-    # ax.set_ylabel('Y-axis')
-    # ax.set_zlabel('Z-axis')
+    # Plot the values
+    ax.scatter(x[:,0].cpu().detach().numpy(),
+                x[:,1].cpu().detach().numpy(),
+                x[:,2].cpu().detach().numpy(), c = 'b', marker='o')
+    ax.scatter(y[:,0].cpu().detach().numpy(),
+                y[:,1].cpu().detach().numpy(),
+                y[:,2].cpu().detach().numpy(), c = 'r', marker='o')
+    ax.set_xlabel('X-axis')
+    ax.set_ylabel('Y-axis')
+    ax.set_zlabel('Z-axis')
     
     # plt.show()
 
