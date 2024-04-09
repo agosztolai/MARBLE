@@ -592,6 +592,9 @@ def compute_eigendecomposition(A, k=None, eps=1e-8):
                 raise ValueError("failed to compute eigendecomp") from e
             failcount += 1
             print("--- decomp failed; adding eps ===> count: " + str(failcount))
-            A += sp.eye(A.shape[0]) * (eps * 10 ** (failcount - 1))
+            if k is None:
+                A += torch.eye(A.shape[0]) * (eps * 10 ** (failcount - 1))
+            else:
+                A += sp.eye(A.shape[0]) * (eps * 10 ** (failcount - 1))
 
     return evals, evecs
