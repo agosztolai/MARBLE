@@ -36,7 +36,7 @@ def get_pos_vel(mus,
 def main():
 
 
-    mus = np.linspace(-1,1,11)
+    mus = np.linspace(-1,1,2)
     x, y, rot = get_pos_vel(mus)
 
     # construct data object
@@ -49,9 +49,10 @@ def main():
         "include_self": True,#True, 
         "hidden_channels":[64],
         "out_channels": 2,
-        "batch_size" : 128, # batch size
+        "batch_size" : 64, # batch size
         #"emb_norm": True,
         #"include_positions":True,
+        "diffusion":False,
         "epochs":100,
         "inner_product_features":False,
         "global_align":True,
@@ -60,12 +61,31 @@ def main():
     model = net(data, params=params)
     model.fit(data)
 
+
     # evaluate model on data
     data = model.transform(data)
     data = postprocessing.cluster(data)
     data = postprocessing.embed_in_2D(data)
     data = distribution_distances(data)
 
+    desired_layers = ['orthogonal']
+    rotations_learnt = [param for i, (name, param) in enumerate(model.named_parameters()) if any(layer in name for layer in desired_layers)]
+    
+    pos_rotated = []
+    vel_rotated = []
+    for i, (p, v) in enumerate(zip(x,y)):
+        rotation = rotations_learnt[i].cpu().detach().numpy() 
+        p_rot = p @ rotation 
+        v_rot = v @ rotation 
+        #p_rot = rotation.dot(p.T).T
+        #v_rot = rotation.dot(v.T).T
+        pos_rotated.append(p_rot)
+        vel_rotated.append(v_rot)
+
+    data_ = preprocessing.construct_dataset(pos_rotated, vel_rotated, k=15, local_gauges=False)
+    # plot results
+    plotting.fields(data_,  col=2)
+    plt.savefig('fields.png')
 
     # plot results
     plotting.fields(data,  col=2)

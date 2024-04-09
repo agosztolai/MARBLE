@@ -15,11 +15,9 @@ from tqdm import tqdm
 
 from functools import partial
 
-from procrustes.generalized import generalized
-from procrustes.orthogonal import orthogonal
 from typing import List, Tuple, Optional
 
-from anatome.distance import pwcca_distance, linear_cka_distance, orthogonal_procrustes_distance
+import matplotlib.pyplot as plt
 
 from MARBLE import dataloader
 from MARBLE import geometry
@@ -226,6 +224,9 @@ class net(nn.Module):
             self.orthogonal_transform = nn.ModuleList([
                                             layers.OrthogonalTransformLayer(s) for _ in range(self.params["n_systems"])
                                         ])
+            self.orthogonal_transform[0].Q = nn.Parameter(torch.eye(s))
+            #self.orthogonal_transform[0].Q.requires_grad = False # fix the first system from rotating.
+            
 
 
     def forward(self, data, n_id, adjs=None, n_batch=None):
@@ -256,6 +257,7 @@ class net(nn.Module):
 
         # restrict to current batch
         x = x[n_id]
+        p = data.pos[n_id]
         mask = mask[n_id]
         n_id_orig = n_id
         if data.kernels[0].size(0) == n * d:
@@ -265,15 +267,59 @@ class net(nn.Module):
 
         if self.params["vec_norm"]:
             x = F.normalize(x, dim=-1, p=2)
+            
+        # learn orthogonal transformation before gradients?
+        if self.params["global_align"]:  
+            #last_size = adjs[-1][2]
+            #out_ = [o[: last_size[1]] for o in out]            
+            x_s, indices = group_dd_by_system(n_id, data.system, x, limit_rows=False)
+            p_s, indices = group_dd_by_system(n_id, data.system, p, limit_rows=False)
 
+            rotated_x = [self.orthogonal_transform[i](x_s[i].view(-1,dim_space)).view(-1,x_s[i].shape[1]) for i in range(len(x_s))]    
+            rotated_p = [self.orthogonal_transform[i](p_s[i].view(-1,dim_space)).view(-1,p_s[i].shape[1]) for i in range(len(p_s))]    
+
+            x = torch.zeros_like(x)
+            p = torch.zeros_like(p)
+            x[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_x, dim=0) 
+            p[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_p, dim=0) 
+            
+                    
+        # # Create a 3D plot
+        # fig = plt.figure()
+        # ax = fig.add_subplot(111, projection='3d')
+        # colors = ['b','r']
+        # for sys in range(2):
+        # #sys = 1
+        #     rot = self.orthogonal_transform[sys].Q.cpu().detach().numpy()
+        #     pos = rotated_p[sys].cpu().detach().numpy()
+        #     vec = rotated_x[sys].cpu().detach().numpy()
+            
+        #     #pos = pos @ rot
+        #     #vec = vec @ rot        
+        #     u, v, w = vec[:,0], vec[:,1], vec[:,2] # vectors
+        #     xx, yy, zz = pos[:,0], pos[:,1], pos[:,2]  # positions            
+        #     # Plot the vector field
+        #     ax.quiver(xx, yy, zz, u, v, w, color=colors[sys], normalize=True)
+        #     # Setting the axes labels
+        #     ax.set_xlabel('X')
+        #     ax.set_ylabel('Y')
+        #     ax.set_zlabel('Z')            
+
+        
+        if self.params["include_positions"] or self.params["positional_grad"]:
+            out = [p]
+        else:
+            out = []
+        
         # gradients
         if self.params["include_self"]:
-            out = [x]
+            out.append(x)
         else:
             out = []
             
         for i, (_, _, size) in enumerate(adjs):
-            kernels = [K[n_id[: size[1] * d], :][:, n_id[: size[0] * d]] for K in data.kernels]
+            #kernels = [K[n_id[: size[1] * d], :][:, n_id[: size[0] * d]] for K in data.kernels]
+            kernels = [K[n_id, :][:, n_id] for K in data.kernels]
 
             x = self.grad[i](x, kernels)
 
@@ -287,39 +333,63 @@ class net(nn.Module):
         out = [o[: last_size[1]] for o in out]
             
         # need global coordinates prior to orthogonal transformations
-        if self.params["global_align"]:  #self.params["global_align"]:             
-            for i, o in enumerate(out):
-                # project back into ambient coordinate space
-                # for each output only act on each local tangent direction e.g. [dx/du, dx/dv]
-                new_o = [geometry.global_to_local_frame(o[:,d_*dim_man:d_*dim_man+dim_man], data.gauges[n_id_orig][:last_size[1]], reverse=True)
-                         for d_ in range(int(o.shape[1]/dim_man))]
-                new_o = torch.cat(new_o, axis=1)
-                out[i] = new_o                            
+        # if self.params["global_align"]:     
+        #     for i, o in enumerate(out):
+        #         # project back into ambient coordinate space
+        #         # for each output only act on each local tangent direction e.g. [dx/du, dx/dv]
+        #         new_o = [geometry.global_to_local_frame(o[:,d_*dim_man:d_*dim_man+dim_man], data.gauges[n_id_orig][:last_size[1]], reverse=True)
+        #                  for d_ in range(int(o.shape[1]/dim_man))]
+        #         new_o = torch.cat(new_o, axis=1)
+        #         out[i] = new_o                            
 
         # inner products
         if self.params["inner_product_features"]:
             out = self.inner_products(out)
         else:
             out = torch.cat(out, axis=1)
+            
+        # pos = out[:,:3].cpu().detach().numpy()
+        # vec = out[:,3:6].cpu().detach().numpy()
+        
+        # #pos = pos @ rot
+        # #vec = vec @ rot        
+        # u, v, w = vec[:,0], vec[:,1], vec[:,2] # vectors
+        # xx, yy, zz = pos[:,0], pos[:,1], pos[:,2]  # positions
+        
+        # # Create a 3D plot
+        # fig = plt.figure()
+        # ax = fig.add_subplot(111, projection='3d')
+        
+        # # Plot the vector field
+        # ax.quiver(xx, yy, zz, u, v, w, normalize=True)
+        
+        # # Setting the axes labels
+        # ax.set_xlabel('X')
+        # ax.set_ylabel('Y')
+        # ax.set_zlabel('Z')
 
         # learn orthogonal transformation
-        if self.params["global_align"]:                
-            o, indices = group_dd_by_system(n_id_orig[:n_batch], data.system, out, limit_rows=False)
-            ortho = [self.orthogonal_transform[i](o[i].view(-1,dim_space)).view(-1,o[i].shape[1]) for i in range(len(o))]    
-            out = torch.zeros_like(out)
-            out[torch.cat(indices, dim=0).squeeze()] = torch.cat(ortho, dim=0) 
+        # if self.params["global_align"]:                
+        #     o, indices = group_dd_by_system(n_id_orig[:n_batch], data.system, out, limit_rows=False)
+        #     ortho = [self.orthogonal_transform[i](o[i].view(-1,dim_space)).view(-1,o[i].shape[1]) for i in range(len(o))]    
+        #     out = torch.zeros_like(out)
+        #     out[torch.cat(indices, dim=0).squeeze()] = torch.cat(ortho, dim=0) 
 
-        if self.params["include_positions"]:
-            out = torch.hstack([data.pos[n_id_orig[: last_size[1]]], out])           
+        #if self.params["include_positions"]:
+        #    out = torch.hstack([p[n_id_orig[: last_size[1]]], out])           
 
-        emb = self.enc(out)      
+        # remove positions from encoder embedding
+        if not self.params["include_positions"]:
+            emb = self.enc(out[:,data.pos.shape[1]:])
+        else: 
+            emb = self.enc(out)
         
         if self.params["emb_norm"]:  # spherical output
             emb = F.normalize(emb)   
        
         # remove positions from the directional derivative features
-        if self.params["include_positions"]:
-            out = out[:,data.pos.shape[1]:]
+        #if self.params["include_positions"]:
+        #    out = out[:,data.pos.shape[1]:]
             
         return emb, mask[: last_size[1]], out
 
@@ -344,12 +414,36 @@ class net(nn.Module):
                 pass
 
             _, data, adjs = utils.move_to_gpu(self, data, adjs)
-            out, _, _ = self.forward(data, torch.arange(len(data.x)), adjs)
+            emb, _, out = self.forward(data, torch.arange(len(data.x)), adjs, len(data.x))
             utils.detach_from_gpu(self, data, adjs)
 
-            data.emb = out.detach().cpu()
+            data.emb = emb.detach().cpu()
+            data.out = out.detach().cpu()
 
             return data
+        
+    def transform_grad(self, data):
+        """Forward pass @ custom loss """
+        size = (data.x.shape[0], data.x.shape[0])
+        adjs = utils.EdgeIndex(data.edge_index, torch.arange(data.edge_index.shape[1]), size)
+        adjs = utils.to_list(adjs) * self.params["order"]
+
+        try:
+            data.kernels = [
+                utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()).t()
+                for K in utils.to_list(data.kernels)
+            ]
+        except Exception:  # pylint: disable=broad-exception-caught
+            pass
+
+        _, data, adjs = utils.move_to_gpu(self, data, adjs)
+        emb, _, out = self.forward(data, torch.arange(len(data.x)), adjs, len(data.x))
+        #utils.detach_from_gpu(self, data, adjs)
+
+        data.emb = emb #.detach()
+        data.out = out #.detach()
+
+        return data
 
     def batch_loss(self, data, loader, train=False, verbose=False, optimizer=None):
         """Loop over minibatches provided by loader function.
@@ -365,47 +459,123 @@ class net(nn.Module):
 
         if verbose:
             print("\n")
+            
+        #self.params['final_grad'] = True
+        dim_space = data.x.shape[1]
 
         cum_loss = 0
-        for batch in tqdm(loader, disable=not verbose):
+        cum_custom_loss = 0
+                 
+        if self.params['final_grad']:
+            # Temporarily disable gradient computations for the orthogonal_transform layers
+            original_requires_grad = [param.requires_grad for layer in self.orthogonal_transform for param in layer.parameters()]
+            for layer in self.orthogonal_transform:
+                for param in layer.parameters():
+                    param.requires_grad = False
+
+        # Process each batch
+        for batch in tqdm(loader, disable=not verbose):            
+            
             n_batch, n_id, adjs = batch
             adjs = [adj.to(data.x.device) for adj in utils.to_list(adjs)]
-
+    
+            # Forward pass
             emb, mask, out = self.forward(data, n_id, adjs, n_batch)
             loss = self.loss(emb, mask)
             cum_loss += float(loss)
-            
-            # computing loss on orthogonal transformations
-            if self.params['global_align']:
-                custom_loss = self.loss_orth(out, data, n_id, n_batch)
-                cum_loss += float(custom_loss.mean())
-                #print(custom_loss)
-
+    
+            # Backward and optimize
             if optimizer is not None:
+                optimizer.zero_grad()
+                loss.backward(retain_graph=True)  # Accumulates gradients for all layers
                 
-                # 1. first make a backward step on the main MLP embeddings
-                optimizer.zero_grad()  # zero gradients, otherwise accumulates
-                loss.backward(retain_graph=True)  # backprop
-               
-                # 2. looping over and back propgating only on the orthogonal transform layers
+            # overwrite parameters on orthogonal transformation with custom loss
+            if not self.params['final_grad']:
+                # Compute custom loss on orthogonal transform per batch
                 if self.params['global_align']:
-
-                    # for layer in self.orthogonal_transform:
-                    #     for param in layer.parameters():
-                    #         if param.grad is not None:
-                    #             param.grad.zero_()  
-                                
+                                        
+                   
+                    # compute orthogonal loss on the vectors                
+                    custom_loss = self.loss_orth(out[:,dim_space:2*dim_space], data,
+                                                 n_id, n_batch,
+                                                 dist_type='dynamic')
+                    
+                    # if we include positions then use these too
+                    if self.params['positional_grad']:
+                        positional_loss = self.loss_orth(out[:,:dim_space], data,
+                                                         n_id, n_batch,
+                                                         dist_type='positional')                        
+                        custom_loss = custom_loss + positional_loss
+                    
+                    custom_loss = custom_loss[:,0]
+                    cum_custom_loss += float(custom_loss.mean())
+    
+                    if optimizer is not None:
+                        for i, layer in enumerate(self.orthogonal_transform):
+                                #optimizer.zero_grad()  # Reset gradients to zero for all model parameters                
+                                for param in layer.parameters():
+                                    if param.requires_grad:
+                                        param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0] 
+                                        #param.grad = torch.autograd.grad(custom_loss.mean(), param, retain_graph=True)[0] 
+                                        #optimizer.step()
+                                        
+                    if optimizer is not None:
+                        nn.utils.clip_grad_norm_(self.parameters(), 0.02)      
+                        optimizer.step()
+    
+    
+        # Compute custom loss for the entire dataset after all batches are processed
+        if self.params['global_align']:
+            # compute gradient and backpropagate on full set of data
+            if self.params['final_grad']:
+                            
+                fixed_layer = 0#torch.randint(0, len(original_requires_grad), (1,))
+                #original_requires_grad = len(original_requires_grad)*[True]
+                #original_requires_grad[fixed_layer] = False
+                
+                # Restore requires_grad for orthogonal_transform layers
+                for layer, requires_grad in zip([param for layer in self.orthogonal_transform for param in layer.parameters()], original_requires_grad):
+                    layer.requires_grad = requires_grad
+                
+                data_ = self.transform_grad(data)  # transforms the entire dataset
+                out = data_.out.to(data.x.device)
+                
+                # compute orthogonal loss on the vectors                
+                custom_loss = self.loss_orth(out[:,dim_space:2*dim_space], data,
+                                             torch.arange(len(data.x)), len(data.x),
+                                             dist_type='dynamic', )
+                
+                # if we include positions then use these too
+                if self.params['positional_grad']:
+                    positional_loss = self.loss_orth(out[:,:dim_space], data,
+                                                     torch.arange(len(data.x)), len(data.x),
+                                                     dist_type='positional',)
+                    custom_loss = custom_loss + positional_loss
+                    
+                custom_loss = custom_loss[:,fixed_layer] # only taking the first row 
+                cum_custom_loss += float(custom_loss.mean())
+                
+                #custom_loss = custom_loss[:, fixed_layer]
+    
+                if optimizer is not None:
                     for i, layer in enumerate(self.orthogonal_transform):
-                        for param in layer.parameters():
-                            if param.grad is not None:  # Check if gradients exist to avoid overwriting them
-                                #param.grad.zero_()  
-                                param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0]                            
+                            optimizer.zero_grad()  # Reset gradients to zero for all model parameters                
+                            for param in layer.parameters():
+                                if param.requires_grad:
+                                    param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0] 
+                                    # param.grad = torch.autograd.grad(custom_loss.mean(), param, retain_graph=True)[0] 
+                            
+                                    #nn.utils.clip_grad_norm_(self.parameters(), 0.05)
+                                    optimizer.step()
                         
-                optimizer.step()
-
-        self.eval()
-
-        return cum_loss / len(loader), optimizer
+        self.eval()     
+        
+        if self.params['final_grad']:
+            loss_total = cum_loss / len(loader) + cum_custom_loss
+        else:
+            loss_total = cum_loss / len(loader)  + cum_custom_loss / len(loader)
+            
+        return loss_total, optimizer
 
     def run_training(self, data, outdir=None, verbose=False):
         """Run training."""
@@ -437,6 +607,9 @@ class net(nn.Module):
         optimizer = opt.SGD(
             self.parameters(), lr=self.params["lr"], momentum=self.params["momentum"]
         )
+        # optimizer = opt.Adadelta(
+        #     self.parameters(), lr=self.params["lr"], #momentum=self.params["momentum"]
+        # )
         if hasattr(self, "optimizer_state_dict"):
             optimizer.load_state_dict(self.optimizer_state_dict)
 
@@ -560,16 +733,9 @@ class loss_fun(nn.Module):
 class ortho_loss(nn.Module):
     """ custom loss based on orthogonal transform distance """
     
-    def forward(self, out, data=None, n_id=None, n_batch=None):
-        dim_space = data.x.shape[1]
-        
-        # limit to vector inputs
-        #out = out[:,:dim_space]
-        
-        # normalize
-        max_norm = torch.norm(out, p=2, dim=1).max()
-        out = out / max_norm
-        
+    def forward(self, out, data=None, n_id=None, n_batch=None, dist_type='dynamic'):
+        #dim_space = data.x.shape[1]
+               
         # extract the directional derivatives per system
         dd, indices = group_dd_by_system(n_id[:n_batch], data.system, out, limit_rows=False)
 
@@ -577,21 +743,22 @@ class ortho_loss(nn.Module):
         cons = [data.condition[n_id[idx]].squeeze() for idx in indices]
         
         # limit dd to vectors        
-        dd = [d[:,:dim_space] for d in dd]   
-        
-        if data.num_conditions > 1:
-            dist_type = 'condition_procrustes'
-        else:
-            dist_type = 'procrustes'           
+        #dd_pos = [d[:,:dim_space] for d in dd]
+        #dd_vec = [d[:,dim_space:2*dim_space] for d in dd]  
+               
 
-        emb_dist = distance(dd, cons, dist_type=dist_type,  return_paired=True)
-        return 0.1*emb_dist 
-    
+        #pos_dist = distance(dd_pos, cons, dist_type=dist_type,  return_paired=True)
+        dist = distance(dd, cons, dist_type=dist_type,  return_paired=True)
+        
+        return dist # + pos_dist # + vec2_dist_1 + vec2_dist_2 + vec2_dist_3
+        #return vec_dist
+        #return dist
 
 def group_dd_by_system(target_id, system_ids, dd, limit_rows=True):
     """ function for grouping directional derivatives by system """
-    dds = [dd[system_ids[target_id] == gid]  for gid in system_ids.unique().tolist()]
-    indices = [(system_ids[target_id] == gid).nonzero() for gid in system_ids.unique().tolist()]
+    sys_ids = system_ids.unique().tolist()
+    dds = [dd[system_ids[target_id] == gid]  for gid in sys_ids]
+    indices = [(system_ids[target_id] == gid).nonzero() for gid in sys_ids]
 
     # procrustes requires us to have same size matrices
     if limit_rows:
@@ -604,14 +771,16 @@ def euclidean_distance(a, b):
     return torch.norm(a - b, dim=1)  # Compute Euclidean distance
 
 
-def distance(embeddings, condition, dist_type='procrustes', return_paired=False):    
+def distance(embeddings, condition, dist_type='dynamic', return_paired=False):    
     distances = torch.zeros([len(embeddings),len(embeddings)])
     for i in range(len(embeddings)):
         for j in range(i + 1, len(embeddings)):  # Avoid redundant calculations
             if dist_type=='mmd':
                 dist = mmd_distance(embeddings[i], embeddings[j])
-            if dist_type=='procrustes':  
+            if dist_type=='positional':  
                 dist = svd_distance(embeddings[i], embeddings[j])
+            if dist_type=='dynamic':
+                dist = svd_distance_2(embeddings[i], embeddings[j])
             if dist_type=='condition_procrustes':                
                 dist = svd_distance(embeddings[i], embeddings[j])
                 intersection = utils.torch_intersect(condition[i].unique(), condition[j].unique())
@@ -621,12 +790,19 @@ def distance(embeddings, condition, dist_type='procrustes', return_paired=False)
                 dist = dist + dist_condition
 
             distances[i,j] = dist
+            
+    # symmetric matrix of distances
     distances = distances + distances.T
+    
+    # compute sum of distances ignoring the diagonal zeros
+    # distance_sum = (distances * torch.ones_like(distances, dtype=torch.bool)).mean(dim=1)
+    distance_sum = distances #[:,0]
+    
     if return_paired:
-        return distances.mean(axis=0)
+        return distance_sum
     else:
-        return distances.max()
-
+        return distance_sum.mean()
+    
 
 def gaussian_kernel(x, y, sigma=1.0):
     beta = 1. / (2. * sigma ** 2)
@@ -639,6 +815,23 @@ def mmd_distance(x, y, sigma=1.0):
     xy_kernel = gaussian_kernel(x, y, sigma)
     return x_kernel.mean() + y_kernel.mean() - 2 * xy_kernel.mean()
 
+def svd_distance_2(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    """
+    Computes singular value decomposition of product of vectors
+    """
+
+    x = nn.functional.normalize(x,p=2,dim=1)
+    y = nn.functional.normalize(y,p=2,dim=1)
+    
+    #min_shape = min(x.shape[0],y.shape[0])
+    #x = x[:min_shape,:]
+    #y = y[:min_shape,:]
+
+    # Compute SVD of the product of X and Y.T
+    dot = x @ y.T
+    s = torch.sum(dot) / (dot.shape[0] * dot.shape[1])
+    s = (s + 1)/2 # zero is minimum and 1 is max
+    return 1-s
 
 def svd_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     """
@@ -649,10 +842,95 @@ def svd_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     y = _matrix_normalize(y, dim=0)
 
     # Compute SVD of the product of X and Y.T
-    u, s, v_t = torch.linalg.svd(x @ y.T) # or x @ y.T
+    #u, s, v = torch.linalg.svd(x @ y.T) # or x @ y.T
+    #u_, s_, v_ = torch.linalg.svd(x @ x.T) # or x @ y.T
+    u, s, v = torch.linalg.svd(x @ y.T)  # or x @ y.T
+    s = torch.sum(s) 
+    return 1-s
 
-    # returns the negative sum of singular values
-    return -torch.sum(s) 
+def plot2d(x,y):
+    fig = plt.figure()
+    ax = fig.add_subplot(111,)
+    
+    ax.scatter(x[:,0].cpu().detach().numpy(),
+                x[:,1].cpu().detach().numpy(), c = 'b', marker='o')
+    ax.scatter(y[:,0].cpu().detach().numpy(),
+                y[:,1].cpu().detach().numpy(), c = 'r', marker='o')
+    ax.set_xlabel('X-axis')
+    ax.set_ylabel('Y-axis')
+
+    
+def plot3d(x,y):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    
+    ax.scatter(x[:,0].cpu().detach().numpy(),
+                x[:,1].cpu().detach().numpy(),
+                x[:,2].cpu().detach().numpy(), c = 'b', marker='o')
+    ax.scatter(y[:,0].cpu().detach().numpy(),
+                y[:,1].cpu().detach().numpy(),
+                y[:,2].cpu().detach().numpy(), c = 'r', marker='o')
+    ax.set_xlabel('X-axis')
+    ax.set_ylabel('Y-axis')
+    ax.set_zlabel('Z-axis')
+    
+
+def cosine_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+
+    # Step 1: Normalize the vectors in matrices x and y
+    x_norm = x / x.norm(dim=1, keepdim=True)
+    y_norm = y / y.norm(dim=1, keepdim=True)
+
+    # Step 2: Compute the dot product between each pair of vectors
+    # This requires expanding dimensions to perform a 'broadcasted' dot product
+    dot_product = torch.matmul(x_norm[:, None, :], y_norm.transpose(0, 1).unsqueeze(0))
+
+    # The result of dot_product is a (n, 1, m) tensor. Squeeze it to (n, m) for ease of use
+    dot_product = dot_product.squeeze()
+
+    # Step 3: Calculate the angle (in radians) between each pair of vectors
+    angles = torch.acos(torch.clamp(dot_product, -1.0, 1.0))  # Clamp values to avoid numerical errors
+
+    # Step 4: Compute the average angle
+    average_angle = torch.mean(angles)
+
+    return average_angle
+
+
+
+def hausdorff_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    
+    x = _matrix_normalize(x, dim=0)
+    y = _matrix_normalize(y, dim=0)
+    
+    # Compute pairwise distances
+    # Expanding set1 and set2 into 3D tensors for broadcasting
+    d_matrix = torch.sqrt(((x[:, None, :] - y[None, :, :]) ** 2).sum(dim=2))
+    
+    # # Create the figure
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111, projection='3d')
+    
+    # # Plot the values
+    # ax.scatter(x[:,0].cpu().detach().numpy(),
+    #             x[:,1].cpu().detach().numpy(),
+    #             x[:,2].cpu().detach().numpy(), c = 'b', marker='o')
+    # ax.scatter(y[:,0].cpu().detach().numpy(),
+    #             y[:,1].cpu().detach().numpy(),
+    #             y[:,2].cpu().detach().numpy(), c = 'r', marker='o')
+    # ax.set_xlabel('X-axis')
+    # ax.set_ylabel('Y-axis')
+    # ax.set_zlabel('Z-axis')
+    
+    # plt.show()
+
+    
+    # Compute the Hausdorff distance
+    min_dist_1, _ = torch.min(d_matrix, dim=1)
+    min_dist_2, _ = torch.min(d_matrix, dim=0)
+    hausdorff_dist = torch.max(torch.max(min_dist_1), torch.max(min_dist_2))
+    
+    return hausdorff_dist
 
 
 def condition_distance(conditions_x, conditions_y):

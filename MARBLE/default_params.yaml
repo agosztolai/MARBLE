@@ -20,7 +20,11 @@ vec_norm: False # normalise features at each order of derivatives
 bias: True # learn bias parameters in MLP
 batch_norm: True # batch normalisation
 emb_norm: False # spherical output
+
+# orthogonal gradient
 global_align: False # align global embeddings
+final_grad: True # only compute orthogonal gradient at end of batch
+positional_grad: True # include positions for orthogonal gradient computation
 
 # other params
 seed: 0 # seed for reproducibility
