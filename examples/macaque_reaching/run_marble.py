@@ -4,7 +4,6 @@ import sys
 import numpy as np
 from scipy.signal import savgol_filter
 from sklearn.decomposition import PCA
-from sklearn.neighbors import LocalOutlierFactor
 
 def get_vector_array(coords):
     """function for defining the vector features from each array of coordinates"""
@@ -149,18 +148,15 @@ def main():
                                                                             day, 
                                                                             conditions, 
                                                                             pca=pca,
-                                                                            filter_data=filter_data, 
-                                                                            rm_outliers=rm_outliers)
-            
+                                                                            filter_data=filter_data)
+
         # construct data for marble
         data = MARBLE.construct_dataset(
             anchor=pos,
             vector=vel,
             k=30,
-            stop_crit=0.0,
+            spacing=0.0,
             delta=2.0,
-            compute_laplacian=True,
-            local_gauges=False,
         )
 
         params = {
