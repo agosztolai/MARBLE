@@ -154,8 +154,8 @@ def main():
             
         # construct data for marble
         data = MARBLE.construct_dataset(
-            pos,
-            features=vel,
+            anchor=pos,
+            vector=vel,
             k=30,
             stop_crit=0.0,
             delta=2.0,
@@ -175,8 +175,8 @@ def main():
 
         model = MARBLE.net(data, params=params)
 
-        model.run_training(data, outdir="data/session_{}_20ms".format(day))
-        data = model.evaluate(data)
+        model.fit(data, outdir="data/session_{}_20ms".format(day))
+        data = model.transform(data)
 
         n_clusters = 50
         data = MARBLE.distribution_distances(data, n_clusters=n_clusters)
