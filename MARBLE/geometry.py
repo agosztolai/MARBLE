@@ -511,7 +511,7 @@ def compute_connections(data, gauges, processes=1):
 
     Args:
         data: Pytorch geometric data object
-        gauges (n,d,d matrix): Orthogonal unit vectors for each node
+        gauges (nxdxd matrix): Orthogonal unit vectors for each node
         processes: number of CPUs to use
 
     Returns:
@@ -568,7 +568,7 @@ def compute_eigendecomposition(A, k=None, eps=1e-8):
         return None
 
     if k is None:
-        A = A.to_dense()
+        A = A.to_dense().double()
     else:
         indices, values, size = A.indices(), A.values(), A.size()
         A = sp.coo_array((values, (indices[0], indices[1])), shape=size)
@@ -597,4 +597,4 @@ def compute_eigendecomposition(A, k=None, eps=1e-8):
             else:
                 A += sp.eye(A.shape[0]) * (eps * 10 ** (failcount - 1))
 
-    return evals, evecs
+    return evals.float(), evecs.float()
