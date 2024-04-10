@@ -154,8 +154,8 @@ def main():
             
         # construct data for marble
         data = MARBLE.construct_dataset(
-            pos,
-            features=vel,
+            anchor=pos,
+            vector=vel,
             k=30,
             stop_crit=0.0,
             delta=2.0,
