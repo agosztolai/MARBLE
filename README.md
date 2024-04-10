@@ -2,7 +2,7 @@
 
 MARBLE is an unsupervised geometric deep-learning method that can 
 
-1. Find interpretable latent representations of neural dynamics, more generally dynamical systems, or even more generally vector fields over manifolds.
+1. Find interpretable latent representations of neural dynamics. It also applies to non-linear dynamical systems in other domains or, more generally, vector fields over manifolds.
 2. Perform unbiased comparisons across conditions within the same animal (or dynamical system).
 3. Compare dynamics across animals or artificial neural networks.
 
