@@ -4,6 +4,8 @@ from torch_geometric.data import Batch
 from torch_geometric.data import Data
 from torch_geometric.transforms import RandomNodeSplit
 
+from procrustes import rotational
+
 from MARBLE import geometry as g
 from MARBLE import utils
 
@@ -23,6 +25,7 @@ def construct_dataset(
     var_explained=0.9,
     local_gauges=False,
     seed=None,
+    pre_align=False,
 ):
     """Construct PyG dataset from node positions and features.
 
@@ -135,12 +138,31 @@ def construct_dataset(
 
     #         data_list.append(data_)
 
+
+
     # collate datasets
     batch = Batch.from_data_list(data_list)
     batch.degree = k
     batch.number_of_resamples = number_of_resamples
     batch.num_systems = len(anchor)
     batch.num_conditions = len(anchor[0])
+    
+    
+    # for sys1, (anchor_) in enumerate(zip(anchor)):        
+    #     l_gauges, Sigma = g.compute_gauges(batch, n_geodesic_nb=n_geodesic_nb)
+
+    # compute procrustes for initialisation
+    initial_rotation = []
+    for sys1, (anchor_,) in enumerate(zip(anchor)):
+        if pre_align:
+            r = g.procrustes_analysis(torch.vstack(anchor_), torch.vstack(anchor[0])) # x rotated to y
+        else:
+            r = torch.eye(anchor[0][0].shape[1])   
+            
+        initial_rotation.append(r) # TODO check if r should be transpose
+
+    
+    batch.initial_rotations = initial_rotation
 
     # split into training/validation/test datasets
     split = RandomNodeSplit(split="train_rest", num_val=0.1, num_test=0.1)
@@ -196,28 +218,33 @@ def _compute_geometric_objects(
     if dim_emb != dim_signal:
         print("\nEmbedding dimension /= signal dimension, so manifold computations are disabled!")
 
-    if local_gauges:
-        try:
-            gauges, Sigma = g.compute_gauges(data, n_geodesic_nb=n_geodesic_nb)
-        except Exception as exc:
-            raise Exception(
-                "\nCould not compute gauges (possibly data is too sparse or the \
-                  number of neighbours is too small)"
-            ) from exc
-    else:
-        gauges = torch.eye(dim_emb).repeat(n, 1, 1)
+    #if local_gauges:
+    try:
+        l_gauges, Sigma = g.compute_gauges(data, n_geodesic_nb=n_geodesic_nb)
+    except Exception as exc:
+        raise Exception(
+            "\nCould not compute gauges (possibly data is too sparse or the \
+              number of neighbours is too small)"
+        ) from exc
+    #else:
+    global_gauges = torch.eye(dim_emb).repeat(n, 1, 1)
 
     L = g.compute_laplacian(data)
 
-    if local_gauges:
-        data.dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
-        print(f"---- Manifold dimension: {data.dim_man}")
+    dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
+    print(f"---- Manifold dimension: {dim_man}")
 
-        gauges = gauges[:, :, : data.dim_man]
-        R = g.compute_connections(data, gauges)
+    l_gauges = l_gauges[:, :, : dim_man]
+    l_gauges, normal_vectors = g.flip_gauges(data, l_gauges)
+
+    if local_gauges:
+        
+        data.dim_man = dim_man
+        
+        R = g.compute_connections(data, l_gauges)
 
         print("\n---- Computing kernels ... ", end="")
-        kernels = g.gradient_op(data.pos, data.edge_index, gauges)
+        kernels = g.gradient_op(data.pos, data.edge_index, l_gauges)
         kernels = [utils.tile_tensor(K, data.dim_man) for K in kernels]
         kernels = [K * R for K in kernels]
 
@@ -225,7 +252,7 @@ def _compute_geometric_objects(
 
     else:
         print("\n---- Computing kernels ... ", end="")
-        kernels = g.gradient_op(data.pos, data.edge_index, gauges)
+        kernels = g.gradient_op(data.pos, data.edge_index, global_gauges)
         Lc = None
 
     # print("\n---- Computing eigendecomposition ... ", end="")
@@ -235,6 +262,10 @@ def _compute_geometric_objects(
     data.kernels = [
         utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels
     ]
-    data.L, data.Lc, data.gauges, data.local_gauges = L, Lc, gauges, local_gauges
+    data.L, data.Lc, data.gauges, data.local_gauges, data.normal_vectors = (L,
+                                                                             Lc,
+                                                                             global_gauges,
+                                                                             local_gauges,
+                                                                             normal_vectors)
 
     return data

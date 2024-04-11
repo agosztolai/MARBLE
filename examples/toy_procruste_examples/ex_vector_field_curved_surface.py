@@ -14,19 +14,19 @@ def f1(x):
     return x * 0 + np.array([1, 1])
 
 
-# def f0(x):
-#     eps = 1e-1
-#     norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
-#     u = (x[:, [1]] + 1) / norm
-#     v = -(x[:, [0]] + 1) / norm
-#     return np.hstack([u, v])
+def f0(x):
+    eps = 1e-1
+    norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
+    u = (x[:, [1]] + 1) / norm
+    v = -(x[:, [0]] + 1) / norm
+    return np.hstack([u, v])
 
-# def f1(x):
-#     eps = 1e-1
-#     norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
-#     u = (x[:, [1]] + 1) / norm
-#     v = -(x[:, [0]] - 1) / norm
-#     return np.hstack([u, v])
+def f1(x):
+    eps = 1e-1
+    norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
+    u = (x[:, [1]] + 1) / norm
+    v = -(x[:, [0]] - 1) / norm
+    return np.hstack([u, v])
 
 def f2(x):
     eps = 1e-1
@@ -80,7 +80,7 @@ def main():
         new_endpoint = parabola(end_point[:, 0], end_point[:, 1])
         x[i] = parabola(p[:, 0], p[:, 1], alpha=alpha)
         y[i] = (new_endpoint - x[i]) / np.linalg.norm(new_endpoint - x[i]) * np.linalg.norm(v)
-        #alpha += 0.1
+        alpha += 0.1
 
     rotate=True
     if rotate:
@@ -110,7 +110,9 @@ def main():
         "inner_product_features":False,
         "global_align": True, # align dynamical systems orthogonally
         "final_grad": True, # compute orthogonal gradient at end of batch
-        "positional_grad": True,  # use gradient on positions or not
+        "positional_grad":True,  # use gradient on positions or not
+        "vector_grad":True,
+        "gauge_grad":True,
     }
     model = net(data, params=params)
     model.fit(data)
@@ -129,8 +131,6 @@ def main():
         rotation = rotations_learnt[i].cpu().detach().numpy() 
         p_rot = p @ rotation.T 
         v_rot = v @ rotation.T 
-        #p_rot = rotation.dot(p.T).T
-        #v_rot = rotation.dot(v.T).T
         pos_rotated.append(p_rot)
         vel_rotated.append(v_rot)
 

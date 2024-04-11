@@ -11,13 +11,23 @@ from MARBLE import smoothing as s
 class OrthogonalTransformLayer(nn.Module):
     """ Learn orthogonal transformation of output embeddings """
     
-    def __init__(self, size, enforce_rotation=True, enforce_orthogonality=True):
+    def __init__(self,
+                 size,
+                 initial_rotation=None,
+                 enforce_rotation=True,
+                 enforce_orthogonality=True
+                 ):
         super(OrthogonalTransformLayer, self).__init__()
         self.size = size
         self.enforce_rotation = enforce_rotation
         self.enforce_orthogonality = enforce_orthogonality
         # Initialize the identity matrix 
-        Q =  torch.randn(size, size) # torch.eye(size)# torch.eye(size)#  torch.randn(size, size)
+        
+        if initial_rotation is None:
+            Q = torch.eye(size) # torch.eye(size)# torch.eye(size)#  torch.randn(size, size)
+        else:
+            Q = initial_rotation # assign an initial rotation matrix
+            
         # Use QR decomposition to orthogonalize it
         #Q, _ = torch.linalg.qr(Q)
         # Ensure the determinant is +1 for a proper rotation

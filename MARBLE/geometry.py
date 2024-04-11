@@ -2,9 +2,14 @@
 import numpy as np
 import ot
 import scipy.sparse as sp
+from scipy.linalg import orthogonal_procrustes
+from procrustes import rotational, orthogonal
 import torch
 import torch_geometric.utils as PyGu
 import umap
+import matplotlib.pyplot as plt
+import networkx as nx
+
 from sklearn.cluster import KMeans
 from sklearn.cluster import MeanShift
 from sklearn.decomposition import PCA
@@ -22,6 +27,126 @@ from ptu_dijkstra_marble import connections, tangent_frames  # isort:skip
 from MARBLE.lib.cknn import cknneighbors_graph  # isort:skip
 from MARBLE import utils  # isort:skip
 
+def flip_gauges(data, l_gauges):
+    
+    edge_index = data.edge_index
+    pos = data.pos 
+    
+    # loop over each system
+    perpendicular_vectors = torch.zeros_like(pos)
+    flipped_gauges = torch.zeros_like(l_gauges)
+    for s in data.system.unique():
+        indices = (data.system==s).nonzero().squeeze()
+        #sub_pos = pos[indices]
+        #sub_edges = edge_index[:,torch.isin(edge_index, indices).any(axis=0)]
+        #sub_gauges = l_gauges[indices,:,:]
+    
+        f_gauges, perp_v = propagate_and_flip_gauges(pos, edge_index, l_gauges, indices)
+        perpendicular_vectors[indices,:] = perp_v
+        flipped_gauges[indices, : ,:] = f_gauges
+    
+    return flipped_gauges, perpendicular_vectors
+
+def propagate_and_flip_gauges(pos, edge_index, gauges, indices):
+    """
+    Starting from the first node, propagate through the graph and flip gauges to ensure
+    that all neighboring nodes have perpendicular vectors with a positive dot product.
+
+    Parameters:
+    - edge_index: Tensor of shape [2, E] representing the indices of edges in the graph.
+    - gauges: Tensor of shape [N, 3, 2] representing the gauges of each node.
+
+    Returns:
+    - flipped_gauges: Tensor of shape [N, 3, 2] representing the flipped gauges.
+    """    
+    
+    flipped_gauges = gauges.clone()
+    perpendicular_vectors = torch.cross(flipped_gauges[:, :, 0], flipped_gauges[:, :, 1], dim=1)
+    N = gauges.shape[0]  # Number of nodes
+    
+    visited_nodes = set()
+    node_stack = [indices[0]]  # Start from the first node
+
+    while node_stack:
+        current_node = node_stack.pop()
+        if current_node in visited_nodes:
+            continue
+        visited_nodes.add(current_node)
+        
+        # Find the neighbors of the current node
+        neighbors = edge_index[1, edge_index[0] == current_node]
+        
+        for neighbor in neighbors:
+            # Compute the dot product
+            dot_product = torch.dot(perpendicular_vectors[current_node], perpendicular_vectors[neighbor])
+            if dot_product < 0:
+                # Flip gauge by swapping the vectors before crossing
+                flipped_gauges[neighbor, :, :] = flipped_gauges[neighbor, :, torch.tensor([1, 0])]
+                # Update the perpendicular vector for the flipped gauge
+                perpendicular_vectors[neighbor] = torch.cross(flipped_gauges[neighbor, :, 0], flipped_gauges[neighbor, :, 1])
+            
+            if neighbor.item() not in visited_nodes:
+                node_stack.append(neighbor.item())
+
+    # check if globally pointing in or out
+    perpendicular_vectors = np.cross(flipped_gauges[indices, :, 0], flipped_gauges[indices, :, 1])     
+    flipped_gauges = flipped_gauges[indices,:,:]     
+    div = compute_3d_divergence_global(pos[indices,:].numpy(), perpendicular_vectors)
+    
+    # if pointing inwards...
+    if np.mean(div) < 0:
+        flipped_gauges = flipped_gauges.flip(2) 
+        perpendicular_vectors = -perpendicular_vectors # flip the direction
+
+    return torch.Tensor(flipped_gauges), torch.Tensor(perpendicular_vectors)
+
+def plot3d(x,y):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    
+    ax.quiver(pos[:,0],
+              pos[:,1],
+              pos[:,2],
+                perpendicular_vectors[:,0],
+                perpendicular_vectors[:,1],
+                perpendicular_vectors[:,2], )
+
+    ax.set_xlabel('X-axis')
+    ax.set_ylabel('Y-axis')
+    ax.set_zlabel('Z-axis')
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111, )
+    
+    ax.quiver(pos[:,0],
+              pos[:,1],
+                perpendicular_vectors[:,0],
+                perpendicular_vectors[:,1],
+                )
+
+    ax.set_xlabel('X-axis')
+    ax.set_ylabel('Y-axis')
+    
+
+def compute_3d_divergence_global(positions, vectors):
+
+    N = positions.shape[0]
+    
+    # Initialize divergence array
+    divergence = np.zeros(N)
+    
+    # Compute divergence at each point using all other points
+    for i in range(N):
+        delta_positions = positions - positions[i]
+        norm_delta_positions = np.linalg.norm(delta_positions, axis=1) + 1e-9
+        
+        # Compute divergence contribution from each other point
+        divergence_contributions = np.sum(vectors * delta_positions, axis=1) / norm_delta_positions
+        
+        # Average to get divergence at the point
+        divergence[i] = np.mean(divergence_contributions)
+        
+    return divergence
 
 def furthest_point_sampling(x, N=None, spacing=0.0, start_idx=0):
     """A greedy O(N^2) algorithm to do furthest points sampling
@@ -595,3 +720,85 @@ def compute_eigendecomposition(A, k=None, eps=1e-8):
             A += sp.eye(A.shape[0]) * (eps * 10 ** (failcount - 1))
 
     return evals, evecs
+
+def procrustes_analysis(x, y, scale=False):
+    """
+    Perform Procrustes analysis to find the best rotation matrix that aligns X to Y.
+    :param X: Source points (tensor of shape [n_points, n_dims])
+    :param Y: Target points (tensor of shape [n_points, n_dims])
+    :return: Rotation matrix
+    """
+    
+    min_shape = min(x.shape[0],y.shape[0])
+    x = x[:min_shape,:]
+    y = y[:min_shape,:]
+    
+    edge_index = knn_graph(x, k=10)
+    g = nx.from_edgelist([tuple(row) for row in edge_index.numpy().T])
+    eig = nx.closeness_centrality(g)
+    weight = list(eig.values())
+    
+    res = rotational(x.numpy(), y.numpy(),
+                     pad=True, translate=False, scale=False, weight=weight,
+                     ) # (A @ R) - B
+    r = torch.Tensor(res.t) # extract rotation matrix    
+    #r = r.T
+    return r
+
+
+
+def split_by_system(target_id, system_ids, matrix): #, limit_rows=True):
+    """ function for separating a matrix into a list of matrices per system """
+    
+    # extract the unique systems
+    sys_ids = system_ids.unique().tolist()
+    
+    # extract list of matrices separated by system id
+    sub_matrices = [matrix[system_ids[target_id] == gid]  for gid in sys_ids]
+    
+    # extract the indices of the original matrix for each system
+    indices = [(system_ids[target_id] == gid).nonzero() for gid in sys_ids]
+    
+    return sub_matrices, indices
+
+def plot3d(x,y):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    
+    ax.scatter(x[:,0].cpu().detach().numpy(),
+                x[:,1].cpu().detach().numpy(),
+                x[:,2].cpu().detach().numpy(), c = 'b', marker='o')
+    ax.scatter(y[:,0].cpu().detach().numpy(),
+                y[:,1].cpu().detach().numpy(),
+                y[:,2].cpu().detach().numpy(), c = 'r', marker='o')
+    ax.set_xlabel('X-axis')
+    ax.set_ylabel('Y-axis')
+    ax.set_zlabel('Z-axis')
+    
+def plot3d(x,y):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    
+    new_x = x @ r
+
+    ax.scatter(new_x[:,0],
+               new_x[:,1],
+               new_x[:,2], c = 'b', marker='o')
+    ax.scatter(y[:,0],
+               y[:,1],
+               y[:,2], c = 'r', marker='o')
+    ax.set_xlabel('X-axis')
+    ax.set_ylabel('Y-axis')
+    ax.set_zlabel('Z-axis')
+    
+
+def plot2d(x,y):
+    fig = plt.figure()
+    ax = fig.add_subplot(111,)
+    
+    ax.scatter(x[:,0].cpu().detach().numpy(),
+                x[:,1].cpu().detach().numpy(), c = 'b', marker='o')
+    ax.scatter(y[:,0].cpu().detach().numpy(),
+                y[:,1].cpu().detach().numpy(), c = 'r', marker='o')
+    ax.set_xlabel('X-axis')
+    ax.set_ylabel('Y-axis')

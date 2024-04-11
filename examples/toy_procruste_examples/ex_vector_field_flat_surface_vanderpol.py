@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
 
 def get_pos_vel(mus, 
-                alpha=0.2, 
+                alpha=0.4, 
                 n=200,
                 t = np.array([0]),#np.arange(0, 3, 0.5),
                 area = [[-3, -3],[3, 3]]
@@ -35,8 +35,7 @@ def get_pos_vel(mus,
 
 def main():
 
-
-    mus = np.linspace(-1,1,5)
+    mus = np.linspace(-1,1,7)
     x, y, rot = get_pos_vel(mus)
 
     # construct data object
@@ -55,7 +54,9 @@ def main():
         "inner_product_features":False,
         "global_align":True, # align dynamical systems orthogonally
         "final_grad": True, # compute orthogonal gradient at end of batch
-        "positional_grad":True,  # use gradient on positions or not
+        "positional_grad":False,  # compute orthogonal gradient on positions or not
+        "vector_grad": False,
+        "gauge_grad":True,
     }
     
 
@@ -76,17 +77,15 @@ def main():
     vel_rotated = []
     for i, (p, v) in enumerate(zip(x,y)):
         rotation = rotations_learnt[i].cpu().detach().numpy() 
-        p_rot = p @ rotation 
-        v_rot = v @ rotation 
-        #p_rot = rotation.dot(p.T).T
-        #v_rot = rotation.dot(v.T).T
+        p_rot = p @ rotation.T 
+        v_rot = v @ rotation.T 
         pos_rotated.append(p_rot)
         vel_rotated.append(v_rot)
 
     data_ = preprocessing.construct_dataset(pos_rotated, vel_rotated, k=15, local_gauges=False)
     # plot results
     plotting.fields(data_,  col=2)
-    plt.savefig('fields.png')
+    plt.savefig('fields_rotated.png')
 
     # plot results
     plotting.fields(data,  col=2)

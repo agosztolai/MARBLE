@@ -80,6 +80,7 @@ class net(nn.Module):
         self._epoch = 0  # to resume optimisation
         self.parse_parameters(data)
         self.check_parameters(data)
+        self.initial_rotations = data.initial_rotations
         self.setup_layers()
         self.loss = loss_fun()
         self.loss_orth = ortho_loss()
@@ -222,7 +223,7 @@ class net(nn.Module):
         # add list of orthogonal transform layers - one for each system
         if self.params['global_align']:
             self.orthogonal_transform = nn.ModuleList([
-                                            layers.OrthogonalTransformLayer(s) for _ in range(self.params["n_systems"])
+                                            layers.OrthogonalTransformLayer(s, self.initial_rotations[i]) for i in range(self.params["n_systems"])
                                         ])
             self.orthogonal_transform[0].Q = nn.Parameter(torch.eye(s))
             #self.orthogonal_transform[0].Q.requires_grad = False # fix the first system from rotating.
@@ -272,8 +273,8 @@ class net(nn.Module):
         if self.params["global_align"]:  
             #last_size = adjs[-1][2]
             #out_ = [o[: last_size[1]] for o in out]            
-            x_s, indices = group_dd_by_system(n_id, data.system, x, limit_rows=False)
-            p_s, indices = group_dd_by_system(n_id, data.system, p, limit_rows=False)
+            x_s, indices = geometry.split_by_system(n_id, data.system, x,) # limit_rows=False)
+            p_s, indices = geometry.split_by_system(n_id, data.system, p,) # limit_rows=False)
 
             rotated_x = [self.orthogonal_transform[i](x_s[i].view(-1,dim_space)).view(-1,x_s[i].shape[1]) for i in range(len(x_s))]    
             rotated_p = [self.orthogonal_transform[i](p_s[i].view(-1,dim_space)).view(-1,p_s[i].shape[1]) for i in range(len(p_s))]    
@@ -379,7 +380,7 @@ class net(nn.Module):
         #    out = torch.hstack([p[n_id_orig[: last_size[1]]], out])           
 
         # remove positions from encoder embedding
-        if not self.params["include_positions"]:
+        if not self.params["include_positions"] and self.params['positional_grad']:
             emb = self.enc(out[:,data.pos.shape[1]:])
         else: 
             emb = self.enc(out)
@@ -442,7 +443,7 @@ class net(nn.Module):
 
         data.emb = emb #.detach()
         data.out = out #.detach()
-
+        
         return data
 
     def batch_loss(self, data, loader, train=False, verbose=False, optimizer=None):
@@ -524,7 +525,12 @@ class net(nn.Module):
                         optimizer.step()
     
     
+        # TODO move this into preprcoessing or utils
+        if not self.params['vector_grad'] and not self.params['positional_grad'] and not self.params['gauge_grad']:
+            self.params['global_align'] = False
+        
         # Compute custom loss for the entire dataset after all batches are processed
+        custom_loss = 0
         if self.params['global_align']:
             # compute gradient and backpropagate on full set of data
             if self.params['final_grad']:
@@ -540,17 +546,32 @@ class net(nn.Module):
                 data_ = self.transform_grad(data)  # transforms the entire dataset
                 out = data_.out.to(data.x.device)
                 
-                # compute orthogonal loss on the vectors  
-                custom_loss = self.loss_orth(out[:,dim_space:2*dim_space], data,
-                                             torch.arange(len(data.x)), len(data.x),
-                                             dist_type='dynamic', )
-                
+                # compute orthogonal loss on the vectors                  
+                if self.params['vector_grad']:
+                    vector_loss = self.loss_orth(out[:,dim_space:2*dim_space], data,
+                                                 torch.arange(len(data.x)), len(data.x),
+                                                 dist_type='dynamic', )
+                    custom_loss = custom_loss + vector_loss
+
                 # if we include positions then use these too
                 if self.params['positional_grad']:
                     positional_loss = self.loss_orth(out[:,:dim_space], data,
                                                      torch.arange(len(data.x)), len(data.x),
                                                      dist_type='positional',)
                     custom_loss = custom_loss + positional_loss
+                    
+                if self.params['gauge_grad']:
+                    # rotate the normal vectors...
+                    nv, indices = geometry.split_by_system(torch.arange(len(data.x)), data.system, data.normal_vectors) # limit_rows=False)
+                    rotated_nv = [self.orthogonal_transform[i](nv[i].view(-1, dim_space)).view(-1, nv[i].shape[1]) for i in range(len(nv))]    
+                    nv = torch.zeros_like(data.normal_vectors)
+                    nv[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_nv, dim=0) 
+                    
+                    # compute loss on gauges
+                    gauge_loss = self.loss_orth(nv, data,
+                                                torch.arange(len(data.x)), len(data.x),
+                                                dist_type='dynamic',)
+                    custom_loss = custom_loss + gauge_loss
                     
                 # if self.params['derivative_grad']:
                 #     derivative_loss = self.loss_orth(out[:,:dim_space], data,
@@ -559,9 +580,10 @@ class net(nn.Module):
                 #     custom_loss = custom_loss + positional_loss
                     
                     
-                custom_loss = custom_loss.mean(axis=1) #[:,fixed_layer] # only taking the first row 
+                #custom_loss = custom_loss.max(axis=1)[0] #[:,fixed_layer] # only taking the first row 
+                custom_loss = custom_loss.mean(axis=1)
                 cum_custom_loss += float(custom_loss.mean())
-                
+                # print(custom_loss)
                 if optimizer is not None:
                     for i, layer in enumerate(self.orthogonal_transform):
                             optimizer.zero_grad()  # Reset gradients to zero for all model parameters                
@@ -739,38 +761,28 @@ class ortho_loss(nn.Module):
     """ custom loss based on orthogonal transform distance """
     
     def forward(self, out, data=None, n_id=None, n_batch=None, dist_type='dynamic'):
-        #dim_space = data.x.shape[1]
                
         # extract the directional derivatives per system
-        dd, indices = group_dd_by_system(n_id[:n_batch], data.system, out, limit_rows=False)
+        features, indices = geometry.split_by_system(n_id[:n_batch], data.system, out,) #) limit_rows=False)
 
         # get condition ids for each system        
         cons = [data.condition[n_id[idx]].squeeze() for idx in indices]
         
-        # limit dd to vectors        
-        #dd_pos = [d[:,:dim_space] for d in dd]
-        #dd_vec = [d[:,dim_space:2*dim_space] for d in dd]  
-               
-
-        #pos_dist = distance(dd_pos, cons, dist_type=dist_type,  return_paired=True)
-        dist = distance(dd, cons, dist_type=dist_type,  return_paired=True)
+        # compute distance between each system
+        dist = distance(features, cons, dist_type=dist_type,  return_paired=True)
         
         return dist # + pos_dist # + vec2_dist_1 + vec2_dist_2 + vec2_dist_3
         #return vec_dist
         #return dist
 
-def group_dd_by_system(target_id, system_ids, dd, limit_rows=True):
-    """ function for grouping directional derivatives by system """
-    sys_ids = system_ids.unique().tolist()
-    dds = [dd[system_ids[target_id] == gid]  for gid in sys_ids]
-    indices = [(system_ids[target_id] == gid).nonzero() for gid in sys_ids]
 
-    # procrustes requires us to have same size matrices
-    if limit_rows:
-        max_rows = min([u.shape[0] for u in dds])
-        return [dd[:max_rows,:] for dd in dds], indices
-    else:
-        return dds, indices
+
+    # # procrustes requires us to have same size matrices
+    # if limit_rows:
+    #     max_rows = min([u.shape[0] for u in dds])
+    #     return [dd[:max_rows,:] for dd in dds], indices
+    # else:
+    #     return dds, indices
 
 def euclidean_distance(a, b):
     return torch.norm(a - b, dim=1)  # Compute Euclidean distance
@@ -783,11 +795,11 @@ def distance(embeddings, condition, dist_type='dynamic', return_paired=False):
             if dist_type=='mmd':
                 dist = mmd_distance(embeddings[i], embeddings[j])
             if dist_type=='positional':  
-                dist = svd_distance(embeddings[i], embeddings[j])
+                dist = positional_distance(embeddings[i], embeddings[j])
             if dist_type=='dynamic':
-                dist = svd_distance_2(embeddings[i], embeddings[j])
+                dist = dynamic_distance(embeddings[i], embeddings[j])
             if dist_type=='condition_procrustes':                
-                dist = svd_distance(embeddings[i], embeddings[j])
+                dist = positional_distance(embeddings[i], embeddings[j])
                 intersection = utils.torch_intersect(condition[i].unique(), condition[j].unique())
                 condition_emb_1 = [embeddings[i][condition[i]==c,:] for c in intersection]
                 condition_emb_2 = [embeddings[j][condition[j]==c,:] for c in intersection]
@@ -820,7 +832,7 @@ def mmd_distance(x, y, sigma=1.0):
     xy_kernel = gaussian_kernel(x, y, sigma)
     return x_kernel.mean() + y_kernel.mean() - 2 * xy_kernel.mean()
 
-def svd_distance_2(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+def dynamic_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     """
     Computes singular value decomposition of product of vectors
     """
@@ -839,7 +851,7 @@ def svd_distance_2(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     s = (s + 1)/2 # zero is minimum and 1 is max
     return 1-s
 
-def svd_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+def positional_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     """
     Computes singular value decomposition of product of vectors
     """
@@ -848,8 +860,6 @@ def svd_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     y = _matrix_normalize(y, dim=0)
 
     # Compute SVD of the product of X and Y.T
-    #u, s, v = torch.linalg.svd(x @ y.T) # or x @ y.T
-    #u_, s_, v_ = torch.linalg.svd(x @ x.T) # or x @ y.T
     u, s, v = torch.linalg.svd(x @ y.T)  # or x @ y.T
     s = torch.sum(s) 
     return 1-s
