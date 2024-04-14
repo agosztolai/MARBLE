@@ -28,24 +28,26 @@ from MARBLE.lib.cknn import cknneighbors_graph  # isort:skip
 from MARBLE import utils  # isort:skip
 
 def flip_gauges(data, l_gauges):
-    
+    """ flips the gauges for each system to get consistent normal vectors """
     edge_index = data.edge_index
     pos = data.pos 
     
     # loop over each system
-    perpendicular_vectors = torch.zeros_like(pos)
+    normal_vectors = torch.zeros_like(pos)
     flipped_gauges = torch.zeros_like(l_gauges)
-    for s in data.system.unique():
-        indices = (data.system==s).nonzero().squeeze()
-        #sub_pos = pos[indices]
-        #sub_edges = edge_index[:,torch.isin(edge_index, indices).any(axis=0)]
-        #sub_gauges = l_gauges[indices,:,:]
     
-        f_gauges, perp_v = propagate_and_flip_gauges(pos, edge_index, l_gauges, indices)
-        perpendicular_vectors[indices,:] = perp_v
+    # loop over each system
+    for s in data.system.unique():
+        
+        # find indices related to system of interest
+        indices = (data.system==s).nonzero().squeeze()
+        
+        # flip gauges and extract normal vectors
+        f_gauges, nv = propagate_and_flip_gauges(pos, edge_index, l_gauges, indices)
+        normal_vectors[indices,:] = nv
         flipped_gauges[indices, : ,:] = f_gauges
     
-    return flipped_gauges, perpendicular_vectors
+    return flipped_gauges, normal_vectors
 
 def propagate_and_flip_gauges(pos, edge_index, gauges, indices):
     """
@@ -54,15 +56,14 @@ def propagate_and_flip_gauges(pos, edge_index, gauges, indices):
 
     Parameters:
     - edge_index: Tensor of shape [2, E] representing the indices of edges in the graph.
-    - gauges: Tensor of shape [N, 3, 2] representing the gauges of each node.
+    - gauges: Tensor of shape [N, dim_space, dim_man] representing the gauges of each node.
 
     Returns:
-    - flipped_gauges: Tensor of shape [N, 3, 2] representing the flipped gauges.
+    - flipped_gauges: Tensor of shape [N, dim_space, dim_man] representing the flipped gauges.
     """    
     
     flipped_gauges = gauges.clone()
     perpendicular_vectors = torch.cross(flipped_gauges[:, :, 0], flipped_gauges[:, :, 1], dim=1)
-    N = gauges.shape[0]  # Number of nodes
     
     visited_nodes = set()
     node_stack = [indices[0]]  # Start from the first node

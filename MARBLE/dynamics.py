@@ -163,6 +163,42 @@ def embed_parabola(pos, vel, alpha=0.05):
         vel[i] = new_endpoint - pos[i]
     return pos, vel
 
+def sample_2d_circle(N=100, radius=1, method="uniform", seed=0):
+    """Sample N points within a 2D circle."""
+    np.random.seed(seed)
+    
+    if method == "uniform":
+        # Estimate grid size based on desired N and area of the circle
+        area_of_circle = np.pi * radius**2
+        side_length = np.sqrt(area_of_circle)  # Side length of square that bounds the circle
+        density = np.sqrt(N / area_of_circle)  # Points per unit area
+        
+        # Calculate the number of points on each side of the square to approximate desired density
+        num_points_side = int(density * side_length)
+        
+        # Generate a square grid of points
+        x = np.linspace(-radius, radius, num_points_side)
+        y = np.linspace(-radius, radius, num_points_side)
+        x, y = np.meshgrid(x, y)
+        points = np.vstack((x.flatten(), y.flatten())).T
+        
+        # Subsample points that lie within the circle
+        points = points[np.sqrt(points[:,0]**2 + points[:,1]**2) <= radius]
+        
+        # If we have too many points, randomly select N of them
+        if len(points) > N:
+            indices = np.random.choice(len(points), N, replace=False)
+            points = points[indices]
+
+    elif method == "random":  # A redundant case as uniform sampling is inherently random
+        # The same method applies since we are sampling within a circle uniformly
+        theta = np.random.uniform(0, 2*np.pi, N)
+        r = np.sqrt(np.random.uniform(0, 1, N)) * radius
+        x = r * np.cos(theta)
+        y = r * np.sin(theta)
+        points = np.vstack((x, y)).T
+
+    return points
 
 def sample_2d(N=100, interval=None, method="uniform", seed=0):
     """Sample N points in a 2D area."""
@@ -183,11 +219,17 @@ def sample_2d(N=100, interval=None, method="uniform", seed=0):
     return x
 
 
-def initial_conditions(n, reps, area=None, seed=0, method="random"):
+def initial_conditions(n, reps, area=None, radius=None, seed=0, method="random", shape='rectangle'):
     """Generate iniital condition."""
     if area is None:
         area = [[-3, -3], [3, 3]]
-    X0_range = [sample_2d(n, area, method, seed=i + seed) for i in range(reps)]
+    if radius is None:
+        radius=1
+        
+    if shape=='rectangle':
+        X0_range = [sample_2d(n, interval=area, method=method, seed=i + seed) for i in range(reps)]
+    elif shape=='circle':
+        X0_range =  [sample_2d_circle(n, radius=radius, method=method, seed=i + seed) for i in range(reps)]
 
     return X0_range
 

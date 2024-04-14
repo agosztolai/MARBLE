@@ -27,7 +27,8 @@ class OrthogonalTransformLayer(nn.Module):
             Q = torch.eye(size) # torch.eye(size)# torch.eye(size)#  torch.randn(size, size)
         else:
             Q = initial_rotation # assign an initial rotation matrix
-            
+        #Q = torch.eye(size)
+        
         # Use QR decomposition to orthogonalize it
         #Q, _ = torch.linalg.qr(Q)
         # Ensure the determinant is +1 for a proper rotation

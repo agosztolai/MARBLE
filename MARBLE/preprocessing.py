@@ -234,26 +234,29 @@ def _compute_geometric_objects(
     dim_man = g.manifold_dimension(Sigma, frac_explained=var_explained)
     print(f"---- Manifold dimension: {dim_man}")
 
-    l_gauges = l_gauges[:, :, : dim_man]
-    l_gauges, normal_vectors = g.flip_gauges(data, l_gauges)
+    l_gauges = l_gauges[:, :, :dim_man]
+    R = g.compute_connections(data, l_gauges)
+    Lc = g.compute_connection_laplacian(data, R)
+
+    if dim_man < dim_signal:
+        l_gauges, normal_vectors = g.flip_gauges(data, l_gauges)
+    else:
+        normal_vectors = []
 
     if local_gauges:
         
-        data.dim_man = dim_man
-        
-        R = g.compute_connections(data, l_gauges)
+        data.dim_man = dim_man        
 
         print("\n---- Computing kernels ... ", end="")
         kernels = g.gradient_op(data.pos, data.edge_index, l_gauges)
         kernels = [utils.tile_tensor(K, data.dim_man) for K in kernels]
         kernels = [K * R for K in kernels]
 
-        Lc = g.compute_connection_laplacian(data, R)
 
     else:
         print("\n---- Computing kernels ... ", end="")
         kernels = g.gradient_op(data.pos, data.edge_index, global_gauges)
-        Lc = None
+        #Lc = None
 
     # print("\n---- Computing eigendecomposition ... ", end="")
     L = g.compute_eigendecomposition(L)
@@ -262,10 +265,10 @@ def _compute_geometric_objects(
     data.kernels = [
         utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels
     ]
-    data.L, data.Lc, data.gauges, data.local_gauges, data.normal_vectors = (L,
+    data.L, data.Lc, data.gauges, data.l_gauges, data.normal_vectors = (L,
                                                                              Lc,
                                                                              global_gauges,
-                                                                             local_gauges,
+                                                                             l_gauges,
                                                                              normal_vectors)
 
     return data

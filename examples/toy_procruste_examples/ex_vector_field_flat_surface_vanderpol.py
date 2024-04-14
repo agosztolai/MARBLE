@@ -6,13 +6,14 @@ import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
 
 def get_pos_vel(mus, 
-                alpha=0.4, 
-                n=200,
+                alpha=0.2, 
+                n=250,
                 t = np.array([0]),#np.arange(0, 3, 0.5),
-                area = [[-3, -3],[3, 3]]
+                area = [[-3, -3],[3, 3]],
+                radius=3,
                 ):
     
-    X0_range = dynamics.initial_conditions(n, len(mus), area, method='uniform')
+    X0_range = dynamics.initial_conditions(n, len(mus), area=area, radius=radius, method='random', shape='rectangle')
 
     pos, vel = [], []
     for X0, m in zip(X0_range, mus):
@@ -23,7 +24,7 @@ def get_pos_vel(mus,
     pos, vel = dynamics.embed_parabola(pos, vel, alpha=alpha)
     rotation = []
     for i, (p, v) in enumerate(zip(pos,vel)):
-        random_rotation = R.random()        
+        random_rotation = R.random(random_state=i)        
         p = random_rotation.apply(p)
         v = random_rotation.apply(v)  
         pos[i] = p
@@ -35,11 +36,13 @@ def get_pos_vel(mus,
 
 def main():
 
-    mus = np.linspace(-1,1,7)
+    mus = np.linspace(-1,1,11)
     x, y, rot = get_pos_vel(mus)
-
+    k = 10
+    frac_geodesic_nb = 2
+    
     # construct data object
-    data = preprocessing.construct_dataset(x, y, k=15, local_gauges=False)
+    data = preprocessing.construct_dataset(x, y, k=k, frac_geodesic_nb=frac_geodesic_nb, local_gauges=False)
     
     params = {
         "lr":0.1,
@@ -49,20 +52,20 @@ def main():
         "out_channels": 2,
         "batch_size" : 64, # batch size
         #"emb_norm": True,
+        "scalar_diffusion": True, # diffusion with graph Laplacian
+        "vector_diffusion": False, # diffusion over connection Laplacian
         "include_positions":False, # don't / use positional features
         "epochs": 100,
-        "inner_product_features":False,
+        "inner_product_features":False, # compute inner product of features
         "global_align":True, # align dynamical systems orthogonally
         "final_grad": True, # compute orthogonal gradient at end of batch
-        "positional_grad":False,  # compute orthogonal gradient on positions or not
-        "vector_grad": False,
-        "gauge_grad":True,
+        "positional_grad":True,  # compute orthogonal gradient on positions or not
+        "vector_grad":True, # compute gradient based on cosine difference of systems
+        "gauge_grad":True, # use the normal vectors of the local gauges for gradient
     }
     
-
     model = net(data, params=params)
     model.fit(data)
-
 
     # evaluate model on data
     data = model.transform(data)
@@ -82,7 +85,8 @@ def main():
         pos_rotated.append(p_rot)
         vel_rotated.append(v_rot)
 
-    data_ = preprocessing.construct_dataset(pos_rotated, vel_rotated, k=15, local_gauges=False)
+    data_ = preprocessing.construct_dataset(pos_rotated, vel_rotated, k=k, frac_geodesic_nb=frac_geodesic_nb, local_gauges=False)
+
     # plot results
     plotting.fields(data_,  col=2)
     plt.savefig('fields_rotated.png')

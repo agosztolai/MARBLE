@@ -76,8 +76,10 @@ def move_to_gpu(model, data, adjs=None):
 
     data.kernels = [K.to(device) for K in data.kernels]
     data.gauges = data.gauges.to(device)
-    data.local_gauges = data.gauges.to(device)
-    data.normal_vectors = data.normal_vectors.to(device)
+    data.l_gauges = data.l_gauges.to(device)
+    
+    if data.normal_vectors != []:
+        data.normal_vectors = data.normal_vectors.to(device)
     
     if adjs is None:
         return model, data, None

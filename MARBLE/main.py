@@ -135,8 +135,11 @@ class net(nn.Module):
         if self.params["vec_norm"]:
             assert data.x.shape[1] > 1, "Using vec_norm=True is not permitted for scalar signals"
 
-        if self.params["diffusion"]:
+        if self.params["scalar_diffusion"]:
             assert hasattr(data, "L"), "No Laplacian found. Compute it in preprocessing()!"
+        
+        if self.params["vector_diffusion"]:
+            assert hasattr(data, "Lc"), "No Laplacian found. Compute it in preprocessing()!"
 
         pars = [
             "batch_size",
@@ -149,7 +152,8 @@ class net(nn.Module):
             "dim_emb",
             "frac_sampled_nb",
             "dropout",
-            "diffusion",
+            "scalar_diffusion",
+            "vector_diffusion",
             "hidden_channels",
             "out_channels",
             "bias",
@@ -226,7 +230,7 @@ class net(nn.Module):
                                             layers.OrthogonalTransformLayer(s, self.initial_rotations[i]) for i in range(self.params["n_systems"])
                                         ])
             self.orthogonal_transform[0].Q = nn.Parameter(torch.eye(s))
-            #self.orthogonal_transform[0].Q.requires_grad = False # fix the first system from rotating.
+            self.orthogonal_transform[0].Q.requires_grad = False # fix the first system from rotating.
             
 
 
@@ -244,13 +248,22 @@ class net(nn.Module):
         mask = data.mask
 
         # diffusion
-        if self.params["diffusion"]:
-            if hasattr(data, "Lc"):
-                x = geometry.global_to_local_frame(x, data.gauges)
-                x = self.diffusion(x, data.L, Lc=data.Lc, method="spectral")
-                x = geometry.global_to_local_frame(x, data.gauges, reverse=True)
-            else:
-                x = self.diffusion(x, data.L, method="spectral")
+        if self.params["vector_diffusion"]:
+            #if hasattr(data, "Lc"):                
+            # rotate local gauges if performing vector diffusion ... 
+            if self.params['gauge_grad']:
+                l_gauges_s, indices = geometry.split_by_system(torch.arange(len(data.x)), data.system, data.l_gauges) # limit_rows=False)
+                rotated_gauges = [self.orthogonal_transform[i](l_gauges_s[i].view(-1, dim_space)).view(-1, l_gauges_s[i].shape[1], l_gauges_s[i].shape[2]) for i in range(len(l_gauges_s))]    
+                l_gauges = torch.zeros_like(data.l_gauges)
+                l_gauges[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_gauges, dim=0) 
+                l_gauges = l_gauges.detach()                    
+            
+            # perform vector diffusion
+            x = geometry.global_to_local_frame(x, l_gauges)
+            x = self.diffusion(x, data.L, Lc=data.Lc, method="spectral")
+            x = geometry.global_to_local_frame(x, l_gauges, reverse=True)
+        elif self.params['scalar_diffusion']:
+            x = self.diffusion(x, data.L, method="spectral")
 
         # local gauges
         if self.params["inner_product_features"] or (dim_man < dim_space): # self.params['global_align'] or 
@@ -272,19 +285,29 @@ class net(nn.Module):
         # learn orthogonal transformation before gradients?
         if self.params["global_align"]:  
             #last_size = adjs[-1][2]
-            #out_ = [o[: last_size[1]] for o in out]            
-            x_s, indices = geometry.split_by_system(n_id, data.system, x,) # limit_rows=False)
-            p_s, indices = geometry.split_by_system(n_id, data.system, p,) # limit_rows=False)
-
+            #out_ = [o[: last_size[1]] for o in out]       
+            
+            # transform vectors
+            x_s, indices = geometry.split_by_system(n_id, data.system, x,) 
             rotated_x = [self.orthogonal_transform[i](x_s[i].view(-1,dim_space)).view(-1,x_s[i].shape[1]) for i in range(len(x_s))]    
-            rotated_p = [self.orthogonal_transform[i](p_s[i].view(-1,dim_space)).view(-1,p_s[i].shape[1]) for i in range(len(p_s))]    
-
             x = torch.zeros_like(x)
-            p = torch.zeros_like(p)
             x[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_x, dim=0) 
+
+            # transform positions
+            p_s, indices = geometry.split_by_system(n_id, data.system, p,) 
+            rotated_p = [self.orthogonal_transform[i](p_s[i].view(-1,dim_space)).view(-1,p_s[i].shape[1]) for i in range(len(p_s))]    
+            p = torch.zeros_like(p)
             p[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_p, dim=0) 
             
-                    
+
+                
+                # transform normal vectors of local tangent spaces
+                # nv, indices = geometry.split_by_system(torch.arange(len(data.x)), data.system, data.normal_vectors) # limit_rows=False)
+                # rotated_nv = [self.orthogonal_transform[i](nv[i].view(-1, dim_space)).view(-1, nv[i].shape[1]) for i in range(len(nv))]    
+                # nv = torch.zeros_like(data.normal_vectors)
+                # nv[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_nv, dim=0) 
+                # data.normal_vectors = nv
+            
         # # Create a 3D plot
         # fig = plt.figure()
         # ax = fig.add_subplot(111, projection='3d')
@@ -345,7 +368,11 @@ class net(nn.Module):
 
         # inner products
         if self.params["inner_product_features"]:
-            out = self.inner_products(out)
+            if self.params['include_positions'] or self.params['positional_grad']:
+                out_inner = self.inner_products(out[1:]) # don't include positions
+                out = torch.cat([out[0], out_inner], axis=1)
+            else:
+                out = self.inner_products(out) 
         else:
             out = torch.cat(out, axis=1)
             
@@ -552,6 +579,7 @@ class net(nn.Module):
                                                  torch.arange(len(data.x)), len(data.x),
                                                  dist_type='dynamic', )
                     custom_loss = custom_loss + vector_loss
+                    print(vector_loss.mean(axis=1))
 
                 # if we include positions then use these too
                 if self.params['positional_grad']:
@@ -559,18 +587,22 @@ class net(nn.Module):
                                                      torch.arange(len(data.x)), len(data.x),
                                                      dist_type='positional',)
                     custom_loss = custom_loss + positional_loss
-                    
+                    print(positional_loss.mean(axis=1))
+
                 if self.params['gauge_grad']:
+                    
                     # rotate the normal vectors...
                     nv, indices = geometry.split_by_system(torch.arange(len(data.x)), data.system, data.normal_vectors) # limit_rows=False)
                     rotated_nv = [self.orthogonal_transform[i](nv[i].view(-1, dim_space)).view(-1, nv[i].shape[1]) for i in range(len(nv))]    
                     nv = torch.zeros_like(data.normal_vectors)
                     nv[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_nv, dim=0) 
+                    #nv = data.normal_vectors
                     
                     # compute loss on gauges
                     gauge_loss = self.loss_orth(nv, data,
                                                 torch.arange(len(data.x)), len(data.x),
                                                 dist_type='dynamic',)
+                    print(gauge_loss.mean(axis=1))
                     custom_loss = custom_loss + gauge_loss
                     
                 # if self.params['derivative_grad']:

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import scipy as sc
 
 def f0(x):
-    return x * 0 + np.array([-1, 1])
+    return x * 0 + np.array([-1, -1])
 
 def f1(x):
     return x * 0 + np.array([1, 1])
@@ -39,17 +39,38 @@ def f3(x):
 #     v = -(x[:, [0]] - 1) / norm
 #     return np.hstack([u, v])
 
+# def f2(x):
+#     eps = 1e-1
+#     norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] - 1) ** 2 + eps)
+#     u = (x[:, [1]]-1) / norm
+#     v = -(x[:, [0]] + 1) / norm
+#     return np.hstack([u, v])
+
+# def f3(x):
+#     eps = 1e-1
+#     norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] - 1) ** 2 + eps)
+#     u = (x[:, [1]]-1) / norm
+#     v = -(x[:, [0]] - 1) / norm
+#     return np.hstack([u, v])
+
+
+def f0(x):
+    return x * 0 + np.array([-1, -1])
+
+def f1(x):
+    return x * 0 + np.array([1, 1])
+
 def f2(x):
     eps = 1e-1
-    norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] -1) ** 2 + eps)
-    u = (x[:, [1]]-1) / norm
+    norm = np.sqrt((x[:, [0]] + 1) ** 2 + x[:, [1]] ** 2 + eps)
+    u = x[:, [1]] / norm
     v = -(x[:, [0]] + 1) / norm
     return np.hstack([u, v])
 
 def f3(x):
     eps = 1e-1
-    norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] - 1) ** 2 + eps)
-    u = (x[:, [1]]-1) / norm
+    norm = np.sqrt((x[:, [0]] - 1) ** 2 + x[:, [1]] ** 2 + eps)
+    u = x[:, [1]] / norm
     v = -(x[:, [0]] - 1) / norm
     return np.hstack([u, v])
 
@@ -68,18 +89,20 @@ def main():
     # train model
     params = {
         "lr":0.1,
-        "order": 2,  # order of derivatives
+        "order": 1,  # order of derivatives
         "include_self": True,#True, 
-        "hidden_channels":[32],
+        "hidden_channels":[64],
         "out_channels": 2,
-        "batch_size" : 128, # batch size
-        #"emb_norm": True,
-        "include_positions":True, # don't / use positional features
+        "batch_size" : 64, # batch size
+        "emb_norm": False,
+        "include_positions":False, # don't / use positional features
         "epochs": 100,
         "inner_product_features":False,
         "global_align":True, # align dynamical systems orthogonally
         "final_grad": True, # compute orthogonal gradient at end of batch
-        "positional_grad":False,  # use gradient on positions or not
+        "vector_grad": True,
+        "positional_grad":True,  # use gradient on positions or not
+        "gauge_grad":False,
     }
 
     model = net(data, params=params)
