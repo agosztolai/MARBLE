@@ -150,21 +150,19 @@ def main():
                                                                             conditions, 
                                                                             pca=pca,
                                                                             filter_data=filter_data, 
-                                                                            rm_outliers=rm_outliers)
+                                                                            )
             
         # construct data for marble
         data = MARBLE.construct_dataset(
             pos,
-            features=vel,
+            vel,
             k=30,
-            stop_crit=0.0,
             delta=2.0,
-            compute_laplacian=True,
             local_gauges=False,
         )
 
         params = {
-            "epochs": 120,  # optimisation epochs
+            "epochs": 50,  # optimisation epochs
             "order": 2,  # order of derivatives
             "hidden_channels": 100,  # number of internal dimensions in MLP
             "out_channels": 20, # or 3 for Fig3
@@ -175,7 +173,7 @@ def main():
 
         model = MARBLE.net(data, params=params)
 
-        model.run_training(data, outdir="data/session_{}_20ms".format(day))
+        model.fit(data, outdir="data/session_{}_20ms".format(day))
         data = model.evaluate(data)
 
         n_clusters = 50

@@ -5,8 +5,6 @@ import numpy as np
 from scipy.signal import savgol_filter
 from sklearn.decomposition import PCA
 from sklearn.neighbors import LocalOutlierFactor
-from MARBLE import plotting, preprocessing, dynamics, net, postprocessing, geometry
-import matplotlib.pyplot as plt
 
 def get_vector_array(coords):
     """function for defining the vector features from each array of coordinates"""
@@ -114,7 +112,7 @@ def load_data(data_file, metadata_file):
 
 def main():
     """fitting model for each day + pca embedding"""
-    
+    import MARBLE
     data_file = "data/rate_data_20ms.pkl"
     metadata_file = "data/trial_ids.pkl"
     
@@ -124,7 +122,7 @@ def main():
     conditions = ["DownLeft", "Left", "UpLeft", "Up", "UpRight", "Right", "DownRight"]
 
     # list of days
-    days = [5] # rates.keys()
+    days = [0,1] # rates.keys()
 
     # define some parameters
     pca_n=5
@@ -160,7 +158,7 @@ def main():
         # downsample
         if downsample:
             #samples = [np.random.choice(a.shape[0], 100) for a in pos]
-            samples = [np.arange(0,100) for a in pos]
+            samples = [np.arange(0,200) for a in pos]
             pos = [a[s] for s, a in zip(samples,pos)]
             vel = [a[s] for s, a in zip(samples,vel)]
             timepoints = [t[s] for s, t in zip(samples,timepoints)]
@@ -187,120 +185,54 @@ def main():
     #     scatter = ax.scatter(x, y, z)
 
     # construct PyG data object
-    data = preprocessing.construct_dataset(
-        pos_, vel_, graph_type="cknn", k=30, local_gauges=False, frac_geodesic_nb=0.33,
-  # need local gauges for global align ?
-    )
+    data = MARBLE.construct_dataset(
+            pos_,
+            vel_,
+            k=30,
+            delta=2.0,
+            local_gauges=False,
+        )
 
     # train model
     params = {
-        "lr":0.1,
-        "order": 2,  # order of derivatives
-        "include_self": True,#True, 
-        "hidden_channels":[100],
-        "out_channels": 3,
-        #"batch_size" : 128, # batch size
-        #"emb_norm": True,
-        #"include_positions":True,
-        "epochs":120,
-        "inner_product_features":False,
-        "global_align":False,        
-    }
+            "epochs": 50,  # optimisation epochs
+            "order": 2,  # order of derivatives
+            "hidden_channels": 100,  # number of internal dimensions in MLP
+            "out_channels": 3, # or 3 for Fig3
+            "inner_product_features": False,
+            "vec_norm": False,
+            "diffusion": True,
+            "global_align":False, 
+            }
 
-    model = net(data, params=params)
-    model.fit(data)
-
-
-    # evaluate model on data
-    data = model.transform(data)
-    data = postprocessing.cluster(data)
-    #data = postprocessing.embed_in_2D(data)
-
-    # plot
-    #systems = ["Day 1", "Day 2",]
-    # plot gauges in black to show that they 'hug' the manifold surface
-    #plotting.fields(data, col=2, width=3, scale=10, view=[0, 40], plot_gauges=True)
-    #plt.savefig('fields.png')
+    model = MARBLE.net(data, params=params)
+    model.run_training(data)
+    data = model.evaluate(data)
     
-    #plotting.embedding(data.emb, labels=data.system.numpy(), clusters_visible=True)
-    #plt.savefig('embedding_systems.png')
-
-    #plotting.embedding(data.emb, labels=data.condition.numpy(), titles=conditions, clusters_visible=True)
-    #plt.savefig('embedding_conditions.png')
+    n_clusters = 50
+    data = MARBLE.distribution_distances(data, n_clusters=n_clusters)
     
-    
-    #if params["out_channels"]>2:
-    #    plotting.embedding_3d(data, data.system.numpy(), titles=titles, clusters_visible=True)
-    #    plt.savefig('embedding_3d.png')
-        
-    #plotting.histograms(data, titles=systems)
-    #plt.savefig('histogram.png')
-    
-    #plotting.neighbourhoods(data)
-    #plt.savefig('neighbourhoods.png')
-    #plt.show()
-
-    # evaluate model on data
-    #data = model.transform(data)
-    
-    
-
-    # params = {
-    #     "epochs": 120,  # optimisation epochs
-    #     "order": 2,  # order of derivatives
-    #     "hidden_channels": 100,  # number of internal dimensions in MLP
-    #     "out_channels": 20, # or 3 for Fig3
-    #     "inner_product_features": False,
-    #     "vec_norm": False,
-    #     "diffusion": True,
-    # }
-
-    # model = net(data, params=params)
-
-    # model.run_training(data, outdir="data/session_{}_20ms".format(day))
-    # data = model.evaluate(data)
-
-    #n_clusters = 50
-    #dist, gamma = geometry.compute_distribution_distances(data=data)
-    
-
     #embeddings.append(data.emb)
     #distance_matrices.append(data.dist)
-    #all_condition_labels.append(data.condition)
-    #all_system_labels.append(data.system)
-    
+    #times.append(np.hstack(timepoints))
+    #all_condition_labels.append(data.y)
     #all_trial_ids.append(np.hstack(trial_indexes))
     #all_sampled_ids.append(data.sample_ind)
-
-    # # save over after each session (incase computations crash)
-    # with open("data/marble_embeddings_20ms_out20.pkl", "wb") as handle:
-    #     pickle.dump(
-    #         [
-    #             distance_matrices,
-    #             embeddings,
-    #             times,
-    #             all_condition_labels,
-    #             all_trial_ids,
-    #             all_sampled_ids,
-    #         ],
-    #         handle,
-    #         protocol=pickle.HIGHEST_PROTOCOL,
-    #     )
-
-    # # final save
-    with open("data/marble_embeddings_20ms_combined_out3_multiday.pkl", "wb") as handle:
+    
+    # save over after each session (incase computations crash)
+    with open("data/marble_embeddings_20ms_out3.pkl", "wb") as handle:
         pickle.dump(
-            [
-                data.emb,
-                times,
-                data.condition,
-                data.system,
-                all_trial_ids,
-                data.sample_ind,
-            ],
-            handle,
-            protocol=pickle.HIGHEST_PROTOCOL,
-        )
+        [
+            data.emb,
+            times,
+            data.condition,
+            data.system,
+            all_trial_ids,
+            data.sample_ind,
+        ],
+        handle,
+        protocol=pickle.HIGHEST_PROTOCOL,
+    )
 
 
 if __name__ == "__main__":
