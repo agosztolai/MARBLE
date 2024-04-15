@@ -49,19 +49,20 @@ def main():
         "order": 2,  # order of derivatives
         "include_self": True,#True, 
         "hidden_channels":[64],
-        "out_channels": 2,
+        "out_channels": 3,
         "batch_size" : 64, # batch size
         #"emb_norm": True,
-        "scalar_diffusion": True, # diffusion with graph Laplacian
-        "vector_diffusion": False, # diffusion over connection Laplacian
+        "scalar_diffusion":False,
+        "vector_diffusion":False,
         "include_positions":False, # don't / use positional features
         "epochs": 100,
-        "inner_product_features":False, # compute inner product of features
-        "global_align":True, # align dynamical systems orthogonally
+        "inner_product_features": False,
+        "global_align": True, # align dynamical systems orthogonally
         "final_grad": True, # compute orthogonal gradient at end of batch
-        "positional_grad":True,  # compute orthogonal gradient on positions or not
-        "vector_grad":True, # compute gradient based on cosine difference of systems
-        "gauge_grad":True, # use the normal vectors of the local gauges for gradient
+        "positional_grad":True,  # use gradient on positions or not
+        "vector_grad":True,
+        "derivative_grad":True,
+        "gauge_grad":True,
     }
     
     model = net(data, params=params)

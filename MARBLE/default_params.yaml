@@ -27,6 +27,7 @@ global_align: False # align global embeddings
 final_grad: True # only compute orthogonal gradient at end of batch
 positional_grad: True # include positions for orthogonal gradient computation
 vector_grad: True # use vectors for orthogonal gradient computation
+derivative_grad: False # use derivatives of vectors for orthogonal gradient computation
 gauge_grad: True # use the vectors perpendicular to gauges for gradient computation
 
 # other params

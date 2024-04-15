@@ -157,8 +157,9 @@ def construct_dataset(
         if pre_align:
             r = g.procrustes_analysis(torch.vstack(anchor_), torch.vstack(anchor[0])) # x rotated to y
         else:
-            r = torch.eye(anchor[0][0].shape[1])   
-            
+            size = anchor[0][0].shape[1]
+            #r = torch.eye(size)        
+            r = torch.randn(size,size)   
         initial_rotation.append(r) # TODO check if r should be transpose
 
     

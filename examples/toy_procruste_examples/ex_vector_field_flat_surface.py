@@ -89,22 +89,25 @@ def main():
     # train model
     params = {
         "lr":0.1,
-        "order": 1,  # order of derivatives
+        "order": 2,  # order of derivatives
         "include_self": True,#True, 
         "hidden_channels":[64],
         "out_channels": 2,
-        "batch_size" : 64, # batch size
-        "emb_norm": False,
+        "batch_size": 64, # batch size
+        #"emb_norm": True,
+        "scalar_diffusion":False, # diffusion with graph Laplacian
+        "vector_diffusion": False, # diffusion over connection Laplacian
         "include_positions":False, # don't / use positional features
         "epochs": 100,
-        "inner_product_features":False,
+        "inner_product_features":False, # compute inner product of features
         "global_align":True, # align dynamical systems orthogonally
         "final_grad": True, # compute orthogonal gradient at end of batch
-        "vector_grad": True,
-        "positional_grad":True,  # use gradient on positions or not
-        "gauge_grad":False,
+        "positional_grad":False,  # compute orthogonal gradient on positions or not
+        "vector_grad":True, # compute gradient based on cosine difference of systems
+        "derivative_grad":True, 
+        "gauge_grad":False, # use the normal vectors of the local gauges for gradient
     }
-
+    
     model = net(data, params=params)
     model.fit(data)
 

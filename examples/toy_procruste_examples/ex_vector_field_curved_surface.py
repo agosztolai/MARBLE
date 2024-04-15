@@ -94,7 +94,7 @@ def main():
     y = [f0(x[0]), 
          f1(x[1]), f2(x[2]),f3(x[3])]  # evaluated functions    
 
-    alpha=0.01
+    alpha=0.2
     # embed on parabola
     for i, (p, v) in enumerate(zip(x, y)):
         end_point = p + v
@@ -126,8 +126,8 @@ def main():
         "out_channels": 3,
         "batch_size" : 64, # batch size
         #"emb_norm": True,
-        "scalar_diffusion": True,
-        "vector_diffusion": False,
+        "scalar_diffusion":False,
+        "vector_diffusion":False,
         "include_positions":False, # don't / use positional features
         "epochs": 100,
         "inner_product_features": False,
@@ -135,6 +135,7 @@ def main():
         "final_grad": True, # compute orthogonal gradient at end of batch
         "positional_grad":True,  # use gradient on positions or not
         "vector_grad":True,
+        "derivative_grad":True,
         "gauge_grad":True,
     }
     

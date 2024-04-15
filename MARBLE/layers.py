@@ -24,7 +24,7 @@ class OrthogonalTransformLayer(nn.Module):
         # Initialize the identity matrix 
         
         if initial_rotation is None:
-            Q = torch.eye(size) # torch.eye(size)# torch.eye(size)#  torch.randn(size, size)
+            Q = torch.randn(size, size) # torch.eye(size) # torch.eye(size)# torch.eye(size)#  torch.randn(size, size)
         else:
             Q = initial_rotation # assign an initial rotation matrix
         #Q = torch.eye(size)
@@ -135,7 +135,7 @@ class AnisoConv(MessagePassing):
         do matrix multiplication K_t@x, broadcasting over column features.
         If K_t is a t*dimxs*dim matrix, in case of manifold computations,
         then first reshape, assuming that the columns of x are ordered as
-        [dx1/du, x1/dv, ..., dx2/du, dx2/dv, ...].
+        [dx1/du, dx1/dv, ..., dx2/du, dx2/dv, ...].
         """
         n, dim = x.shape
 

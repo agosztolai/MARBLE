@@ -330,10 +330,10 @@ class net(nn.Module):
         #     ax.set_zlabel('Z')            
 
         
-        if self.params["include_positions"] or self.params["positional_grad"]:
-            out = [p]
-        else:
-            out = []
+        #if self.params["include_positions"] or self.params["positional_grad"]:
+        out = [p] # always add positions
+        #else:
+        #    out = []
         
         # gradients
         if self.params["include_self"]:
@@ -368,11 +368,11 @@ class net(nn.Module):
 
         # inner products
         if self.params["inner_product_features"]:
-            if self.params['include_positions'] or self.params['positional_grad']:
-                out_inner = self.inner_products(out[1:]) # don't include positions
-                out = torch.cat([out[0], out_inner], axis=1)
-            else:
-                out = self.inner_products(out) 
+            #if self.params['include_positions'] or self.params['positional_grad']:
+            out_inner = self.inner_products(out[1:]) # don't include positions
+            out = torch.cat([out[0], out_inner], axis=1)
+            #else:
+            #    out = self.inner_products(out) 
         else:
             out = torch.cat(out, axis=1)
             
@@ -407,7 +407,7 @@ class net(nn.Module):
         #    out = torch.hstack([p[n_id_orig[: last_size[1]]], out])           
 
         # remove positions from encoder embedding
-        if not self.params["include_positions"] and self.params['positional_grad']:
+        if not self.params["include_positions"]: #and self.params['positional_grad']:
             emb = self.enc(out[:,data.pos.shape[1]:])
         else: 
             emb = self.enc(out)
@@ -553,7 +553,7 @@ class net(nn.Module):
     
     
         # TODO move this into preprcoessing or utils
-        if not self.params['vector_grad'] and not self.params['positional_grad'] and not self.params['gauge_grad']:
+        if not self.params['vector_grad'] and not self.params['positional_grad'] and not self.params['gauge_grad'] and not self.params['derivative_grad']:
             self.params['global_align'] = False
         
         # Compute custom loss for the entire dataset after all batches are processed
@@ -579,8 +579,22 @@ class net(nn.Module):
                                                  torch.arange(len(data.x)), len(data.x),
                                                  dist_type='dynamic', )
                     custom_loss = custom_loss + vector_loss
-                    print(vector_loss.mean(axis=1))
-
+                    print(vector_loss.mean(axis=1))      
+                
+                if self.params['derivative_grad']:
+                    derivative_loss = 0
+                    # loop over gauges
+                    for d in range(dim_space):
+                        cols = [u*dim_space + 2*dim_space + d for u in range(dim_space)]
+                        derivative_loss_ = self.loss_orth(out[:,cols], data,
+                                                     torch.arange(len(data.x)), len(data.x),
+                                                     dist_type='dynamic', )
+                    
+                        derivative_loss = derivative_loss + derivative_loss_
+                        
+                    custom_loss = custom_loss + (derivative_loss / dim_space)
+                    print(derivative_loss.mean(axis=1))                      
+                
                 # if we include positions then use these too
                 if self.params['positional_grad']:
                     positional_loss = self.loss_orth(out[:,:dim_space], data,
@@ -830,6 +844,8 @@ def distance(embeddings, condition, dist_type='dynamic', return_paired=False):
                 dist = positional_distance(embeddings[i], embeddings[j])
             if dist_type=='dynamic':
                 dist = dynamic_distance(embeddings[i], embeddings[j])
+            if dist_type=='mse':
+                dist = F.mse_loss(embeddings[i], embeddings[j])
             if dist_type=='condition_procrustes':                
                 dist = positional_distance(embeddings[i], embeddings[j])
                 intersection = utils.torch_intersect(condition[i].unique(), condition[j].unique())
@@ -864,20 +880,22 @@ def mmd_distance(x, y, sigma=1.0):
     xy_kernel = gaussian_kernel(x, y, sigma)
     return x_kernel.mean() + y_kernel.mean() - 2 * xy_kernel.mean()
 
-def dynamic_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+def dynamic_distance(x: torch.Tensor, y: torch.Tensor, normalize=False) -> torch.Tensor:
     """
     Computes singular value decomposition of product of vectors
     """
-
-    x = nn.functional.normalize(x,p=2,dim=1)
-    y = nn.functional.normalize(y,p=2,dim=1)
     
+    if normalize:
+        x = nn.functional.normalize(x,p=2,dim=1)
+        y = nn.functional.normalize(y,p=2,dim=1)
+        
     #min_shape = min(x.shape[0],y.shape[0])
     #x = x[:min_shape,:]
     #y = y[:min_shape,:]
 
     # Compute SVD of the product of X and Y.T
     dot = x @ y.T
+    #dot = dot / dot.max()
     #dot = torch.pow(dot,2) * torch.sign(dot)
     s = torch.sum(dot) / (dot.shape[0] * dot.shape[1])
     s = (s + 1)/2 # zero is minimum and 1 is max
@@ -981,7 +999,7 @@ def hausdorff_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     min_dist_2, _ = torch.min(d_matrix, dim=0)
     hausdorff_dist = torch.max(torch.max(min_dist_1), torch.max(min_dist_2))
     
-    return hausdorff_dist
+    return hausdorff_dist    
 
 
 def condition_distance(conditions_x, conditions_y):
