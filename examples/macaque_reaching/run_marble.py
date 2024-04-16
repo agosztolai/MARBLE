@@ -149,21 +149,20 @@ def main():
                                                                             conditions, 
                                                                             pca=pca,
                                                                             filter_data=filter_data)
-
         # construct data for marble
         data = MARBLE.construct_dataset(
             anchor=pos,
             vector=vel,
             k=30,
             spacing=0.0,
-            delta=2.0,
+            delta=1.2,
         )
 
         params = {
             "epochs": 120,  # optimisation epochs
             "order": 2,  # order of derivatives
             "hidden_channels": 100,  # number of internal dimensions in MLP
-            "out_channels": 20, # or 3 for Fig3
+            "out_channels": 3, # or 3 for Fig3
             "inner_product_features": False,
             "vec_norm": False,
             "diffusion": True,
@@ -185,7 +184,7 @@ def main():
         all_sampled_ids.append(data.sample_ind)
 
         # save over after each session (incase computations crash)
-        with open("data/marble_embeddings_20ms_out20.pkl", "wb") as handle:
+        with open("data/marble_embeddings_20ms_out3.pkl", "wb") as handle:
             pickle.dump(
                 [
                     distance_matrices,
@@ -198,9 +197,10 @@ def main():
                 handle,
                 protocol=pickle.HIGHEST_PROTOCOL,
             )
+        break
 
     # final save
-    with open("data/marble_embeddings_20ms_out20.pkl", "wb") as handle:
+    with open("data/marble_embeddings_20ms_out3.pkl", "wb") as handle:
         pickle.dump(
             [
                 distance_matrices,
