@@ -7,7 +7,7 @@ from scipy.spatial.transform import Rotation as R
 
 def get_pos_vel(mus, 
                 alpha=0.2, 
-                n=250,
+                n=500,
                 t = np.array([0]),#np.arange(0, 3, 0.5),
                 area = [[-3, -3],[3, 3]],
                 radius=3,
@@ -36,7 +36,7 @@ def get_pos_vel(mus,
 
 def main():
 
-    mus = np.linspace(-1,1,11)
+    mus = np.linspace(-1,1,5)
     x, y, rot = get_pos_vel(mus)
     k = 10
     frac_geodesic_nb = 2

@@ -566,10 +566,6 @@ class net(nn.Module):
         if self.params['global_align']:
             # compute gradient and backpropagate on full set of data
             if self.params['final_grad']:
-                            
-                #fixed_layer = 0 #torch.randint(0, len(original_requires_grad), (1,))
-                #original_requires_grad = len(original_requires_grad)*[True]
-                #original_requires_grad[fixed_layer] = False
                 
                 # Restore requires_grad for orthogonal_transform layers
                 for layer, requires_grad in zip([param for layer in self.orthogonal_transform for param in layer.parameters()], original_requires_grad):
@@ -584,7 +580,7 @@ class net(nn.Module):
                                                  torch.arange(len(data.x)), len(data.x),
                                                  dist_type='dynamic', )
                     custom_loss = custom_loss + vector_loss
-                    print(vector_loss.mean(axis=1))      
+                    #print(vector_loss.mean(axis=1))      
                 
                 if self.params['derivative_grad']:
                     derivative_loss = 0
@@ -598,7 +594,7 @@ class net(nn.Module):
                         derivative_loss = derivative_loss + derivative_loss_
                         
                     custom_loss = custom_loss + (derivative_loss / dim_space)
-                    print(derivative_loss.mean(axis=1))                      
+                    #print(derivative_loss.mean(axis=1))                      
                 
                 # if we include positions then use these too
                 if self.params['positional_grad']:
@@ -606,7 +602,7 @@ class net(nn.Module):
                                                      torch.arange(len(data.x)), len(data.x),
                                                      dist_type='positional',)
                     custom_loss = custom_loss + positional_loss
-                    print(positional_loss.mean(axis=1))
+                    #print(positional_loss.mean(axis=1))
 
                 if self.params['gauge_grad']:
                     
@@ -621,7 +617,7 @@ class net(nn.Module):
                     gauge_loss = self.loss_orth(nv, data,
                                                 torch.arange(len(data.x)), len(data.x),
                                                 dist_type='dynamic',)
-                    print(gauge_loss.mean(axis=1))
+                    #print(gauge_loss.mean(axis=1))
                     custom_loss = custom_loss + gauge_loss
                     
                 # if self.params['derivative_grad']:
