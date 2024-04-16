@@ -123,7 +123,7 @@ def main():
         "order": 2,  # order of derivatives
         "include_self": True,#True, 
         "hidden_channels":[64],
-        "out_channels": 3,
+        "out_channels": 2,
         "batch_size" : 64, # batch size
         #"emb_norm": True,
         "scalar_diffusion":False,
@@ -146,31 +146,16 @@ def main():
     data = model.transform(data)
     data = postprocessing.cluster(data)
     data = postprocessing.embed_in_2D(data)
-    
-    desired_layers = ['orthogonal']
-    rotations_learnt = [param for i, (name, param) in enumerate(model.named_parameters()) if any(layer in name for layer in desired_layers)]
-    
-    pos_rotated = []
-    vel_rotated = []
-    for i, (p, v) in enumerate(zip(x,y)):
-        rotation = rotations_learnt[i].cpu().detach().numpy() 
-        p_rot = p @ rotation.T 
-        v_rot = v @ rotation.T 
-        pos_rotated.append(p_rot)
-        vel_rotated.append(v_rot)
+    data = postprocessing.rotate_systems(model, data)
 
-    data_ = preprocessing.construct_dataset(pos_rotated, vel_rotated, k=k, local_gauges=False)
     # plot results
-    plotting.fields(data_,  col=2)
+    plotting.fields(data, rotated=True,  col=2)
     plt.savefig('fields.png')
 
     # plot
-    #titles = ["Linear left", "Linear right", "Vortex right", "Vortex left"]
     plotting.fields(data,  col=2)
     plt.savefig('fields.png')
-    # plot gauges in black to show that they 'hug' the manifold surface
-    #plotting.fields(data, titles=titles, col=2, width=3, scale=10, view=[0, 40], plot_gauges=True)
-    #plt.savefig('fields.png')
+
     plotting.embedding(data, data.system.numpy(),  clusters_visible=True)
     plt.savefig('embedding.png')
     

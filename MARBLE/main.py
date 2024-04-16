@@ -443,12 +443,17 @@ class net(nn.Module):
 
             _, data, adjs = utils.move_to_gpu(self, data, adjs)
             emb, _, out = self.forward(data, torch.arange(len(data.x)), adjs, len(data.x))
+
+            # align systems
+            #data = self.rotate_systems(data)
+            
             utils.detach_from_gpu(self, data, adjs)
 
             data.emb = emb.detach().cpu()
             data.out = out.detach().cpu()
 
             return data
+
         
     def transform_grad(self, data):
         """Forward pass @ custom loss """

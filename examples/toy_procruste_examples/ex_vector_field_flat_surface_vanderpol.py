@@ -73,23 +73,11 @@ def main():
     data = postprocessing.cluster(data)
     data = postprocessing.embed_in_2D(data)
     data = distribution_distances(data)
+    data = postprocessing.rotate_systems(model, data)
 
-    desired_layers = ['orthogonal']
-    rotations_learnt = [param for i, (name, param) in enumerate(model.named_parameters()) if any(layer in name for layer in desired_layers)]
-    
-    pos_rotated = []
-    vel_rotated = []
-    for i, (p, v) in enumerate(zip(x,y)):
-        rotation = rotations_learnt[i].cpu().detach().numpy() 
-        p_rot = p @ rotation.T 
-        v_rot = v @ rotation.T 
-        pos_rotated.append(p_rot)
-        vel_rotated.append(v_rot)
 
-    data_ = preprocessing.construct_dataset(pos_rotated, vel_rotated, k=k, frac_geodesic_nb=frac_geodesic_nb, local_gauges=False)
-
-    # plot results
-    plotting.fields(data_,  col=2)
+    # plot aligned results
+    plotting.fields(data, rotated=True,  col=2)
     plt.savefig('fields_rotated.png')
 
     # plot results

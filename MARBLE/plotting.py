@@ -18,6 +18,7 @@ from .geometry import embed
 
 def fields(
     data,
+    rotated=False,
     titles=None,
     col=1,
     figsize=(8, 8),
@@ -62,10 +63,19 @@ def fields(
 
     ax_list, lims = [], None
     for i, d in enumerate(data):
+        
         d.x = d.x[:,:dim]
         d.pos = d.pos[:,:dim]
+        d.x_rotated = d.x_rotated[:,:dim]
+        d.pos_rotated = d.pos_rotated[:,:dim]   
         
-        signal = d.x.detach().numpy()
+        if rotated:
+            signal = d.x_rotated.detach().numpy()
+            pos_ = "pos_rotated"
+        else:
+            signal = d.x.detach().numpy()
+            pos_ = "pos"
+            
         #signal = signal[:,:3]
         _, ax = create_axis(dim, grid[i], fig=fig)
 
@@ -73,7 +83,7 @@ def fields(
             ax.view_init(elev=view[0], azim=view[1])
 
         G = to_networkx(
-            d, node_attrs=["pos"], edge_attrs=None, to_undirected=True, remove_self_loops=True
+            d, node_attrs=[pos_], edge_attrs=None, to_undirected=True, remove_self_loops=True
         )
 
         if color is None:
@@ -85,6 +95,7 @@ def fields(
         graph(
             G,
             labels=None if vector else c,
+            node_attribute=pos_,
             ax=ax,
             node_size=node_size,
             edge_width=edge_width,
@@ -93,7 +104,11 @@ def fields(
         )
 
         if vector:
-            pos = d.pos.numpy()
+            if rotated:
+                pos = d.pos_rotated.numpy()
+            else:
+                pos = d.pos.numpy()
+
             plot_arrows(pos, signal, ax, c, scale=scale, width=width)
 
         if plot_gauges and (gauges is not None):
@@ -484,6 +499,7 @@ def neighbourhoods(
 def graph(
     G,
     labels="b",
+    node_attribute="pos",
     edge_width=1,
     edge_alpha=1.0,
     node_size=20,
@@ -494,7 +510,7 @@ def graph(
     """Plot scalar values on graph nodes embedded in 2D or 3D."""
 
     G = nx.convert_node_labels_to_integers(G)
-    pos = list(nx.get_node_attributes(G, "pos").values())
+    pos = list(nx.get_node_attributes(G, node_attribute).values())
 
     if not pos:
         if layout == "spectral":

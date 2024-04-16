@@ -80,3 +80,25 @@ def embed_in_2D(data, embed_typ="umap", manifold=None, seed=0):
         data.emb_2D, data.manifold = g.embed(emb, embed_typ=embed_typ, manifold=manifold, seed=seed)
 
     return data
+
+        
+def rotate_systems(model, data): 
+    """ Performs final learnt transformation to each vector field """  
+       
+    desired_layers = ['orthogonal']
+    rotations_learnt = [param for i, (name, param) in enumerate(model.named_parameters()) if any(layer in name for layer in desired_layers)]
+    
+    data_list = []
+    for i, d in enumerate(data.to_data_list()):
+        p = d.pos
+        x = d.x               
+        rotation = rotations_learnt[i].cpu().detach().numpy() 
+        d.pos_rotated = p @ rotation.T 
+        d.x_rotated = x @ rotation.T 
+        data_list.append(d)
+        
+    data_ = data.from_data_list(data_list)
+    data.x_rotated = data_.x_rotated
+    data.pos_rotated = data_.pos_rotated
+        
+    return data

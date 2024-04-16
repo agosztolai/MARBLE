@@ -90,6 +90,8 @@ def construct_dataset(
                 data_ = Data(
                     pos=a_,
                     x=v_,
+                    pos_rotated=a_, # added for later
+                    x_rotated=v_, # added for later
                     label=l_,
                     mask=m_,
                     edge_index=edge_index,
