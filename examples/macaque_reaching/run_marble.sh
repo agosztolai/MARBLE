@@ -2,9 +2,9 @@
 #BATCH --job-name MARBLE # Name for your job
 #SBATCH --ntasks 5              # Number of (cpu) tasks
 #SBATCH --time 1200             # Runtime in minutes.
-#SBATCH --mem 20000             # Reserve 10 GB RAM for the job
+#SBATCH --mem 10000             # Reserve 10 GB RAM for the job
 #SBATCH --partition gpu         # Partition to submit ('gpu' or 'cpu')
-#SBATCH --qos staff             # QOS ('staff' or 'students')
+#SBATCH --qos students             # QOS ('staff' or 'students')
 #SBATCH --output myjob-%j.txt       # Standard out goes to this file
 #SBATCH --error myjob-%j.txt        # Standard err goes to this file
 #SBATCH --mail-user adam.gosztolai@epfl.ch     # this is the email you wish to be notified at

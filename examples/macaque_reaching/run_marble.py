@@ -142,12 +142,12 @@ def main():
 
         # first stack all trials from that day together and fit pca
         print(day)
-        pca = fit_pca(rates, day, conditions, filter_data=filter_data, pca_n=pca_n)
+        #pca = fit_pca(rates, day, conditions, filter_data=filter_data, pca_n=pca_n)
         pos, vel, timepoints, condition_labels, trial_indexes = format_data(rates, 
                                                                             trial_ids,
                                                                             day, 
                                                                             conditions, 
-                                                                            pca=pca,
+                                                                            #pca=pca,
                                                                             filter_data=filter_data)
         # construct data for marble
         data = MARBLE.construct_dataset(
@@ -155,7 +155,9 @@ def main():
             vector=vel,
             k=30,
             spacing=0.0,
-            delta=1.2,
+            delta=2.0,
+            pca_dim=pca_n,
+            metric='cityblock'
         )
 
         params = {
