@@ -25,20 +25,35 @@ def f3(x):
     v = -(x[:, [0]] - 1) / norm
     return np.hstack([u, v])
 
+# def f2(x):
+#     eps = 1e-1
+#     norm = np.sqrt((x[:, [0]]) ** 2 + x[:, [1]] ** 2 + eps)
+#     u = -(x[:, [0]] ) / norm
+#     v = -(x[:, [1]] ) / norm
+#     return np.hstack([u, v])
+
+# def f3(x):
+#     eps = 1e-1
+#     norm = np.sqrt((x[:, [0]]) ** 2 + x[:, [1]] ** 2 + eps)
+#     u = (x[:, [0]] ) / norm
+#     v = (x[:, [1]] ) / norm
+#     return np.hstack([u, v])
+
 
 def main():
 
     # generate simple vector fields
     # f0: linear, f1: point source, f2: point vortex, f3: saddle
     n = 512
-    x = [dynamics.sample_2d(n, [[-1, -1], [1, 1]], "random") for i in range(4)]
+    x = [dynamics.sample_2d(n, [[-1, -1], [1, 1]], "random", seed=i) for i in range(4)]
     y = [f0(x[0]), f1(x[1]), f2(x[2]), f3(x[3])]  # evaluated functions
 
     # construct data object
     data = preprocessing.construct_dataset(x, y)
 
     # train model
-    model = net(data)
+    model = net(data, params={'inner_product_features': True, 
+                              'diffusion': False,})
     model.fit(data)
 
     # evaluate model on data
@@ -48,14 +63,14 @@ def main():
 
     # plot results
     titles = ["Linear left", "Linear right", "Vortex right", "Vortex left"]
-    plotting.fields(data, titles=titles, col=2)
-    plt.savefig('fields.png')
+    plotting.fields(data, titles=titles, col=2, width=0.01)
+    plt.savefig('fields.svg')
     plotting.embedding(data, data.y.numpy(), titles=titles, clusters_visible=True)
-    plt.savefig('mbedding.png')
+    plt.savefig('embedding.svg')
     plotting.histograms(data, titles=titles)
-    plt.savefig('histogram.png')
+    plt.savefig('histogram.svg')
     plotting.neighbourhoods(data)
-    plt.savefig('neighbourhoods.png')
+    plt.savefig('neighbourhoods.svg')
     plt.show()
 
 

@@ -170,6 +170,9 @@ class net(nn.Module):
 
         # cumulated number of channels after gradient features
         cum_channels = s * (1 - d ** (o + 1)) // (1 - d)
+        if not self.params["include_self"]:
+            cum_channels -= s
+            
         if self.params["inner_product_features"]:
             cum_channels //= s
             if s == 1:
@@ -181,9 +184,6 @@ class net(nn.Module):
 
         if self.params["include_positions"]:
             cum_channels += d
-
-        if not self.params["include_self"]:
-            cum_channels -= s
 
         # encoder
         if not isinstance(self.params["hidden_channels"], list):

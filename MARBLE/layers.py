@@ -86,7 +86,7 @@ class InnerProductFeatures(nn.Module):
 
         self.O_mat = nn.ModuleList()
         for _ in range(C):
-            self.O_mat.append(nn.Linear(D, D, bias=False))
+            self.O_mat.append(nn.Linear(D, D, bias=True))
 
         self.reset_parameters()
 
