@@ -6,27 +6,27 @@ import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
 
 
-def f0(x):
-    return x * 0 + np.array([-1, -1])
-
-
-def f1(x):
-    return x * 0 + np.array([1, 1])
-
-
 # def f0(x):
-#     eps = 1e-1
-#     norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
-#     u = (x[:, [1]] + 1) / norm
-#     v = -(x[:, [0]] + 1) / norm
-#     return np.hstack([u, v])
+#     return x * 0 + np.array([-1, -1])
+
 
 # def f1(x):
-#     eps = 1e-1
-#     norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
-#     u = (x[:, [1]] + 1) / norm
-#     v = -(x[:, [0]] - 1) / norm
-#     return np.hstack([u, v])
+#     return x * 0 + np.array([1, 1])
+
+
+def f0(x):
+    eps = 1e-1
+    norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
+    u = (x[:, [1]] + 1) / norm
+    v = -(x[:, [0]] + 1) / norm
+    return np.hstack([u, v])
+
+def f1(x):
+    eps = 1e-1
+    norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
+    u = (x[:, [1]] + 1) / norm
+    v = -(x[:, [0]] - 1) / norm
+    return np.hstack([u, v])
 
 def f2(x):
     eps = 1e-1

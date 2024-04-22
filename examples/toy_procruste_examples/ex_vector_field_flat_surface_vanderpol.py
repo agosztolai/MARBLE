@@ -6,14 +6,14 @@ import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
 
 def get_pos_vel(mus, 
-                alpha=0.0, 
-                n=500,
+                alpha=0.3, 
+                n=250,
                 t = np.array([0]),#np.arange(0, 3, 0.5),
-                area = [[-3, -3],[3, 3]],
-                radius=3,
+                area = [[-1, -1],[1, 1]],
+                radius=1,
                 ):
     
-    X0_range = dynamics.initial_conditions(n, len(mus), area=area, radius=radius, method='uniform', shape='circle')
+    X0_range = dynamics.initial_conditions(n, len(mus), area=area, radius=radius, method='random', shape='rectangle')
 
     pos, vel = [], []
     for X0, m in zip(X0_range, mus):
@@ -47,12 +47,13 @@ def main():
     params = {
         "lr":0.1,
         "order": 2,  # order of derivatives
+        "dropout": 0.,
         "include_self": True,#True, 
         "hidden_channels":[64],
         "out_channels": 2,
         "batch_size" : 64, # batch size
         "emb_norm": False,
-        "scalar_diffusion": True,
+        "scalar_diffusion": False,
         "vector_diffusion":False,
         "include_positions":False, # don't / use positional features
         "epochs": 100,
@@ -60,9 +61,9 @@ def main():
         "global_align": True, # align dynamical systems orthogonally
         "final_grad": True, # compute orthogonal gradient at end of batch
         "positional_grad":True,  # use gradient on positions or not
-        "vector_grad":True,
-        "derivative_grad":True,
-        "gauge_grad":True,
+        "vector_grad": True,
+        "derivative_grad":False,
+        "gauge_grad": True,
     }
     
     model = net(data, params=params)
