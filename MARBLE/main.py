@@ -390,7 +390,7 @@ class net(nn.Module):
         
         return data
 
-    def batch_loss(self, data, loader, train=False, verbose=False, optimizer=None):
+    def batch_loss(self, data, loader, train=False, verbose=False, optimizer=None, optimizer_alignment=None):
         """Loop over minibatches provided by loader function.
 
         Args:
@@ -435,40 +435,6 @@ class net(nn.Module):
                 loss.backward(retain_graph=True)  # Accumulates gradients for all layers
                 optimizer.step()
 
-            # # overwrite parameters on orthogonal transformation with custom loss
-            # if not self.params['final_grad']:
-            #     # Compute custom loss on orthogonal transform per batch
-            #     if self.params['global_align']:
-                                        
-                   
-            #         # compute orthogonal loss on the vectors                
-            #         custom_loss = self.loss_orth(out[:,dim_space:2*dim_space], data,
-            #                                      n_id, n_batch,
-            #                                      dist_type='dynamic')
-                    
-            #         # if we include positions then use these too
-            #         if self.params['positional_grad']:
-            #             positional_loss = self.loss_orth(out[:,:dim_space], data,
-            #                                              n_id, n_batch,
-            #                                              dist_type='positional')                        
-            #             custom_loss = custom_loss + positional_loss
-                    
-            #         custom_loss = custom_loss[:,0]
-            #         cum_custom_loss += float(custom_loss.mean())
-    
-            #         if optimizer is not None:
-            #             for i, layer in enumerate(self.orthogonal_transform):
-            #                     #optimizer.zero_grad()  # Reset gradients to zero for all model parameters                
-            #                     for param in layer.parameters():
-            #                         if param.requires_grad:
-            #                             param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0] 
-            #                             #param.grad = torch.autograd.grad(custom_loss.mean(), param, retain_graph=True)[0] 
-            #                             #optimizer.step()
-                                        
-            #         if optimizer is not None:
-            #             nn.utils.clip_grad_norm_(self.parameters(), 0.02)      
-            #             optimizer.step()
-    
     
         # TODO move this into preprcoessing or utils
         if not self.params['vector_grad'] and not self.params['positional_grad'] and not self.params['gauge_grad'] and not self.params['derivative_grad']:
@@ -533,27 +499,20 @@ class net(nn.Module):
                     #print(gauge_loss.mean(axis=1))
                     custom_loss = custom_loss + gauge_loss
                     
-                # if self.params['derivative_grad']:
-                #     derivative_loss = self.loss_orth(out[:,:dim_space], data,
-                #                                      torch.arange(len(data.x)), len(data.x),
-                #                                      dist_type='dynamic',)
-                #     custom_loss = custom_loss + positional_loss
-                    
-                    
-                #custom_loss = custom_loss.max(axis=1)[0] #[:,fixed_layer] # only taking the first row 
+                                       
                 custom_loss = custom_loss.mean(axis=1)
                 cum_custom_loss += float(custom_loss.mean())
                 # print(custom_loss)
-                if optimizer is not None:
+                if optimizer_alignment is not None:
+                    #optimizer.zero_grad() 
                     for i, layer in enumerate(self.orthogonal_transform):
-                            optimizer.zero_grad()  # Reset gradients to zero for all model parameters                
-                            for param in layer.parameters():
-                                if param.requires_grad:
-                                    param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0] 
-                                    # param.grad = torch.autograd.grad(custom_loss.mean(), param, retain_graph=True)[0] 
-                                    
-                                    #nn.utils.clip_grad_norm_(self.parameters(), 0.05)
-                                    optimizer.step()
+                        optimizer_alignment.zero_grad()  # Reset gradients to zero for all model parameters                
+                        for param in layer.parameters():
+                            if param.requires_grad:
+                                param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0] 
+                                # param.grad = torch.autograd.grad(custom_loss.mean(), param, retain_graph=True)[0]
+                                #nn.utils.clip_grad_norm_(self.parameters(), 0.05)
+                                optimizer_alignment.step()
                         
         self.eval()     
         
@@ -645,8 +604,12 @@ class net(nn.Module):
         # data loader
         train_loader, val_loader, test_loader = dataloader.loaders(data, self.params)
         optimizer = opt.SGD(
-            self.parameters(), lr=self.params["lr"], momentum=self.params["momentum"]
+            self.parameters(), lr=self.params["lr"], momentum=self.params["momentum"], # nesterov=True,
         )
+        optimizer_alignment = opt.SGD(
+            self.parameters(), lr=self.params["lr"], momentum=self.params["momentum"], nesterov=True,
+        )
+        
         # optimizer = opt.Adadelta(
         #     self.parameters(), lr=self.params["lr"], #momentum=self.params["momentum"]
         # )
@@ -664,7 +627,7 @@ class net(nn.Module):
             self._epoch = epoch
 
             train_loss, optimizer = self.batch_loss(
-                data, train_loader, train=True, verbose=verbose, optimizer=optimizer
+                data, train_loader, train=True, verbose=verbose, optimizer=optimizer, optimizer_alignment=optimizer_alignment,
             )
             val_loss, _ = self.batch_loss(data, val_loader, verbose=verbose)
             scheduler.step(train_loss)
