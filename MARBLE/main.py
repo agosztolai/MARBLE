@@ -521,40 +521,42 @@ class net(nn.Module):
             if optimizer is not None:
                 optimizer.zero_grad()
                 loss.backward(retain_graph=True)  # Accumulates gradients for all layers
+                optimizer.step()
+
                 
-            # overwrite parameters on orthogonal transformation with custom loss
-            if not self.params['final_grad']:
-                # Compute custom loss on orthogonal transform per batch
-                if self.params['global_align']:
+            # # overwrite parameters on orthogonal transformation with custom loss
+            # if not self.params['final_grad']:
+            #     # Compute custom loss on orthogonal transform per batch
+            #     if self.params['global_align']:
                                         
                    
-                    # compute orthogonal loss on the vectors                
-                    custom_loss = self.loss_orth(out[:,dim_space:2*dim_space], data,
-                                                 n_id, n_batch,
-                                                 dist_type='dynamic')
+            #         # compute orthogonal loss on the vectors                
+            #         custom_loss = self.loss_orth(out[:,dim_space:2*dim_space], data,
+            #                                      n_id, n_batch,
+            #                                      dist_type='dynamic')
                     
-                    # if we include positions then use these too
-                    if self.params['positional_grad']:
-                        positional_loss = self.loss_orth(out[:,:dim_space], data,
-                                                         n_id, n_batch,
-                                                         dist_type='positional')                        
-                        custom_loss = custom_loss + positional_loss
+            #         # if we include positions then use these too
+            #         if self.params['positional_grad']:
+            #             positional_loss = self.loss_orth(out[:,:dim_space], data,
+            #                                              n_id, n_batch,
+            #                                              dist_type='positional')                        
+            #             custom_loss = custom_loss + positional_loss
                     
-                    custom_loss = custom_loss[:,0]
-                    cum_custom_loss += float(custom_loss.mean())
+            #         custom_loss = custom_loss[:,0]
+            #         cum_custom_loss += float(custom_loss.mean())
     
-                    if optimizer is not None:
-                        for i, layer in enumerate(self.orthogonal_transform):
-                                #optimizer.zero_grad()  # Reset gradients to zero for all model parameters                
-                                for param in layer.parameters():
-                                    if param.requires_grad:
-                                        param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0] 
-                                        #param.grad = torch.autograd.grad(custom_loss.mean(), param, retain_graph=True)[0] 
-                                        #optimizer.step()
+            #         if optimizer is not None:
+            #             for i, layer in enumerate(self.orthogonal_transform):
+            #                     #optimizer.zero_grad()  # Reset gradients to zero for all model parameters                
+            #                     for param in layer.parameters():
+            #                         if param.requires_grad:
+            #                             param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0] 
+            #                             #param.grad = torch.autograd.grad(custom_loss.mean(), param, retain_graph=True)[0] 
+            #                             #optimizer.step()
                                         
-                    if optimizer is not None:
-                        nn.utils.clip_grad_norm_(self.parameters(), 0.02)      
-                        optimizer.step()
+            #         if optimizer is not None:
+            #             nn.utils.clip_grad_norm_(self.parameters(), 0.02)      
+            #             optimizer.step()
     
     
         # TODO move this into preprcoessing or utils
