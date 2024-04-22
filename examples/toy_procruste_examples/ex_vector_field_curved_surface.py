@@ -123,7 +123,7 @@ def main():
         "order": 2,  # order of derivatives
         "include_self": True,#True, 
         "hidden_channels":[64],
-        "out_channels": 2,
+        "out_channels": 3,
         "batch_size" : 64, # batch size
         #"emb_norm": True,
         "scalar_diffusion":False,

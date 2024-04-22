@@ -2,13 +2,16 @@
 import numpy as np
 import ot
 import scipy.sparse as sp
-from scipy.linalg import orthogonal_procrustes
+from scipy.linalg import orthogonal_procrustes, null_space
+from scipy.stats import special_ortho_group
+from scipy.spatial.transform import Rotation as R
 from procrustes import rotational, orthogonal
 import torch
 import torch_geometric.utils as PyGu
 import umap
 import matplotlib.pyplot as plt
 import networkx as nx
+import random
 
 from sklearn.cluster import KMeans
 from sklearn.cluster import MeanShift
@@ -43,56 +46,78 @@ def flip_gauges(data, l_gauges):
         indices = (data.system==s).nonzero().squeeze()
         
         # flip gauges and extract normal vectors
-        f_gauges, nv = propagate_and_flip_gauges(pos, edge_index, l_gauges, indices)
+        f_gauges, nv = propagate_and_flip_gauges(pos[indices,:], l_gauges[indices,:,:])
         normal_vectors[indices,:] = nv
         flipped_gauges[indices, : ,:] = f_gauges
     
     return flipped_gauges, normal_vectors
 
-def propagate_and_flip_gauges(pos, edge_index, gauges, indices):
-    """
-    Starting from the first node, propagate through the graph and flip gauges to ensure
-    that all neighboring nodes have perpendicular vectors with a positive dot product.
-
-    Parameters:
-    - edge_index: Tensor of shape [2, E] representing the indices of edges in the graph.
-    - gauges: Tensor of shape [N, dim_space, dim_man] representing the gauges of each node.
-
-    Returns:
-    - flipped_gauges: Tensor of shape [N, dim_space, dim_man] representing the flipped gauges.
-    """    
+def get_normal_vectors(gauges):
+    n, dim_space, dim_man = gauges.shape
+    perpendicular_vectors = np.zeros((n, dim_space))  # This will store the perpendicular vectors
     
+    for i in range(n):
+        A = gauges[i, :, :]    
+        perp_vector = null_space(A.T)    
+        perp_vector_normalized = perp_vector / np.linalg.norm(perp_vector)    
+        perpendicular_vectors[i, :] = perp_vector_normalized.flatten()
+        
+    return torch.Tensor(perpendicular_vectors)
+
+def propagate_and_flip_gauges(pos, gauges):
+    """ flip gauges """
+    
+    # limit to just system
+    #flipped_gauges = gauges[indices,:].clone()
+    #pos = pos[indices,:]
     flipped_gauges = gauges.clone()
-    perpendicular_vectors = torch.cross(flipped_gauges[:, :, 0], flipped_gauges[:, :, 1], dim=1)
     
-    visited_nodes = set()
-    node_stack = [indices[0]]  # Start from the first node
-
-    while node_stack:
-        current_node = node_stack.pop()
-        if current_node in visited_nodes:
-            continue
-        visited_nodes.add(current_node)
+    # get normal vectors of all gauges
+    perpendicular_vectors = get_normal_vectors(gauges)
+    
+    # compare against the median normal vector
+    average_direction = torch.median(perpendicular_vectors, axis=0).values # .mean(0)
+    alignment = perpendicular_vectors @ average_direction
+    
+    for node in (alignment<0).nonzero():
+        dot_product = torch.dot(average_direction, perpendicular_vectors[node].squeeze())
+        #perm = torch.arange(flipped_gauges.shape[-1]) # fixed original order
+        gauge = gauges[node,:,:]
         
-        # Find the neighbors of the current node
-        neighbors = edge_index[1, edge_index[0] == current_node]
-        
-        for neighbor in neighbors:
-            # Compute the dot product
-            dot_product = torch.dot(perpendicular_vectors[current_node], perpendicular_vectors[neighbor])
-            if dot_product < 0:
-                # Flip gauge by swapping the vectors before crossing
-                flipped_gauges[neighbor, :, :] = flipped_gauges[neighbor, :, torch.tensor([1, 0])]
-                # Update the perpendicular vector for the flipped gauge
-                perpendicular_vectors[neighbor] = torch.cross(flipped_gauges[neighbor, :, 0], flipped_gauges[neighbor, :, 1])
+        # looping over and making sure normal vectors point in same direction by rotating gauges randomly
+        count = 0
+        while (dot_product < 0) and count < 20:      
+            count = count + 1
+            # orthogonal transformation of gauge in tangent plane
+            rotation_matrix = torch.Tensor(special_ortho_group.rvs(gauge.shape[-1]))
             
-            if neighbor.item() not in visited_nodes:
-                node_stack.append(neighbor.item())
-
-    # check if globally pointing in or out
-    perpendicular_vectors = np.cross(flipped_gauges[indices, :, 0], flipped_gauges[indices, :, 1])     
-    flipped_gauges = flipped_gauges[indices,:,:]     
-    div = compute_3d_divergence_global(pos[indices,:].numpy(), perpendicular_vectors)
+            # # allow mirror
+            # if random.random()>0.5:
+            #     rotation_matrix[:, 0] = -rotation_matrix[:, 0]
+                
+            # # permute columns
+            # if random.random()>0.5:
+            #     perm = torch.arange(flipped_gauges.shape[-1])[torch.randperm(flipped_gauges.shape[-1])]
+            #     gauge = gauge[:,:,perm]
+                
+            # rotate/flip gauge
+            rotated_gauge = gauge @ rotation_matrix                     
+            
+            # Update the perpendicular vector for the flipped gauge
+            nv = get_normal_vectors(rotated_gauge)
+            
+            # check if aligned or not
+            dot_product = torch.dot(average_direction, nv.squeeze())
+            
+        # if we can't find a suitable gauge, just flip the normal vector
+        if (dot_product < 0):
+            nv = -nv
+            
+        # update with permuted gauges and normal vectors
+        flipped_gauges[node, :, :] = rotated_gauge
+        perpendicular_vectors[node] = nv
+    
+    div = compute_3d_divergence_global(pos.numpy(), perpendicular_vectors.numpy())
     
     # if pointing inwards...
     if np.mean(div) < 0:
@@ -102,6 +127,17 @@ def propagate_and_flip_gauges(pos, edge_index, gauges, indices):
     return torch.Tensor(flipped_gauges), torch.Tensor(perpendicular_vectors)
 
 def plot3d(x,y):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    
+    ax.scatter(perpendicular_vectors[:,0].cpu().detach().numpy(),
+                perpendicular_vectors[:,1].cpu().detach().numpy(),
+                perpendicular_vectors[:,2].cpu().detach().numpy(), c = 'b', marker='o')
+    ax.set_xlabel('X-axis')
+    ax.set_ylabel('Y-axis')
+    ax.set_zlabel('Z-axis')
+    
+    
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     

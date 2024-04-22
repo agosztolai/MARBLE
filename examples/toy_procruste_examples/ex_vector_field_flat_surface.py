@@ -98,7 +98,7 @@ def main():
         "scalar_diffusion":False, # diffusion with graph Laplacian
         "vector_diffusion": False, # diffusion over connection Laplacian
         "include_positions":False, # don't / use positional features
-        "epochs": 50,
+        "epochs": 100,
         "inner_product_features":False, # compute inner product of features
         "global_align":True, # align dynamical systems orthogonally
         "final_grad": True, # compute orthogonal gradient at end of batch
