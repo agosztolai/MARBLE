@@ -239,113 +239,72 @@ class net(nn.Module):
         Messages are passed to a set target nodes (current batch) from source
         nodes. The source nodes and target nodes form a bipartite graph to
         simplify message passing. By convention, the first size[1] entries of x
-        are the target nodes, i.e, x = concat[x_target, x_other]."""
+        are the target nodes, i.e, x = concat[x_target, x_other]."""#
 
+
+        # extract all relevant data
         x = data.x
+        pos = data.pos
+        kernels = data.kernels
+        local_gauges = data.l_gauges
+        gauges = data.gauges
+
         n, d = x.shape[0], data.gauges.shape[2]
         dim_man = data.gauges.shape[2]
         dim_space = data.x.shape[1]
         mask = data.mask
+        system_ids = data.system
+        
+        if self.params['global_align']:
+            x = self.update_inputs(x, dim_space, system_ids)
+            pos = self.update_inputs(pos, dim_space, system_ids)
+            local_gauges = self.update_inputs(local_gauges, dim_space, system_ids)
+            gauges = self.update_inputs(gauges, dim_space, system_ids)
+            
+        if self.params['global_align']:            
+            kernels = geometry.gradient_op(pos.detach().cpu(),
+                                           data.edge_index.detach().cpu(),
+                                           gauges.detach().cpu())
+            kernels = [
+                utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels
+            ]
+            kernels = [K.to(x.device) for K in kernels]
 
         # diffusion
         if self.params["vector_diffusion"]:
-            #if hasattr(data, "Lc"):                
-            # rotate local gauges if performing vector diffusion ... 
-            if self.params['gauge_grad']:
-                l_gauges_s, indices = geometry.split_by_system(torch.arange(len(data.x)), data.system, data.l_gauges) # limit_rows=False)
-                rotated_gauges = [self.orthogonal_transform[i](l_gauges_s[i].view(-1, dim_space)).view(-1, l_gauges_s[i].shape[1], l_gauges_s[i].shape[2]) for i in range(len(l_gauges_s))]    
-                l_gauges = torch.zeros_like(data.l_gauges)
-                l_gauges[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_gauges, dim=0) 
-                l_gauges = l_gauges.detach()                    
-            
+      
             # perform vector diffusion
-            x = geometry.global_to_local_frame(x, l_gauges)
+            x = geometry.global_to_local_frame(x, local_gauges)
             x = self.diffusion(x, data.L, Lc=data.Lc, method="spectral")
-            x = geometry.global_to_local_frame(x, l_gauges, reverse=True)
+            x = geometry.global_to_local_frame(x, local_gauges, reverse=True)
+            
         elif self.params['scalar_diffusion']:
             x = self.diffusion(x, data.L, method="spectral")
 
         # local gauges
         if self.params["inner_product_features"] or (dim_man < dim_space): # self.params['global_align'] or 
-            x = geometry.global_to_local_frame(x, data.gauges)
+            x = geometry.global_to_local_frame(x, gauges)
 
         # restrict to current batch
         x = x[n_id]
-        p = data.pos[n_id]
+        pos = pos[n_id]
         mask = mask[n_id]
-        n_id_orig = n_id
-        if data.kernels[0].size(0) == n * d:
+        
+        if kernels[0].size(0) == n * d:
             n_id = utils.expand_index(n_id, d)
         else:
             d = 1
 
         if self.params["vec_norm"]:
             x = F.normalize(x, dim=-1, p=2)
-            
-        # learn orthogonal transformation before gradients?
-        if self.params["global_align"]:  
-            #last_size = adjs[-1][2]
-            #out_ = [o[: last_size[1]] for o in out]       
-            
-            # transform vectors
-            x_s, indices = geometry.split_by_system(n_id, data.system, x,) 
-            rotated_x = [self.orthogonal_transform[i](x_s[i].view(-1,dim_space)).view(-1,x_s[i].shape[1]) for i in range(len(x_s))]    
-            x = torch.zeros_like(x)
-            x[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_x, dim=0) 
-
-            # transform positions
-            p_s, indices = geometry.split_by_system(n_id, data.system, p,) 
-            rotated_p = [self.orthogonal_transform[i](p_s[i].view(-1,dim_space)).view(-1,p_s[i].shape[1]) for i in range(len(p_s))]    
-            p = torch.zeros_like(p)
-            p[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_p, dim=0) 
-            
-
-                
-                # transform normal vectors of local tangent spaces
-                # nv, indices = geometry.split_by_system(torch.arange(len(data.x)), data.system, data.normal_vectors) # limit_rows=False)
-                # rotated_nv = [self.orthogonal_transform[i](nv[i].view(-1, dim_space)).view(-1, nv[i].shape[1]) for i in range(len(nv))]    
-                # nv = torch.zeros_like(data.normal_vectors)
-                # nv[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_nv, dim=0) 
-                # data.normal_vectors = nv
-            
-        # # Create a 3D plot
-        # fig = plt.figure()
-        # ax = fig.add_subplot(111, projection='3d')
-        # colors = ['b','r']
-        # for sys in range(2):
-        # #sys = 1
-        #     rot = self.orthogonal_transform[sys].Q.cpu().detach().numpy()
-        #     pos = rotated_p[sys].cpu().detach().numpy()
-        #     vec = rotated_x[sys].cpu().detach().numpy()
-            
-        #     #pos = pos @ rot
-        #     #vec = vec @ rot        
-        #     u, v, w = vec[:,0], vec[:,1], vec[:,2] # vectors
-        #     xx, yy, zz = pos[:,0], pos[:,1], pos[:,2]  # positions            
-        #     # Plot the vector field
-        #     ax.quiver(xx, yy, zz, u, v, w, color=colors[sys], normalize=True)
-        #     # Setting the axes labels
-        #     ax.set_xlabel('X')
-        #     ax.set_ylabel('Y')
-        #     ax.set_zlabel('Z')            
-
-        
-        #if self.params["include_positions"] or self.params["positional_grad"]:
-        out = [p] # always add positions
-        #else:
-        #    out = []
-        
-        # gradients
-        if self.params["include_self"]:
-            out.append(x)
-        else:
-            out = []
+                   
+        out = [pos, x] # always add positions and vectors
             
         for i, (_, _, size) in enumerate(adjs):
             #kernels = [K[n_id[: size[1] * d], :][:, n_id[: size[0] * d]] for K in data.kernels]
-            kernels = [K[n_id, :][:, n_id] for K in data.kernels]
-
-            x = self.grad[i](x, kernels)
+            kernels_ = [K[n_id, :][:, n_id] for K in kernels]
+            
+            x = self.grad[i](x, kernels_)
 
             if self.params["vec_norm"]:
                 x = F.normalize(x, dim=-1, p=2)
@@ -356,56 +315,13 @@ class net(nn.Module):
         # take target nodes
         out = [o[: last_size[1]] for o in out]
             
-        # need global coordinates prior to orthogonal transformations
-        # if self.params["global_align"]:     
-        #     for i, o in enumerate(out):
-        #         # project back into ambient coordinate space
-        #         # for each output only act on each local tangent direction e.g. [dx/du, dx/dv]
-        #         new_o = [geometry.global_to_local_frame(o[:,d_*dim_man:d_*dim_man+dim_man], data.gauges[n_id_orig][:last_size[1]], reverse=True)
-        #                  for d_ in range(int(o.shape[1]/dim_man))]
-        #         new_o = torch.cat(new_o, axis=1)
-        #         out[i] = new_o                            
-
         # inner products
         if self.params["inner_product_features"]:
-            #if self.params['include_positions'] or self.params['positional_grad']:
             out_inner = self.inner_products(out[1:]) # don't include positions
             out = torch.cat([out[0], out_inner], axis=1)
-            #else:
-            #    out = self.inner_products(out) 
         else:
             out = torch.cat(out, axis=1)
             
-        # pos = out[:,:3].cpu().detach().numpy()
-        # vec = out[:,3:6].cpu().detach().numpy()
-        
-        # #pos = pos @ rot
-        # #vec = vec @ rot        
-        # u, v, w = vec[:,0], vec[:,1], vec[:,2] # vectors
-        # xx, yy, zz = pos[:,0], pos[:,1], pos[:,2]  # positions
-        
-        # # Create a 3D plot
-        # fig = plt.figure()
-        # ax = fig.add_subplot(111, projection='3d')
-        
-        # # Plot the vector field
-        # ax.quiver(xx, yy, zz, u, v, w, normalize=True)
-        
-        # # Setting the axes labels
-        # ax.set_xlabel('X')
-        # ax.set_ylabel('Y')
-        # ax.set_zlabel('Z')
-
-        # learn orthogonal transformation
-        # if self.params["global_align"]:                
-        #     o, indices = group_dd_by_system(n_id_orig[:n_batch], data.system, out, limit_rows=False)
-        #     ortho = [self.orthogonal_transform[i](o[i].view(-1,dim_space)).view(-1,o[i].shape[1]) for i in range(len(o))]    
-        #     out = torch.zeros_like(out)
-        #     out[torch.cat(indices, dim=0).squeeze()] = torch.cat(ortho, dim=0) 
-
-        #if self.params["include_positions"]:
-        #    out = torch.hstack([p[n_id_orig[: last_size[1]]], out])           
-
         # remove positions from encoder embedding
         if not self.params["include_positions"]: #and self.params['positional_grad']:
             emb = self.enc(out[:,data.pos.shape[1]:])
@@ -413,12 +329,8 @@ class net(nn.Module):
             emb = self.enc(out)
         
         if self.params["emb_norm"]:  # spherical output
-            emb = F.normalize(emb)   
-       
-        # remove positions from the directional derivative features
-        #if self.params["include_positions"]:
-        #    out = out[:,data.pos.shape[1]:]
-            
+            emb = F.normalize(emb)          
+           
         return emb, mask[: last_size[1]], out
 
     def evaluate(self, data):
@@ -521,40 +433,41 @@ class net(nn.Module):
             if optimizer is not None:
                 optimizer.zero_grad()
                 loss.backward(retain_graph=True)  # Accumulates gradients for all layers
-                
-            # overwrite parameters on orthogonal transformation with custom loss
-            if not self.params['final_grad']:
-                # Compute custom loss on orthogonal transform per batch
-                if self.params['global_align']:
+                optimizer.step()
+
+            # # overwrite parameters on orthogonal transformation with custom loss
+            # if not self.params['final_grad']:
+            #     # Compute custom loss on orthogonal transform per batch
+            #     if self.params['global_align']:
                                         
                    
-                    # compute orthogonal loss on the vectors                
-                    custom_loss = self.loss_orth(out[:,dim_space:2*dim_space], data,
-                                                 n_id, n_batch,
-                                                 dist_type='dynamic')
+            #         # compute orthogonal loss on the vectors                
+            #         custom_loss = self.loss_orth(out[:,dim_space:2*dim_space], data,
+            #                                      n_id, n_batch,
+            #                                      dist_type='dynamic')
                     
-                    # if we include positions then use these too
-                    if self.params['positional_grad']:
-                        positional_loss = self.loss_orth(out[:,:dim_space], data,
-                                                         n_id, n_batch,
-                                                         dist_type='positional')                        
-                        custom_loss = custom_loss + positional_loss
+            #         # if we include positions then use these too
+            #         if self.params['positional_grad']:
+            #             positional_loss = self.loss_orth(out[:,:dim_space], data,
+            #                                              n_id, n_batch,
+            #                                              dist_type='positional')                        
+            #             custom_loss = custom_loss + positional_loss
                     
-                    custom_loss = custom_loss[:,0]
-                    cum_custom_loss += float(custom_loss.mean())
+            #         custom_loss = custom_loss[:,0]
+            #         cum_custom_loss += float(custom_loss.mean())
     
-                    if optimizer is not None:
-                        for i, layer in enumerate(self.orthogonal_transform):
-                                #optimizer.zero_grad()  # Reset gradients to zero for all model parameters                
-                                for param in layer.parameters():
-                                    if param.requires_grad:
-                                        param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0] 
-                                        #param.grad = torch.autograd.grad(custom_loss.mean(), param, retain_graph=True)[0] 
-                                        #optimizer.step()
+            #         if optimizer is not None:
+            #             for i, layer in enumerate(self.orthogonal_transform):
+            #                     #optimizer.zero_grad()  # Reset gradients to zero for all model parameters                
+            #                     for param in layer.parameters():
+            #                         if param.requires_grad:
+            #                             param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0] 
+            #                             #param.grad = torch.autograd.grad(custom_loss.mean(), param, retain_graph=True)[0] 
+            #                             #optimizer.step()
                                         
-                    if optimizer is not None:
-                        nn.utils.clip_grad_norm_(self.parameters(), 0.02)      
-                        optimizer.step()
+            #         if optimizer is not None:
+            #             nn.utils.clip_grad_norm_(self.parameters(), 0.02)      
+            #             optimizer.step()
     
     
         # TODO move this into preprcoessing or utils
@@ -611,7 +524,7 @@ class net(nn.Module):
                     rotated_nv = [self.orthogonal_transform[i](nv[i].view(-1, dim_space)).view(-1, nv[i].shape[1]) for i in range(len(nv))]    
                     nv = torch.zeros_like(data.normal_vectors)
                     nv[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_nv, dim=0) 
-                    #nv = data.normal_vectors
+                    # nv = data.normal_vectors
                     
                     # compute loss on gauges
                     gauge_loss = self.loss_orth(nv, data,
@@ -650,6 +563,59 @@ class net(nn.Module):
             loss_total = cum_loss / len(loader)  + cum_custom_loss / len(loader)
             
         return loss_total, optimizer
+
+    def update_inputs(self, input_, dim_space, system_ids):
+        """ apply learnt transformations to input data """
+        
+        n = input_.shape[0]
+        input_shape = input_.shape
+        #dim_ = len(input_.shape) 
+        
+        # update positions
+        input_, indices = geometry.split_by_system(torch.arange(n), system_ids, input_) 
+        
+        if len(input_shape)  == 3:
+            rotated_input_ = [self.orthogonal_transform[i](input_[i].view(-1, dim_space)).view(-1, input_[i].shape[1],  input_[i].shape[2]) for i in range(len(input_))]    
+        else:
+            rotated_input_ = [self.orthogonal_transform[i](input_[i].view(-1, dim_space)).view(-1, input_[i].shape[1]) for i in range(len(input_))]    
+        
+        output_ = torch.cat(rotated_input_, dim=0) #torch.zeros(input_shape) #  torch.zeros_like(input_)
+        #output_[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_input_, dim=0) 
+        # data.pos = pos
+        
+        # # update vectors
+        # x, indices = geometry.split_by_system(torch.arange(len(data.x)), data.system, data.x) 
+        # rotated_x = [self.orthogonal_transform[i](x[i].view(-1, dim_space)).view(-1, x[i].shape[1]) for i in range(len(x))]    
+        # x = torch.zeros_like(data.x)
+        # x[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_x, dim=0) 
+        # data.x = x  
+        
+        # # update gauges
+        # l_gauges, indices = geometry.split_by_system(torch.arange(len(data.x)), data.system, data.l_gauges) 
+        # rotated_lgauges = [self.orthogonal_transform[i](l_gauges[i].view(-1, dim_space)).view(-1, l_gauges[i].shape[1],  l_gauges[i].shape[2]) for i in range(len(l_gauges))]    
+        # l_gauges = torch.zeros_like(data.l_gauges)
+        # l_gauges[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_lgauges, dim=0) 
+        # data.l_gauges = l_gauges  
+
+        # # update normal vectors to tangent spaces
+        # if data.normal_vectors:
+        #     nv, indices = geometry.split_by_system(torch.arange(len(data.x)), data.system, data.normal_vectors) 
+        #     rotated_nv = [self.orthogonal_transform[i](nv[i].view(-1, dim_space)).view(-1, nv[i].shape[1]) for i in range(len(nv))]    
+        #     nv = torch.zeros_like(data.normal_vectors)
+        #     nv[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_nv, dim=0) 
+        #     data.normal_vectors = nv
+        
+        # # recompute kernels based on updated positions and gauges
+        # kernels = geometry.gradient_op(data.pos.detach().cpu(),
+        #                                     data.edge_index.detach().cpu(),
+        #                                     data.l_gauges.detach().cpu())
+        # data.kernels = [
+        #     utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels
+        # ]
+        # data.kernels = [K.to(data.x.device) for K in data.kernels]
+
+        return output_
+    
 
     def run_training(self, data, outdir=None, verbose=False):
         """Run training."""
@@ -702,6 +668,9 @@ class net(nn.Module):
             )
             val_loss, _ = self.batch_loss(data, val_loader, verbose=verbose)
             scheduler.step(train_loss)
+            
+            # apply rotations/transformation to each for next epoch
+            # data = self.update_inputs(data)            
 
             print(
                 f"\nEpoch: {self._epoch}, Training loss: {train_loss:4f}, Validation loss: {val_loss:.4f}, lr: {scheduler._last_lr[0]:.4f}",  # noqa, pylint: disable=line-too-long,protected-access
@@ -786,7 +755,6 @@ class net(nn.Module):
         return any(param is q_param for layer in self.orthogonal_transform for q_param in layer.parameters())
     
 
-
 class loss_fun(nn.Module):
     """Loss function."""    
 
@@ -844,7 +812,7 @@ def distance(embeddings, condition, dist_type='dynamic', return_paired=False):
             if dist_type=='positional':  
                 dist = positional_distance(embeddings[i], embeddings[j])
             if dist_type=='dynamic':
-                dist = dynamic_distance(embeddings[i], embeddings[j])
+                dist = dynamic_distance(embeddings[i], embeddings[j], normalize=True)
             if dist_type=='mse':
                 dist = F.mse_loss(embeddings[i], embeddings[j])
             if dist_type=='condition_procrustes':                
@@ -894,7 +862,6 @@ def dynamic_distance(x: torch.Tensor, y: torch.Tensor, normalize=False) -> torch
     #x = x[:min_shape,:]
     #y = y[:min_shape,:]
 
-    # Compute SVD of the product of X and Y.T
     dot = x @ y.T
     #dot = dot / dot.max()
     #dot = torch.pow(dot,2) * torch.sign(dot)

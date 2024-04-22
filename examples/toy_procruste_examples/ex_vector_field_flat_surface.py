@@ -5,17 +5,17 @@ from MARBLE import plotting, preprocessing, dynamics, net, postprocessing
 import matplotlib.pyplot as plt
 import scipy as sc
 
-def f0(x):
-    return x * 0 + np.array([-1, -1])
+# def f0(x):
+#     return x * 0 + np.array([-1, -1])
 
-def f1(x):
-    return x * 0 + np.array([1, 1])
+# def f1(x):
+#     return x * 0 + np.array([1, 1])
 
-def f2(x):
-    return x * 0 + np.array([-1, 0])
+# def f2(x):
+#     return x * 0 + np.array([-1, 0])
 
-def f3(x):
-    return x * 0 + np.array([1, 0])
+# def f3(x):
+#     return x * 0 + np.array([1, 0])
 
 
 # def f2(x):
@@ -25,54 +25,56 @@ def f3(x):
 #     return x * 0 + np.array([-1, 1])
 
 
-# def f0(x):
-#     eps = 1e-1
-#     norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
-#     u = (x[:, [1]] + 1) / norm
-#     v = -(x[:, [0]] + 1) / norm
-#     return np.hstack([u, v])
-
-# def f1(x):
-#     eps = 1e-1
-#     norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
-#     u = (x[:, [1]] + 1) / norm
-#     v = -(x[:, [0]] - 1) / norm
-#     return np.hstack([u, v])
-
-# def f2(x):
-#     eps = 1e-1
-#     norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] - 1) ** 2 + eps)
-#     u = (x[:, [1]]-1) / norm
-#     v = -(x[:, [0]] + 1) / norm
-#     return np.hstack([u, v])
-
-# def f3(x):
-#     eps = 1e-1
-#     norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] - 1) ** 2 + eps)
-#     u = (x[:, [1]]-1) / norm
-#     v = -(x[:, [0]] - 1) / norm
-#     return np.hstack([u, v])
-
 
 def f0(x):
-    return x * 0 + np.array([-1, -1])
+    eps = 1e-1
+    norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
+    u = (x[:, [1]] + 1) / norm
+    v = -(x[:, [0]] + 1) / norm
+    return np.hstack([u, v])
 
 def f1(x):
-    return x * 0 + np.array([1, 1])
+    eps = 1e-1
+    norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
+    u = (x[:, [1]] + 1) / norm
+    v = -(x[:, [0]] - 1) / norm
+    return np.hstack([u, v])
 
 def f2(x):
     eps = 1e-1
-    norm = np.sqrt((x[:, [0]] + 1) ** 2 + x[:, [1]] ** 2 + eps)
-    u = x[:, [1]] / norm
+    norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] -1) ** 2 + eps)
+    u = (x[:, [1]]-1) / norm
     v = -(x[:, [0]] + 1) / norm
     return np.hstack([u, v])
 
 def f3(x):
     eps = 1e-1
-    norm = np.sqrt((x[:, [0]] - 1) ** 2 + x[:, [1]] ** 2 + eps)
-    u = x[:, [1]] / norm
+    norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] - 1) ** 2 + eps)
+    u = (x[:, [1]]-1) / norm
     v = -(x[:, [0]] - 1) / norm
     return np.hstack([u, v])
+
+
+
+# def f0(x):
+#     return x * 0 + np.array([-1, -1])
+
+# def f1(x):
+#     return x * 0 + np.array([1, 1])
+
+# def f2(x):
+#     eps = 1e-1
+#     norm = np.sqrt((x[:, [0]] + 1) ** 2 + x[:, [1]] ** 2 + eps)
+#     u = x[:, [1]] / norm
+#     v = -(x[:, [0]] + 1) / norm
+#     return np.hstack([u, v])
+
+# def f3(x):
+#     eps = 1e-1
+#     norm = np.sqrt((x[:, [0]] - 1) ** 2 + x[:, [1]] ** 2 + eps)
+#     u = x[:, [1]] / norm
+#     v = -(x[:, [0]] - 1) / norm
+#     return np.hstack([u, v])
 
 
 def main():
@@ -95,17 +97,17 @@ def main():
         "out_channels": 2,
         "batch_size": 64, # batch size
         #"emb_norm": True,
-        "scalar_diffusion":False, # diffusion with graph Laplacian
+        "scalar_diffusion": False, # diffusion with graph Laplacian
         "vector_diffusion": False, # diffusion over connection Laplacian
-        "include_positions":False, # don't / use positional features
-        "epochs": 50,
+        "include_positions": False, # don't / use positional features
+        "epochs": 100,
         "inner_product_features":False, # compute inner product of features
         "global_align":True, # align dynamical systems orthogonally
         "final_grad": True, # compute orthogonal gradient at end of batch
         "positional_grad":False,  # compute orthogonal gradient on positions or not
         "vector_grad":True, # compute gradient based on cosine difference of systems
-        "derivative_grad":True, 
-        "gauge_grad":False, # use the normal vectors of the local gauges for gradient
+        "derivative_grad": True, 
+        "gauge_grad": False, # use the normal vectors of the local gauges for gradient
     }
     
     model = net(data, params=params)

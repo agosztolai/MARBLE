@@ -6,14 +6,14 @@ import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
 
 def get_pos_vel(mus, 
-                alpha=0.2, 
+                alpha=0.0, 
                 n=500,
                 t = np.array([0]),#np.arange(0, 3, 0.5),
                 area = [[-3, -3],[3, 3]],
                 radius=3,
                 ):
     
-    X0_range = dynamics.initial_conditions(n, len(mus), area=area, radius=radius, method='random', shape='rectangle')
+    X0_range = dynamics.initial_conditions(n, len(mus), area=area, radius=radius, method='uniform', shape='circle')
 
     pos, vel = [], []
     for X0, m in zip(X0_range, mus):
@@ -36,7 +36,7 @@ def get_pos_vel(mus,
 
 def main():
 
-    mus = np.linspace(-1,1,5)
+    mus = np.linspace(-1,1,7)
     x, y, rot = get_pos_vel(mus)
     k = 10
     frac_geodesic_nb = 2
@@ -49,10 +49,10 @@ def main():
         "order": 2,  # order of derivatives
         "include_self": True,#True, 
         "hidden_channels":[64],
-        "out_channels": 3,
+        "out_channels": 2,
         "batch_size" : 64, # batch size
-        #"emb_norm": True,
-        "scalar_diffusion":False,
+        "emb_norm": False,
+        "scalar_diffusion": True,
         "vector_diffusion":False,
         "include_positions":False, # don't / use positional features
         "epochs": 100,

@@ -6,27 +6,27 @@ import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
 
 
-def f0(x):
-    return x * 0 + np.array([-1, -1])
-
-
-def f1(x):
-    return x * 0 + np.array([1, 1])
-
-
 # def f0(x):
-#     eps = 1e-1
-#     norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
-#     u = (x[:, [1]] + 1) / norm
-#     v = -(x[:, [0]] + 1) / norm
-#     return np.hstack([u, v])
+#     return x * 0 + np.array([-1, -1])
+
 
 # def f1(x):
-#     eps = 1e-1
-#     norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
-#     u = (x[:, [1]] + 1) / norm
-#     v = -(x[:, [0]] - 1) / norm
-#     return np.hstack([u, v])
+#     return x * 0 + np.array([1, 1])
+
+
+def f0(x):
+    eps = 1e-1
+    norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
+    u = (x[:, [1]] + 1) / norm
+    v = -(x[:, [0]] + 1) / norm
+    return np.hstack([u, v])
+
+def f1(x):
+    eps = 1e-1
+    norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
+    u = (x[:, [1]] + 1) / norm
+    v = -(x[:, [0]] - 1) / norm
+    return np.hstack([u, v])
 
 def f2(x):
     eps = 1e-1
@@ -57,25 +57,25 @@ def f3(x):
 #     v = -(x[:, [0]] - 1) / norm
 #     return np.hstack([u, v])
 
-def f0(x):
-    return x * 0 + np.array([-1, -1])
+# def f0(x):
+#     return x * 0 + np.array([-1, -1])
 
-def f1(x):
-    return x * 0 + np.array([1, 1])
+# def f1(x):
+#     return x * 0 + np.array([1, 1])
 
-def f2(x):
-    eps = 1e-1
-    norm = np.sqrt((x[:, [0]] + 1) ** 2 + x[:, [1]] ** 2 + eps)
-    u = x[:, [1]] / norm
-    v = -(x[:, [0]] + 1) / norm
-    return np.hstack([u, v])
+# def f2(x):
+#     eps = 1e-1
+#     norm = np.sqrt((x[:, [0]] + 1) ** 2 + x[:, [1]] ** 2 + eps)
+#     u = x[:, [1]] / norm
+#     v = -(x[:, [0]] + 1) / norm
+#     return np.hstack([u, v])
 
-def f3(x):
-    eps = 1e-1
-    norm = np.sqrt((x[:, [0]] - 1) ** 2 + x[:, [1]] ** 2 + eps)
-    u = x[:, [1]] / norm
-    v = -(x[:, [0]] - 1) / norm
-    return np.hstack([u, v])
+# def f3(x):
+#     eps = 1e-1
+#     norm = np.sqrt((x[:, [0]] - 1) ** 2 + x[:, [1]] ** 2 + eps)
+#     u = x[:, [1]] / norm
+#     v = -(x[:, [0]] - 1) / norm
+#     return np.hstack([u, v])
 
 
 def parabola(X, Y, alpha=0.3):
@@ -94,7 +94,7 @@ def main():
     y = [f0(x[0]), 
          f1(x[1]), f2(x[2]),f3(x[3])]  # evaluated functions    
 
-    alpha=0.2
+    alpha=0.3
     # embed on parabola
     for i, (p, v) in enumerate(zip(x, y)):
         end_point = p + v
@@ -136,7 +136,7 @@ def main():
         "positional_grad":True,  # use gradient on positions or not
         "vector_grad":True,
         "derivative_grad":True,
-        "gauge_grad":True,
+        "gauge_grad": True,
     }
     
     model = net(data, params=params)
