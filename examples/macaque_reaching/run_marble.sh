@@ -1,5 +1,5 @@
 #!/bin/bash
-#BATCH --job-name MARBLE # Name for your job
+#BATCH --job-name M_pca5 # Name for your job
 #SBATCH --ntasks 5              # Number of (cpu) tasks
 #SBATCH --time 1200             # Runtime in minutes.
 #SBATCH --mem 10000             # Reserve 10 GB RAM for the job

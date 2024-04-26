@@ -1,116 +1,10 @@
 import pickle
-import os
 import sys
 import numpy as np
-from scipy.signal import savgol_filter
-from sklearn.decomposition import PCA
-
-def get_vector_array(coords):
-    """function for defining the vector features from each array of coordinates"""
-    diff = np.diff(coords, axis=0)
-    return diff
-
-
-def fit_pca(rates, day, conditions, filter_data=True, pca_n=5):
-    pos = []
-    # loop over each condition on that day
-    for c, cond in enumerate(conditions):
-
-        # go cue at 500ms (500ms / 20ms bin = 250)
-        # only take rates from bin 10 onwards
-        data = rates[day][cond][:, :, 25:]
-
-        # loop over all trials
-        for t in range(data.shape[0]):
-
-            # extract trial
-            trial = data[t, :, :]
-
-            # smooth trial over time
-            if filter_data:
-                trial = savgol_filter(trial, 9, 2)
-
-            # store each trial as time x channels
-            pos.append(trial.T)
-
-    # stacking all trials into a single array (time x channels)
-    pos = np.vstack(pos)
-
-    # fit PCA to all data across all conditions on a given day simultaneously
-    pca = PCA(n_components=pca_n)
-    pca.fit(pos)
-    
-    return pca
-
-
-def format_data(rates, trial_ids, day, conditions, pca=None, filter_data=True):
-    # create empty list of lists for each condition
-    pos = [[] for u in range(len(conditions))]
-    vel = [[] for u in range(len(conditions))]
-    timepoints = [[] for u in range(len(conditions))]
-    condition_labels = [[] for u in range(len(conditions))]
-    trial_indexes = [[] for u in range(len(conditions))]
-
-    # loop over conditions
-    for c, cond in enumerate(conditions):
-
-        # go cue at 500ms (500ms / 50ms bin = 10)
-        # only take rates from bin 10 onwards
-        data = rates[day][cond][:, :, 25:]
-
-        # loop over all trials
-        for t in range(data.shape[0]):
-
-            # extract trial
-            trial = data[t, :, :]
-
-            # smooth trial over time
-            if filter_data:
-                trial = savgol_filter(trial, 9, 2)
-
-            # apply transformation to single trial
-            if pca is not None:
-                trial = pca.transform(trial.T)
-            else:
-                trial = trial.T
-
-            # take all points except last
-            pos[c].append(trial[:-1, :])
-
-            # extract vectors between coordinates
-            vel[c].append(get_vector_array(trial))
-
-            timepoints[c].append(np.linspace(0, trial.shape[0] - 2, trial.shape[0] - 1))
-            condition_labels[c].append(np.repeat(c, trial.shape[0] - 1))
-
-            # adding trial id info (to match with kinematics decoding later)
-            ind = np.repeat(trial_ids[day][cond][t], trial.shape[0] - 1)
-            trial_indexes[c].append(ind)
-
-    # stack the trials within each condition
-    pos = [np.vstack(u) for u in pos]  # trials x time x channels
-    vel = [np.vstack(u) for u in vel]  # trials x time x channels
-    timepoints = [np.hstack(u) for u in timepoints]
-    condition_labels = [np.hstack(u) for u in condition_labels]
-    trial_indexes = [np.hstack(u) for u in trial_indexes]
-        
-    return pos, vel, timepoints, condition_labels, trial_indexes
-
-
-def load_data(data_file, metadata_file):
-    
-    # instantaneous rate data
-    os.system(f"wget -nc https://dataverse.harvard.edu/api/access/datafile/6969883 -O {data_file}")
-    rates = pickle.load(open(data_file, "rb"))
-    
-    os.system(f"wget -nc https://dataverse.harvard.edu/api/access/datafile/6963200 -O {metadata_file}")
-    trial_ids = pickle.load(open(metadata_file, "rb"))
-    
-    return rates, trial_ids
-
+from macaque_reaching_helpers import *
+import MARBLE
 
 def main():
-    import MARBLE
 
     """fitting model for each day + pca embedding"""
     
@@ -155,7 +49,7 @@ def main():
             vector=vel,
             k=30,
             spacing=0.0,
-            delta=2.0,
+            delta=1.5,
             pca_dim=pca_n,
             metric='cityblock'
         )

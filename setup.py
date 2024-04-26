@@ -18,11 +18,11 @@ setup(
     install_requires=[
         "POT==0.9.3",
         "umap-learn==0.5.6",
-        "wget=3.2",
+        "wget==3.2",
         "torch_geometric==2.1.0",
-        "torch-scatter==2.1.2",
-        "torch-cluster==1.6.3",
-        "torch_sparse==0.6.18",
+        #"torch-scatter==2.1.2",
+        #"torch-cluster==1.6.3",
+        #"torch_sparse==0.6.18",
         "threadpoolctl==3.1.0"
     ],
     packages=find_packages(),

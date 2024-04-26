@@ -93,7 +93,7 @@ def cluster(x, cluster_typ="kmeans", n_clusters=15, seed=0):
     return clusters
 
 
-def embed(x, embed_typ="umap", dim_emb=2, manifold=None, seed=0, **kwargs):
+def embed(x, embed_typ="umap", dim_emb=2, manifold=None, verbose=True, seed=0, **kwargs):
     """Embed data to 2D space.
 
     Args:
@@ -149,7 +149,8 @@ def embed(x, embed_typ="umap", dim_emb=2, manifold=None, seed=0, **kwargs):
     else:
         raise NotImplementedError
 
-    print(f"Performed {embed_typ} embedding on embedded results.")
+    if verbose:
+        print(f"Performed {embed_typ} embedding on embedded results.")
 
     return emb, manifold
 
@@ -354,20 +355,20 @@ def manifold_dimension(Sigma, frac_explained=0.9):
     return int(dim_man)
 
 
-def fit_graph(x, graph_type="cknn", par=1, delta=1.0):
+def fit_graph(x, graph_type="cknn", par=1, delta=1.0, metric='euclidean'):
     """Fit graph to node positions"""
 
     if graph_type == "cknn":
-        edge_index = cknneighbors_graph(x, n_neighbors=par, delta=delta).tocoo()
+        edge_index = cknneighbors_graph(x, n_neighbors=par, delta=delta, metric=metric).tocoo()
         edge_index = np.vstack([edge_index.row, edge_index.col])
         edge_index = utils.np2torch(edge_index, dtype="double")
 
     elif graph_type == "knn":
-        edge_index = knn_graph(x, k=par)
+        edge_index = knn_graph(x, k=par, metric=metric)
         edge_index = PyGu.add_self_loops(edge_index)[0]
 
     elif graph_type == "radius":
-        edge_index = radius_graph(x, r=par)
+        edge_index = radius_graph(x, r=par, metric=metric)
         edge_index = PyGu.add_self_loops(edge_index)[0]
 
     else:
