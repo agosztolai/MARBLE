@@ -13,19 +13,34 @@ import sklearn
 import MARBLE
 import cebra
 
-def prepare_marble(spikes, labels, pca=None, pca_n=10, skip=1):
+def prepare_marble(spikes,
+                   labels,
+                   pca=None,
+                   pca_n=10,
+                   skip=1,
+                   spiking_rates=True,
+                    k=15,
+                    delta=1.5,
+                    graph_type='knn',
+                    frac_geodesic_nb=1,
+                    kernel_width=10,):
     
     s_interval = 1
     
-    gk = GaussianKernel(10 * ms)
-    rates = []
-    for sp in spikes:
-        sp_times = np.where(sp)[0]
-        st = neo.SpikeTrain(sp_times, units="ms", t_stop=len(sp))
-        r = instantaneous_rate(st, kernel=gk, sampling_period=s_interval * ms).magnitude
-        rates.append(r.T)
+    if spiking_rates:
+        gk = GaussianKernel(kernel_width * ms)
+        rates = []
+        for sp in spikes:
+            sp_times = np.where(sp)[0]
+            st = neo.SpikeTrain(sp_times, units="ms", t_stop=len(sp))
+            r = instantaneous_rate(st, kernel=gk, sampling_period=s_interval * ms).magnitude
+            rates.append(r.T)
+            
+        rates = np.vstack(rates)
+    else:
+        rates = spikes;
+    
 
-    rates = np.vstack(rates)
 
     if pca is None:
         pca =  PCA(n_components=pca_n)
@@ -43,9 +58,11 @@ def prepare_marble(spikes, labels, pca=None, pca_n=10, skip=1):
     data = MARBLE.construct_dataset(
         anchor=rates_pca,
         vector=vel_rates_pca,
-        k=15,
+        k=k,
         spacing=0.0,
-        delta=1.5,
+        delta=delta,
+        graph_type=graph_type,
+        frac_geodesic_nb=frac_geodesic_nb,
     )
 
     return data, labels, pca
