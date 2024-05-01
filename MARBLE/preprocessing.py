@@ -23,6 +23,8 @@ def construct_dataset(
     var_explained=0.9,
     local_gauges=False,
     seed=None,
+    pca_dim=None,
+    metric='euclidean'
 ):
     """Construct PyG dataset from node positions and features.
 
@@ -64,6 +66,10 @@ def construct_dataset(
     if spacing == 0.0:
         number_of_resamples = 1
 
+    # fit PCA coordinates
+    if pca_dim is not None:
+        _, pca = g.embed(torch.vstack(anchor), embed_typ='PCA', dim_emb=pca_dim, verbose=False)
+
     data_list = []
     for i, (a, v, l, m) in enumerate(zip(anchor, vector, label, mask)):
         for _ in range(number_of_resamples):
@@ -73,14 +79,21 @@ def construct_dataset(
                     start_idx = torch.randint(low=0, high=len(a), size=(1,))
                 else:
                     start_idx = 0
-                    
+
                 sample_ind, _ = g.furthest_point_sampling(a, spacing=spacing, start_idx=start_idx)
                 sample_ind, _ = torch.sort(sample_ind)  # this will make postprocessing easier
                 a_, v_, l_, m_ = a[sample_ind], v[sample_ind], l[sample_ind], m[sample_ind]
     
                 # fit graph to point cloud
-                edge_index, edge_weight = g.fit_graph(a_, graph_type=graph_type, par=k, delta=delta)
-    
+                edge_index, edge_weight = g.fit_graph(a_, graph_type=graph_type, par=k, delta=delta, metric=metric)
+
+                # pca embed
+                if pca_dim is not None:
+                    a_, _ = g.embed(a_, embed_typ='PCA', manifold=pca, verbose=False)
+                    v_, _ = g.embed(v_, embed_typ='PCA', manifold=pca, verbose=False)
+                    a_ = torch.tensor(a_).float()
+                    v_ = torch.tensor(v_).float()
+
                 # define data object
                 data_ = Data(
                     pos=a_,
@@ -112,7 +125,7 @@ def construct_dataset(
         n_geodesic_nb=k * frac_geodesic_nb,
         var_explained=var_explained,
     )
-
+    
 
 def _compute_geometric_objects(
     data,
