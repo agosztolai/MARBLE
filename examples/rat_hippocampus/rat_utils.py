@@ -19,11 +19,11 @@ def prepare_marble(spikes,
                    pca_n=10,
                    skip=1,
                    spiking_rates=True,
-                    k=15,
-                    delta=1.5,
-                    graph_type='knn',
-                    frac_geodesic_nb=1,
-                    kernel_width=10,):
+                   k=15,
+                   delta=1.5,
+                   graph_type='cknn',
+                   frac_geodesic_nb=1,
+                   kernel_width=10,):
     
     s_interval = 1
     
