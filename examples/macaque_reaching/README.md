@@ -1,6 +1,4 @@
-# Spiking data example
-
-This folder contains scripts to generate the results presented in Figure 3 in the paper.
+# Macaque centre-out arm-reaching example
 
 The scripts and notebooks are as follows. 
 
@@ -8,7 +6,8 @@ The scripts and notebooks are as follows.
 
 - plot_vector_fields.ipynb: this notebook will plot the firing rate data as vector fields (Fig. 4d)
 - plot_MARBLE_representations.ipynb: this notebook will plot MARBLE representations (Fig. 4e)
-- kinematic_decoding.ipynb: this notebook will plot the kinematic decoding results (Fig. 4f,g)
+- kinematic_decoding.ipynb: this notebook will plot the kinematic decoding results (Fig. 4f,g, S12)
+- sensitivity_analysis.ipynb: this notebook will plot the sensitivity analysis results (Fig. S13, S14)
 
 2. If you want to rerun from spiking neuron data
 

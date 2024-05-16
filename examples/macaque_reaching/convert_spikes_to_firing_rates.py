@@ -71,7 +71,7 @@ def spikes_to_rates(data, d, sampling_period=20):
                 trial_data.append(inst_rates)
 
         # stack into an array of trial x channels x time
-        rates[cond] = np.dstack(trial_data).transpose(2, 0, 1)
+        rates[cond] = np.dstack(trial_data).transpose(2, 1, 0)
 
     return rates
 
@@ -142,8 +142,8 @@ def convert_kinematics():
 
 
 def main():
-    #convert_spiking_rates()
-    convert_kinematics()
+    convert_spiking_rates()
+    #convert_kinematics()
 
 
 if __name__ == "__main__":
