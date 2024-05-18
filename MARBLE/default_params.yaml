@@ -9,7 +9,7 @@ order: 2 # order to which to compute the directional derivatives
 inner_product_features: False
 diffusion: True
 frac_sampled_nb: -1 # fraction of neighbours to sample for gradient computation (if -1 then all neighbours)
-include_positions: False # include positions as features (warning: this is untested!)
+include_positions: False # include positions as features
 include_self: True # include vector at the center of feature
 
 # network parameters

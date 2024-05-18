@@ -36,12 +36,12 @@ def main():
 
         # first stack all trials from that day together and fit pca
         print(day)
-        #pca = fit_pca(rates, day, conditions, filter_data=filter_data, pca_n=pca_n)
+        pca = fit_pca(rates, day, conditions, filter_data=filter_data, pca_n=pca_n)
         pos, vel, timepoints, condition_labels, trial_indexes = format_data(rates, 
                                                                             trial_ids,
                                                                             day, 
                                                                             conditions, 
-                                                                            #pca=pca,
+                                                                            pca=pca,
                                                                             filter_data=filter_data)
         # construct data for marble
         data = MARBLE.construct_dataset(
@@ -50,8 +50,6 @@ def main():
             k=30,
             spacing=0.0,
             delta=1.5,
-            pca_dim=pca_n,
-            metric='cityblock'
         )
 
         params = {
@@ -60,7 +58,6 @@ def main():
             "hidden_channels": 100,  # number of internal dimensions in MLP
             "out_channels": 3, # or 3 for Fig3
             "inner_product_features": False,
-            "vec_norm": False,
             "diffusion": True,
         }
 

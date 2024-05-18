@@ -23,7 +23,6 @@ def construct_dataset(
     var_explained=0.9,
     local_gauges=False,
     seed=None,
-    pca_dim=None,
     metric='euclidean'
 ):
     """Construct PyG dataset from node positions and features.
@@ -66,10 +65,6 @@ def construct_dataset(
     if spacing == 0.0:
         number_of_resamples = 1
 
-    # fit PCA coordinates
-    if pca_dim is not None:
-        _, pca = g.embed(torch.vstack(anchor), embed_typ='PCA', dim_emb=pca_dim, verbose=False)
-
     data_list = []
     for i, (a, v, l, m) in enumerate(zip(anchor, vector, label, mask)):
         for _ in range(number_of_resamples):
@@ -86,13 +81,6 @@ def construct_dataset(
     
                 # fit graph to point cloud
                 edge_index, edge_weight = g.fit_graph(a_, graph_type=graph_type, par=k, delta=delta, metric=metric)
-
-                # pca embed
-                if pca_dim is not None:
-                    a_, _ = g.embed(a_, embed_typ='PCA', manifold=pca, verbose=False)
-                    v_, _ = g.embed(v_, embed_typ='PCA', manifold=pca, verbose=False)
-                    a_ = torch.tensor(a_).float()
-                    v_ = torch.tensor(v_).float()
 
                 # define data object
                 data_ = Data(

@@ -99,18 +99,6 @@ def format_data(rates, trial_ids, day, conditions, pca=None, filter_data=True, g
     return pos, vel, timepoints, condition_labels, trial_indexes
 
 
-def load_data(data_file, metadata_file):
-    
-    # instantaneous rate data
-    os.system(f"wget -nc https://dataverse.harvard.edu/api/access/datafile/6969883 -O {data_file}")
-    rates = pickle.load(open(data_file, "rb"))
-    
-    os.system(f"wget -nc https://dataverse.harvard.edu/api/access/datafile/6963200 -O {metadata_file}")
-    trial_ids = pickle.load(open(metadata_file, "rb"))
-    
-    return rates, trial_ids
-
-
 def train_OLE(data, trial_ids, representation='lfads_factors'):
     
     X, Z = [], []
