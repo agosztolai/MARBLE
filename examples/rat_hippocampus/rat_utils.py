@@ -25,7 +25,6 @@ def prepare_marble(spikes,
                    frac_geodesic_nb=1,
                    kernel_width=10,):
     
-    s_interval = 1
     
     if spiking_rates:
         gk = GaussianKernel(kernel_width * ms)
@@ -33,7 +32,7 @@ def prepare_marble(spikes,
         for sp in spikes:
             sp_times = np.where(sp)[0]
             st = neo.SpikeTrain(sp_times, units="ms", t_stop=len(sp))
-            r = instantaneous_rate(st, kernel=gk, sampling_period=s_interval * ms).magnitude
+            r = instantaneous_rate(st, kernel=gk, sampling_period=1. * ms).magnitude
             rates.append(r.T)
             
         rates = np.vstack(rates)
