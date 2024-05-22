@@ -1,4 +1,5 @@
 """Postprocessing module."""
+
 import numpy as np
 
 from MARBLE import geometry as g

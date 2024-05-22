@@ -1,4 +1,5 @@
 """Plotting module."""
+
 import matplotlib
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -182,6 +183,8 @@ def embedding(
         emb = data.emb_2D
     elif isinstance(data, np.ndarray) or torch.is_tensor(data):
         emb = data
+    else:
+        raise TypeError
 
     dim = emb.shape[1]
     assert dim in [2, 3], f"Embedding dimension is {dim} which cannot be displayed."
@@ -531,7 +534,7 @@ def trajectories(
     Args:
         X (np array): Positions
         V (np array): Velocities
-        ax (matplotlib axes object): If specificed, it will plot on existing axes. The default is None
+        ax (matplotlib axes object): If specificed, it will plot on existing axes. Default is None
         style (string): Plotting style. 'o' for scatter plot or '-' for line plot
         node_feature: Color lines. The default is None
         lw (int): Line width
@@ -605,9 +608,7 @@ def trajectories(
             X, V = X[skip], V[skip]
             plot_arrows(X, V, ax, c, width=lw, scale=scale)
     else:
-        raise Exception(
-            "Data dimension is: {}. It needs to be 2 or 3 to allow plotting.".format(dim)
-        )
+        raise Exception(f"Data dimension is: {dim}. It needs to be 2 or 3 to allow plotting.")
 
     set_axes(ax, axes_visible=axes_visible)
 
@@ -690,7 +691,7 @@ def create_axis(*args, fig=None):
     elif dim == 3:
         ax = fig.add_subplot(*args, projection="3d")
     else:
-        raise Exception("Data dimension is {}. We can only plot 2D or 3D data.".format(dim))
+        raise Exception(f"Data dimension is {dim}. We can only plot 2D or 3D data.")
 
     return fig, ax
 

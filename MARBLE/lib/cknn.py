@@ -1,4 +1,5 @@
 """Module imported and adapted from https://github.com/chlorochrule/cknn."""
+
 import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.spatial.distance import pdist

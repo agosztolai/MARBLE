@@ -1,4 +1,5 @@
 """Utils module."""
+
 import multiprocessing
 from functools import partial
 from typing import NamedTuple

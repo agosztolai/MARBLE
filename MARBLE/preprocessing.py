@@ -1,4 +1,5 @@
 """Preprocessing module."""
+
 import torch
 from torch_geometric.data import Batch
 from torch_geometric.data import Data
@@ -16,14 +17,13 @@ def construct_dataset(
     graph_type="cknn",
     k=20,
     delta=1.0,
-    n_eigenvalues=None,
     frac_geodesic_nb=1.5,
     spacing=0.0,
     number_of_resamples=1,
     var_explained=0.9,
     local_gauges=False,
     seed=None,
-    metric='euclidean'
+    metric="euclidean",
 ):
     """Construct PyG dataset from node positions and features.
 
@@ -35,8 +35,6 @@ def construct_dataset(
         graph_type: type of nearest-neighbours graph: cknn (default), knn or radius
         k: number of nearest-neighbours to construct the graph
         delta: argument for cknn graph construction to decide the radius for each points.
-        n_eigenvalues: number of eigenvalue/eigenvector pairs to compute (None means all, 
-                       but this can be slow)
         frac_geodesic_nb: number of geodesic neighbours to fit the gauges to
         to map to tangent space k*frac_geodesic_nb
         stop_crit: stopping criterion for furthest point sampling
@@ -44,7 +42,7 @@ def construct_dataset(
         var_explained: fraction of variance explained by the local gauges
         local_gauges: is True, it will try to compute local gauges if it can (signal dim is > 2,
             embedding dimension is > 2 or dim embedding is not dim of manifold)
-        seed: Specify for reproducibility in the furthest point sampling. 
+        seed: Specify for reproducibility in the furthest point sampling.
               The default is None, which means a random starting vertex.
     """
 
@@ -78,9 +76,11 @@ def construct_dataset(
                 sample_ind, _ = g.furthest_point_sampling(a, spacing=spacing, start_idx=start_idx)
                 sample_ind, _ = torch.sort(sample_ind)  # this will make postprocessing easier
                 a_, v_, l_, m_ = a[sample_ind], v[sample_ind], l[sample_ind], m[sample_ind]
-    
+
                 # fit graph to point cloud
-                edge_index, edge_weight = g.fit_graph(a_, graph_type=graph_type, par=k, delta=delta, metric=metric)
+                edge_index, edge_weight = g.fit_graph(
+                    a_, graph_type=graph_type, par=k, delta=delta, metric=metric
+                )
 
                 # define data object
                 data_ = Data(
@@ -113,7 +113,7 @@ def construct_dataset(
         n_geodesic_nb=k * frac_geodesic_nb,
         var_explained=var_explained,
     )
-    
+
 
 def _compute_geometric_objects(
     data,

@@ -1,4 +1,5 @@
 """Geometry module."""
+
 import numpy as np
 import ot
 import scipy.sparse as sp
@@ -196,7 +197,7 @@ def compute_distribution_distances(clusters=None, data=None, slices=None):
         centroid_distances: distances between cluster centroids
     """
     s = slices
-
+    pdists, cdists = None, None
     if clusters is not None:
         # compute discrete measures supported on cluster centroids
         labels = clusters["labels"]
@@ -231,7 +232,7 @@ def compute_distribution_distances(clusters=None, data=None, slices=None):
         for j in range(i + 1, nl):
             mu, nu = bins_dataset[i], bins_dataset[j]
 
-            if data is not None:
+            if data is not None and pdists is not None:
                 cdists = pdists[s[i] : s[i + 1], s[j] : s[j + 1]]
 
             dist[i, j] = ot.emd2(mu, nu, cdists)
@@ -355,7 +356,7 @@ def manifold_dimension(Sigma, frac_explained=0.9):
     return int(dim_man)
 
 
-def fit_graph(x, graph_type="cknn", par=1, delta=1.0, metric='euclidean'):
+def fit_graph(x, graph_type="cknn", par=1, delta=1.0, metric="euclidean"):
     """Fit graph to node positions"""
 
     if graph_type == "cknn":

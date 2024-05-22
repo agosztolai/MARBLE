@@ -1,4 +1,5 @@
 """Layer module."""
+
 import torch
 from torch import nn
 from torch_geometric.nn.conv import MessagePassing
