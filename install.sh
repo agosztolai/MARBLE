@@ -4,7 +4,6 @@
 echo "Checking the PyTorch version"
 SED=$(which gsed || which sed)
 TORCH_VERSION=$(pip freeze | grep torch== | $SED -re "s/torch==([^+]+).*/\1/")
-echo $TORCH_VERSION
 
 if [ -z "$TORCH_VERSION" ]
 then

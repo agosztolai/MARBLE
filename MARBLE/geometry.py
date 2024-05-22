@@ -365,11 +365,11 @@ def fit_graph(x, graph_type="cknn", par=1, delta=1.0, metric="euclidean"):
         edge_index = utils.np2torch(edge_index, dtype="double")
 
     elif graph_type == "knn":
-        edge_index = knn_graph(x, k=par, metric=metric)
+        edge_index = knn_graph(x, k=par)
         edge_index = PyGu.add_self_loops(edge_index)[0]
 
     elif graph_type == "radius":
-        edge_index = radius_graph(x, r=par, metric=metric)
+        edge_index = radius_graph(x, r=par)
         edge_index = PyGu.add_self_loops(edge_index)[0]
 
     else:
