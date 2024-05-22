@@ -13,33 +13,24 @@ import sklearn
 import MARBLE
 import cebra
 
-def prepare_marble(spikes,
-                   labels,
-                   pca=None,
-                   pca_n=10,
-                   skip=1,
-                   spiking_rates=True,
-                   k=15,
-                   delta=1.5,
-                   graph_type='cknn',
-                   frac_geodesic_nb=1,
-                   kernel_width=10,):
-    
-    
-    if spiking_rates:
-        gk = GaussianKernel(kernel_width * ms)
-        rates = []
-        for sp in spikes:
-            sp_times = np.where(sp)[0]
-            st = neo.SpikeTrain(sp_times, units="ms", t_stop=len(sp))
-            r = instantaneous_rate(st, kernel=gk, sampling_period=1. * ms).magnitude
-            rates.append(r.T)
-            
-        rates = np.vstack(rates)
-    else:
-        rates = spikes;
-    
+def convert_spikes_to_rates(spikes,
+                            labels,
+                            pca=None,
+                            pca_n=10,
+                            spiking_rates=True,
+                            delta=1.5,
+                            kernel_width=10):
 
+    print('Converting spikes to rates... this may take a few minutes.')
+    gk = GaussianKernel(kernel_width * ms)
+    rates = []
+    for sp in spikes:
+        sp_times = np.where(sp)[0]
+        st = neo.SpikeTrain(sp_times, units="ms", t_stop=len(sp))
+        r = instantaneous_rate(st, kernel=gk, sampling_period=1. * ms).magnitude
+        rates.append(r.T)
+        
+    rates = np.vstack(rates)
 
     if pca is None:
         pca =  PCA(n_components=pca_n)
@@ -48,7 +39,6 @@ def prepare_marble(spikes,
         rates_pca = pca.transform(rates.T)
         
     vel_rates_pca = np.diff(rates_pca, axis=0)
-    print(pca.explained_variance_ratio_)  
 
     rates_pca = rates_pca[:-1,:] # skip last
 
@@ -57,11 +47,8 @@ def prepare_marble(spikes,
     data = MARBLE.construct_dataset(
         anchor=rates_pca,
         vector=vel_rates_pca,
-        k=k,
-        spacing=0.0,
+        k=15,
         delta=delta,
-        graph_type=graph_type,
-        frac_geodesic_nb=frac_geodesic_nb,
     )
 
     return data, labels, pca
