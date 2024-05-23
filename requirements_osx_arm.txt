@@ -1,4 +1,3 @@
-git+https://github.com/pyg-team/pyg-lib.git
 torch_scatter
 torch_sparse
 torch_cluster
