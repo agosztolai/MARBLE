@@ -1,4 +1,5 @@
 """Data loader module."""
+
 import torch
 from torch_cluster import random_walk
 from torch_geometric.loader import NeighborSampler as NS

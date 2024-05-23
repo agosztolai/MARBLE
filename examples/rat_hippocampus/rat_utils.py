@@ -13,18 +13,23 @@ import sklearn
 import MARBLE
 import cebra
 
-def prepare_marble(spikes, labels, pca=None, pca_n=10, skip=1):
-    
-    s_interval = 1
-    
-    gk = GaussianKernel(10 * ms)
+def convert_spikes_to_rates(spikes,
+                            labels,
+                            pca=None,
+                            pca_n=10,
+                            spiking_rates=True,
+                            delta=1.5,
+                            kernel_width=10):
+
+    print('Converting spikes to rates... this may take a few minutes.')
+    gk = GaussianKernel(kernel_width * ms)
     rates = []
     for sp in spikes:
         sp_times = np.where(sp)[0]
         st = neo.SpikeTrain(sp_times, units="ms", t_stop=len(sp))
-        r = instantaneous_rate(st, kernel=gk, sampling_period=s_interval * ms).magnitude
+        r = instantaneous_rate(st, kernel=gk, sampling_period=1. * ms).magnitude
         rates.append(r.T)
-
+        
     rates = np.vstack(rates)
 
     if pca is None:
@@ -34,7 +39,6 @@ def prepare_marble(spikes, labels, pca=None, pca_n=10, skip=1):
         rates_pca = pca.transform(rates.T)
         
     vel_rates_pca = np.diff(rates_pca, axis=0)
-    print(pca.explained_variance_ratio_)  
 
     rates_pca = rates_pca[:-1,:] # skip last
 
@@ -44,8 +48,7 @@ def prepare_marble(spikes, labels, pca=None, pca_n=10, skip=1):
         anchor=rates_pca,
         vector=vel_rates_pca,
         k=15,
-        spacing=0.0,
-        delta=1.5,
+        delta=delta,
     )
 
     return data, labels, pca

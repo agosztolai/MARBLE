@@ -1,4 +1,5 @@
 """Main network"""
+
 import glob
 import os
 import warnings
@@ -77,6 +78,7 @@ class net(nn.Module):
         self.setup_layers()
         self.loss = loss_fun()
         self.reset_parameters()
+        self.timestamp = None
 
         if verbose:
             utils.print_settings(self)
@@ -170,6 +172,9 @@ class net(nn.Module):
 
         # cumulated number of channels after gradient features
         cum_channels = s * (1 - d ** (o + 1)) // (1 - d)
+        if not self.params["include_self"]:
+            cum_channels -= s
+
         if self.params["inner_product_features"]:
             cum_channels //= s
             if s == 1:
@@ -181,9 +186,6 @@ class net(nn.Module):
 
         if self.params["include_positions"]:
             cum_channels += d
-
-        if not self.params["include_self"]:
-            cum_channels -= s
 
         # encoder
         if not isinstance(self.params["hidden_channels"], list):
@@ -350,7 +352,7 @@ class net(nn.Module):
 
         self.timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
 
-        print("\n---- Timestamp: {}".format(self.timestamp))
+        print(f"\n---- Timestamp: {self.timestamp}")
 
         # load to gpu (if possible)
         # pylint: disable=self-cls-assignment

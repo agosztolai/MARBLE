@@ -1,4 +1,5 @@
 """Geometry module."""
+
 import numpy as np
 import ot
 import scipy.sparse as sp
@@ -93,7 +94,7 @@ def cluster(x, cluster_typ="kmeans", n_clusters=15, seed=0):
     return clusters
 
 
-def embed(x, embed_typ="umap", dim_emb=2, manifold=None, seed=0, **kwargs):
+def embed(x, embed_typ="umap", dim_emb=2, manifold=None, verbose=True, seed=0, **kwargs):
     """Embed data to 2D space.
 
     Args:
@@ -149,7 +150,8 @@ def embed(x, embed_typ="umap", dim_emb=2, manifold=None, seed=0, **kwargs):
     else:
         raise NotImplementedError
 
-    print(f"Performed {embed_typ} embedding on embedded results.")
+    if verbose:
+        print(f"Performed {embed_typ} embedding on embedded results.")
 
     return emb, manifold
 
@@ -195,7 +197,7 @@ def compute_distribution_distances(clusters=None, data=None, slices=None):
         centroid_distances: distances between cluster centroids
     """
     s = slices
-
+    pdists, cdists = None, None
     if clusters is not None:
         # compute discrete measures supported on cluster centroids
         labels = clusters["labels"]
@@ -230,7 +232,7 @@ def compute_distribution_distances(clusters=None, data=None, slices=None):
         for j in range(i + 1, nl):
             mu, nu = bins_dataset[i], bins_dataset[j]
 
-            if data is not None:
+            if data is not None and pdists is not None:
                 cdists = pdists[s[i] : s[i + 1], s[j] : s[j + 1]]
 
             dist[i, j] = ot.emd2(mu, nu, cdists)
@@ -354,11 +356,11 @@ def manifold_dimension(Sigma, frac_explained=0.9):
     return int(dim_man)
 
 
-def fit_graph(x, graph_type="cknn", par=1, delta=1.0):
+def fit_graph(x, graph_type="cknn", par=1, delta=1.0, metric="euclidean"):
     """Fit graph to node positions"""
 
     if graph_type == "cknn":
-        edge_index = cknneighbors_graph(x, n_neighbors=par, delta=delta).tocoo()
+        edge_index = cknneighbors_graph(x, n_neighbors=par, delta=delta, metric=metric).tocoo()
         edge_index = np.vstack([edge_index.row, edge_index.col])
         edge_index = utils.np2torch(edge_index, dtype="double")
 
@@ -511,7 +513,7 @@ def compute_connections(data, gauges, processes=1):
 
     Args:
         data: Pytorch geometric data object
-        gauges (n,d,d matrix): Orthogonal unit vectors for each node
+        gauges (nxdxd matrix): Orthogonal unit vectors for each node
         processes: number of CPUs to use
 
     Returns:
@@ -568,7 +570,7 @@ def compute_eigendecomposition(A, k=None, eps=1e-8):
         return None
 
     if k is None:
-        A = A.to_dense()
+        A = A.to_dense().double()
     else:
         indices, values, size = A.indices(), A.values(), A.size()
         A = sp.coo_array((values, (indices[0], indices[1])), shape=size)
@@ -592,6 +594,9 @@ def compute_eigendecomposition(A, k=None, eps=1e-8):
                 raise ValueError("failed to compute eigendecomp") from e
             failcount += 1
             print("--- decomp failed; adding eps ===> count: " + str(failcount))
-            A += sp.eye(A.shape[0]) * (eps * 10 ** (failcount - 1))
+            if k is None:
+                A += torch.eye(A.shape[0]) * (eps * 10 ** (failcount - 1))
+            else:
+                A += sp.eye(A.shape[0]) * (eps * 10 ** (failcount - 1))
 
-    return evals, evecs
+    return evals.float(), evecs.float()

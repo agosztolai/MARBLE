@@ -454,7 +454,7 @@ def plot_experiment(net, input, traj, epochs, rect=(-8, 8, -6, 6), traj_to_show=
     fig.subplots_adjust(hspace=0.1, wspace=0.1)
 
 
-def aggregate_data(traj, epochs, transient=10, only_stim=False, pca=True):
+def aggregate_data(traj, epochs, transient=10, only_stim=False, pca=True, n_pca=3):
 
     n_conds = len(traj)
     n_epochs = len(epochs) - 1
@@ -468,7 +468,7 @@ def aggregate_data(traj, epochs, transient=10, only_stim=False, pca=True):
                 pos.append(traj[i][j][k][transient:])
 
     if pca:
-        pca = PCA(n_components=3)
+        pca = PCA(n_components=n_pca)
         pca.fit(np.vstack(pos))
         print("Explained variance: ", pca.explained_variance_ratio_)
 

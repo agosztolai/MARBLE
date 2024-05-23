@@ -9,7 +9,7 @@ setup(
     name="MARBLE",
     version="1.0",
     author="Adam Gosztolai",
-    author_email="adam.gosztolai@epfl.ch",
+    author_email="a.gosztolai@gmail.com",
     description="""Package for the data-driven representation of non-linear dynamics
     over manifolds based on a statistical distribution of local phase portrait features.
     Includes specific example on dynamical systems, synthetic- and real neural datasets.""",

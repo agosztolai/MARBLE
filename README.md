@@ -1,8 +1,8 @@
 # MARBLE - MAnifold Representation Basis LEarning
 
-MARBLE is a fully unsupervised geometric deep-learning method that can 
+MARBLE is an unsupervised geometric deep-learning method that can 
 
-1. Find interpretable representations of neural dynamics, more generally dynamical systems, or even more generally vector fields over manifolds.
+1. Find interpretable latent representations of neural dynamics. It also applies to non-linear dynamical systems in other domains or, more generally, vector fields over manifolds.
 2. Perform unbiased comparisons across conditions within the same animal (or dynamical system).
 3. Compare dynamics across animals or artificial neural networks.
 
@@ -70,14 +70,18 @@ conda activate MARBLE
 pip install . 
 ```
 
+### Note on examples
+
+Running the scripts in the `/examples` folder to reproduce our results will rely on several dependencies that are not core to the MARBLE code. On Macs, run `brew install wget`, which you will need to download the datasets automatically. Further dependencies will install automatically when running the example notebooks.
+
 ## Quick start
 
 We suggest you study at least the example of a [simple vector fields over flat surfaces](https://github.com/agosztolai/MARBLE/blob/main/examples/toy_examples/ex_vector_field_flat_surface.py) to understand what behaviour to expect.
 
 Briefly, MARBLE takes two inputs
 
-1. `pos` - a list of `nxd` arrays, each defining a cloud of anchor points describing the geometry of a manifold
-2. `x` - a list of `nxD` arrays, defining a vector signal over the respective manifolds in 1. For dynamical systems, D=d, but our code can also handle signals of other dimensions. Read more about [inputs](#inputs) and [different conditions](#conditions).
+1. `anchor` - a list of `nxd` arrays, each defining a cloud of anchor points describing the manifold
+2. `vector` - a list of `nxD` arrays, defining a vector signal at the anchor points over the respective manifolds. For dynamical systems, D=d, but our code can also handle signals of other dimensions. Read more about [inputs](#inputs) and [different conditions](#conditions).
 
 Using these inputs, you can construct a dataset for MARBLE.
 
@@ -86,7 +90,7 @@ import MARBLE
 data = MARBLE.construct_dataset(anchor=pos, vector=x)
 ```
 
-The main attributes are `data.pos` - manifold positions concatenated, `data.x` - manifold signals concatenated and `data.y` - identifiers that tell you which manifold the point belongs to. Read more about [other usedul data attributed](#construct).
+The main attributes are `data.pos` - manifold positions concatenated, `data.x` - manifold signals concatenated and `data.y` - identifiers that tell you which manifold the point belongs to. Read more about [other useful data attributes](#construct).
 
 Now, you can initialise and train a MARBLE model. Read more about [training parameters](#training).
 
