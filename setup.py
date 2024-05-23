@@ -10,9 +10,8 @@ setup(
     version="1.0",
     author="Adam Gosztolai",
     author_email="a.gosztolai@gmail.com",
-    description="""Package for the data-driven representation of non-linear dynamics
-    over manifolds based on a statistical distribution of local phase portrait features.
-    Includes specific example on dynamical systems, synthetic- and real neural datasets.""",
+    description="""Package for the unsupervised data-driven representation of non-linear dynamics
+    over manifolds based on a statistical distribution of local flow fields""",
     long_description=open("README.md", "r").read(),
     long_description_content_type="text/markdown",
     install_requires=[
