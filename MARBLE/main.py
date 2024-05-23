@@ -319,7 +319,6 @@ class net(nn.Module):
         for batch in tqdm(loader, disable=not verbose):
             _, n_id, adjs = batch
             adjs = [adj.to(data.x.device) for adj in utils.to_list(adjs)]
-
             emb, mask = self.forward(data, n_id, adjs)
             loss = self.loss(emb, mask)
             cum_loss += float(loss)
@@ -379,7 +378,9 @@ class net(nn.Module):
             train_loss, optimizer = self.batch_loss(
                 data, train_loader, train=True, verbose=verbose, optimizer=optimizer
             )
-            val_loss, _ = self.batch_loss(data, val_loader, verbose=verbose)
+            val_loss, _ = self.batch_loss(
+                data, val_loader, verbose=verbose
+            )
             scheduler.step(train_loss)
 
             print(
