@@ -17,7 +17,7 @@ setup(
     install_requires=[
         "matplotlib",
         "pandas",
-        "numpy",
+        "numpy<2.0",  # to prevent some conflicts with other installations, to be solved later
         "scipy",
         "networkx",
         "seaborn",
