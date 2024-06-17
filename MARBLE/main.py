@@ -378,9 +378,7 @@ class net(nn.Module):
             train_loss, optimizer = self.batch_loss(
                 data, train_loader, train=True, verbose=verbose, optimizer=optimizer
             )
-            val_loss, _ = self.batch_loss(
-                data, val_loader, verbose=verbose
-            )
+            val_loss, _ = self.batch_loss(data, val_loader, verbose=verbose)
             scheduler.step(train_loss)
 
             print(
