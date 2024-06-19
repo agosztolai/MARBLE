@@ -277,7 +277,7 @@ def embedding(
         ax.set_axis_off()
 
     if cbar_visible and cbar is not None:
-        plt.colorbar(cbar)
+        plt.colorbar(cbar, ax=ax)
 
     return ax
 

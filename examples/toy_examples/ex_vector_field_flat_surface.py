@@ -52,8 +52,8 @@ def main():
     data = preprocessing.construct_dataset(x, y)
 
     # train model
-    model = net(data, params={'inner_product_features': True, 
-                              'diffusion': False,})
+    model = net(data, params={'inner_product_features': False, 
+                              'diffusion': False})
     model.fit(data)
 
     # evaluate model on data
