@@ -13,6 +13,7 @@ import yaml
 from torch import nn
 from torch_geometric.nn import MLP
 from tqdm import tqdm
+from torch_kmeans import KMeans
 
 from MARBLE import dataloader
 from MARBLE import geometry
@@ -95,6 +96,7 @@ class net(nn.Module):
 
         params["dim_signal"] = data.x.shape[1]
         params["dim_emb"] = data.pos.shape[1]
+        params['slices'] = data._slice_dict["x"]
 
         if hasattr(data, "dim_man"):
             params["dim_man"] = data.dim_man
@@ -168,21 +170,23 @@ class net(nn.Module):
         self.diffusion = layers.Diffusion()
 
         # gradient features
-        self.grad = nn.ModuleList(layers.AnisoConv() for i in range(o))
+        # self.grad = nn.ModuleList(layers.AnisoConv() for i in range(o))
+        self.GAT = layers.GAT(2, 5, 2, 1)
 
         # cumulated number of channels after gradient features
-        cum_channels = s * (1 - d ** (o + 1)) // (1 - d)
+        # cum_channels = s * (1 - d ** (o + 1)) // (1 - d)
+        cum_channels = s*(o+1)
         if not self.params["include_self"]:
             cum_channels -= s
 
-        if self.params["inner_product_features"]:
-            cum_channels //= s
-            if s == 1:
-                cum_channels = o + 1
+        # if self.params["inner_product_features"]:
+        #     cum_channels //= s
+        #     if s == 1:
+        #         cum_channels = o + 1
 
-            self.inner_products = layers.InnerProductFeatures(cum_channels, s)
-        else:
-            self.inner_products = None
+        #     self.inner_products = layers.InnerProductFeatures(cum_channels, s)
+        # else:
+        # self.inner_products = None
 
         if self.params["include_positions"]:
             cum_channels += d
@@ -190,7 +194,16 @@ class net(nn.Module):
         # encoder
         if not isinstance(self.params["hidden_channels"], list):
             self.params["hidden_channels"] = [self.params["hidden_channels"]]
-
+        
+        self.maps = nn.ModuleList(MLP(
+                                    channel_list=[s, 2*s, s],
+                                    dropout=self.params["dropout"],
+                                    bias=self.params["bias"],
+                                    norm=self.params["batch_norm"],
+                                    )
+                                    for i in range(len(self.params['slices'])-1)
+        )
+        
         channel_list = (
             [cum_channels] + self.params["hidden_channels"] + [self.params["out_channels"]]
         )
@@ -210,6 +223,7 @@ class net(nn.Module):
         are the target nodes, i.e, x = concat[x_target, x_other]."""
 
         x = data.x
+        pos = data.pos
         n, d = x.shape[0], data.gauges.shape[2]
         mask = data.mask
 
@@ -223,16 +237,26 @@ class net(nn.Module):
                 x = self.diffusion(x, data.L, method="spectral")
 
         # local gauges
-        if self.params["inner_product_features"]:
-            x = geometry.global_to_local_frame(x, data.gauges)
-
+        # if self.params["inner_product_features"]:
+        #     x = geometry.global_to_local_frame(x, data.gauges)
+        
+        slices = self.params['slices']
+        for i in range(len(slices)-1):
+            x_slice = x[slices[i]:slices[i+1]]
+            pos_slice = pos[slices[i]:slices[i+1]]
+            
+            transformed_orig = self.maps[i](pos_slice)
+            transformed_shifted = self.maps[i](pos_slice + x_slice)
+            
+            x[slices[i]:slices[i+1]] = transformed_shifted - transformed_orig
+            
         # restrict to current batch
         x = x[n_id]
         mask = mask[n_id]
-        if data.kernels[0].size(0) == n * d:
-            n_id = utils.expand_index(n_id, d)
-        else:
-            d = 1
+        # if data.kernels[0].size(0) == n * d:
+            # n_id = utils.expand_index(n_id, d)
+        # else:
+            # d = 1
 
         if self.params["vec_norm"]:
             x = F.normalize(x, dim=-1, p=2)
@@ -242,10 +266,13 @@ class net(nn.Module):
             out = [x]
         else:
             out = []
-        for i, (_, _, size) in enumerate(adjs):
-            kernels = [K[n_id[: size[1] * d], :][:, n_id[: size[0] * d]] for K in data.kernels]
+            
+        for i, (edge_index, e_id, size) in enumerate(adjs):
+            # kernels = [K[n_id[: size[1] * d], :][:, n_id[: size[0] * d]] for K in data.kernels]
 
-            x = self.grad[i](x, kernels)
+            # x = self.grad[i](x, kernels)
+            
+            x = self.GAT(x, edge_index)
 
             if self.params["vec_norm"]:
                 x = F.normalize(x, dim=-1, p=2)
@@ -257,10 +284,10 @@ class net(nn.Module):
         out = [o[: last_size[1]] for o in out]
 
         # inner products
-        if self.params["inner_product_features"]:
-            out = self.inner_products(out)
-        else:
-            out = torch.cat(out, axis=1)
+        # if self.params["inner_product_features"]:
+        #     out = self.inner_products(out)
+        # else:
+        out = torch.cat(out, axis=1)
 
         if self.params["include_positions"]:
             out = torch.hstack([data.pos[n_id[: last_size[1]]], out])
@@ -270,7 +297,7 @@ class net(nn.Module):
         if self.params["emb_norm"]:  # spherical output
             emb = F.normalize(emb)
 
-        return emb, mask[: last_size[1]]
+        return emb, mask[: last_size[1]], n_id[:last_size[1]]
 
     def evaluate(self, data):
         """Evaluate."""
@@ -293,7 +320,7 @@ class net(nn.Module):
                 pass
 
             _, data, adjs = utils.move_to_gpu(self, data, adjs)
-            out, _ = self.forward(data, torch.arange(len(data.x)), adjs)
+            out, _, _ = self.forward(data, torch.arange(len(data.x)), adjs)
             utils.detach_from_gpu(self, data, adjs)
 
             data.emb = out.detach().cpu()
@@ -319,8 +346,8 @@ class net(nn.Module):
         for batch in tqdm(loader, disable=not verbose):
             _, n_id, adjs = batch
             adjs = [adj.to(data.x.device) for adj in utils.to_list(adjs)]
-            emb, mask = self.forward(data, n_id, adjs)
-            loss = self.loss(emb, mask)
+            emb, mask, n_target = self.forward(data, n_id, adjs)
+            loss = self.loss(emb, mask, n_target, self.params['slices'])
             cum_loss += float(loss)
 
             if optimizer is not None:
@@ -454,16 +481,52 @@ class net(nn.Module):
 
 class loss_fun(nn.Module):
     """Loss function."""
+    
+    def __init__(self):
+        super().__init__()
 
-    def forward(self, out, mask=None):
+        self.kl_loss = nn.KLDivLoss(reduction="batchmean", log_target=True)
+
+    def forward(self, out, mask=None, n_target=None, slices=None):
         """forward."""
         z, z_pos, z_neg = out.split(out.size(0) // 3, dim=0)
         pos_loss = F.logsigmoid((z * z_pos).sum(-1)).mean()  # pylint: disable=not-callable
         neg_loss = F.logsigmoid(-(z * z_neg).sum(-1)).mean()  # pylint: disable=not-callable
+        
+        unsupervised_loss = -pos_loss - neg_loss
 
         coagulation_loss = 0.0
         if mask is not None:
             z_mask = out[mask]
             coagulation_loss = (z_mask - z_mask.mean(dim=0)).norm(dim=1).sum()
+            
+        coagulation_loss = torch.sigmoid(coagulation_loss) - 0.5
+            
+        distr = []
+        slices_batch = [0]
+        for i in range(len(slices)-1):
+            idx = (n_target>slices[i]) & (n_target<=slices[i+1])
+            if int(idx.sum()) == 0.0:
+                return 0 #sometimes no sample is drawn from a dataset - in this case return 0 loss
+            
+            slices_batch.append(int(idx.sum()) + slices_batch[-1])
+            distr.append(out[idx].unsqueeze(0))
+            
+        distr_all = torch.concatenate(distr, axis=1)
+        
+        n_clusters = 10
+        model = KMeans(n_clusters=n_clusters, verbose=False)
+        
+        labels = model(distr_all).labels
+        bins = geometry.bin_data(slices_batch, torch.squeeze(labels))
+                  
+        alignment_loss = 0.0
+        for i in range(len(bins)):
+            for j in range(len(bins)):
+                input = F.log_softmax(bins[i], dim=0)
+                target = F.log_softmax(bins[j], dim=0)
+                alignment_loss += self.kl_loss(input, target)
+                
+        alignment_loss /= n_clusters**2
 
-        return -pos_loss - neg_loss + torch.sigmoid(coagulation_loss) - 0.5
+        return unsupervised_loss + coagulation_loss + alignment_loss

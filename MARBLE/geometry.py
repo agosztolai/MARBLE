@@ -185,7 +185,33 @@ def relabel_by_proximity(clusters):
     return clusters
 
 
-def compute_distribution_distances(clusters=None, data=None, slices=None):
+def bin_data(slices, labels=None):
+        
+    bins_dataset = []
+        
+    for i in range(len(slices)-1):
+        #if cluster labels are available, compute discrete measures supported 
+        #on cluster centroids  
+        if labels is not None:
+            l_ = labels[slices[i] : slices[i + 1]]
+            bins = [(l_ == j).sum() for j in range(labels.max()+1)]  # loop over clusters
+            bins = torch.tensor(bins)
+            bins = bins / bins.sum() if bins.sum()>0 else bins
+            bins_dataset.append(bins)
+                
+        #empirical measures supported on datapoints
+        else:
+            mu = torch.ones(slices[i + 1] - slices[i])
+            mu /= len(mu)
+            bins_dataset.append(mu)
+        
+    return bins_dataset
+    
+
+def compute_distribution_distances(clusters=None, 
+                                   data=None, 
+                                   slices=None,
+                                   distance='ot'):
     """Compute the distance between clustered distributions across datasets.
 
     Args:
@@ -196,35 +222,19 @@ def compute_distribution_distances(clusters=None, data=None, slices=None):
         gamma: optimal transport matrix
         centroid_distances: distances between cluster centroids
     """
-    s = slices
-    pdists, cdists = None, None
+    
+    assert (clusters is not None) or (data is not None), 'Either data or clusters should be provided!'
+    
+    nl = len(slices) - 1
+    pdists = None
     if clusters is not None:
-        # compute discrete measures supported on cluster centroids
-        labels = clusters["labels"]
-        labels = [labels[s[i] : s[i + 1]] + 1 for i in range(len(s) - 1)]
-        nc, nl = clusters["n_clusters"], len(labels)
-        bins_dataset = []
-        for l_ in labels:  # loop over datasets
-            bins = [(l_ == i + 1).sum() for i in range(nc)]  # loop over clusters
-            bins = np.array(bins)
-            bins_dataset.append(bins / bins.sum())
-
-        cdists = pairwise_distances(clusters["centroids"])
-        gamma = np.zeros([nl, nl, nc, nc])
-
-    elif data is not None:
-        # compute empirical measures from datapoints
-        nl = len(s) - 1
-
-        bins_dataset = []
-        for i in range(nl):
-            mu = np.ones(s[i + 1] - s[i])
-            mu /= len(mu)
-            bins_dataset.append(mu)
-
-        pdists = pairwise_distances(data.emb)
+        bins_dataset = bin_data(slices, labels=clusters["labels"])
+        cdists = torch.tensor(pairwise_distances(clusters["centroids"]))
+        gamma = np.zeros([nl, nl, clusters["n_clusters"], clusters["n_clusters"]])
     else:
-        raise Exception("No input provided.")
+        bins_dataset = bin_data(slices)
+        pdists = pairwise_distances(data.emb)
+        gamma = None
 
     # compute distance between measures
     dist = np.zeros([nl, nl])
@@ -232,10 +242,12 @@ def compute_distribution_distances(clusters=None, data=None, slices=None):
         for j in range(i + 1, nl):
             mu, nu = bins_dataset[i], bins_dataset[j]
 
-            if data is not None and pdists is not None:
-                cdists = pdists[s[i] : s[i + 1], s[j] : s[j + 1]]
+            if clusters is None:
+                cdists = pdists[slices[i]:slices[i + 1], 
+                                slices[j]:slices[j + 1]]
 
-            dist[i, j] = ot.emd2(mu, nu, cdists)
+            if distance == 'ot':
+                dist[i, j] = ot.emd2(mu, nu, cdists)
             dist[j, i] = dist[i, j]
 
             if clusters is not None:

@@ -1,6 +1,6 @@
 #training parameters
 epochs : 100 # optimisation epochs
-batch_size : 64 # batch size
+batch_size : 128 # batch size
 lr: 0.01 # learning rate
 momentum: 0.9
 dropout: 0. # dropout in the MLP

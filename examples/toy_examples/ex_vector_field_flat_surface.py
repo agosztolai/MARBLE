@@ -52,14 +52,15 @@ def main():
     data = preprocessing.construct_dataset(x, y)
 
     # train model
-    model = net(data, params={'inner_product_features': False, 
-                              'diffusion': False})
+    model = net(data, params={'epochs':100,'inner_product_features': False, 
+                              'diffusion': True})
     model.fit(data)
 
     # evaluate model on data
     data = model.transform(data)
     data = postprocessing.cluster(data)
     data = postprocessing.embed_in_2D(data)
+    data = postprocessing.distribution_distances(data, cluster_typ="kmeans", n_clusters=5, seed=0)
 
     # plot results
     titles = ["Linear left", "Linear right", "Vortex right", "Vortex left"]
