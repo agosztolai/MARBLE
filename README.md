@@ -100,7 +100,7 @@ model = MARBLE.net(data)
 model.fit(data)
 ```
 
-By default, MARBLE operates in embedding-aware mode. You can enable the embedding-agnostic mode by changing the initialisation step to
+By default, MARBLE operates in embedding-aware mode. To enable the embedding-agnostic mode, change the initialisation to
 
 ```
 model = MARBLE.net(data, params = {'inner_product_features': True})
