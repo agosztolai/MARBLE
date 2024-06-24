@@ -245,17 +245,15 @@ Training is successful when features are recognised to be similar across distinc
 2. Check that convergence is smooth, i.e., there are no big jumps in the validation loss.
 3. Check that there is no big gap between training loss and validation loss (generalisation gap). 
 
-Seeing problems with the above would be possible signs your solution will be suboptimal and will likely not generalise well. If you see either of these, try the following
+Problems with the above would be possible signs your solution will be suboptimal and will likely not generalise well. In this case, try the following
  * increase training time (increase `epochs`)
  * increase your data (e.g., decrease `spacing` and construct the dataset again)
  * decrease number of parameters (decrease `hidden_channels`, or decrease order, try `order=1`)
- * improve the gradient approximation (increase `k`, but see above)
- * disable local gauges (`local_gauge=False`)
+ * improve the gradient approximation (increase `k` or `delta`)
 
-If you still do not get good convergence, your data may be very noisy.
- * Try enabling diffusion (`diffusion=True` in training `params`)
+If your data is very noisy, try enabling diffusion (`diffusion=True` in training `params`).
 
-If this still does not work, check if there are very small or very large vector magnitudes in your dataset, filter them out and try again. 
+If this still does not work, check for very small or very large vector magnitudes in your dataset, filter them out, and try again. 
 
 
 ## Stay in touch
