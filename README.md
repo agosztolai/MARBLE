@@ -100,13 +100,13 @@ model = MARBLE.net(data)
 model.fit(data)
 ```
 
-By default, MARBLE operates in geometry-aware mode. You can enable the geometry-agnostic mode by changing the initialisation step to
+By default, MARBLE operates in embedding-aware mode. You can enable the embedding-agnostic mode by changing the initialisation step to
 
 ```
 model = MARBLE.net(data, params = {'inner_product_features': True})
 ```
 
-Read more about the geometry-aware and geometry-agnostic modes [here](#innerproduct)
+Read more about the embedding-aware and embedding-agnostic modes [here](#innerproduct)
 
 After you have trained your model, you can evaluate your model on your dataset or another dataset to obtain an embedding of all manifold points in joint latent space (3-dimensional by default) based on their local vector field features.
 
@@ -225,16 +225,16 @@ model = MARBLE.net(data, loadpath=loadpath)
 where loadpath can be either a path to the model (with a specific timestamp, or a directory to load the latest model automatically. By running `MARBLE.fit()`, training will resume from the last checkpoint.
 
 <a name="innerproduct"></a>
-### Geometry-aware and geometry-agnostic modes
+### Embedding-aware and embedding-agnostic modes
 
 One of the main features of our method is the ability to run in two different modes
 
-1. Geometry-aware mode - learn manifold geometry and dynamics
-2. Geometry-agnostic mode - learn dynamics only
+1. Embedding-aware mode - learn manifold embedding and dynamics
+2. Embedding-agnostic mode - learn dynamics only
 
-To enable geometry-agnostic mode, set `inner_product_features=True` in training `params`. This engages an additional layer in the network after the computation of gradients, which makes them rotation invariant.
+To enable embedding-agnostic mode, set `inner_product_features=True` in training `params`. This engages an additional layer in the network after the computation of gradients, which makes them rotation invariant.
 
-As a slight cost of expressivity, this feature enables the orientation- and geometry-independent representation of dynamics over the manifolds. Amongst others, this allows one to recognise similar dynamics across different manifolds. See [RNN example](https://github.com/agosztolai/MARBLE/blob/main/examples/RNN/RNN.ipynb) for an illustration.
+As a slight cost of expressivity, this feature enables the orientation- and embedding-independent representation of dynamics over the manifolds. Amongst others, this allows one to recognise similar dynamics across different manifolds. See [RNN example](https://github.com/agosztolai/MARBLE/blob/main/examples/RNN/RNN.ipynb) for an illustration.
 
 
 ## Troubleshooting guide
