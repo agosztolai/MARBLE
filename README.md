@@ -114,7 +114,7 @@ After you have trained your model, you can evaluate your model on your dataset o
 data = model.transform(data) #adds an attribute `data.emb`
 ```
 
-To recover the embeddings of individual vector fields, use `data.emb[data.y==0]`.
+To recover the embeddings of individual vector fields, use `data.emb[data.y==0]`, which takes the embedding of the first vector field.
 
 You can then compare datasets by running
 
