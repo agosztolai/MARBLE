@@ -6,12 +6,14 @@ import warnings
 from datetime import datetime
 from pathlib import Path
 
+import ot
 import torch
 import torch.nn.functional as F
 import torch.optim as opt
 import yaml
 from torch import nn
-from torch_geometric.nn import MLP
+from torch_geometric.nn import MLP, Linear
+from torch.nn.utils.parametrizations import orthogonal
 from tqdm import tqdm
 from torch_kmeans import KMeans
 
@@ -195,13 +197,18 @@ class net(nn.Module):
         if not isinstance(self.params["hidden_channels"], list):
             self.params["hidden_channels"] = [self.params["hidden_channels"]]
         
-        self.maps = nn.ModuleList(MLP(
-                                    channel_list=[s, 2*s, s],
-                                    dropout=self.params["dropout"],
+        self.maps = nn.ModuleList((Linear(s, s,
                                     bias=self.params["bias"],
-                                    norm=self.params["batch_norm"],
-                                    )
+                                    ))
                                     for i in range(len(self.params['slices'])-1)
+                                    
+        # self.maps = nn.ModuleList(MLP(
+        #                             channel_list=[s, 2*s, s],
+        #                             dropout=self.params["dropout"],
+        #                             bias=self.params["bias"],
+        #                             norm=self.params["batch_norm"],
+        #                             )
+        #                             for i in range(len(self.params['slices'])-1)
         )
         
         channel_list = (
@@ -240,6 +247,8 @@ class net(nn.Module):
         # if self.params["inner_product_features"]:
         #     x = geometry.global_to_local_frame(x, data.gauges)
         
+        x_transform = []
+        pos_test = []
         slices = self.params['slices']
         for i in range(len(slices)-1):
             x_slice = x[slices[i]:slices[i+1]]
@@ -248,8 +257,16 @@ class net(nn.Module):
             transformed_orig = self.maps[i](pos_slice)
             transformed_shifted = self.maps[i](pos_slice + x_slice)
             
-            x[slices[i]:slices[i+1]] = transformed_shifted - transformed_orig
+            x_transform.append(transformed_shifted - transformed_orig)
+            pos_test.append(transformed_orig)
             
+            
+        x = torch.vstack(x_transform)
+           
+        #save for later
+        pos_test = torch.vstack(pos_test)
+        x_test = torch.tensor(x)
+        
         # restrict to current batch
         x = x[n_id]
         mask = mask[n_id]
@@ -297,7 +314,7 @@ class net(nn.Module):
         if self.params["emb_norm"]:  # spherical output
             emb = F.normalize(emb)
 
-        return emb, mask[: last_size[1]], n_id[:last_size[1]]
+        return emb, mask[: last_size[1]], n_id[:last_size[1]], pos_test, x_test
 
     def evaluate(self, data):
         """Evaluate."""
@@ -320,7 +337,7 @@ class net(nn.Module):
                 pass
 
             _, data, adjs = utils.move_to_gpu(self, data, adjs)
-            out, _, _ = self.forward(data, torch.arange(len(data.x)), adjs)
+            out, _, _, data.pos_test, data.x_test = self.forward(data, torch.arange(len(data.x)), adjs)
             utils.detach_from_gpu(self, data, adjs)
 
             data.emb = out.detach().cpu()
@@ -346,7 +363,7 @@ class net(nn.Module):
         for batch in tqdm(loader, disable=not verbose):
             _, n_id, adjs = batch
             adjs = [adj.to(data.x.device) for adj in utils.to_list(adjs)]
-            emb, mask, n_target = self.forward(data, n_id, adjs)
+            emb, mask, n_target, _, _ = self.forward(data, n_id, adjs)
             loss = self.loss(emb, mask, n_target, self.params['slices'])
             cum_loss += float(loss)
 
@@ -389,6 +406,7 @@ class net(nn.Module):
         optimizer = opt.SGD(
             self.parameters(), lr=self.params["lr"], momentum=self.params["momentum"]
         )
+        
         if hasattr(self, "optimizer_state_dict"):
             optimizer.load_state_dict(self.optimizer_state_dict)
 
@@ -407,6 +425,8 @@ class net(nn.Module):
             )
             val_loss, _ = self.batch_loss(data, val_loader, verbose=verbose)
             scheduler.step(train_loss)
+            
+            print(self.maps[0].weight)
 
             print(
                 f"\nEpoch: {self._epoch}, Training loss: {train_loss:4f}, Validation loss: {val_loss:.4f}, lr: {scheduler._last_lr[0]:.4f}",  # noqa, pylint: disable=line-too-long,protected-access
@@ -441,10 +461,11 @@ class net(nn.Module):
             loadpath, map_location=torch.device("cuda" if torch.cuda.is_available() else "cpu")
         )
         self._epoch = checkpoint["epoch"]
-        self.load_state_dict(checkpoint["model_state_dict"])
+        self.load_state_dict(checkpoint["model_state_dict"], strict=False)
         self.optimizer_state_dict = checkpoint["optimizer_state_dict"]
         if hasattr(self, "losses"):
             self.losses = checkpoint["losses"]
+            
 
     def save_model(self, optimizer, losses, outdir=None, best=False, timestamp=""):
         """Save model."""
@@ -512,21 +533,31 @@ class loss_fun(nn.Module):
             slices_batch.append(int(idx.sum()) + slices_batch[-1])
             distr.append(out[idx].unsqueeze(0))
             
-        distr_all = torch.concatenate(distr, axis=1)
+            # distr.append(out[idx].mean(0))
+            
+        # distr_all = torch.concatenate(distr, axis=1)
         
-        n_clusters = 10
-        model = KMeans(n_clusters=n_clusters, verbose=False)
+        # n_clusters = 20
+        # model = KMeans(n_clusters=n_clusters, verbose=False)
         
-        labels = model(distr_all).labels
-        bins = geometry.bin_data(slices_batch, torch.squeeze(labels))
-                  
+        # labels = model(distr_all).labels
+        # centers = model(distr_all).centers
+        # bins = geometry.bin_data(slices_batch, torch.squeeze(labels))
+        # cdists = torch.squeeze(torch.cdist(centers, centers))
+        
+        n = min(distr[0].shape[1], distr[1].shape[1])
+        distr = [torch.squeeze(d[:,:n,:]) for d in distr]
+        
         alignment_loss = 0.0
-        for i in range(len(bins)):
-            for j in range(len(bins)):
-                input = F.log_softmax(bins[i], dim=0)
-                target = F.log_softmax(bins[j], dim=0)
-                alignment_loss += self.kl_loss(input, target)
+        for i in range(len(distr)):
+            for j in range(len(distr)):
+                if i!=j:
+                    # alignment_loss += (distr[i]*distr[j]).sum().abs()
+                    # input = F.log_softmax(bins[i], dim=0)
+                    # target = F.log_softmax(bins[j], dim=0)
+                    # alignment_loss += self.kl_loss(input, target)
+                    # alignment_loss += ot.emd2(bins[i], bins[j], cdists)
+                    alignment_loss += (distr[i]-distr[j]).sum()**2/len(distr[i])**2
                 
-        alignment_loss /= n_clusters**2
-
+        unsupervised_loss = 0
         return unsupervised_loss + coagulation_loss + alignment_loss
