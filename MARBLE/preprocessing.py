@@ -189,7 +189,7 @@ def _compute_geometric_objects(
         kernels = g.gradient_op(data.pos, data.edge_index, gauges)
         Lc = None
 
-    # print("\n---- Computing eigendecomposition ... ", end="")
+    print("\n---- Computing eigendecomposition ... ", end="")
     L = g.compute_eigendecomposition(L)
     Lc = g.compute_eigendecomposition(Lc)
 
