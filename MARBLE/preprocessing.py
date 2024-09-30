@@ -195,7 +195,10 @@ def _compute_geometric_objects(
         kernels = g.gradient_op(data.pos, data.edge_index, gauges)
         Lc = None
 
-    print("\n---- Computing eigendecomposition ... ", end="")
+    if number_of_eigenvectors is None:
+        print("\n---- Computing full spectrum ... (if this takes too long, then run construct_dataset() with number_of_eigenvectors specified) ", end="")
+    else:
+        print(f"\n---- Computing spectrum with {number_of_eigenvectors} eigenvectors...", end="")
     L = g.compute_eigendecomposition(L, k=number_of_eigenvectors)
     Lc = g.compute_eigendecomposition(Lc, k=number_of_eigenvectors)
 
