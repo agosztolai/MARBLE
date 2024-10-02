@@ -15,7 +15,7 @@ from torch import nn
 from torch_geometric.nn import MLP, Linear
 from torch.nn.utils.parametrizations import orthogonal
 from tqdm import tqdm
-from torch_kmeans import KMeans
+from torch_kmeans import SoftKMeans
 
 from MARBLE import dataloader
 from MARBLE import geometry
@@ -197,10 +197,10 @@ class net(nn.Module):
         if not isinstance(self.params["hidden_channels"], list):
             self.params["hidden_channels"] = [self.params["hidden_channels"]]
         
-        self.maps = nn.ModuleList((Linear(s, s,
+        self.maps = nn.ModuleList((orthogonal(Linear(s, s,
                                     bias=self.params["bias"],
-                                    ))
-                                    for i in range(len(self.params['slices'])-1)
+                                    )))
+                                    for i in range(len(self.params['slices'])-1))
                                     
         # self.maps = nn.ModuleList(MLP(
         #                             channel_list=[s, 2*s, s],
@@ -209,7 +209,7 @@ class net(nn.Module):
         #                             norm=self.params["batch_norm"],
         #                             )
         #                             for i in range(len(self.params['slices'])-1)
-        )
+        # )
         
         channel_list = (
             [cum_channels] + self.params["hidden_channels"] + [self.params["out_channels"]]
@@ -235,13 +235,13 @@ class net(nn.Module):
         mask = data.mask
 
         # diffusion
-        if self.params["diffusion"]:
-            if hasattr(data, "Lc"):
-                x = geometry.global_to_local_frame(x, data.gauges)
-                x = self.diffusion(x, data.L, Lc=data.Lc, method="spectral")
-                x = geometry.global_to_local_frame(x, data.gauges, reverse=True)
-            else:
-                x = self.diffusion(x, data.L, method="spectral")
+        # if self.params["diffusion"]:
+        #     if hasattr(data, "Lc"):
+        #         x = geometry.global_to_local_frame(x, data.gauges)
+        #         x = self.diffusion(x, data.L, Lc=data.Lc, method="spectral")
+        #         x = geometry.global_to_local_frame(x, data.gauges, reverse=True)
+        #     else:
+        #         x = self.diffusion(x, data.L, method="spectral")
 
         # local gauges
         # if self.params["inner_product_features"]:
@@ -254,6 +254,8 @@ class net(nn.Module):
             x_slice = x[slices[i]:slices[i+1]]
             pos_slice = pos[slices[i]:slices[i+1]]
             
+            # print(self.maps[i].weight)
+            
             transformed_orig = self.maps[i](pos_slice)
             transformed_shifted = self.maps[i](pos_slice + x_slice)
             
@@ -262,11 +264,7 @@ class net(nn.Module):
             
             
         x = torch.vstack(x_transform)
-           
-        #save for later
-        pos_test = torch.vstack(pos_test)
-        x_test = torch.tensor(x)
-        
+                   
         # restrict to current batch
         x = x[n_id]
         mask = mask[n_id]
@@ -275,8 +273,8 @@ class net(nn.Module):
         # else:
             # d = 1
 
-        if self.params["vec_norm"]:
-            x = F.normalize(x, dim=-1, p=2)
+        # if self.params["vec_norm"]:
+        #     x = F.normalize(x, dim=-1, p=2)
 
         # gradients
         if self.params["include_self"]:
@@ -285,19 +283,20 @@ class net(nn.Module):
             out = []
             
         for i, (edge_index, e_id, size) in enumerate(adjs):
+            #gradient filter
             # kernels = [K[n_id[: size[1] * d], :][:, n_id[: size[0] * d]] for K in data.kernels]
-
             # x = self.grad[i](x, kernels)
             
-            x = self.GAT(x, edge_index)
+            #GAT
+            # x = self.GAT(x, edge_index)
 
-            if self.params["vec_norm"]:
-                x = F.normalize(x, dim=-1, p=2)
+            # if self.params["vec_norm"]:
+            #     x = F.normalize(x, dim=-1, p=2)
 
             out.append(x)
-
-        last_size = adjs[-1][2]
+  
         # take target nodes
+        last_size = adjs[-1][2]
         out = [o[: last_size[1]] for o in out]
 
         # inner products
@@ -306,15 +305,15 @@ class net(nn.Module):
         # else:
         out = torch.cat(out, axis=1)
 
-        if self.params["include_positions"]:
-            out = torch.hstack([data.pos[n_id[: last_size[1]]], out])
+        # if self.params["include_positions"]:
+        #     out = torch.hstack([data.pos[n_id[: last_size[1]]], out])
 
         emb = self.enc(out)
 
-        if self.params["emb_norm"]:  # spherical output
-            emb = F.normalize(emb)
+        # if self.params["emb_norm"]:  # spherical output
+        #     emb = F.normalize(emb)
 
-        return emb, mask[: last_size[1]], n_id[:last_size[1]], pos_test, x_test
+        return emb, mask[: last_size[1]], n_id[:last_size[1]], torch.vstack(pos_test), torch.vstack(x_transform)
 
     def evaluate(self, data):
         """Evaluate."""
@@ -425,8 +424,6 @@ class net(nn.Module):
             )
             val_loss, _ = self.batch_loss(data, val_loader, verbose=verbose)
             scheduler.step(train_loss)
-            
-            print(self.maps[0].weight)
 
             print(
                 f"\nEpoch: {self._epoch}, Training loss: {train_loss:4f}, Validation loss: {val_loss:.4f}, lr: {scheduler._last_lr[0]:.4f}",  # noqa, pylint: disable=line-too-long,protected-access
@@ -517,16 +514,16 @@ class loss_fun(nn.Module):
         unsupervised_loss = -pos_loss - neg_loss
 
         coagulation_loss = 0.0
-        if mask is not None:
-            z_mask = out[mask]
-            coagulation_loss = (z_mask - z_mask.mean(dim=0)).norm(dim=1).sum()
+        # if mask is not None:
+        #     z_mask = out[mask]
+        #     coagulation_loss = (z_mask - z_mask.mean(dim=0)).norm(dim=1).sum()
             
-        coagulation_loss = torch.sigmoid(coagulation_loss) - 0.5
+        # coagulation_loss = torch.sigmoid(coagulation_loss) - 0.5
             
         distr = []
         slices_batch = [0]
         for i in range(len(slices)-1):
-            idx = (n_target>slices[i]) & (n_target<=slices[i+1])
+            idx = (n_target>=slices[i]) & (n_target<slices[i+1])
             if int(idx.sum()) == 0.0:
                 return 0 #sometimes no sample is drawn from a dataset - in this case return 0 loss
             
@@ -535,29 +532,47 @@ class loss_fun(nn.Module):
             
             # distr.append(out[idx].mean(0))
             
-        # distr_all = torch.concatenate(distr, axis=1)
+        distr_all = torch.cat(distr, axis=1)
         
+        #cluster embeddings
         # n_clusters = 20
-        # model = KMeans(n_clusters=n_clusters, verbose=False)
+        # model = SoftKMeans(n_clusters=n_clusters, verbose=False)
+        # cluster = model(distr_all)
+        # cluster_probs = cluster.soft_assignment.squeeze()
+        # centers = cluster.centers
         
-        # labels = model(distr_all).labels
-        # centers = model(distr_all).centers
-        # bins = geometry.bin_data(slices_batch, torch.squeeze(labels))
+        bins = []
+        for i in range(len(slices_batch)-1):
+        #     labels_c = cluster_probs[slices_batch[i]:slices_batch[i+1]]
+        #     empirical_dist = torch.mean(labels_c, dim=0)
+        #     empirical_dist /= empirical_dist.sum()
+        #     bins.append(empirical_dist)
+            mu = torch.ones(slices_batch[i+1]-slices_batch[i])
+            mu /= mu.numel()
+            bins.append(mu)
+        
         # cdists = torch.squeeze(torch.cdist(centers, centers))
-        
-        n = min(distr[0].shape[1], distr[1].shape[1])
-        distr = [torch.squeeze(d[:,:n,:]) for d in distr]
+        cdists =  torch.squeeze(torch.cdist(distr_all, distr_all))
+        # test=0
+        # if test:
+        #     from MARBLE.postprocessing import embed_in_2D
+        #     import matplotlib.pyplot as plt
+        #     data_2d = embed_in_2D(distr_all.squeeze().detach()).emb_2D
+        #     plt.figure()
+        #     for i in range(len(slices_batch)-1):
+        #         data_2d_slice = data_2d[slices_batch[i]:slices_batch[i+1]]
+        #         plt.scatter(data_2d_slice[:,0], data_2d_slice[:,1], alpha=0.3)
         
         alignment_loss = 0.0
-        for i in range(len(distr)):
-            for j in range(len(distr)):
-                if i!=j:
-                    # alignment_loss += (distr[i]*distr[j]).sum().abs()
-                    # input = F.log_softmax(bins[i], dim=0)
-                    # target = F.log_softmax(bins[j], dim=0)
-                    # alignment_loss += self.kl_loss(input, target)
-                    # alignment_loss += ot.emd2(bins[i], bins[j], cdists)
-                    alignment_loss += (distr[i]-distr[j]).sum()**2/len(distr[i])**2
+        for i in range(len(distr)-1):
+            for j in range(i+1,len(distr)):
+                # input = F.log_softmax(bins[i], dim=0)
+                # target = F.log_softmax(bins[j], dim=0)
+                # input = bins[i].log()
+                # target = bins[j].log()
+                # alignment_loss += self.kl_loss(input, target)
+                dists = cdists[slices_batch[i]:slices_batch[i+1], slices_batch[j]:slices_batch[j+1]]
+                alignment_loss += ot.emd2(bins[i], bins[j], dists)
                 
         unsupervised_loss = 0
         return unsupervised_loss + coagulation_loss + alignment_loss

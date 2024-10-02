@@ -1,7 +1,7 @@
 """Postprocessing module."""
 
 import numpy as np
-
+import torch
 from MARBLE import geometry as g
 
 
@@ -65,6 +65,8 @@ def embed_in_2D(data, embed_typ="umap", manifold=None, seed=0):
     """
     if isinstance(data, list):
         emb = np.vstack([d.emb for d in data])
+    elif isinstance(data, (torch.Tensor, np.ndarray)):
+        emb = data
     else:
         emb = data.emb
 

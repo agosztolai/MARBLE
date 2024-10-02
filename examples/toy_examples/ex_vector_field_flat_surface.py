@@ -65,7 +65,7 @@ def main():
                               'diffusion': False})
     model.fit(data)
 
-    # # evaluate model on data
+    # evaluate model on data
     data = model.transform(data)
     data = postprocessing.cluster(data)
     data = postprocessing.embed_in_2D(data)
