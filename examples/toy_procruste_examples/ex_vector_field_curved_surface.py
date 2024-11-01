@@ -5,28 +5,40 @@ from MARBLE import plotting, preprocessing, dynamics, net, postprocessing
 import matplotlib.pyplot as plt
 from scipy.spatial.transform import Rotation as R
 
-
-# def f0(x):
-#     return x * 0 + np.array([-1, -1])
-
-
-# def f1(x):
-#     return x * 0 + np.array([1, 1])
-
-
 def f0(x):
-    eps = 1e-1
-    norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
-    u = (x[:, [1]] + 1) / norm
-    v = -(x[:, [0]] + 1) / norm
-    return np.hstack([u, v])
+    return x * 0 + np.array([-1, -1])
 
 def f1(x):
-    eps = 1e-1
-    norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
-    u = (x[:, [1]] + 1) / norm
-    v = -(x[:, [0]] - 1) / norm
-    return np.hstack([u, v])
+    return x * 0 + np.array([1, 1])
+
+# def f2(x):
+#     return x * 0 + np.array([-1, 0])
+
+# def f3(x):
+#     return x * 0 + np.array([1, 0])
+
+
+# def f2(x):
+#     return x * 0 + np.array([1, -1])
+
+# def f3(x):
+#     return x * 0 + np.array([-1, 1])
+
+
+
+# def f0(x):
+#     eps = 1e-1
+#     norm = np.sqrt((x[:, [0]] + 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
+#     u = (x[:, [1]] + 1) / norm
+#     v = -(x[:, [0]] + 1) / norm
+#     return np.hstack([u, v])
+
+# def f1(x):
+#     eps = 1e-1
+#     norm = np.sqrt((x[:, [0]] - 1) ** 2 + (x[:, [1]] + 1) ** 2 + eps)
+#     u = (x[:, [1]] + 1) / norm
+#     v = -(x[:, [0]] - 1) / norm
+#     return np.hstack([u, v])
 
 def f2(x):
     eps = 1e-1
@@ -41,27 +53,6 @@ def f3(x):
     u = (x[:, [1]]-1) / norm
     v = -(x[:, [0]] - 1) / norm
     return np.hstack([u, v])
-
-# def f2(x):
-#     eps = 1e-1
-#     norm = np.sqrt((x[:, [0]] + 1) ** 2 + x[:, [1]] ** 2 + eps)
-#     u = x[:, [1]] / norm
-#     v = -(x[:, [0]] + 1) / norm
-#     return np.hstack([u, v])
-
-
-# def f3(x):
-#     eps = 1e-1
-#     norm = np.sqrt((x[:, [0]] - 1) ** 2 + x[:, [1]] ** 2 + eps)
-#     u = x[:, [1]] / norm
-#     v = -(x[:, [0]] - 1) / norm
-#     return np.hstack([u, v])
-
-# def f0(x):
-#     return x * 0 + np.array([-1, -1])
-
-# def f1(x):
-#     return x * 0 + np.array([1, 1])
 
 # def f2(x):
 #     eps = 1e-1
@@ -103,6 +94,7 @@ def main():
         y[i] = (new_endpoint - x[i]) / np.linalg.norm(new_endpoint - x[i]) * np.linalg.norm(v)
         #alpha += 0.1
 
+    np.random.seed(1)
     rotate=True
     if rotate:
         for i, (p, v) in enumerate(zip(x,y)):
@@ -119,24 +111,24 @@ def main():
 
     # train model
     params = {
-        "lr":0.1,
-        "order": 2,  # order of derivatives
+        "lr":1,
+        "order": 1,  # order of derivatives
         "include_self": True,#True, 
+        "include_positions":False,#True, 
         "hidden_channels":[64],
-        "out_channels": 2,
+        "out_channels": 3,
+        "emb_norm": True,
         "batch_size" : 64, # batch size
-        #"emb_norm": True,
         "scalar_diffusion":False,
         "vector_diffusion":False,
-        "include_positions":False, # don't / use positional features
         "epochs": 100,
-        "inner_product_features": False,
+        "inner_product_features":False,
         "global_align": True, # align dynamical systems orthogonally
         "final_grad": True, # compute orthogonal gradient at end of batch
         "positional_grad":True,  # use gradient on positions or not
         "vector_grad":True,
         "derivative_grad":False,
-        "gauge_grad": True,
+        "gauge_grad":True,
     }
     
     model = net(data, params=params)

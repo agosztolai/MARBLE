@@ -255,12 +255,14 @@ class net(nn.Module):
         mask = data.mask
         system_ids = data.system
         
+        # updating the input vector fields and gauges based on learnt transformations
         if self.params['global_align']:
             x = self.update_inputs(x, dim_space, system_ids)
             pos = self.update_inputs(pos, dim_space, system_ids)
             local_gauges = self.update_inputs(local_gauges, dim_space, system_ids)
             gauges = self.update_inputs(gauges, dim_space, system_ids)
             
+        # constructing new kernels on each forward pass since we just updated the vector field     
         if self.params['global_align']:            
             kernels = geometry.gradient_op(pos.detach().cpu(),
                                            data.edge_index.detach().cpu(),
@@ -300,6 +302,7 @@ class net(nn.Module):
                    
         out = [pos, x] # always add positions and vectors
             
+        # get directional dewrivative features from
         for i, (_, _, size) in enumerate(adjs):
             #kernels = [K[n_id[: size[1] * d], :][:, n_id[: size[0] * d]] for K in data.kernels]
             kernels_ = [K[n_id, :][:, n_id] for K in kernels]

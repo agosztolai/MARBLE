@@ -5,7 +5,6 @@ import scipy.sparse as sp
 from scipy.linalg import orthogonal_procrustes, null_space
 from scipy.stats import special_ortho_group
 from scipy.spatial.transform import Rotation as R
-from procrustes import rotational, orthogonal
 import torch
 import torch_geometric.utils as PyGu
 import umap
@@ -758,29 +757,6 @@ def compute_eigendecomposition(A, k=None, eps=1e-8):
 
     return evals, evecs
 
-def procrustes_analysis(x, y, scale=False):
-    """
-    Perform Procrustes analysis to find the best rotation matrix that aligns X to Y.
-    :param X: Source points (tensor of shape [n_points, n_dims])
-    :param Y: Target points (tensor of shape [n_points, n_dims])
-    :return: Rotation matrix
-    """
-    
-    min_shape = min(x.shape[0],y.shape[0])
-    x = x[:min_shape,:]
-    y = y[:min_shape,:]
-    
-    edge_index = knn_graph(x, k=10)
-    g = nx.from_edgelist([tuple(row) for row in edge_index.numpy().T])
-    eig = nx.closeness_centrality(g)
-    weight = list(eig.values())
-    
-    res = rotational(x.numpy(), y.numpy(),
-                     pad=True, translate=False, scale=False, weight=weight,
-                     ) # (A @ R) - B
-    r = torch.Tensor(res.t) # extract rotation matrix    
-    #r = r.T
-    return r
 
 
 

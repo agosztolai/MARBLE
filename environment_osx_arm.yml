@@ -27,6 +27,7 @@ dependencies:
   - idna=3.4=py39hca03da5_0
   - importlib_resources=5.2.0=pyhd3eb1b0_1
   - jpeg=9e=h80987f9_1
+  - jupyterlab
   - kiwisolver=1.4.4=py39h313beb8_0
   - lame=3.100=h1a28f6b_0
   - lcms2=2.12=hba8e193_0
@@ -84,7 +85,7 @@ dependencies:
   - readline=8.2=h1a28f6b_0
   - requests=2.31.0=py39hca03da5_0
   - scipy=1.11.3=py39h20cbe94_0
-  - seaborn=0.12.2=py39hca03da5_0
+  - seaborn=0.11
   - setuptools=68.0.0=py39hca03da5_0
   - scikit-learn=1.3.0=py39h46d7db6_0
   - six=1.16.0=pyhd3eb1b0_1
