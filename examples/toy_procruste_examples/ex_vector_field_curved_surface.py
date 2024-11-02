@@ -76,7 +76,7 @@ def parabola(X, Y, alpha=0.3):
 
 
 def main():
-
+    ''' this method get stucks in a local minimum sometimes... '''
     # generate simple vector fields
     # f0: linear, f1: point source, f2: point vortex, f3: saddle
     n = 256 #512
@@ -94,7 +94,7 @@ def main():
         y[i] = (new_endpoint - x[i]) / np.linalg.norm(new_endpoint - x[i]) * np.linalg.norm(v)
         #alpha += 0.1
 
-    np.random.seed(1)
+    np.random.seed(4)
     rotate=True
     if rotate:
         for i, (p, v) in enumerate(zip(x,y)):
@@ -111,24 +111,24 @@ def main():
 
     # train model
     params = {
-        "lr":1,
+        "lr":0.1,
         "order": 1,  # order of derivatives
         "include_self": True,#True, 
         "include_positions":False,#True, 
         "hidden_channels":[64],
-        "out_channels": 3,
-        "emb_norm": True,
+        "out_channels": 2,
+        "emb_norm": False,
         "batch_size" : 64, # batch size
         "scalar_diffusion":False,
         "vector_diffusion":False,
         "epochs": 100,
         "inner_product_features":False,
-        "global_align": True, # align dynamical systems orthogonally
+        "global_align": True, # enable alignment of dynamical systems
         "final_grad": True, # compute orthogonal gradient at end of batch
-        "positional_grad":True,  # use gradient on positions or not
-        "vector_grad":True,
-        "derivative_grad":False,
-        "gauge_grad":True,
+        "positional_grad":True,  # aligning manifolds based on position
+        "vector_grad":True, # aligning manifolds based on vectors 
+        "derivative_grad":True, # aligning manifolds based on directional derivatives 
+        "gauge_grad":True, # aligning manifolds based on normal vectors of local gauges
     }
     
     model = net(data, params=params)

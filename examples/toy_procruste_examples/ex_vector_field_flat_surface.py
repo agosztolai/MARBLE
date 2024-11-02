@@ -97,17 +97,17 @@ def main():
         "hidden_channels":[64],
         "out_channels": 2,
         "batch_size" : 64, # batch size
-        #"emb_norm": True,
+        "emb_norm": False,
         "scalar_diffusion":False,
         "vector_diffusion":False,
         "epochs": 100,
         "inner_product_features":False,
-        "global_align": True, # align dynamical systems orthogonally
+        "global_align": True, # enable alignment ofdynamical systems
         "final_grad": True, # compute orthogonal gradient at end of batch
-        "positional_grad":True,  # use gradient on positions or not
-        "vector_grad":True,
-        "derivative_grad":False,
-        "gauge_grad":False,
+        "positional_grad":True,  # aligning manifolds based on position
+        "vector_grad":True, # aligning manifolds based on vectors 
+        "derivative_grad":True, # aligning manifolds based on directional derivatives 
+        "gauge_grad":False, # aligning manifolds based on normal vectors of local gauges
     }
     
     model = net(data, params=params)

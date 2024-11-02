@@ -230,7 +230,7 @@ class net(nn.Module):
                                             layers.OrthogonalTransformLayer(s, self.initial_rotations[i]) for i in range(self.params["n_systems"])
                                         ])
             self.orthogonal_transform[0].Q = nn.Parameter(torch.eye(s))
-            self.orthogonal_transform[0].Q.requires_grad = False # fix the first system from rotating.
+            self.orthogonal_transform[0].Q.requires_grad = True # fix the first system from rotating.
             
 
 
@@ -248,20 +248,28 @@ class net(nn.Module):
         kernels = data.kernels
         local_gauges = data.l_gauges
         gauges = data.gauges
+        normal_vectors = data.normal_vectors
 
+        # getting parameters for later usage
         n, d = x.shape[0], data.gauges.shape[2]
-        dim_man = data.gauges.shape[2]
+        dim_man = data.l_gauges.shape[2]
         dim_space = data.x.shape[1]
         mask = data.mask
         system_ids = data.system
         
         # updating the input vector fields and gauges based on learnt transformations
+        # (initially this is just an identity matrix)
         if self.params['global_align']:
-            x = self.update_inputs(x, dim_space, system_ids)
-            pos = self.update_inputs(pos, dim_space, system_ids)
-            local_gauges = self.update_inputs(local_gauges, dim_space, system_ids)
-            gauges = self.update_inputs(gauges, dim_space, system_ids)
+            x = self.update_inputs(x, dim_space, system_ids) # the input vectors
+            pos = self.update_inputs(pos, dim_space, system_ids) # rotating the positions
+            local_gauges = self.update_inputs(local_gauges, dim_space, system_ids) # rotating the local gauges
+            gauges = self.update_inputs(gauges, dim_space, system_ids) # rotating the global gauges
             
+            # normal_vectors are empty if the space is same dimension as manifold
+            if dim_man < dim_space:
+                normal_vectors = self.update_inputs(normal_vectors, dim_space, system_ids) # rotating the normal vectors to the local gauges
+
+
         # constructing new kernels on each forward pass since we just updated the vector field     
         if self.params['global_align']:            
             kernels = geometry.gradient_op(pos.detach().cpu(),
@@ -292,17 +300,20 @@ class net(nn.Module):
         pos = pos[n_id]
         mask = mask[n_id]
         
+        # I forgot what this was for.... 
         if kernels[0].size(0) == n * d:
             n_id = utils.expand_index(n_id, d)
         else:
             d = 1
 
+        # normalise the vvector lengths
         if self.params["vec_norm"]:
             x = F.normalize(x, dim=-1, p=2)
-                   
+                 
+        # building the feature matrix for embedding
         out = [pos, x] # always add positions and vectors
             
-        # get directional dewrivative features from
+        # get directional dewrivative features and append to feature matrix
         for i, (_, _, size) in enumerate(adjs):
             #kernels = [K[n_id[: size[1] * d], :][:, n_id[: size[0] * d]] for K in data.kernels]
             kernels_ = [K[n_id, :][:, n_id] for K in kernels]
@@ -314,11 +325,18 @@ class net(nn.Module):
 
             out.append(x)
 
+        # take target nodes only
         last_size = adjs[-1][2]
-        # take target nodes
         out = [o[: last_size[1]] for o in out]
             
-        # inner products
+        # get copy rotated inputs 
+        rotated_inputs = out.copy()
+        
+        # add rotated normal vectors for alignment loss later
+        if dim_man < dim_space:
+            rotated_inputs.append(normal_vectors[:last_size[1]])
+        
+        # inner products on vectors and directional derivatives
         if self.params["inner_product_features"]:
             out_inner = self.inner_products(out[1:]) # don't include positions
             out = torch.cat([out[0], out_inner], axis=1)
@@ -331,10 +349,11 @@ class net(nn.Module):
         else: 
             emb = self.enc(out)
         
-        if self.params["emb_norm"]:  # spherical output
+        if self.params["emb_norm"]:  # embed on hypershere
             emb = F.normalize(emb)          
            
-        return emb, mask[: last_size[1]], out
+        # return embedding, a mask, and the rotated inputs field
+        return emb, mask[: last_size[1]], rotated_inputs
 
     def evaluate(self, data):
         """Evaluate."""
@@ -365,13 +384,13 @@ class net(nn.Module):
             utils.detach_from_gpu(self, data, adjs)
 
             data.emb = emb.detach().cpu()
-            data.out = out.detach().cpu()
+            data.out = [o.detach().cpu() for o in data.out]#out.detach().cpu()
 
             return data
 
         
     def transform_grad(self, data):
-        """Forward pass @ custom loss """
+        """ Forward pass @ custom loss """
         size = (data.x.shape[0], data.x.shape[0])
         adjs = utils.EdgeIndex(data.edge_index, torch.arange(data.edge_index.shape[1]), size)
         adjs = utils.to_list(adjs) * self.params["order"]
@@ -391,6 +410,9 @@ class net(nn.Module):
         data.emb = emb #.detach()
         data.out = out #.detach()
         
+        # for each directional derivative then put on device
+        data.out = [o.to(data.x.device) for o in data.out]
+        
         return data
 
     def batch_loss(self, data, loader, train=False, verbose=False, optimizer=None, optimizer_alignment=None):
@@ -407,10 +429,8 @@ class net(nn.Module):
 
         if verbose:
             print("\n")
-            
-        #self.params['final_grad'] = True
-        dim_space = data.x.shape[1]
 
+        dim_space = data.x.shape[1]
         cum_loss = 0
         cum_custom_loss = 0
                  
@@ -446,76 +466,77 @@ class net(nn.Module):
         # Compute custom loss for the entire dataset after all batches are processed
         custom_loss = 0
         if self.params['global_align']:
+            
             # compute gradient and backpropagate on full set of data
-            if self.params['final_grad']:
-                
-                # Restore requires_grad for orthogonal_transform layers
-                for layer, requires_grad in zip([param for layer in self.orthogonal_transform for param in layer.parameters()], original_requires_grad):
-                    layer.requires_grad = requires_grad
-                
-                data_ = self.transform_grad(data)  # transforms the entire dataset
-                out = data_.out.to(data.x.device)
-                
-                # compute orthogonal loss on the vectors                  
-                if self.params['vector_grad']:
-                    vector_loss = self.loss_orth(out[:,dim_space:2*dim_space], data,
+            
+            # Restore requires_grad for orthogonal_transform layers
+            for layer, requires_grad in zip([param for layer in self.orthogonal_transform for param in layer.parameters()], original_requires_grad):
+                layer.requires_grad = requires_grad
+            
+            data = self.transform_grad(data)  # transforms the entire dataset
+            
+            # if we include positions then use these too
+            if self.params['positional_grad']:
+                positional_loss = self.loss_orth(data.out[0], data,
+                                                 torch.arange(len(data.x)), len(data.x),
+                                                 dist_type='positional',)
+                custom_loss = custom_loss + positional_loss
+            
+            # compute orthogonal loss on the vectors                  
+            if self.params['vector_grad']:
+                vector_loss = self.loss_orth(data.out[1], data,
+                                             torch.arange(len(data.x)), len(data.x),
+                                             dist_type='dynamic', )
+                custom_loss = custom_loss + vector_loss
+            
+            
+            # loss on directional derivatives needs fixing.... 
+            #  compute loss
+            if self.params['derivative_grad']:
+                derivative_loss = 0
+                # loop over gauges
+
+                for d in range(2,len(data.out)-1):
+
+                    cols = [u*dim_space + d for u in range(dim_space)]
+                    derivative_loss_ = self.loss_orth(data.out[2][:,cols], data,
                                                  torch.arange(len(data.x)), len(data.x),
                                                  dist_type='dynamic', )
-                    custom_loss = custom_loss + vector_loss
-                    #print(vector_loss.mean(axis=1))      
                 
-                if self.params['derivative_grad']:
-                    derivative_loss = 0
-                    # loop over gauges
-                    for d in range(dim_space):
-                        cols = [u*dim_space + 2*dim_space + d for u in range(dim_space)]
-                        derivative_loss_ = self.loss_orth(out[:,cols], data,
-                                                     torch.arange(len(data.x)), len(data.x),
-                                                     dist_type='dynamic', )
+                    derivative_loss = derivative_loss + derivative_loss_
                     
-                        derivative_loss = derivative_loss + derivative_loss_
-                        
-                    custom_loss = custom_loss + (derivative_loss / dim_space)
-                    #print(derivative_loss.mean(axis=1))                      
-                
-                # if we include positions then use these too
-                if self.params['positional_grad']:
-                    positional_loss = self.loss_orth(out[:,:dim_space], data,
-                                                     torch.arange(len(data.x)), len(data.x),
-                                                     dist_type='positional',)
-                    custom_loss = custom_loss + positional_loss
-                    #print(positional_loss.mean(axis=1))
+                custom_loss = custom_loss + (derivative_loss / dim_space)
+                #print(derivative_loss.mean(axis=1))                      
+            
 
-                if self.params['gauge_grad']:
-                    
-                    # rotate the normal vectors...
-                    nv, indices = geometry.split_by_system(torch.arange(len(data.x)), data.system, data.normal_vectors) # limit_rows=False)
-                    rotated_nv = [self.orthogonal_transform[i](nv[i].view(-1, dim_space)).view(-1, nv[i].shape[1]) for i in range(len(nv))]    
-                    nv = torch.zeros_like(data.normal_vectors)
-                    nv[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_nv, dim=0) 
-                    # nv = data.normal_vectors
-                    
-                    # compute loss on gauges
-                    gauge_loss = self.loss_orth(nv, data,
-                                                torch.arange(len(data.x)), len(data.x),
-                                                dist_type='dynamic',)
-                    #print(gauge_loss.mean(axis=1))
-                    custom_loss = custom_loss + gauge_loss
-                    
-                                       
-                custom_loss = custom_loss.mean(axis=1)
-                cum_custom_loss += float(custom_loss.mean())
-                # print(custom_loss)
-                if optimizer_alignment is not None:
-                    #optimizer.zero_grad() 
-                    for i, layer in enumerate(self.orthogonal_transform):
-                        optimizer_alignment.zero_grad()  # Reset gradients to zero for all model parameters                
-                        for param in layer.parameters():
-                            if param.requires_grad:
-                                param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0] 
-                                # param.grad = torch.autograd.grad(custom_loss.mean(), param, retain_graph=True)[0]
-                                #nn.utils.clip_grad_norm_(self.parameters(), 0.05)
-                                optimizer_alignment.step()
+            # ensure that the normal vectors to the local tangent planes
+            #  are pointing in the same direction - this helps to ensure 
+            # that manifolds don't flip over relative to each other
+            if self.params['gauge_grad']:
+                
+                gauge_loss = self.loss_orth(data.out[-1], data,
+                                             torch.arange(len(data.x)), len(data.x),
+                                             dist_type='dynamic', )
+                
+                custom_loss = custom_loss + gauge_loss
+                
+                         
+            #custom_loss = torch.pow(custom_loss+1, 2)
+            custom_loss = custom_loss.mean(axis=1)
+            cum_custom_loss += float(custom_loss.mean())
+            
+            # loop over the transformation layer (for each system) and compute
+            #  gradients based on the distance from the average of the other systems
+            if optimizer_alignment is not None:
+                #optimizer.zero_grad() 
+                for i, layer in enumerate(self.orthogonal_transform):
+                    optimizer_alignment.zero_grad()  # Reset gradients to zero for all model parameters                
+                    for param in layer.parameters():
+                        if param.requires_grad:
+                            param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0] 
+                            # param.grad = torch.autograd.grad(custom_loss.mean(), param, retain_graph=True)[0]
+                            #nn.utils.clip_grad_norm_(self.parameters(), 0.05)
+                            optimizer_alignment.step()
                         
         self.eval()     
         
@@ -531,7 +552,6 @@ class net(nn.Module):
         
         n = input_.shape[0]
         input_shape = input_.shape
-        #dim_ = len(input_.shape) 
         
         # update positions
         input_, indices = geometry.split_by_system(torch.arange(n), system_ids, input_) 
@@ -542,39 +562,6 @@ class net(nn.Module):
             rotated_input_ = [self.orthogonal_transform[i](input_[i].view(-1, dim_space)).view(-1, input_[i].shape[1]) for i in range(len(input_))]    
         
         output_ = torch.cat(rotated_input_, dim=0) #torch.zeros(input_shape) #  torch.zeros_like(input_)
-        #output_[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_input_, dim=0) 
-        # data.pos = pos
-        
-        # # update vectors
-        # x, indices = geometry.split_by_system(torch.arange(len(data.x)), data.system, data.x) 
-        # rotated_x = [self.orthogonal_transform[i](x[i].view(-1, dim_space)).view(-1, x[i].shape[1]) for i in range(len(x))]    
-        # x = torch.zeros_like(data.x)
-        # x[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_x, dim=0) 
-        # data.x = x  
-        
-        # # update gauges
-        # l_gauges, indices = geometry.split_by_system(torch.arange(len(data.x)), data.system, data.l_gauges) 
-        # rotated_lgauges = [self.orthogonal_transform[i](l_gauges[i].view(-1, dim_space)).view(-1, l_gauges[i].shape[1],  l_gauges[i].shape[2]) for i in range(len(l_gauges))]    
-        # l_gauges = torch.zeros_like(data.l_gauges)
-        # l_gauges[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_lgauges, dim=0) 
-        # data.l_gauges = l_gauges  
-
-        # # update normal vectors to tangent spaces
-        # if data.normal_vectors:
-        #     nv, indices = geometry.split_by_system(torch.arange(len(data.x)), data.system, data.normal_vectors) 
-        #     rotated_nv = [self.orthogonal_transform[i](nv[i].view(-1, dim_space)).view(-1, nv[i].shape[1]) for i in range(len(nv))]    
-        #     nv = torch.zeros_like(data.normal_vectors)
-        #     nv[torch.cat(indices, dim=0).squeeze()] = torch.cat(rotated_nv, dim=0) 
-        #     data.normal_vectors = nv
-        
-        # # recompute kernels based on updated positions and gauges
-        # kernels = geometry.gradient_op(data.pos.detach().cpu(),
-        #                                     data.edge_index.detach().cpu(),
-        #                                     data.l_gauges.detach().cpu())
-        # data.kernels = [
-        #     utils.to_SparseTensor(K.coalesce().indices(), value=K.coalesce().values()) for K in kernels
-        # ]
-        # data.kernels = [K.to(data.x.device) for K in data.kernels]
 
         return output_
     
@@ -779,15 +766,6 @@ def distance(embeddings, condition, dist_type='dynamic', return_paired=False):
                 dist = positional_distance(embeddings[i], embeddings[j])
             if dist_type=='dynamic':
                 dist = dynamic_distance(embeddings[i], embeddings[j], normalize=True)
-            if dist_type=='mse':
-                dist = F.mse_loss(embeddings[i], embeddings[j])
-            if dist_type=='condition_procrustes':                
-                dist = positional_distance(embeddings[i], embeddings[j])
-                intersection = utils.torch_intersect(condition[i].unique(), condition[j].unique())
-                condition_emb_1 = [embeddings[i][condition[i]==c,:] for c in intersection]
-                condition_emb_2 = [embeddings[j][condition[j]==c,:] for c in intersection]
-                dist_condition = condition_distance(condition_emb_1,condition_emb_2)
-                dist = dist + dist_condition
 
             distances[i,j] = dist
             
@@ -797,6 +775,7 @@ def distance(embeddings, condition, dist_type='dynamic', return_paired=False):
     # compute sum of distances ignoring the diagonal zeros
     # distance_sum = (distances * torch.ones_like(distances, dtype=torch.bool)).mean(dim=1)
     distance_sum = distances #[:,0]
+    # distance_sum = torch.exp(distances)
     
     if return_paired:
         return distance_sum
@@ -847,6 +826,12 @@ def positional_distance(x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
     u, s, v = torch.linalg.svd(x @ y.T)  # or x @ y.T
     s = torch.sum(s) 
     return 1-s
+
+def other_distance():
+    ''' use MMCR loss... nuclear loss on all points combined... '''
+    
+    
+    return
 
 
 def plot3d(x,y):
