@@ -85,7 +85,7 @@ def main():
     y = [f0(x[0]), 
          f1(x[1]), f2(x[2]),f3(x[3])]  # evaluated functions    
 
-    alpha=0.3
+    alpha=0.01
     # embed on parabola
     for i, (p, v) in enumerate(zip(x, y)):
         end_point = p + v
@@ -94,8 +94,8 @@ def main():
         y[i] = (new_endpoint - x[i]) / np.linalg.norm(new_endpoint - x[i]) * np.linalg.norm(v)
         #alpha += 0.1
 
-    np.random.seed(4)
-    rotate=True
+    np.random.seed(3)
+    rotate=False
     if rotate:
         for i, (p, v) in enumerate(zip(x,y)):
             random_rotation = R.random()        
@@ -118,17 +118,16 @@ def main():
         "hidden_channels":[64],
         "out_channels": 2,
         "emb_norm": False,
-        "batch_size" : 64, # batch size
+        "batch_size" : 128, # batch size
         "scalar_diffusion":False,
         "vector_diffusion":False,
         "epochs": 100,
         "inner_product_features":False,
-        "global_align": True, # enable alignment of dynamical systems
-        "final_grad": True, # compute orthogonal gradient at end of batch
+        "global_align": True, # enable alignment ofdynamical systems
         "positional_grad":True,  # aligning manifolds based on position
         "vector_grad":True, # aligning manifolds based on vectors 
-        "derivative_grad":True, # aligning manifolds based on directional derivatives 
-        "gauge_grad":True, # aligning manifolds based on normal vectors of local gauges
+        "derivative_grad":False, # aligning manifolds based on directional derivatives 
+        "gauge_grad":False, # aligning manifolds based on normal vectors of local gauges
     }
     
     model = net(data, params=params)

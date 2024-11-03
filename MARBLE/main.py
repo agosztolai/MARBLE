@@ -324,28 +324,25 @@ class net(nn.Module):
                 x = F.normalize(x, dim=-1, p=2)
 
             out.append(x)
-
-        # take target nodes only
-        last_size = adjs[-1][2]
-        out = [o[: last_size[1]] for o in out]
             
-        # get copy rotated inputs 
+        # take target nodes only
+        out = [o[: n_batch] for o in out]
         rotated_inputs = out.copy()
         
-        # add rotated normal vectors for alignment loss later
+        # add normal vectors
         if dim_man < dim_space:
-            rotated_inputs.append(normal_vectors[:last_size[1]])
+            rotated_inputs.append(normal_vectors[:n_batch])
         
         # inner products on vectors and directional derivatives
         if self.params["inner_product_features"]:
-            out_inner = self.inner_products(out[1:]) # don't include positions
+            out_inner = self.inner_products(out[1:]) # don't include positions and don't include normal vectors
             out = torch.cat([out[0], out_inner], axis=1)
         else:
             out = torch.cat(out, axis=1)
             
         # remove positions from encoder embedding
         if not self.params["include_positions"]: #and self.params['positional_grad']:
-            emb = self.enc(out[:,data.pos.shape[1]:])
+            emb = self.enc(out[:,pos.shape[1]:])
         else: 
             emb = self.enc(out)
         
@@ -353,7 +350,7 @@ class net(nn.Module):
             emb = F.normalize(emb)          
            
         # return embedding, a mask, and the rotated inputs field
-        return emb, mask[: last_size[1]], rotated_inputs
+        return emb, mask[: n_batch], rotated_inputs
 
     def evaluate(self, data):
         """Evaluate."""
@@ -384,12 +381,12 @@ class net(nn.Module):
             utils.detach_from_gpu(self, data, adjs)
 
             data.emb = emb.detach().cpu()
-            data.out = [o.detach().cpu() for o in data.out]#out.detach().cpu()
+            data.out = [o.detach().cpu() for o in out]#out.detach().cpu()
 
             return data
 
         
-    def transform_grad(self, data):
+    def transform_grad(self, data, n_id, n_batch):
         """ Forward pass @ custom loss """
         size = (data.x.shape[0], data.x.shape[0])
         adjs = utils.EdgeIndex(data.edge_index, torch.arange(data.edge_index.shape[1]), size)
@@ -404,7 +401,7 @@ class net(nn.Module):
             pass
 
         _, data, adjs = utils.move_to_gpu(self, data, adjs)
-        emb, _, out = self.forward(data, torch.arange(len(data.x)), adjs, len(data.x))
+        emb, _, out = self.forward(data, n_id, adjs, n_batch)
         #utils.detach_from_gpu(self, data, adjs)
 
         data.emb = emb #.detach()
@@ -430,122 +427,134 @@ class net(nn.Module):
         if verbose:
             print("\n")
 
-        dim_space = data.x.shape[1]
         cum_loss = 0
-        cum_custom_loss = 0
-                 
-        if self.params['final_grad']:
-            # Temporarily disable gradient computations for the orthogonal_transform layers
-            original_requires_grad = [param.requires_grad for layer in self.orthogonal_transform for param in layer.parameters()]
-            for layer in self.orthogonal_transform:
-                for param in layer.parameters():
-                    param.requires_grad = False
+        cum_alignment_loss = 0
 
         # Process each batch
         for batch in tqdm(loader, disable=not verbose):            
+            
+            # alignment loss on batchs
+            if self.params['global_align']:
+                # Temporarily disable gradient computations for the orthogonal_transform layers
+                original_requires_grad = [param.requires_grad for layer in self.orthogonal_transform for param in layer.parameters()]
+                for layer in self.orthogonal_transform:
+                    for param in layer.parameters():
+                        param.requires_grad = False
             
             n_batch, n_id, adjs = batch
             adjs = [adj.to(data.x.device) for adj in utils.to_list(adjs)]
     
             # Forward pass
             emb, mask, out = self.forward(data, n_id, adjs, n_batch)
+            
+            # contrastive loss on embedding
             loss = self.loss(emb, mask)
             cum_loss += float(loss)
-    
+                        
             # Backward and optimize
             if optimizer is not None:
                 optimizer.zero_grad()
                 loss.backward(retain_graph=True)  # Accumulates gradients for all layers
+                # optimizer.step()
+                
+            # alignment loss on rotated inputs
+            if self.params['global_align']:
+                
+                # Restore requires_grad for orthogonal_transform layers
+                for layer, requires_grad in zip([param for layer in self.orthogonal_transform for param in layer.parameters()], original_requires_grad):
+                    layer.requires_grad = requires_grad
+                    
+                data = self.transform_grad(data, n_id, n_batch)
+    
+                # compute alignment loss
+                alignment_loss = self.alignment_loss(data, n_id, n_batch)
+                cum_alignment_loss += float(alignment_loss.mean())
+                
+                # loop over the transformation layer (for each system) and compute
+                #  gradients based on the distance from the average of the other systems
+                if optimizer is not None:
+                    #optimizer.zero_grad() 
+                    for i, layer in enumerate(self.orthogonal_transform):
+                        # optimizer_alignment.zero_grad()  # Reset gradients to zero for all model parameters                
+                        for param in layer.parameters():
+                            if param.requires_grad:
+                                param.grad = torch.autograd.grad(alignment_loss[i], param, retain_graph=True)[0] 
+                                # param.grad = torch.autograd.grad(custom_loss.mean(), param, retain_graph=True)[0]
+                                #nn.utils.clip_grad_norm_(self.parameters(), 0.05)
+                                
+                                # optimizer_alignment.step()
+                
+        
+            if optimizer is not None:
                 optimizer.step()
 
-    
-        # TODO move this into preprcoessing or utils
-        if not self.params['vector_grad'] and not self.params['positional_grad'] and not self.params['gauge_grad'] and not self.params['derivative_grad']:
-            self.params['global_align'] = False
-        
-        # Compute custom loss for the entire dataset after all batches are processed
-        custom_loss = 0
-        if self.params['global_align']:
-            
-            # compute gradient and backpropagate on full set of data
-            
-            # Restore requires_grad for orthogonal_transform layers
-            for layer, requires_grad in zip([param for layer in self.orthogonal_transform for param in layer.parameters()], original_requires_grad):
-                layer.requires_grad = requires_grad
-            
-            data = self.transform_grad(data)  # transforms the entire dataset
-            
-            # if we include positions then use these too
-            if self.params['positional_grad']:
-                positional_loss = self.loss_orth(data.out[0], data,
-                                                 torch.arange(len(data.x)), len(data.x),
-                                                 dist_type='positional',)
-                custom_loss = custom_loss + positional_loss
-            
-            # compute orthogonal loss on the vectors                  
-            if self.params['vector_grad']:
-                vector_loss = self.loss_orth(data.out[1], data,
-                                             torch.arange(len(data.x)), len(data.x),
-                                             dist_type='dynamic', )
-                custom_loss = custom_loss + vector_loss
-            
-            
-            # loss on directional derivatives needs fixing.... 
-            #  compute loss
-            if self.params['derivative_grad']:
-                derivative_loss = 0
-                # loop over gauges
-
-                for d in range(2,len(data.out)-1):
-
-                    cols = [u*dim_space + d for u in range(dim_space)]
-                    derivative_loss_ = self.loss_orth(data.out[2][:,cols], data,
-                                                 torch.arange(len(data.x)), len(data.x),
-                                                 dist_type='dynamic', )
-                
-                    derivative_loss = derivative_loss + derivative_loss_
-                    
-                custom_loss = custom_loss + (derivative_loss / dim_space)
-                #print(derivative_loss.mean(axis=1))                      
-            
-
-            # ensure that the normal vectors to the local tangent planes
-            #  are pointing in the same direction - this helps to ensure 
-            # that manifolds don't flip over relative to each other
-            if self.params['gauge_grad']:
-                
-                gauge_loss = self.loss_orth(data.out[-1], data,
-                                             torch.arange(len(data.x)), len(data.x),
-                                             dist_type='dynamic', )
-                
-                custom_loss = custom_loss + gauge_loss
-                
-                         
-            #custom_loss = torch.pow(custom_loss+1, 2)
-            custom_loss = custom_loss.mean(axis=1)
-            cum_custom_loss += float(custom_loss.mean())
-            
-            # loop over the transformation layer (for each system) and compute
-            #  gradients based on the distance from the average of the other systems
-            if optimizer_alignment is not None:
-                #optimizer.zero_grad() 
-                for i, layer in enumerate(self.orthogonal_transform):
-                    optimizer_alignment.zero_grad()  # Reset gradients to zero for all model parameters                
-                    for param in layer.parameters():
-                        if param.requires_grad:
-                            param.grad = torch.autograd.grad(custom_loss[i], param, retain_graph=True)[0] 
-                            # param.grad = torch.autograd.grad(custom_loss.mean(), param, retain_graph=True)[0]
-                            #nn.utils.clip_grad_norm_(self.parameters(), 0.05)
-                            optimizer_alignment.step()
-                        
+           
         self.eval()     
         
-        if self.params['final_grad']:
-            loss_total = cum_loss / len(loader) + cum_custom_loss
-        else:
-            loss_total = cum_loss / len(loader)  + cum_custom_loss / len(loader)
+        loss_total = cum_loss / len(loader)  + cum_alignment_loss / len(loader)
             
         return loss_total, optimizer
+
+
+    def alignment_loss(self, data, n_id, n_batch):
+        ''' computing series of losses for alignment on original input fields '''
+        # data = self.transform_grad(data)  # transforms the entire dataset
+        
+        loss = 0
+        
+        # if we include positions then use these too
+        if self.params['positional_grad']:
+            positional_loss = self.loss_orth(data.out[0], data,
+                                             n_id, n_batch,
+                                             dist_type='positional',)
+            loss = loss + positional_loss
+        
+        # compute orthogonal loss on the vectors                  
+        if self.params['vector_grad']:
+            vector_loss = self.loss_orth(data.out[1], data,
+                                         n_id, n_batch,
+                                         dist_type='dynamic', )
+            loss = loss + vector_loss
+        
+        
+        # loss on directional derivatives needs fixing.... 
+        #  compute loss
+        if self.params['derivative_grad']:
+            derivative_loss = 0
+            # loop over gauges
+            
+            dim_space = data.x.shape[1]
+
+            for d in range(2,len(data.out)-1):
+
+                cols = [u*dim_space + d for u in range(dim_space)]
+                derivative_loss_ = self.loss_orth(data.out[2][:,cols], data,
+                                             n_id, n_batch,
+                                             dist_type='dynamic', )
+            
+                derivative_loss = derivative_loss + derivative_loss_
+                
+            loss = loss + (derivative_loss / dim_space)
+            #print(derivative_loss.mean(axis=1))                      
+        
+
+        # ensure that the normal vectors to the local tangent planes
+        #  are pointing in the same direction - this helps to ensure 
+        # that manifolds don't flip over relative to each other
+        if self.params['gauge_grad']:
+            
+            gauge_loss = self.loss_orth(data.out[-1], data,
+                                         n_id, n_batch,
+                                         dist_type='dynamic', )
+            
+            loss = loss + gauge_loss
+            
+                     
+        #custom_loss = torch.pow(custom_loss+1, 2)
+        loss = loss.mean(axis=1)
+        #cum_loss += float(custom_loss.mean())
+        return loss 
+
 
     def update_inputs(self, input_, dim_space, system_ids):
         """ apply learnt transformations to input data """
@@ -844,10 +853,46 @@ def plot3d(x,y):
     ax.scatter(y[:,0].cpu().detach().numpy(),
                 y[:,1].cpu().detach().numpy(),
                 y[:,2].cpu().detach().numpy(), c = 'r', marker='o')
+    ax.set_xlim([-1,1]);ax.set_ylim([-1,1]);ax.set_zlim([-1,1]);
     ax.set_xlabel('X-axis')
     ax.set_ylabel('Y-axis')
     ax.set_zlabel('Z-axis')
+    
+def plot3d(x, y):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    
+    # Scatter plot for points in x (blue) and y (red)
+    ax.scatter(x[:, 0].cpu().detach().numpy(),
+               x[:, 1].cpu().detach().numpy(),
+               x[:, 2].cpu().detach().numpy(), c='b', marker='o', label='X Points')
+    ax.scatter(y[:, 0].cpu().detach().numpy(),
+               y[:, 1].cpu().detach().numpy(),
+               y[:, 2].cpu().detach().numpy(), c='r', marker='o', label='Y Points')
 
+    # Plot arrows (lines) from origin to each point in x
+    for i in range(x.shape[0]):
+        ax.plot([0, x[i, 0].item()],
+                [0, x[i, 1].item()],
+                [0, x[i, 2].item()], 'b-')
+
+    # Plot arrows (lines) from origin to each point in y
+    for i in range(y.shape[0]):
+        ax.plot([0, y[i, 0].item()],
+                [0, y[i, 1].item()],
+                [0, y[i, 2].item()], 'r-')
+
+    # Setting limits and labels
+    ax.set_xlim([-1, 1])
+    ax.set_ylim([-1, 1])
+    ax.set_zlim([-1, 1])
+    ax.set_xlabel('X-axis')
+    ax.set_ylabel('Y-axis')
+    ax.set_zlabel('Z-axis')
+    ax.legend()
+
+    
+    
 def plot2d(x,y):
     fig = plt.figure()
     ax = fig.add_subplot(111,)

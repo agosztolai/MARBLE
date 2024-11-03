@@ -96,7 +96,7 @@ def main():
         "include_positions":False,#True, 
         "hidden_channels":[64],
         "out_channels": 2,
-        "batch_size" : 64, # batch size
+        "batch_size" : 128, # batch size
         "emb_norm": False,
         "scalar_diffusion":False,
         "vector_diffusion":False,
