@@ -4,9 +4,8 @@ import sys
 from MARBLE import plotting, preprocessing, dynamics, net, postprocessing
 import matplotlib.pyplot as plt
 
-angle = 135.
+angle = 30.
 theta = (angle/180.) * np.pi
-
 rotMatrix = np.array([[np.cos(theta), -np.sin(theta)], 
                       [np.sin(theta),  np.cos(theta)]])
 
@@ -51,35 +50,42 @@ def main():
     # generate simple vector fields
     # f0: linear, f1: point source, f2: point vortex, f3: saddle
     n = 512
-    x = [dynamics.sample_2d(n, [[-1, -1], [1, 1]], "random", seed=i) for i in range(2)]
-    y = [f2(x[0]), f3(x[1])]  # evaluated functions
+    # x = [dynamics.sample_2d(n, [[-1, -1], [1, 1]], "random", seed=i) for i in range(4)]
+    # y = [f2(x[0]), f3(x[1]), f0(x[2]), f1(x[3])]  # evaluated functions 
+    # x[0] = x[0]@rotMatrix
+    # y[0] = y[0]@rotMatrix
     
+    # y = [f2(x[0]), f3(x[1])]  # evaluated functions 
+    # x[0] = x[0]@rotMatrix
+    # y[0] = y[0]@rotMatrix
+    
+    x = [dynamics.sample_2d(n, [[-1, -1], [1, 1]], "random", seed=i) for i in range(4)]
+    # y = [ f0(x[0]), f1(x[1]), f2(x[2]), f3(x[3])]  # evaluated functions
+    y = [ f0(x[0]), f1(x[1]), f2(x[2]), f3(x[3])]  # evaluated functions 
     x[0] = x[0]@rotMatrix
     y[0] = y[0]@rotMatrix
 
     # construct data object
     data = preprocessing.construct_dataset(x, y)
-
+    
     # train model
-    model = net(data, params={'epochs':50,'inner_product_features': False, 
-                              'diffusion': False})
+    model = net(data, params={'epochs':50, 'diffusion': False})
     model.fit(data)
 
     # evaluate model on data
     data = model.transform(data)
-    data = postprocessing.cluster(data)
+    # data = postprocessing.cluster(data)
+    # data = postprocessing.distribution_distances(data, cluster_typ="kmeans", n_clusters=5, seed=0)
     data = postprocessing.embed_in_2D(data)
-    data = postprocessing.distribution_distances(data, cluster_typ="kmeans", n_clusters=5, seed=0)
 
     # plot results
-    titles = None#["Linear left", "Linear right", "Vortex right", "Vortex left"]
-    plotting.fields(data, titles=titles, col=2, width=0.01)
+    plotting.fields(data, titles=None, col=2, width=0.01)
     
-    data.x = data.x_test
-    data.pos = data.pos_test
-    plotting.fields(data, titles=titles, col=2, width=0.01)
+    data.x = data.x_transform
+    data.pos = data.pos_transform
+    plotting.fields(data, titles=None, col=2, width=0.01)
     # plt.savefig('fields.svg')
-    plotting.embedding(data, data.y.numpy(), titles=titles, clusters_visible=True)
+    plotting.embedding(data, data.y.numpy(), titles=None)
     # plt.savefig('embedding.svg')
     # plotting.histograms(data, titles=titles)
     # plt.savefig('histogram.svg')

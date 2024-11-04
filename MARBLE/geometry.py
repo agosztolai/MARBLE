@@ -79,7 +79,7 @@ def cluster(x, cluster_typ="kmeans", n_clusters=15, seed=0):
     """
     clusters = {}
     if cluster_typ == "kmeans":
-        kmeans = KMeans(n_clusters=n_clusters, random_state=seed).fit(x)
+        kmeans = KMeans(n_clusters=n_clusters, random_state=seed, n_init='auto').fit(x)
         clusters["n_clusters"] = n_clusters
         clusters["labels"] = kmeans.labels_
         clusters["centroids"] = kmeans.cluster_centers_
@@ -121,7 +121,7 @@ def embed(x, embed_typ="umap", dim_emb=2, manifold=None, verbose=True, seed=0, *
     elif embed_typ == "umap":
         x = StandardScaler().fit_transform(x)
         if manifold is None:
-            manifold = umap.UMAP(n_components=dim_emb, random_state=seed, **kwargs).fit(x)
+            manifold = umap.UMAP(n_components=dim_emb, n_jobs=1, random_state=seed, **kwargs).fit(x)
 
         emb = manifold.transform(x)
 
@@ -597,7 +597,7 @@ def compute_eigendecomposition(A, k=None, eps=1e-8):
                 evals, evecs = torch.tensor(evals), torch.tensor(evecs)
 
             evals = torch.clamp(evals, min=0.0)
-            evecs *= np.sqrt(len(evecs))
+            # evecs /= np.sqrt(len(evecs))
 
             break
         except Exception as e:  # pylint: disable=broad-exception-caught
@@ -612,3 +612,13 @@ def compute_eigendecomposition(A, k=None, eps=1e-8):
                 A += sp.eye(A.shape[0]) * (eps * 10 ** (failcount - 1))
 
     return evals.float(), evecs.float()
+
+
+def transform_vector_field(mapping, pos, x):
+    """
+    Transform vector field using mapping.
+    """
+    pos_transform = mapping(pos)
+    x_transform = mapping(pos + x) - pos_transform
+    
+    return pos_transform, x_transform

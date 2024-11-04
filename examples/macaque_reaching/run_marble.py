@@ -11,7 +11,8 @@ def main():
     data_file = "data/rate_data_20ms.pkl"
     metadata_file = "data/trial_ids.pkl"
     
-    rates, trial_ids = load_data(data_file, metadata_file)
+    rates = pickle.load(open(data_file, "rb"))
+    trial_ids = pickle.load(open(metadata_file, "rb"))
 
     # defining the set of conditions
     conditions = ["DownLeft", "Left", "UpLeft", "Up", "UpRight", "Right", "DownRight"]

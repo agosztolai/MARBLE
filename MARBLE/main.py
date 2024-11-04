@@ -15,7 +15,6 @@ from torch import nn
 from torch_geometric.nn import MLP, Linear
 from torch.nn.utils.parametrizations import orthogonal
 from tqdm import tqdm
-from torch_kmeans import SoftKMeans
 
 from MARBLE import dataloader
 from MARBLE import geometry
@@ -30,25 +29,25 @@ class net(nn.Module):
     and can be accessed via the `params` dictionnary in this class constructor.
 
     Args:
-        batch_size: batch size (default=64)
-        epochs: optimisation epochs (default=20)
-        lr: iniital learning rate (default=0.01)
-        momentum: momentum (default=0.9)
-        diffusion: set to True to use diffusion layer before gradient computation (default=False)
-        include_positions: include positions as features (warning: this is untested) (default=False)
-        include_self: include vector at the center of feature (default=True)
-        order: order to which to compute the directional derivatives (default=2)
-        inner_product_features: transform gradient features to inner product features (default=True)
-        frac_sampled_nb: fraction of neighbours to sample for gradient computation
-            (if -1 then all neighbours) (default=-1)
-        dropout: dropout in the MLP (default=0.)
-        hidden_channels: number of hidden channels (default=16). If list, then adds multiple layers.
-        out_channels: number of output channels (if null, then =hidden_channels) (default=3)
-        bias: learn bias parameters in MLP (default=True)
-        vec_norm: normalise features at each derivative order to unit length (default=False)
-        emb_norm: normalise MLP output to unit length (default=False)
-        batch_norm: batch normalisation (default=True)
-        seed: seed for reproducibility
+        batch_size (int): Batch size for training. Default is 64.
+        epochs (int): Number of optimization epochs. Default is 20.
+        lr (float): Initial learning rate. Default is 0.01.
+        momentum (float): Momentum for the optimizer. Default is 0.9.
+        diffusion (bool): If True, use a diffusion layer before gradient computation. Default is False.
+        include_positions (bool): Include positions as features. Default is False.
+        include_self (bool): Include vector at the center of the feature. Default is True.
+        order (int): Order to compute the directional derivatives. Default is 2.
+        inner_product_features (bool): Transform gradient features to inner product features. Default is True.
+        frac_sampled_nb (float): Fraction of neighbors to sample for gradient computation.
+            If -1, all neighbors are used. Default is -1.
+        dropout (float): Dropout rate in the MLP. Default is 0.0.
+        hidden_channels (int or list): Number of hidden channels. If a list is provided, multiple layers are added. Default is 16.
+        out_channels (int): Number of output channels. If None, defaults to hidden_channels. Default is 3.
+        bias (bool): Whether to learn bias parameters in the MLP. Default is True.
+        vec_norm (bool): Normalize features at each derivative order to unit length. Default is False.
+        emb_norm (bool): Normalize the MLP output to unit length. Default is False.
+        batch_norm (bool): Apply batch normalization. Default is True.
+        seed (int): Seed for reproducibility.
     """
 
     def __init__(self, data, loadpath=None, params=None, verbose=True):
@@ -61,8 +60,8 @@ class net(nn.Module):
             params: dict with parameters to overwrite default params or a path to a yaml file
             verbose: run in verbose mode
         """
+        
         super().__init__()
-
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         if loadpath is not None:
@@ -79,44 +78,49 @@ class net(nn.Module):
         self.parse_parameters(data)
         self.check_parameters(data)
         self.setup_layers()
-        self.loss = loss_fun()
+        self.alignment_loss = AlignmentLossFun()
+        self.representation_loss = RepresentationLossFun()
         self.reset_parameters()
         self.timestamp = None
+        
+        self.w = nn.Parameter(torch.tensor(0.0))
 
         if verbose:
             utils.print_settings(self)
 
         if loadpath is not None:
             self.load_model(loadpath)
+            
 
     def parse_parameters(self, data):
-        """Load default parameters and merge with user specified parameters"""
+        """Load default parameters from a YAML file and merge them with user-specified parameters."""
 
-        file = os.path.dirname(__file__) + "/default_params.yaml"
-        with open(file, "rb") as f:
-            params = yaml.safe_load(f)
-
-        params["dim_signal"] = data.x.shape[1]
-        params["dim_emb"] = data.pos.shape[1]
-        params['slices'] = data._slice_dict["x"]
+        # Load default parameters from YAML file
+        default_file = os.path.join(os.path.dirname(__file__), "default_params.yaml")
+        with open(default_file, "rb") as f:
+            default_params = yaml.safe_load(f)
+        
+        # Update parameters with data-specific values
+        default_params["dim_signal"] = data.x.shape[1]
+        default_params["dim_emb"] = data.pos.shape[1]
+        default_params["slices"] = data._slice_dict["x"]
 
         if hasattr(data, "dim_man"):
-            params["dim_man"] = data.dim_man
+            default_params["dim_man"] = data.dim_man
 
-        # merge dictionaries without duplications
-        for key in params.keys():
-            if key not in self.params.keys():
-                self.params[key] = params[key]
+        # Merge default parameters with user-specified parameters
+        for key, value in default_params.items():
+            if key not in self.params:
+                self.params[key] = value
 
-        if params["frac_sampled_nb"] != -1:
-            self.params["n_sampled_nb"] = int(data.degree * params["frac_sampled_nb"])
+        # Calculate the number of sampled neighbors if a fraction is specified
+        if default_params["frac_sampled_nb"] != -1:
+            self.params["n_sampled_nb"] = int(data.degree * default_params["frac_sampled_nb"])
         else:
             self.params["n_sampled_nb"] = -1
 
-        if self.params["batch_norm"]:
-            self.params["batch_norm"] = "batch_norm"
-        else:
-            self.params["batch_norm"] = None
+        self.params["batch_norm"] = "batch_norm" if self.params["batch_norm"] else None
+
 
     def check_parameters(self, data):
         """Check parameter validity"""
@@ -130,26 +134,30 @@ class net(nn.Module):
             assert hasattr(data, "L"), "No Laplacian found. Compute it in preprocessing()!"
 
         pars = [
+            "align_datasets",
+            "architecture",
+            "batch_norm",
             "batch_size",
+            "bias",
+            "dim_emb",
+            "dim_signal",
+            "diffusion",
+            "dropout",
+            "emb_norm",
             "epochs",
+            "frac_sampled_nb",
+            "GAT_hidden_layers",
+            "GAT_attention_heads",
+            "hidden_channels",
+            "include_positions",
+            "include_self",
+            "inner_product_features",
             "lr",
             "momentum",
             "order",
-            "inner_product_features",
-            "dim_signal",
-            "dim_emb",
-            "frac_sampled_nb",
-            "dropout",
-            "diffusion",
-            "hidden_channels",
             "out_channels",
-            "bias",
-            "batch_norm",
-            "vec_norm",
-            "emb_norm",
             "seed",
-            "include_positions",
-            "include_self",
+            "vec_norm",
         ]
 
         for p in pars:
@@ -172,23 +180,31 @@ class net(nn.Module):
         self.diffusion = layers.Diffusion()
 
         # gradient features
-        # self.grad = nn.ModuleList(layers.AnisoConv() for i in range(o))
-        self.GAT = layers.GAT(2, 5, 2, 1)
+        if self.params['architecture']=='gradient_filter':
+            self.grad = nn.ModuleList(layers.AnisoConv() for i in range(o))
+        elif self.params['architecture']=='GAT':
+            self.GCN = nn.ModuleList([layers.GCN(), layers.GCN() ])
+        else:
+            NotImplementedError()
 
         # cumulated number of channels after gradient features
-        # cum_channels = s * (1 - d ** (o + 1)) // (1 - d)
-        cum_channels = s*(o+1)
+        if self.params['architecture']=='gradient_filter':
+            cum_channels = s * (1 - d ** (o + 1)) // (1 - d)
+        elif self.params['architecture']=='GAT':
+            cum_channels = s*(o+1)
+        else:
+            NotImplementedError()
+            
         if not self.params["include_self"]:
             cum_channels -= s
 
-        # if self.params["inner_product_features"]:
-        #     cum_channels //= s
-        #     if s == 1:
-        #         cum_channels = o + 1
-
-        #     self.inner_products = layers.InnerProductFeatures(cum_channels, s)
-        # else:
-        # self.inner_products = None
+        if self.params["inner_product_features"]:
+            cum_channels //= s
+            if s == 1:
+                cum_channels = o + 1
+            self.inner_products = layers.InnerProductFeatures(cum_channels, s)
+        else:
+            self.inner_products = None
 
         if self.params["include_positions"]:
             cum_channels += d
@@ -197,11 +213,19 @@ class net(nn.Module):
         if not isinstance(self.params["hidden_channels"], list):
             self.params["hidden_channels"] = [self.params["hidden_channels"]]
         
-        self.maps = nn.ModuleList((orthogonal(Linear(s, s,
-                                    bias=self.params["bias"],
-                                    )))
-                                    for i in range(len(self.params['slices'])-1))
-                                    
+        # self.maps = nn.ModuleList((Linear(s, s,
+        #                             bias=self.params["bias"],
+        #                             ))
+        #                             for i in range(len(self.params['slices'])-2))
+                                    # for i in range(len(self.params['slices'])-3))
+        self.maps = nn.ModuleList(layers.ParametrizedRotation()
+                                    for i in range(len(self.params['slices'])-2))
+        
+        # for i, m in enumerate(self.maps):
+        #     torch.nn.init.constant_(m.bias, 0)
+        #     torch.nn.init.eye_(m.weight)
+        #     self.maps[i] = orthogonal(m)
+                                            
         # self.maps = nn.ModuleList(MLP(
         #                             channel_list=[s, 2*s, s],
         #                             dropout=self.params["dropout"],
@@ -217,10 +241,11 @@ class net(nn.Module):
 
         self.enc = MLP(
             channel_list=channel_list,
-            dropout=self.params["dropout"],
+            # dropout=self.params["dropout"],
             bias=self.params["bias"],
-            norm=self.params["batch_norm"],
+            norm=None#self.params["batch_norm"],
         )
+
 
     def forward(self, data, n_id, adjs=None):
         """Forward pass.
@@ -235,46 +260,58 @@ class net(nn.Module):
         mask = data.mask
 
         # diffusion
-        # if self.params["diffusion"]:
-        #     if hasattr(data, "Lc"):
-        #         x = geometry.global_to_local_frame(x, data.gauges)
-        #         x = self.diffusion(x, data.L, Lc=data.Lc, method="spectral")
-        #         x = geometry.global_to_local_frame(x, data.gauges, reverse=True)
-        #     else:
-        #         x = self.diffusion(x, data.L, method="spectral")
+        if self.params["diffusion"]:
+            if hasattr(data, "Lc"):
+                x = geometry.global_to_local_frame(x, data.gauges)
+                x = self.diffusion(x, data.L, Lc=data.Lc, method="spectral")
+                x = geometry.global_to_local_frame(x, data.gauges, reverse=True)
+            else:
+                x = self.diffusion(x, data.L, method="spectral")
 
         # local gauges
-        # if self.params["inner_product_features"]:
-        #     x = geometry.global_to_local_frame(x, data.gauges)
+        if self.params["inner_product_features"]:
+            x = geometry.global_to_local_frame(x, data.gauges)
         
-        x_transform = []
-        pos_test = []
-        slices = self.params['slices']
-        for i in range(len(slices)-1):
-            x_slice = x[slices[i]:slices[i+1]]
-            pos_slice = pos[slices[i]:slices[i+1]]
+        #alignment across data slices
+        if self.params['align_datasets']:
+            x_transform, pos_transform = [], []
+            slices = self.params['slices']
+            for i in range(len(slices)-1):
+                pos_t_slice = pos[slices[i]:slices[i+1]]
+                x_t_slice = x[slices[i]:slices[i+1]]
+                if i > 0:
+                # if i == 1:
+                    # if self.maps[i-1].weight.min()<0:
+                    #     self.maps[i-1].weight = -1*self.maps[i-1].weight
+                    # if torch.det(self.maps[i-1].weight)>0:
+                    #     self.maps[i-1].weight[...,0] = -1*self.maps[i-1].weight[...,0]
+                    pos_t_slice, x_t_slice = geometry.transform_vector_field(
+                        self.maps[i-1], pos_t_slice, x_t_slice
+                    )
+                    
+                pos_transform.append(pos_t_slice)
+                x_transform.append(x_t_slice)
+                
+            x_transform = torch.vstack(x_transform)
+            pos_transform = torch.vstack(pos_transform)
+        else:
+            x_transform, pos_transform = x, pos
             
-            # print(self.maps[i].weight)
-            
-            transformed_orig = self.maps[i](pos_slice)
-            transformed_shifted = self.maps[i](pos_slice + x_slice)
-            
-            x_transform.append(transformed_shifted - transformed_orig)
-            pos_test.append(transformed_orig)
-            
-            
-        x = torch.vstack(x_transform)
+        pos, x = pos_transform, x_transform
                    
         # restrict to current batch
         x = x[n_id]
         mask = mask[n_id]
-        # if data.kernels[0].size(0) == n * d:
-            # n_id = utils.expand_index(n_id, d)
-        # else:
-            # d = 1
+        
+        # if kernels are nd x nd, meaning they act in the tangent bundle
+        if data.kernels[0].size(0) == n * d:
+            n_id = utils.expand_index(n_id, d)
+        # is kernels are n x n meaning they act on manifold points
+        else:
+            d = 1
 
-        # if self.params["vec_norm"]:
-        #     x = F.normalize(x, dim=-1, p=2)
+        if self.params["vec_norm"]:
+            x = F.normalize(x, dim=-1, p=2)
 
         # gradients
         if self.params["include_self"]:
@@ -283,45 +320,56 @@ class net(nn.Module):
             out = []
             
         for i, (edge_index, e_id, size) in enumerate(adjs):
-            #gradient filter
-            # kernels = [K[n_id[: size[1] * d], :][:, n_id[: size[0] * d]] for K in data.kernels]
-            # x = self.grad[i](x, kernels)
-            
-            #GAT
-            # x = self.GAT(x, edge_index)
+            # graph convolutional architecture
+            if self.params['architecture']=='gradient_filter':
+                kernels = [K[n_id[: size[1] * d], :][:, n_id[: size[0] * d]] for K in data.kernels]
+                x = self.grad[i](x, kernels)
+            elif self.params['architecture']=='GAT':
+                x = self.GCN[i](x, edge_index)
+            else:
+                NotImplementedError()
 
-            # if self.params["vec_norm"]:
-            #     x = F.normalize(x, dim=-1, p=2)
+            if self.params["vec_norm"]:
+                x = F.normalize(x, dim=-1, p=2)
 
             out.append(x)
-  
+            
         # take target nodes
         last_size = adjs[-1][2]
         out = [o[: last_size[1]] for o in out]
 
         # inner products
-        # if self.params["inner_product_features"]:
-        #     out = self.inner_products(out)
-        # else:
-        out = torch.cat(out, axis=1)
+        if self.params["inner_product_features"]:
+            out = self.inner_products(out)
+        else:
+            out = torch.cat(out, axis=1)
 
-        # if self.params["include_positions"]:
-        #     out = torch.hstack([data.pos[n_id[: last_size[1]]], out])
+        if self.params["include_positions"]:
+            out = torch.hstack([data.pos[n_id[: last_size[1]]], out])
+            
+        # positional_encoding = 1
+        # if positional_encoding:
+        #     out = torch.hstack([out, data.L[1][n_id[: last_size[1]], :5]])
 
+        # map to latent space
         emb = self.enc(out)
 
-        # if self.params["emb_norm"]:  # spherical output
-        #     emb = F.normalize(emb)
+        # spherical output
+        if self.params["emb_norm"]: 
+            emb = F.normalize(emb)
 
-        return emb, mask[: last_size[1]], n_id[:last_size[1]], torch.vstack(pos_test), torch.vstack(x_transform)
+        return emb, mask[: last_size[1]], n_id[:last_size[1]], pos_transform, x_transform
+
 
     def evaluate(self, data):
         """Evaluate."""
         warnings.warn("MARBLE.evaluate() is deprecated. Use MARBLE.transform() instead.")
         return self.transform(data)
 
+
     def transform(self, data):
         """Forward pass @ evaluation (no minibatches)"""
+        
         with torch.no_grad():
             size = (data.x.shape[0], data.x.shape[0])
             adjs = utils.EdgeIndex(data.edge_index, torch.arange(data.edge_index.shape[1]), size)
@@ -336,15 +384,16 @@ class net(nn.Module):
                 pass
 
             _, data, adjs = utils.move_to_gpu(self, data, adjs)
-            out, _, _, data.pos_test, data.x_test = self.forward(data, torch.arange(len(data.x)), adjs)
+            out, _, _, data.pos_transform, data.x_transform = self.forward(data, torch.arange(len(data.x)), adjs)
             utils.detach_from_gpu(self, data, adjs)
 
             data.emb = out.detach().cpu()
 
             return data
 
-    def batch_loss(self, data, loader, train=False, verbose=False, optimizer=None):
-        """Loop over minibatches provided by loader function.
+
+    def batch_loss(self, data, loader, loss_fun, train=False, verbose=False, optimizer=None):
+        """Loop over minibatches provided by the loader function.
 
         Args:
             x : (nxdim) feature matrix
@@ -358,28 +407,79 @@ class net(nn.Module):
         if verbose:
             print("\n")
 
-        cum_loss = 0
+        cum_loss = 0.0
+        
+        # Loop over batches in the loader
         for batch in tqdm(loader, disable=not verbose):
             _, n_id, adjs = batch
             adjs = [adj.to(data.x.device) for adj in utils.to_list(adjs)]
+            
+            # Forward pass
             emb, mask, n_target, _, _ = self.forward(data, n_id, adjs)
-            loss = self.loss(emb, mask, n_target, self.params['slices'])
+            
+            # Calculate loss
+            loss = loss_fun(emb, self._epoch, list(self.named_parameters())[0][1], mask, n_target, self.params['slices'])
             cum_loss += float(loss)
 
+            # Backpropagation and optimization if in training mode
             if optimizer is not None:
-                optimizer.zero_grad()  # zero gradients, otherwise accumulates
-                loss.backward()  # backprop
-                optimizer.step()
-
-        self.eval()
+                optimizer.zero_grad()  # Clear previous gradients
+                loss.backward()        # Backpropagate the loss
+                optimizer.step()       # Update model parameters
+                
+            # for name, param in self.named_parameters():
+            #     if param.grad is not None:
+            #         print(f"Gradient for {name}: {param.grad}")
+                
+        self.eval() # Set model to evaluation mode
 
         return cum_loss / len(loader), optimizer
+
 
     def run_training(self, data, outdir=None, verbose=False):
         """Run training."""
         warnings.warn("MARBLE.run_training() is deprecated. Use MARBLE.fit() instead.")
 
         self.fit(data, outdir=outdir, verbose=verbose)
+        
+        
+    def optimisation_loop(self, data, train_loader, val_loader, loss_fn, optimizer, scheduler=None, outdir=None, verbose=False):
+        best_loss = float('inf')
+        losses = {"train_loss": [], "val_loss": [], "test_loss": []}
+        
+        # Epoch loop
+        for epoch in range(self.params.get("epoch", 0), self.params.get("epoch", 0) + self.params["epochs"]):
+            self._epoch = epoch
+
+            # Training loss calculation
+            train_loss, optimizer = self.batch_loss(
+                data, train_loader, loss_fn, train=True, verbose=verbose, optimizer=optimizer
+            )
+            
+            # Validation loss calculation
+            val_loss, _ = self.batch_loss(data, val_loader, loss_fn, verbose=verbose)
+            
+            # Step the scheduler based on the training loss
+            if scheduler is not None:
+                scheduler.step(train_loss)
+
+            # Log current losses and learning rate
+            log_message = f"\nEpoch: {self._epoch}, Training loss: {train_loss:.4f}, Validation loss: {val_loss:.4f}"
+            if scheduler is not None:
+                log_message += f", lr: {scheduler._last_lr[0]:.4f}"
+            print(log_message, end="")
+
+            # Save the model if validation loss improves
+            if val_loss < best_loss:
+                outdir = self.save_model(optimizer, losses, outdir=outdir, best=True, timestamp=self.timestamp)
+                best_loss = val_loss
+                print(" *", end="")
+
+            losses["train_loss"].append(train_loss)
+            losses["val_loss"].append(val_loss)
+            
+        return optimizer, losses, outdir
+    
 
     def fit(self, data, outdir=None, verbose=False):
         """Network training.
@@ -392,61 +492,87 @@ class net(nn.Module):
 
         print("\n---- Training network ...")
 
+        # Set timestamp
         self.timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-
         print(f"\n---- Timestamp: {self.timestamp}")
 
-        # load to gpu (if possible)
-        # pylint: disable=self-cls-assignment
+        # Move model and data to GPU (if available)
         self, data, _ = utils.move_to_gpu(self, data)
 
         # data loader
         train_loader, val_loader, test_loader = dataloader.loaders(data, self.params)
-        optimizer = opt.SGD(
-            self.parameters(), lr=self.params["lr"], momentum=self.params["momentum"]
-        )
         
-        if hasattr(self, "optimizer_state_dict"):
-            optimizer.load_state_dict(self.optimizer_state_dict)
+        # Optimizers and scheduler
+        # optimizer_rep = opt.SGD(self.parameters(), lr=self.params["lr"], momentum=self.params["momentum"])
+        # scheduler = opt.lr_scheduler.ReduceLROnPlateau(optimizer_rep)
+        # optimizer_ali = opt.SGD(self.parameters(), lr=self.params["lr"], momentum=self.params["momentum"])
+        
+        # Load optimizer state if available
+        # if hasattr(self, "optimizer_state_dict"):
+        #     optimizer_rep.load_state_dict(self.optimizer_state_dict)        
+        
+        # Training loop
+        for _ in range(1):
+            
+            # Alignment learning
+            print('\n\nRepresentation alignment')
+            
+            for n, p in self.named_parameters():
+                if 'maps' in n:
+                    p.requires_grad = True
+                else:
+                    p.requires_grad = False
+                # print(n,p)
+                    
+            optimizer_ali = opt.SGD(filter(lambda p: p.requires_grad, self.parameters()), lr=0.1, momentum=0.9)
 
-        # training scheduler
-        scheduler = opt.lr_scheduler.ReduceLROnPlateau(optimizer)
-
-        best_loss = -1
-        self.losses = {"train_loss": [], "val_loss": [], "test_loss": []}
-        for epoch in range(
-            self.params.get("epoch", 0), self.params.get("epoch", 0) + self.params["epochs"]
-        ):
-            self._epoch = epoch
-
-            train_loss, optimizer = self.batch_loss(
-                data, train_loader, train=True, verbose=verbose, optimizer=optimizer
+            optimizer_ali, losses, outdir = self.optimisation_loop(
+                data, train_loader, val_loader, self.alignment_loss, optimizer_ali, outdir=outdir, verbose=verbose
             )
-            val_loss, _ = self.batch_loss(data, val_loader, verbose=verbose)
-            scheduler.step(train_loss)
-
-            print(
-                f"\nEpoch: {self._epoch}, Training loss: {train_loss:4f}, Validation loss: {val_loss:.4f}, lr: {scheduler._last_lr[0]:.4f}",  # noqa, pylint: disable=line-too-long,protected-access
-                end="",
+            
+            
+            # Representation learning
+            print('\n\nRepresentation learning')
+            
+            for n, p in self.named_parameters():
+                if 'maps' in n:
+                    p.requires_grad = False
+                else:
+                    p.requires_grad = True
+                    
+            optimizer_rep = opt.SGD(filter(lambda p: p.requires_grad, self.parameters()), lr=self.params["lr"], momentum=self.params["momentum"])
+            scheduler = opt.lr_scheduler.ReduceLROnPlateau(optimizer_rep)
+                    
+            optimizer_rep, losses, outdir = self.optimisation_loop(
+                data, train_loader, val_loader, self.representation_loss, optimizer_rep, 
+                scheduler=scheduler, outdir=outdir, verbose=verbose
             )
-
-            if best_loss == -1 or (val_loss < best_loss):
-                outdir = self.save_model(
-                    optimizer, self.losses, outdir=outdir, best=True, timestamp=self.timestamp
-                )
-                best_loss = val_loss
-                print(" *", end="")
-
-            self.losses["train_loss"].append(train_loss)
-            self.losses["val_loss"].append(val_loss)
-
-        test_loss, _ = self.batch_loss(data, test_loader)
+            
+            # from MARBLE import postprocessing, plotting
+            # data = self.transform(data)
+            # data.emb_2D, manifold = geometry.embed(data.emb, seed=0)
+            # plotting.embedding(data, data.y.numpy(), titles=None)
+            
+            
+           
+            
+            # data = self.transform(data)
+            # data.emb_2D, _ = geometry.embed(data.emb, manifold=manifold, seed=0)
+            # plotting.embedding(data, data.y.numpy(), titles=None)
+            
+            
+            
+        # Test representation loss computation
+        test_loss, _ = self.batch_loss(data, test_loader, self.representation_loss)
         print(f"\nFinal test loss: {test_loss:.4f}")
-
-        self.losses["test_loss"].append(test_loss)
-
-        self.save_model(optimizer, self.losses, outdir=outdir, best=False, timestamp=self.timestamp)
+        
+        # Save test loss and model
+        losses["test_loss"].append(test_loss)
+        self.save_model(optimizer_ali, losses, outdir=outdir, best=False, timestamp=self.timestamp)
+        
+        # Load the best model
         self.load_model(os.path.join(outdir, f"best_model_{self.timestamp}.pth"))
+
 
     def load_model(self, loadpath):
         """Load model.
@@ -454,6 +580,7 @@ class net(nn.Module):
         Args:
             loadpath: directory with models to load best model, or specific model path
         """
+        
         checkpoint = torch.load(
             loadpath, map_location=torch.device("cuda" if torch.cuda.is_available() else "cpu")
         )
@@ -466,6 +593,7 @@ class net(nn.Module):
 
     def save_model(self, optimizer, losses, outdir=None, best=False, timestamp=""):
         """Save model."""
+        
         if outdir is None:
             outdir = "./outputs/"
 
@@ -497,82 +625,66 @@ class net(nn.Module):
         return outdir
 
 
-class loss_fun(nn.Module):
-    """Loss function."""
+class RepresentationLossFun(nn.Module):
+    """Loss function measuring the representation quality."""
     
     def __init__(self):
         super().__init__()
-
         self.kl_loss = nn.KLDivLoss(reduction="batchmean", log_target=True)
 
-    def forward(self, out, mask=None, n_target=None, slices=None):
-        """forward."""
+    def forward(self, out, epoch, w=None, mask=None, n_target=None, slices=None):
+        
+        # Loss measuring the similarity of embedded latent features that were adjacent in data space
         z, z_pos, z_neg = out.split(out.size(0) // 3, dim=0)
         pos_loss = F.logsigmoid((z * z_pos).sum(-1)).mean()  # pylint: disable=not-callable
         neg_loss = F.logsigmoid(-(z * z_neg).sum(-1)).mean()  # pylint: disable=not-callable
         
         unsupervised_loss = -pos_loss - neg_loss
 
+        # Loss ensuring that specific points defined by mask are embedded close in latent space
         coagulation_loss = 0.0
-        # if mask is not None:
-        #     z_mask = out[mask]
-        #     coagulation_loss = (z_mask - z_mask.mean(dim=0)).norm(dim=1).sum()
+        if mask is not None:
+            z_mask = out[mask]
+            coagulation_loss = (z_mask - z_mask.mean(dim=0)).norm(dim=1).sum()
             
-        # coagulation_loss = torch.sigmoid(coagulation_loss) - 0.5
+        coagulation_loss = torch.sigmoid(coagulation_loss) - 0.5
             
-        distr = []
-        slices_batch = [0]
-        for i in range(len(slices)-1):
-            idx = (n_target>=slices[i]) & (n_target<slices[i+1])
-            if int(idx.sum()) == 0.0:
-                return 0 #sometimes no sample is drawn from a dataset - in this case return 0 loss
+        return unsupervised_loss + coagulation_loss
+    
+    
+class AlignmentLossFun(nn.Module):
+    """Loss function measuring the alignment between datasets."""
+    
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, out, epoch, w, mask=None, n_target=None, slices=None):       
+        distr, slices_batch, bins = [], [0], []
+        n_datasets = len(slices) - 1
+                
+        for i in range(n_datasets):
+            idx = (n_target >= slices[i]) & (n_target < slices[i + 1])
+            n = int(idx.sum())
+            if n == 0:
+                # Return 0 loss if no sample is drawn from a dataset
+                return torch.tensor(0.0, requires_grad=True)
             
-            slices_batch.append(int(idx.sum()) + slices_batch[-1])
+            slices_batch.append(n + slices_batch[-1])
             distr.append(out[idx].unsqueeze(0))
             
-            # distr.append(out[idx].mean(0))
-            
+            bin_size = slices_batch[i + 1] - slices_batch[i]
+            bins.append(torch.ones(bin_size) / bin_size)
+                        
         distr_all = torch.cat(distr, axis=1)
         
-        #cluster embeddings
-        # n_clusters = 20
-        # model = SoftKMeans(n_clusters=n_clusters, verbose=False)
-        # cluster = model(distr_all)
-        # cluster_probs = cluster.soft_assignment.squeeze()
-        # centers = cluster.centers
-        
-        bins = []
-        for i in range(len(slices_batch)-1):
-        #     labels_c = cluster_probs[slices_batch[i]:slices_batch[i+1]]
-        #     empirical_dist = torch.mean(labels_c, dim=0)
-        #     empirical_dist /= empirical_dist.sum()
-        #     bins.append(empirical_dist)
-            mu = torch.ones(slices_batch[i+1]-slices_batch[i])
-            mu /= mu.numel()
-            bins.append(mu)
-        
-        # cdists = torch.squeeze(torch.cdist(centers, centers))
         cdists =  torch.squeeze(torch.cdist(distr_all, distr_all))
-        # test=0
-        # if test:
-        #     from MARBLE.postprocessing import embed_in_2D
-        #     import matplotlib.pyplot as plt
-        #     data_2d = embed_in_2D(distr_all.squeeze().detach()).emb_2D
-        #     plt.figure()
-        #     for i in range(len(slices_batch)-1):
-        #         data_2d_slice = data_2d[slices_batch[i]:slices_batch[i+1]]
-        #         plt.scatter(data_2d_slice[:,0], data_2d_slice[:,1], alpha=0.3)
         
         alignment_loss = 0.0
-        for i in range(len(distr)-1):
-            for j in range(i+1,len(distr)):
-                # input = F.log_softmax(bins[i], dim=0)
-                # target = F.log_softmax(bins[j], dim=0)
-                # input = bins[i].log()
-                # target = bins[j].log()
-                # alignment_loss += self.kl_loss(input, target)
-                dists = cdists[slices_batch[i]:slices_batch[i+1], slices_batch[j]:slices_batch[j+1]]
+        for i in range(n_datasets-1):
+            for j in range(i+1, n_datasets):
+                dists = cdists[slices_batch[i]:slices_batch[i+1], 
+                               slices_batch[j]:slices_batch[j+1]]
                 alignment_loss += ot.emd2(bins[i], bins[j], dists)
-                
-        unsupervised_loss = 0
-        return unsupervised_loss + coagulation_loss + alignment_loss
+        
+        return alignment_loss
+ 

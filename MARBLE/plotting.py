@@ -268,7 +268,12 @@ def embedding(
 
     if dim == 2:
         if hasattr(data, "clusters") and clusters_visible:
-            voronoi(data.clusters, ax)
+            if data.clusters['centroids'].shape[1]>2:
+                print('The cluster centroids are not 2D. Make sure \
+                       you run embed_in_2D(data) after clustering to\
+                       be able to plot a Voronoi of clusters')
+            else:
+                voronoi(data.clusters, ax)
 
     if titles is not None:
         ax.legend(loc="upper right")

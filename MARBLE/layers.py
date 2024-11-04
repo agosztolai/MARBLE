@@ -3,8 +3,8 @@
 import torch
 from torch import nn
 from torch_geometric.nn.conv import MessagePassing
-from torch_geometric.nn import GATConv
 import torch.nn.functional as F
+import torch.nn.utils.parametrizations as param
 
 from MARBLE import smoothing as s
 
@@ -38,20 +38,81 @@ class Diffusion(nn.Module):
         return out
     
     
-class GAT(torch.nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels, heads):
-        super().__init__()
-        self.conv1 = GATConv(in_channels, hidden_channels, heads, dropout=0.6)
-        # On the Pubmed dataset, use `heads` output heads in `conv2`.
-        self.conv2 = GATConv(hidden_channels * heads, out_channels, heads=1,
-                             concat=False, dropout=0.6)
+class ParametrizedRotation(nn.Module):
+    def __init__(self):
+        super(ParametrizedRotation, self).__init__()
+        # Define the single tunable parameter: the rotation angle (theta)
+        self.theta = nn.Parameter(torch.tensor(0.0))  # Initial value of the angle
 
+    def forward(self, x):
+        # Construct the 2D rotation matrix using the tunable theta
+        cos_theta = torch.cos(self.theta)
+        sin_theta = torch.sin(self.theta)
+        rotation_matrix = torch.stack([
+            torch.stack([cos_theta, -sin_theta]),
+            torch.stack([sin_theta,  cos_theta])
+        ])
+        
+        # Apply the rotation matrix to the input
+        rotated_x = torch.matmul(x, rotation_matrix)
+        
+        return rotated_x
+    
+    
+class SOTransformation(nn.Module):
+    def __init__(self, n):
+        super(SOTransformation, self).__init__()
+        # Initialize an identity matrix and use orthogonal parametrization
+        self.matrix = nn.Parameter(torch.eye(n))
+
+    def forward(self, x):
+        # Perform QR decomposition to get an orthogonal matrix
+        Q, R = torch.linalg.qr(self.matrix)
+
+        # Ensure matrix is orthogonal by making diagonal of R positive
+        diag_sign = torch.sign(torch.diag(R))
+        Q = Q * diag_sign  # Adjust signs of Q
+
+        # Check the determinant and flip one column if determinant is -1
+        det = torch.det(Q)
+        if det < 0:
+            Q[:, 0] *= -1  # Flip the sign of the first column
+
+        return torch.matmul(x, Q)
+    
+    
+    
+# class GAT(torch.nn.Module):
+#     def __init__(self, in_channels, hidden_channels, out_channels, heads):
+#         super().__init__()
+#         self.conv1 = GATConv(in_channels, hidden_channels, heads, dropout=0.6)
+#         # On the Pubmed dataset, use `heads` output heads in `conv2`.
+#         self.conv2 = GATConv(hidden_channels * heads, out_channels, heads=1,
+#                              concat=False, dropout=0.6)
+
+#     def forward(self, x, edge_index):
+#         x = F.dropout(x, p=0.6, training=self.training)
+#         x = F.elu(self.conv1(x, edge_index))
+#         x = F.dropout(x, p=0.6, training=self.training)
+#         x = self.conv2(x, edge_index)
+#         return x
+    
+class GCN(MessagePassing):
+    def __init__(self):
+        super(GCN, self).__init__(aggr='mean')  # 'mean' aggregation
+    
     def forward(self, x, edge_index):
-        x = F.dropout(x, p=0.6, training=self.training)
-        x = F.elu(self.conv1(x, edge_index))
-        x = F.dropout(x, p=0.6, training=self.training)
-        x = self.conv2(x, edge_index)
-        return x
+        # Compute normalization coefficients (optional)
+        return self.propagate(edge_index, x=x)
+
+    def message(self, x_j):
+        # x_j corresponds to the neighbors' features
+        return x_j
+
+    def update(self, aggr_out):
+        # Return the aggregated features
+        return aggr_out
+
 
 
 class AnisoConv(MessagePassing):
@@ -62,7 +123,7 @@ class AnisoConv(MessagePassing):
         super().__init__(aggr="add", **kwargs)
 
     def forward(self, x, kernels):
-        """Forward."""
+        """Forward pass."""
         out = []
         for K in kernels:
             out.append(self.propagate(K, x=x))
@@ -92,7 +153,7 @@ class AnisoConv(MessagePassing):
 
 
 class InnerProductFeatures(nn.Module):
-    r"""Compute scaled inner-products between channel vectors.
+    """Compute scaled inner-products between channel vectors.
 
     Input: (V x C*D) vector of (V x n_i) list of vectors with \sum_in_i = C*D
     Output: (VxC) dot products
